@@ -1,0 +1,31 @@
+# Target directories
+/target/
+/pkg/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.node_modules
+
+# Rust build files that we don't need to track
+**/target/
+Cargo.lock
+
+# Ignore the WASM build artifacts if they're regenerated often
+pkg/
