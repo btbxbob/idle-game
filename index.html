@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="An idle game built with Rust and WebAssembly">
+    <title>Rust WASM Idle Game</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <header>
+            <h1>Rust WASM Idle Game</h1>
+            <p>Click to earn coins and buy upgrades!</p>
+        </header>
+        
+        <main>
+            <div id="resource-panel">
+                <div id="resources">
+                    <div class="resource-item">
+                        <span id="coins">Coins: 0</span>
+                    </div>
+                    <div class="resource-item">
+                        <span id="cps">Coins/sec: 0</span>
+                    </div>
+                    <div class="resource-item">
+                        <span id="cpc">Coins/click: 1</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="main-area">
+                <div id="click-area" class="clickable">
+                    <div id="coin-display">0</div>
+                    <p>Click to earn coins</p>
+                </div>
+            </div>
+            
+            <div id="upgrades">
+                <h3>Upgrades</h3>
+                <div id="upgrade-list"></div>
+            </div>
+            
+            <div id="buildings">
+                <h3>Buildings</h3>
+                <div id="building-list"></div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Idle Game Framework built with Rust and WebAssembly</p>
+        </footer>
+    </div>
+    
+    <!-- 注意：在构建后此脚本将被替换为实际的WASM绑定 -->
+    <script src="js/bootstrap.js"></script>
+</body>
+</html>
