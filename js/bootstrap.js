@@ -12,6 +12,10 @@ async function initWasm() {
         window.rustGame = game;
         window.gameInitialized = true;
         
+        if (game && typeof game.update_ui === 'function') {
+            game.update_ui();
+        }
+        
         console.log('Idle game initialized successfully!');
         
         // 启动游戏主循环

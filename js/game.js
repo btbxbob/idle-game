@@ -45,7 +45,7 @@ window.updateUpgradeButtons = function(upgrades) {
                     <span>Cost: ${Math.floor(upgrade.cost)}</span>
                     <button id="buy-upgrade-${index}" 
                             onclick="window.buyUpgrade(${index})"
-                            ${!window.gameInitialized || upgrade.unlocked ? '' : 'disabled'}>
+                            ${!window.gameInitialized ? 'disabled' : ''}>
                         Buy
                     </button>
                 </div>
