@@ -211,44 +211,49 @@ impl IdleGame {
 
     #[wasm_bindgen]
     pub fn update_ui(&self) {
-        let window = web_sys::window().expect("should have a window in this context");
+        let window = match web_sys::window() {
+            Some(win) => win,
+            None => return,
+        };
         let global_obj = window.as_ref();
 
         let coins_val = self.get_coins();
         let coins_per_sec = self.get_coins_per_second();
         let coins_per_click = self.get_coins_per_click();
 
-        let update_resource_display: js_sys::Function =
-            js_sys::Reflect::get(global_obj, &"updateResourceDisplay".into())
-                .unwrap()
-                .into();
-
-        update_resource_display
-            .call3(
+        let update_resource_display_result =
+            js_sys::Reflect::get(global_obj, &"updateResourceDisplay".into());
+        if let Ok(update_func) = update_resource_display_result {
+            let update_resource_display: js_sys::Function = update_func.into();
+            let _ = update_resource_display.call3(
                 &JsValue::NULL,
                 &coins_val.into(),
                 &coins_per_sec.into(),
                 &coins_per_click.into(),
-            )
-            .unwrap();
+            );
+        }
 
-        let upgrades_serialized = serde_wasm_bindgen::to_value(&self.upgrades).unwrap();
-        let update_upgrades: js_sys::Function =
-            js_sys::Reflect::get(global_obj, &"updateUpgradeButtons".into())
-                .unwrap()
-                .into();
-        update_upgrades
-            .call1(&JsValue::NULL, &upgrades_serialized)
-            .unwrap();
+        let upgrades_serialized = match serde_wasm_bindgen::to_value(&self.upgrades) {
+            Ok(val) => val,
+            Err(_) => return,
+        };
+        let update_upgrades_result =
+            js_sys::Reflect::get(global_obj, &"updateUpgradeButtons".into());
+        if let Ok(update_func) = update_upgrades_result {
+            let update_upgrades: js_sys::Function = update_func.into();
+            let _ = update_upgrades.call1(&JsValue::NULL, &upgrades_serialized);
+        }
 
-        let buildings_serialized = serde_wasm_bindgen::to_value(&self.buildings).unwrap();
-        let update_buildings: js_sys::Function =
-            js_sys::Reflect::get(global_obj, &"updateBuildingDisplay".into())
-                .unwrap()
-                .into();
-        update_buildings
-            .call1(&JsValue::NULL, &buildings_serialized)
-            .unwrap();
+        let buildings_serialized = match serde_wasm_bindgen::to_value(&self.buildings) {
+            Ok(val) => val,
+            Err(_) => return,
+        };
+        let update_buildings_result =
+            js_sys::Reflect::get(global_obj, &"updateBuildingDisplay".into());
+        if let Ok(update_func) = update_buildings_result {
+            let update_buildings: js_sys::Function = update_func.into();
+            let _ = update_buildings.call1(&JsValue::NULL, &buildings_serialized);
+        }
     }
 }
 
