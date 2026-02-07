@@ -261,3 +261,203 @@ impl IdleGame {
 pub fn init_game() -> IdleGame {
     IdleGame::new()
 }
+
+#[cfg(test)]
+pub struct TestGameState {
+    coins: f64,
+    coins_per_click: f64,
+    coins_per_second: f64,
+    total_clicks: u32,
+    upgrades: Vec<Upgrade>,
+    buildings: Vec<Building>,
+}
+
+#[cfg(test)]
+impl TestGameState {
+    pub fn new() -> Self {
+        TestGameState {
+            coins: 0.0,
+            coins_per_click: 1.0,
+            coins_per_second: 0.0,
+            total_clicks: 0,
+            upgrades: vec![
+                Upgrade {
+                    name: "Better Click".to_string(),
+                    cost: 10.0,
+                    production_increase: 1.0,
+                    owned: 0,
+                    unlocked: true,
+                },
+                Upgrade {
+                    name: "Autoclicker Lv1".to_string(),
+                    cost: 50.0,
+                    production_increase: 1.0,
+                    owned: 0,
+                    unlocked: true,
+                },
+            ],
+            buildings: vec![
+                Building {
+                    name: "Coin Mine".to_string(),
+                    cost: 15.0,
+                    production_rate: 0.1,
+                    count: 0,
+                },
+                Building {
+                    name: "Coin Factory".to_string(),
+                    cost: 100.0,
+                    production_rate: 1.0,
+                    count: 0,
+                },
+                Building {
+                    name: "Coin Corporation".to_string(),
+                    cost: 500.0,
+                    production_rate: 5.0,
+                    count: 0,
+                },
+            ],
+        }
+    }
+
+    pub fn click_action(&mut self) {
+        self.coins += self.coins_per_click;
+        self.total_clicks += 1;
+    }
+
+    pub fn buy_upgrade(&mut self, index: usize) -> bool {
+        if index >= self.upgrades.len() {
+            return false;
+        }
+
+        let upgrade_cost = self.upgrades[index].cost;
+
+        if self.coins >= upgrade_cost {
+            self.coins -= upgrade_cost;
+
+            if self.upgrades[index].name == "Better Click" {
+                self.coins_per_click += self.upgrades[index].production_increase;
+            } else if self.upgrades[index].name.starts_with("Autoclicker") {
+                self.coins_per_second += self.upgrades[index].production_increase;
+            }
+
+            self.upgrades[index].owned += 1;
+            self.upgrades[index].cost *= 1.5;
+
+            self.update_production();
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn buy_building(&mut self, index: usize) -> bool {
+        if index >= self.buildings.len() {
+            return false;
+        }
+
+        let building_cost = self.buildings[index].cost;
+
+        if self.coins >= building_cost {
+            self.coins -= building_cost;
+            self.buildings[index].count += 1;
+            self.buildings[index].cost *= 1.15;
+            self.update_production();
+            true
+        } else {
+            false
+        }
+    }
+
+    fn update_production(&mut self) {
+        let mut total_cps = 0.0;
+
+        for building in &self.buildings {
+            total_cps += building.production_rate * building.count as f64;
+        }
+
+        for upgrade in &self.upgrades {
+            if upgrade.name.starts_with("Autoclicker") {
+                total_cps += upgrade.production_increase * upgrade.owned as f64;
+            }
+        }
+
+        self.coins_per_second = total_cps;
+    }
+
+    pub fn get_coins(&self) -> f64 {
+        self.coins
+    }
+
+    pub fn get_coins_per_second(&self) -> f64 {
+        self.coins_per_second
+    }
+
+    pub fn get_coins_per_click(&self) -> f64 {
+        self.coins_per_click
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_initial_state() {
+        let game = TestGameState::new();
+        assert_eq!(game.get_coins(), 0.0);
+        assert_eq!(game.get_coins_per_click(), 1.0);
+        assert_eq!(game.get_coins_per_second(), 0.0);
+    }
+
+    #[test]
+    fn test_click_action() {
+        let mut game = TestGameState::new();
+        game.click_action();
+        assert_eq!(game.get_coins(), 1.0);
+
+        game.click_action();
+        game.click_action();
+        assert_eq!(game.get_coins(), 3.0);
+    }
+
+    #[test]
+    fn test_buy_upgrade() {
+        let mut game = TestGameState::new();
+
+        assert_eq!(game.buy_upgrade(0), false);
+        assert_eq!(game.get_coins(), 0.0);
+
+        game.coins = 15.0;
+
+        assert_eq!(game.buy_upgrade(0), true);
+        assert_eq!(game.get_coins(), 5.0);
+        assert_eq!(game.get_coins_per_click(), 2.0);
+    }
+
+    #[test]
+    fn test_buy_building() {
+        let mut game = TestGameState::new();
+
+        assert_eq!(game.buy_building(0), false);
+        assert_eq!(game.get_coins(), 0.0);
+
+        game.coins = 20.0;
+
+        assert_eq!(game.buy_building(0), true);
+        assert_eq!(game.get_coins(), 5.0);
+        assert_eq!(game.buildings[0].count, 1);
+        assert_eq!(game.get_coins_per_second(), 0.1);
+    }
+
+    #[test]
+    fn test_update_production() {
+        let mut game = TestGameState::new();
+
+        game.coins = 700.0;
+        game.buy_building(0);
+        game.buy_building(1);
+        game.buy_building(2);
+
+        assert_eq!(game.get_coins_per_second(), 6.1);
+    }
+}
