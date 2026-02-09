@@ -177,6 +177,21 @@ button:disabled {
     cursor: not-allowed;
 }
 
+button.purchase-failed {
+    animation: shake 0.3s ease-in-out, flash-red 0.3s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+@keyframes flash-red {
+    0%, 100% { background-color: #f1c40f; }
+    50% { background-color: #e74c3c; }
+}
+
 h3 {
     color: #f1c40f;
     margin-bottom: 10px;

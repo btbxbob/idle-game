@@ -8,8 +8,8 @@ if %ERRORLEVEL% neq 0 (
     cargo install wasm-pack
 )
 
-REM 构建项目
-wasm-pack build --target web --out-dir pkg
+REM 构建项目（debug模式）
+wasm-pack build --target web --out-dir pkg --dev
 
 if %ERRORLEVEL% equ 0 (
     echo Build successful!

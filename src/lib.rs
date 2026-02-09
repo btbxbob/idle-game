@@ -96,7 +96,8 @@ impl IdleGame {
         state.coins += state.coins_per_click;
         state.total_clicks += 1;
         drop(state);
-        self.update_ui();
+        // Only update resources for click action - no need to refresh buttons
+        self.update_resources_only();
     }
 
     #[wasm_bindgen]
@@ -123,9 +124,11 @@ impl IdleGame {
             drop(state);
 
             self.update_production();
-            self.update_ui();
+            self.update_resources_only();
+            self.update_upgrades_only();
             true
         } else {
+            self.update_resources_only();
             false
         }
     }
@@ -145,9 +148,11 @@ impl IdleGame {
             self.buildings[index].cost *= 1.15;
             drop(state);
             self.update_production();
-            self.update_ui();
+            self.update_resources_only();
+            self.update_buildings_only();
             true
         } else {
+            self.update_resources_only();
             false
         }
     }
@@ -207,6 +212,71 @@ impl IdleGame {
         }
 
         self.update_ui();
+    }
+
+    #[wasm_bindgen]
+    pub fn update_resources_only(&self) {
+        let window = match web_sys::window() {
+            Some(win) => win,
+            None => return,
+        };
+        let global_obj = window.as_ref();
+
+        let coins_val = self.get_coins();
+        let coins_per_sec = self.get_coins_per_second();
+        let coins_per_click = self.get_coins_per_click();
+
+        let update_resource_display_result =
+            js_sys::Reflect::get(global_obj, &"updateResourceDisplay".into());
+        if let Ok(update_func) = update_resource_display_result {
+            let update_resource_display: js_sys::Function = update_func.into();
+            let _ = update_resource_display.call3(
+                &JsValue::NULL,
+                &coins_val.into(),
+                &coins_per_sec.into(),
+                &coins_per_click.into(),
+            );
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn update_upgrades_only(&self) {
+        let window = match web_sys::window() {
+            Some(win) => win,
+            None => return,
+        };
+        let global_obj = window.as_ref();
+
+        let upgrades_serialized = match serde_wasm_bindgen::to_value(&self.upgrades) {
+            Ok(val) => val,
+            Err(_) => return,
+        };
+        let update_upgrades_result =
+            js_sys::Reflect::get(global_obj, &"updateUpgradeButtons".into());
+        if let Ok(update_func) = update_upgrades_result {
+            let update_upgrades: js_sys::Function = update_func.into();
+            let _ = update_upgrades.call1(&JsValue::NULL, &upgrades_serialized);
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn update_buildings_only(&self) {
+        let window = match web_sys::window() {
+            Some(win) => win,
+            None => return,
+        };
+        let global_obj = window.as_ref();
+
+        let buildings_serialized = match serde_wasm_bindgen::to_value(&self.buildings) {
+            Ok(val) => val,
+            Err(_) => return,
+        };
+        let update_buildings_result =
+            js_sys::Reflect::get(global_obj, &"updateBuildingDisplay".into());
+        if let Ok(update_func) = update_buildings_result {
+            let update_buildings: js_sys::Function = update_func.into();
+            let _ = update_buildings.call1(&JsValue::NULL, &buildings_serialized);
+        }
     }
 
     #[wasm_bindgen]

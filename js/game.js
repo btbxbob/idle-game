@@ -86,13 +86,33 @@ window.updateBuildingDisplay = function(buildings) {
 // Functions called from UI to communicate with Rust/WASM
 window.buyUpgrade = function(index) {
     if (window.rustGame && typeof window.rustGame.buy_upgrade === 'function') {
-        window.rustGame.buy_upgrade(index);
+        const success = window.rustGame.buy_upgrade(index);
+        if (!success) {
+            // Provide visual feedback for failed purchase
+            const button = document.getElementById(`buy-upgrade-${index}`);
+            if (button) {
+                button.classList.add('purchase-failed');
+                setTimeout(() => {
+                    button.classList.remove('purchase-failed');
+                }, 300);
+            }
+        }
     }
 };
 
 window.buyBuilding = function(index) {
     if (window.rustGame && typeof window.rustGame.buy_building === 'function') {
-        window.rustGame.buy_building(index);
+        const success = window.rustGame.buy_building(index);
+        if (!success) {
+            // Provide visual feedback for failed purchase
+            const button = document.getElementById(`buy-building-${index}`);
+            if (button) {
+                button.classList.add('purchase-failed');
+                setTimeout(() => {
+                    button.classList.remove('purchase-failed');
+                }, 300);
+            }
+        }
     }
 };
 

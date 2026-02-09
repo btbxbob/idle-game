@@ -9,7 +9,7 @@ import socketserver
 import os
 import sys
 
-PORT = 8000
+PORT = 8080
 DIRECTORY = "."
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -27,7 +27,7 @@ def main():
     os.chdir(os.path.dirname(__file__))
     
     print(f"Starting server at http://localhost:{PORT}")
-    print("Navigate to http://localhost:8000 to play the game")
+    print("Navigate to http://localhost:8080 to play the game")
     
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         try:

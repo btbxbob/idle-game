@@ -9,8 +9,8 @@ if ! command -v wasm-pack &> /dev/null; then
     cargo install wasm-pack
 fi
 
-# 构建项目
-wasm-pack build --target web --out-dir pkg
+# 构建项目（debug模式）
+wasm-pack build --target web --out-dir pkg --dev
 
 if [ $? -eq 0 ]; then
     echo "Build successful!"
