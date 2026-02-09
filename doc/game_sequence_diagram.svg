@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <style>
+    .actor { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+    .lifeline { stroke: #333; stroke-width: 2; }
+    .activation { fill: #e6f3ff; stroke: #333; stroke-width: 1; }
+    .message { font-family: Arial, sans-serif; font-size: 12px; fill: #333; }
+    .arrow { stroke: #333; stroke-width: 2; marker-end: url(#arrowhead); }
+    .dashed-arrow { stroke: #333; stroke-width: 2; stroke-dasharray: 5,5; marker-end: url(#arrowhead); }
+    .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; text-anchor: middle; }
+  </style>
+  
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="600" y="30" class="title">Rust WASM Idle Game Sequence Diagram</text>
+  
+  <!-- Actors -->
+  <text x="100" y="60" class="actor">User</text>
+  <text x="300" y="60" class="actor">HTML/CSS</text>
+  <text x="500" y="60" class="actor">JavaScript (game.js)</text>
+  <text x="750" y="60" class="actor">JavaScript (bootstrap.js)</text>
+  <text x="1000" y="60" class="actor">Rust WASM</text>
+  
+  <!-- Lifelines -->
+  <line x1="100" y1="70" x2="100" y2="750" class="lifeline" />
+  <line x1="300" y1="70" x2="300" y2="750" class="lifeline" />
+  <line x1="500" y1="70" x2="500" y2="750" class="lifeline" />
+  <line x1="750" y1="70" x2="750" y2="750" class="lifeline" />
+  <line x1="1000" y1="70" x2="1000" y2="750" class="lifeline" />
+  
+  <!-- Initial Page Load -->
+  <rect x="95" y="80" width="10" height="40" class="activation" />
+  <rect x="295" y="80" width="10" height="40" class="activation" />
+  <rect x="495" y="80" width="10" height="40" class="activation" />
+  <rect x="745" y="80" width="10" height="40" class="activation" />
+  
+  <text x="120" y="95" class="message">DOMContentLoaded</text>
+  <line x1="100" y1="100" x2="300" y2="100" class="arrow" />
+  
+  <!-- Bootstrap.js Initialization -->
+  <rect x="745" y="120" width="10" height="120" class="activation" />
+  
+  <text x="320" y="135" class="message">Load bootstrap.js</text>
+  <line x1="300" y1="140" x2="750" y2="140" class="arrow" />
+  
+  <text x="770" y="155" class="message">initWasm()</text>
+  <line x1="750" y1="160" x2="1000" y2="160" class="arrow" />
+  
+  <text x="1020" y="175" class="message">Load WASM module</text>
+  <line x1="1000" y1="180" x2="750" y2="180" class="dashed-arrow" />
+  
+  <text x="770" y="195" class="message">init_game()</text>
+  <line x1="750" y1="200" x2="1000" y2="200" class="arrow" />
+  
+  <text x="1020" y="215" class="message">IdleGame::new()</text>
+  <line x1="1000" y1="220" x2="750" y2="220" class="dashed-arrow" />
+  
+  <text x="770" y="235" class="message">Set window.rustGame</text>
+  <line x1="750" y1="240" x2="500" y2="240" class="arrow" />
+  
+  <text x="770" y="255" class="message">Set gameInitialized = true</text>
+  <line x1="750" y1="260" x2="500" y2="260" class="arrow" />
+  
+  <text x="770" y="275" class="message">Initial update_ui()</text>
+  <line x1="750" y1="280" x2="1000" y2="280" class="arrow" />
+  
+  <text x="1020" y="295" class="message">updateResourceDisplay()</text>
+  <line x1="1000" y1="300" x2="500" y2="300" class="dashed-arrow" />
+  
+  <text x="1020" y="315" class="message">updateUpgradeButtons()</text>
+  <line x1="1000" y1="320" x2="500" y2="320" class="dashed-arrow" />
+  
+  <text x="1020" y="335" class="message">updateBuildingDisplay()</text>
+  <line x1="1000" y1="340" x2="500" y2="340" class="dashed-arrow" />
+  
+  <text x="770" y="355" class="message">Start game loop</text>
+  <line x1="750" y1="360" x2="750" y2="380" class="arrow" />
+  
+  <!-- Game Loop -->
+  <rect x="745" y="380" width="10" height="80" class="activation" />
+  <rect x="995" y="380" width="10" height="80" class="activation" />
+  
+  <text x="770" y="395" class="message">setInterval(100ms)</text>
+  <line x1="750" y1="400" x2="1000" y2="400" class="arrow" />
+  
+  <text x="1020" y="415" class="message">game_loop()</text>
+  <line x1="1000" y1="420" x2="1000" y2="440" class="arrow" />
+  
+  <text x="1020" y="435" class="message">update_ui()</text>
+  <line x1="1000" y1="440" x2="500" y2="440" class="dashed-arrow" />
+  
+  <!-- User Interaction - Click -->
+  <rect x="95" y="460" width="10" height="120" class="activation" />
+  <rect x="295" y="460" width="10" height="120" class="activation" />
+  <rect x="495" y="460" width="10" height="120" class="activation" />
+  <rect x="995" y="460" width="10" height="120" class="activation" />
+  
+  <text x="120" y="475" class="message">Click #click-area</text>
+  <line x1="100" y1="480" x2="300" y2="480" class="arrow" />
+  
+  <text x="320" y="495" class="message">click event handler</text>
+  <line x1="300" y1="500" x2="500" y2="500" class="arrow" />
+  
+  <text x="520" y="515" class="message">rustGame.click_action()</text>
+  <line x1="500" y1="520" x2="1000" y2="520" class="arrow" />
+  
+  <text x="1020" y="535" class="message">click_action()</text>
+  <line x1="1000" y1="540" x2="1000" y2="560" class="arrow" />
+  
+  <text x="1020" y="555" class="message">update_ui()</text>
+  <line x1="1000" y1="560" x2="500" y2="560" class="dashed-arrow" />
+  
+  <!-- User Interaction - Buy Upgrade -->
+  <rect x="95" y="580" width="10" height="120" class="activation" />
+  <rect x="295" y="580" width="10" height="120" class="activation" />
+  <rect x="495" y="580" width="10" height="120" class="activation" />
+  <rect x="995" y="580" width="10" height="120" class="activation" />
+  
+  <text x="120" y="595" class="message">Click buy-upgrade</text>
+  <line x1="100" y1="600" x2="300" y2="600" class="arrow" />
+  
+  <text x="320" y="615" class="message">onclick handler</text>
+  <line x1="300" y1="620" x2="500" y2="620" class="arrow" />
+  
+  <text x="520" y="635" class="message">buyUpgrade(index)</text>
+  <line x1="500" y1="640" x2="1000" y2="640" class="arrow" />
+  
+  <text x="1020" y="655" class="message">buy_upgrade(index)</text>
+  <line x1="1000" y1="660" x2="1000" y2="680" class="arrow" />
+  
+  <text x="1020" y="675" class="message">update_ui()</text>
+  <line x1="1000" y1="680" x2="500" y2="680" class="dashed-arrow" />
+  
+  <!-- User Interaction - Buy Building -->
+  <rect x="95" y="700" width="10" height="120" class="activation" />
+  <rect x="295" y="700" width="10" height="120" class="activation" />
+  <rect x="495" y="700" width="10" height="120" class="activation" />
+  <rect x="995" y="700" width="10" height="120" class="activation" />
+  
+  <text x="120" y="715" class="message">Click buy-building</text>
+  <line x1="100" y1="720" x2="300" y2="720" class="arrow" />
+  
+  <text x="320" y="735" class="message">onclick handler</text>
+  <line x1="300" y1="740" x2="500" y2="740" class="arrow" />
+  
+  <text x="520" y="755" class="message">buyBuilding(index)</text>
+  <line x1="500" y1="760" x2="1000" y2="760" class="arrow" />
+  
+  <text x="1020" y="775" class="message">buy_building(index)</text>
+  <line x1="1000" y1="780" x2="1000" y2="800" class="arrow" />
+  
+  <text x="1020" y="795" class="message">update_ui()</text>
+  <line x1="1000" y1="800" x2="500" y2="800" class="dashed-arrow" />
+  
+</svg>
