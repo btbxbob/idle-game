@@ -129,6 +129,8 @@ impl IdleGame {
             self.update_upgrades_only();
             true
         } else {
+            // Drop the borrow before calling update_resources_only
+            drop(state);
             self.update_resources_only();
             false
         }
@@ -154,6 +156,8 @@ impl IdleGame {
             self.update_buildings_only();
             true
         } else {
+            // Drop the borrow before calling update_resources_only
+            drop(state);
             self.update_resources_only();
             false
         }
