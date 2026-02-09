@@ -109,7 +109,8 @@ impl IdleGame {
         let upgrade_cost = self.upgrades[index].cost;
         let mut state = self.state.borrow_mut();
 
-        if state.coins >= upgrade_cost {
+        // Use epsilon for floating point comparison
+        if state.coins + 1e-10 >= upgrade_cost {
             state.coins -= upgrade_cost;
 
             if self.upgrades[index].name == "Better Click" {
@@ -142,7 +143,8 @@ impl IdleGame {
         let building_cost = self.buildings[index].cost;
         let mut state = self.state.borrow_mut();
 
-        if state.coins >= building_cost {
+        // Use epsilon for floating point comparison
+        if state.coins + 1e-10 >= building_cost {
             state.coins -= building_cost;
             self.buildings[index].count += 1;
             self.buildings[index].cost *= 1.15;
@@ -211,7 +213,8 @@ impl IdleGame {
             state.last_update_time = new_last_update_time;
         }
 
-        self.update_ui();
+        // Only update resources in game loop, not buttons
+        self.update_resources_only();
     }
 
     #[wasm_bindgen]
