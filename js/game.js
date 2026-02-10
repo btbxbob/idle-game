@@ -68,10 +68,13 @@ window.updateUpgradeButtons = function(upgrades) {
             const buyText = window.i18n ? window.i18n.t('buy') : 'Buy';
             const perBuildingText = window.i18n ? window.i18n.t('perBuilding') : '/sec per building';
             
+            // Fix: use production_increase instead of productionIncrease (serde uses snake_case)
+            const productionIncrease = upgrade.production_increase || upgrade.productionIncrease || 0;
+            
             upgradeDiv.innerHTML = `
                 <div>
                     <strong>${upgrade.name}</strong><br>
-                    <small>+${upgrade.productionIncrease}${perBuildingText}</small>
+                    <small>+${productionIncrease}${perBuildingText}</small>
                 </div>
                 <div>
                     <span>${costText}: ${Math.floor(upgrade.cost)}</span>
@@ -102,10 +105,13 @@ window.updateBuildingDisplay = function(buildings) {
             const buyText = window.i18n ? window.i18n.t('buy') : 'Buy';
             const perSecondText = window.i18n ? window.i18n.t('perSecond') : '/sec';
             
+            // Fix: use production_rate instead of productionRate (serde uses snake_case)
+            const productionRate = building.production_rate || building.productionRate || 0;
+            
             buildingDiv.innerHTML = `
                 <div>
                     <strong>${building.name}</strong><br>
-                    <small>${building.productionRate}${perSecondText}</small>
+                    <small>${productionRate}${perSecondText}</small>
                 </div>
                 <div>
                     ${ownedText}: ${building.count}<br>

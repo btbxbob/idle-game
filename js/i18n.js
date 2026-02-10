@@ -131,6 +131,16 @@ class I18n {
         
         // Update click rate display
         this.updateClickElement('cpc', 'coins', coinsPerClick);
+        
+        // Update middle coin display
+        this.updateCoinDisplay('coin-display', coins);
+    }
+    
+    updateCoinDisplay(elementId, amount) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = Math.floor(amount).toString();
+        }
     }
     
     updateResourceElement(elementId, resourceKey, amount) {
