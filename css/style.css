@@ -132,17 +132,21 @@ header h1 {
     gap: 20px;
 }
 
-/* Resources tab layout */
-#tab-resources {
-    display: grid;
+/* Resources tab active state */
+#tab-resources.active {
+    display: grid !important;
     grid-template-columns: 1fr 2fr;
     gap: 20px;
 }
 
-/* Other tabs layout */
+/* Resources tab layout - remove display property */
+#tab-resources {
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+}
+
+/* Other tabs layout - remove display property */
 #tab-upgrades, #tab-buildings, #tab-workers, #tab-settings {
-    display: flex;
-    flex-direction: column;
     align-items: center;
 }
 
