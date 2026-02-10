@@ -75,16 +75,75 @@ header h1 {
     letter-spacing: 2px;
 }
 
-main {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    gap: 20px;
-    padding: 20px;
+/* Tab Navigation */
+#tab-navigation {
+    display: flex;
+    background-color: #ffffff;
+    border-bottom: 2px solid #000000;
+    padding: 0;
+}
+
+.tab-button {
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    border-bottom: none;
+    border-radius: 0;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    transition: all 0.1s ease;
+    margin-right: -2px; /* Remove border overlap */
+}
+
+.tab-button:hover {
+    background-color: #f0f0f0;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+.tab-button.active {
+    background-color: #000000;
+    color: #ffffff;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+/* Main Content with Tabs */
+#main-content {
+    display: flex;
+    flex-direction: column;
     flex-grow: 1;
     overflow-y: auto;
-    /* ASCII terminal background */
     background-color: #f8f8f8;
     border: 1px solid #000000;
+    padding: 20px;
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Resources tab layout */
+#tab-resources {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+}
+
+/* Other tabs layout */
+#tab-upgrades, #tab-buildings, #tab-workers, #tab-settings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #resource-panel {
@@ -185,21 +244,23 @@ footer {
     font-family: 'Courier New', monospace;
 }
 
-#upgrades, #buildings {
+#upgrades, #buildings, #workers, #settings {
     background-color: #ffffff;
     padding: 15px;
     border: 2px solid #000000;
     border-radius: 0;
+    width: 100%;
+    max-width: 600px;
 }
 
-#upgrade-list, #building-list {
+#upgrade-list, #building-list, #worker-list, #settings-content {
     margin-top: 15px;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.upgrade-item, .building-item {
+.upgrade-item, .building-item, .worker-item, .setting-item {
     background-color: #ffffff;
     padding: 10px;
     border: 1px solid #000000;
@@ -212,7 +273,18 @@ footer {
     font-size: 12px;
 }
 
-.upgrade-item button, .building-item button {
+.setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.setting-item label, .setting-item select, .setting-item button {
+    width: 100%;
+    max-width: 300px;
+}
+
+.upgrade-item button, .building-item button, .worker-item button, .setting-item button {
     background-color: #000000;
     color: #ffffff;
     border: 2px solid #000000;
@@ -224,13 +296,15 @@ footer {
     transition: all 0.1s ease;
 }
 
-.upgrade-item button:hover:not(:disabled), .building-item button:hover:not(:disabled) {
+.upgrade-item button:hover:not(:disabled), .building-item button:hover:not(:disabled), 
+.worker-item button:hover:not(:disabled), .setting-item button:hover:not(:disabled) {
     background-color: #333333;
     transform: translate(2px, 2px);
     box-shadow: 2px 2px 0px #000000;
 }
 
-.upgrade-item button:disabled, .building-item button:disabled {
+.upgrade-item button:disabled, .building-item button:disabled, 
+.worker-item button:disabled, .setting-item button:disabled {
     background-color: #cccccc;
     color: #666666;
     cursor: not-allowed;
@@ -294,8 +368,13 @@ h3 {
     font-family: 'Courier New', monospace;
 }
 
-.upgrade-item::before, .building-item::before {
+.upgrade-item::before, .building-item::before, .worker-item::before {
     content: "■ ";
+    font-family: 'Courier New', monospace;
+}
+
+.setting-item::before {
+    content: "⚙ ";
     font-family: 'Courier New', monospace;
 }
 
@@ -320,17 +399,17 @@ h3 {
 }
 
 @media (max-width: 768px) {
-    main {
+    #tab-resources {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto;
-    }
-    
-    #upgrades, #buildings {
-        order: 3;
     }
     
     /* Mobile ASCII style */
     body {
         background-size: 10px 10px;
+    }
+    
+    .tab-button {
+        padding: 10px 15px;
+        font-size: 12px;
     }
 }

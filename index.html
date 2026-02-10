@@ -21,48 +21,99 @@
             </div>
         </header>
         
-        <main>
-            <div id="resource-panel">
-                <div id="resources">
-                    <div class="resource-item">
-                        <span id="coins">金币: 0</span>
+        <!-- Tab Navigation -->
+        <div id="tab-navigation">
+            <button class="tab-button active" data-tab="resources">资源</button>
+            <button class="tab-button" data-tab="upgrades">升级</button>
+            <button class="tab-button" data-tab="buildings">建筑</button>
+            <button class="tab-button" data-tab="workers">工人</button>
+            <button class="tab-button" data-tab="settings">设置</button>
+        </div>
+        
+        <!-- Main Content Area with Tabs -->
+        <main id="main-content">
+            <!-- Resources Tab -->
+            <div id="tab-resources" class="tab-content active">
+                <div id="resource-panel">
+                    <div id="resources">
+                        <div class="resource-item">
+                            <span id="coins">金币: 0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span id="wood">木头: 0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span id="stone">石头: 0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span id="cps">金币/秒: 0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span id="wps">木头/秒: 0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span id="sps">石头/秒: 0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span id="cpc">金币/点击: 1</span>
+                        </div>
                     </div>
-                    <div class="resource-item">
-                        <span id="wood">木头: 0</span>
-                    </div>
-                    <div class="resource-item">
-                        <span id="stone">石头: 0</span>
-                    </div>
-                    <div class="resource-item">
-                        <span id="cps">金币/秒: 0</span>
-                    </div>
-                    <div class="resource-item">
-                        <span id="wps">木头/秒: 0</span>
-                    </div>
-                    <div class="resource-item">
-                        <span id="sps">石头/秒: 0</span>
-                    </div>
-                    <div class="resource-item">
-                        <span id="cpc">金币/点击: 1</span>
+                </div>
+                
+                <div id="main-area">
+                    <div id="click-area" class="clickable">
+                        <div id="coin-display">0</div>
+                        <p id="click-to-earn-coins">点击赚取金币</p>
                     </div>
                 </div>
             </div>
             
-            <div id="main-area">
-                <div id="click-area" class="clickable">
-                    <div id="coin-display">0</div>
-                    <p id="click-to-earn-coins">点击赚取金币</p>
+            <!-- Upgrades Tab -->
+            <div id="tab-upgrades" class="tab-content">
+                <div id="upgrades">
+                    <h3 id="upgrades-header">升级</h3>
+                    <div id="upgrade-list"></div>
                 </div>
             </div>
             
-            <div id="upgrades">
-                <h3 id="upgrades-header">升级</h3>
-                <div id="upgrade-list"></div>
+            <!-- Buildings Tab -->
+            <div id="tab-buildings" class="tab-content">
+                <div id="buildings">
+                    <h3 id="buildings-header">建筑</h3>
+                    <div id="building-list"></div>
+                </div>
             </div>
             
-            <div id="buildings">
-                <h3 id="buildings-header">建筑</h3>
-                <div id="building-list"></div>
+            <!-- Workers Tab -->
+            <div id="tab-workers" class="tab-content">
+                <div id="workers">
+                    <h3 id="workers-header">工人</h3>
+                    <div id="worker-list">
+                        <p id="workers-placeholder">工人系统将在未来版本中实现</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content">
+                <div id="settings">
+                    <h3 id="settings-header">设置</h3>
+                    <div id="settings-content">
+                        <div class="setting-item">
+                            <label for="language-select-setting">语言 / Language:</label>
+                            <select id="language-select-setting">
+                                <option value="zh-CN">简体中文</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>游戏版本: v0.2.3</label>
+                        </div>
+                        <div class="setting-item">
+                            <button id="reset-game">重置游戏</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
         
@@ -76,9 +127,28 @@
     <script src="js/game.js"></script>
     <script src="js/bootstrap.js"></script>
     
-    <!-- Language switcher script -->
+    <!-- Tab navigation script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Tab navigation
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked button and corresponding content
+                    this.classList.add('active');
+                    document.getElementById(`tab-${tabName}`).classList.add('active');
+                });
+            });
+            
+            // Language selector in header
             const languageSelect = document.getElementById('language-select');
             if (languageSelect) {
                 languageSelect.addEventListener('change', function() {
@@ -88,6 +158,32 @@
                         window.i18n.updateAllTranslations();
                         // Update HTML lang attribute
                         document.documentElement.lang = selectedLanguage;
+                    }
+                });
+            }
+            
+            // Language selector in settings
+            const languageSelectSetting = document.getElementById('language-select-setting');
+            if (languageSelectSetting) {
+                languageSelectSetting.addEventListener('change', function() {
+                    const selectedLanguage = this.value;
+                    if (window.i18n) {
+                        window.i18n.setLanguage(selectedLanguage);
+                        window.i18n.updateAllTranslations();
+                        // Update both language selectors
+                        document.getElementById('language-select').value = selectedLanguage;
+                        document.documentElement.lang = selectedLanguage;
+                    }
+                });
+            }
+            
+            // Reset game button
+            const resetButton = document.getElementById('reset-game');
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    if (confirm('确定要重置游戏吗？所有进度将丢失！')) {
+                        // Reload the page to reset the game
+                        location.reload();
                     }
                 });
             }
