@@ -5,9 +5,13 @@
 window.gameInitialized = false;
 
 // Function that will be called from Rust/WASM to update UI
-window.updateResourceDisplay = function(coins, coinsPerSecond, coinsPerClick) {
+window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, woodPerSecond, stonePerSecond, coinsPerClick) {
     const coinsElement = document.getElementById('coins');
+    const woodElement = document.getElementById('wood');
+    const stoneElement = document.getElementById('stone');
     const cpsElement = document.getElementById('cps');
+    const wpsElement = document.getElementById('wps');
+    const spsElement = document.getElementById('sps');
     const cpcElement = document.getElementById('cpc');
     const coinDisplay = document.getElementById('coin-display');
     
@@ -15,8 +19,24 @@ window.updateResourceDisplay = function(coins, coinsPerSecond, coinsPerClick) {
         coinsElement.textContent = `Coins: ${Math.floor(coins)}`;
     }
     
+    if (woodElement) {
+        woodElement.textContent = `Wood: ${Math.floor(wood)}`;
+    }
+    
+    if (stoneElement) {
+        stoneElement.textContent = `Stone: ${Math.floor(stone)}`;
+    }
+    
     if (cpsElement) {
         cpsElement.textContent = `Coins/sec: ${coinsPerSecond.toFixed(1)}`;
+    }
+    
+    if (wpsElement) {
+        wpsElement.textContent = `Wood/sec: ${woodPerSecond.toFixed(1)}`;
+    }
+    
+    if (spsElement) {
+        spsElement.textContent = `Stone/sec: ${stonePerSecond.toFixed(1)}`;
     }
     
     if (cpcElement) {

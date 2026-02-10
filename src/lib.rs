@@ -7,8 +7,12 @@ use wasm_bindgen::prelude::*;
 #[derive(Serialize, Deserialize)]
 struct GameState {
     coins: f64,
+    wood: f64,
+    stone: f64,
     coins_per_click: f64,
     coins_per_second: f64,
+    wood_per_second: f64,
+    stone_per_second: f64,
     total_clicks: u32,
     last_update_time: f64,
 }
@@ -30,11 +34,22 @@ struct Building {
     count: u32,
 }
 
+#[derive(Serialize, Deserialize)]
+struct Worker {
+    name: String,
+    skills: String,      // Reserved for future use
+    background: String,  // Reserved for future use
+    preferences: String, // Reserved for future use
+    assigned_building: Option<String>,
+    level: u32,
+}
+
 #[wasm_bindgen]
 pub struct IdleGame {
     state: Rc<RefCell<GameState>>,
     upgrades: Vec<Upgrade>,
     buildings: Vec<Building>,
+    workers: Vec<Worker>,
 }
 
 #[wasm_bindgen]
@@ -46,8 +61,12 @@ impl IdleGame {
         IdleGame {
             state: Rc::new(RefCell::new(GameState {
                 coins: 0.0,
+                wood: 0.0,
+                stone: 0.0,
                 coins_per_click: 1.0,
                 coins_per_second: 0.0,
+                wood_per_second: 0.0,
+                stone_per_second: 0.0,
                 total_clicks: 0,
                 last_update_time: now,
             })),
@@ -63,6 +82,20 @@ impl IdleGame {
                     name: "Autoclicker Lv1".to_string(),
                     cost: 50.0,
                     production_increase: 1.0,
+                    owned: 0,
+                    unlocked: true,
+                },
+                Upgrade {
+                    name: "Lumberjack Efficiency".to_string(),
+                    cost: 20.0,
+                    production_increase: 0.2,
+                    owned: 0,
+                    unlocked: true,
+                },
+                Upgrade {
+                    name: "Stone Mason Skill".to_string(),
+                    cost: 25.0,
+                    production_increase: 0.3,
                     owned: 0,
                     unlocked: true,
                 },
@@ -86,7 +119,51 @@ impl IdleGame {
                     production_rate: 5.0,
                     count: 0,
                 },
+                Building {
+                    name: "Woodcutter".to_string(),
+                    cost: 20.0,
+                    production_rate: 0.2,
+                    count: 0,
+                },
+                Building {
+                    name: "Lumber Mill".to_string(),
+                    cost: 80.0,
+                    production_rate: 1.5,
+                    count: 0,
+                },
+                Building {
+                    name: "Forest Workshop".to_string(),
+                    cost: 400.0,
+                    production_rate: 4.0,
+                    count: 0,
+                },
+                Building {
+                    name: "Stone Quarry".to_string(),
+                    cost: 25.0,
+                    production_rate: 0.15,
+                    count: 0,
+                },
+                Building {
+                    name: "Rock Crusher".to_string(),
+                    cost: 90.0,
+                    production_rate: 1.2,
+                    count: 0,
+                },
+                Building {
+                    name: "Mason Workshop".to_string(),
+                    cost: 450.0,
+                    production_rate: 4.5,
+                    count: 0,
+                },
             ],
+            workers: vec![Worker {
+                name: "Worker 1".to_string(),
+                skills: "".to_string(),
+                background: "".to_string(),
+                preferences: "".to_string(),
+                assigned_building: None,
+                level: 1,
+            }],
         }
     }
 
@@ -117,6 +194,10 @@ impl IdleGame {
                 state.coins_per_click += self.upgrades[index].production_increase;
             } else if self.upgrades[index].name.starts_with("Autoclicker") {
                 state.coins_per_second += self.upgrades[index].production_increase;
+            } else if self.upgrades[index].name == "Lumberjack Efficiency" {
+                // This upgrade will be applied to wood production in update_production
+            } else if self.upgrades[index].name == "Stone Mason Skill" {
+                // This upgrade will be applied to stone production in update_production
             }
 
             self.upgrades[index].owned += 1;
@@ -169,8 +250,28 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn get_wood(&self) -> f64 {
+        self.state.borrow().wood
+    }
+
+    #[wasm_bindgen]
+    pub fn get_stone(&self) -> f64 {
+        self.state.borrow().stone
+    }
+
+    #[wasm_bindgen]
     pub fn get_coins_per_second(&self) -> f64 {
         self.state.borrow().coins_per_second
+    }
+
+    #[wasm_bindgen]
+    pub fn get_wood_per_second(&self) -> f64 {
+        self.state.borrow().wood_per_second
+    }
+
+    #[wasm_bindgen]
+    pub fn get_stone_per_second(&self) -> f64 {
+        self.state.borrow().stone_per_second
     }
 
     #[wasm_bindgen]
@@ -180,40 +281,65 @@ impl IdleGame {
 
     fn update_production(&mut self) {
         let mut total_cps = 0.0;
+        let mut total_wps = 0.0;
+        let mut total_sps = 0.0;
 
         for building in &self.buildings {
-            total_cps += building.production_rate * building.count as f64;
+            match building.name.as_str() {
+                "Coin Mine" | "Coin Factory" | "Coin Corporation" => {
+                    total_cps += building.production_rate * building.count as f64;
+                }
+                "Woodcutter" | "Lumber Mill" | "Forest Workshop" => {
+                    total_wps += building.production_rate * building.count as f64;
+                }
+                "Stone Quarry" | "Rock Crusher" | "Mason Workshop" => {
+                    total_sps += building.production_rate * building.count as f64;
+                }
+                _ => {} // Unknown building type
+            }
         }
 
         for upgrade in &self.upgrades {
             if upgrade.name.starts_with("Autoclicker") {
                 total_cps += upgrade.production_increase * upgrade.owned as f64;
             }
+            if upgrade.name == "Lumberjack Efficiency" {
+                total_wps += upgrade.production_increase * upgrade.owned as f64;
+            }
+            if upgrade.name == "Stone Mason Skill" {
+                total_sps += upgrade.production_increase * upgrade.owned as f64;
+            }
         }
 
         let mut state = self.state.borrow_mut();
         state.coins_per_second = total_cps;
+        state.wood_per_second = total_wps;
+        state.stone_per_second = total_sps;
     }
 
     #[wasm_bindgen]
     pub fn game_loop(&mut self) {
         let now = Date::now();
 
-        let (new_coins, new_last_update_time) = {
+        let (new_coins, new_wood, new_stone, new_last_update_time) = {
             let state = self.state.borrow();
             let elapsed = (now - state.last_update_time) / 1000.0;
 
             if elapsed > 0.0 {
                 let new_coins = state.coins + state.coins_per_second * elapsed;
-                (new_coins, now)
+                let new_wood = state.wood + state.wood_per_second * elapsed;
+                let new_stone = state.stone + state.stone_per_second * elapsed;
+                (new_coins, new_wood, new_stone, now)
             } else {
-                (state.coins, state.last_update_time)
+                (state.coins, state.wood, state.stone, state.last_update_time)
             }
         };
 
         {
             let mut state = self.state.borrow_mut();
             state.coins = new_coins;
+            state.wood = new_wood;
+            state.stone = new_stone;
             state.last_update_time = new_last_update_time;
         }
 
@@ -230,17 +356,25 @@ impl IdleGame {
         let global_obj = window.as_ref();
 
         let coins_val = self.get_coins();
+        let wood_val = self.get_wood();
+        let stone_val = self.get_stone();
         let coins_per_sec = self.get_coins_per_second();
+        let wood_per_sec = self.get_wood_per_second();
+        let stone_per_sec = self.get_stone_per_second();
         let coins_per_click = self.get_coins_per_click();
 
         let update_resource_display_result =
             js_sys::Reflect::get(global_obj, &"updateResourceDisplay".into());
         if let Ok(update_func) = update_resource_display_result {
             let update_resource_display: js_sys::Function = update_func.into();
-            let _ = update_resource_display.call3(
+            let _ = update_resource_display.call7(
                 &JsValue::NULL,
                 &coins_val.into(),
+                &wood_val.into(),
+                &stone_val.into(),
                 &coins_per_sec.into(),
+                &wood_per_sec.into(),
+                &stone_per_sec.into(),
                 &coins_per_click.into(),
             );
         }
@@ -342,8 +476,12 @@ pub fn init_game() -> IdleGame {
 #[cfg(test)]
 pub struct TestGameState {
     coins: f64,
+    wood: f64,
+    stone: f64,
     coins_per_click: f64,
     coins_per_second: f64,
+    wood_per_second: f64,
+    stone_per_second: f64,
     total_clicks: u32,
     upgrades: Vec<Upgrade>,
     buildings: Vec<Building>,
@@ -354,8 +492,12 @@ impl TestGameState {
     pub fn new() -> Self {
         TestGameState {
             coins: 0.0,
+            wood: 0.0,
+            stone: 0.0,
             coins_per_click: 1.0,
             coins_per_second: 0.0,
+            wood_per_second: 0.0,
+            stone_per_second: 0.0,
             total_clicks: 0,
             upgrades: vec![
                 Upgrade {
@@ -369,6 +511,20 @@ impl TestGameState {
                     name: "Autoclicker Lv1".to_string(),
                     cost: 50.0,
                     production_increase: 1.0,
+                    owned: 0,
+                    unlocked: true,
+                },
+                Upgrade {
+                    name: "Lumberjack Efficiency".to_string(),
+                    cost: 20.0,
+                    production_increase: 0.2,
+                    owned: 0,
+                    unlocked: true,
+                },
+                Upgrade {
+                    name: "Stone Mason Skill".to_string(),
+                    cost: 25.0,
+                    production_increase: 0.3,
                     owned: 0,
                     unlocked: true,
                 },
@@ -390,6 +546,42 @@ impl TestGameState {
                     name: "Coin Corporation".to_string(),
                     cost: 500.0,
                     production_rate: 5.0,
+                    count: 0,
+                },
+                Building {
+                    name: "Woodcutter".to_string(),
+                    cost: 20.0,
+                    production_rate: 0.2,
+                    count: 0,
+                },
+                Building {
+                    name: "Lumber Mill".to_string(),
+                    cost: 80.0,
+                    production_rate: 1.5,
+                    count: 0,
+                },
+                Building {
+                    name: "Forest Workshop".to_string(),
+                    cost: 400.0,
+                    production_rate: 4.0,
+                    count: 0,
+                },
+                Building {
+                    name: "Stone Quarry".to_string(),
+                    cost: 25.0,
+                    production_rate: 0.15,
+                    count: 0,
+                },
+                Building {
+                    name: "Rock Crusher".to_string(),
+                    cost: 90.0,
+                    production_rate: 1.2,
+                    count: 0,
+                },
+                Building {
+                    name: "Mason Workshop".to_string(),
+                    cost: 450.0,
+                    production_rate: 4.5,
                     count: 0,
                 },
             ],
@@ -447,26 +639,63 @@ impl TestGameState {
 
     fn update_production(&mut self) {
         let mut total_cps = 0.0;
+        let mut total_wps = 0.0;
+        let mut total_sps = 0.0;
 
         for building in &self.buildings {
-            total_cps += building.production_rate * building.count as f64;
+            match building.name.as_str() {
+                "Coin Mine" | "Coin Factory" | "Coin Corporation" => {
+                    total_cps += building.production_rate * building.count as f64;
+                }
+                "Woodcutter" | "Lumber Mill" | "Forest Workshop" => {
+                    total_wps += building.production_rate * building.count as f64;
+                }
+                "Stone Quarry" | "Rock Crusher" | "Mason Workshop" => {
+                    total_sps += building.production_rate * building.count as f64;
+                }
+                _ => {} // Unknown building type
+            }
         }
 
         for upgrade in &self.upgrades {
             if upgrade.name.starts_with("Autoclicker") {
                 total_cps += upgrade.production_increase * upgrade.owned as f64;
             }
+            if upgrade.name == "Lumberjack Efficiency" {
+                total_wps += upgrade.production_increase * upgrade.owned as f64;
+            }
+            if upgrade.name == "Stone Mason Skill" {
+                total_sps += upgrade.production_increase * upgrade.owned as f64;
+            }
         }
 
         self.coins_per_second = total_cps;
+        self.wood_per_second = total_wps;
+        self.stone_per_second = total_sps;
     }
 
     pub fn get_coins(&self) -> f64 {
         self.coins
     }
 
+    pub fn get_wood(&self) -> f64 {
+        self.wood
+    }
+
+    pub fn get_stone(&self) -> f64 {
+        self.stone
+    }
+
     pub fn get_coins_per_second(&self) -> f64 {
         self.coins_per_second
+    }
+
+    pub fn get_wood_per_second(&self) -> f64 {
+        self.wood_per_second
+    }
+
+    pub fn get_stone_per_second(&self) -> f64 {
+        self.stone_per_second
     }
 
     pub fn get_coins_per_click(&self) -> f64 {
@@ -482,8 +711,12 @@ mod tests {
     fn test_initial_state() {
         let game = TestGameState::new();
         assert_eq!(game.get_coins(), 0.0);
+        assert_eq!(game.get_wood(), 0.0);
+        assert_eq!(game.get_stone(), 0.0);
         assert_eq!(game.get_coins_per_click(), 1.0);
         assert_eq!(game.get_coins_per_second(), 0.0);
+        assert_eq!(game.get_wood_per_second(), 0.0);
+        assert_eq!(game.get_stone_per_second(), 0.0);
     }
 
     #[test]
@@ -530,11 +763,28 @@ mod tests {
     fn test_update_production() {
         let mut game = TestGameState::new();
 
+        // Test coins production
         game.coins = 700.0;
-        game.buy_building(0);
-        game.buy_building(1);
-        game.buy_building(2);
+        game.buy_building(0); // Coin Mine
+        game.buy_building(1); // Coin Factory
+        game.buy_building(2); // Coin Corporation
 
         assert_eq!(game.get_coins_per_second(), 6.1);
+
+        // Test wood production
+        game.coins = 500.0; // Use coins to buy buildings, not wood
+        game.buy_building(3); // Woodcutter
+        game.buy_building(4); // Lumber Mill
+        game.buy_building(5); // Forest Workshop
+
+        assert_eq!(game.get_wood_per_second(), 5.7);
+
+        // Test stone production
+        game.coins = 600.0; // Use coins to buy buildings, not stone
+        game.buy_building(6); // Stone Quarry
+        game.buy_building(7); // Rock Crusher
+        game.buy_building(8); // Mason Workshop
+
+        assert_eq!(game.get_stone_per_second(), 5.85);
     }
 }
