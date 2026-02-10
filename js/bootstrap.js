@@ -16,6 +16,11 @@ async function initWasm() {
             game.update_ui();
         }
         
+        // 更新i18n翻译（如果存在）
+        if (window.i18n) {
+            window.i18n.updateAllTranslations();
+        }
+        
         console.log('Idle game initialized successfully!');
         
         // 启动游戏主循环

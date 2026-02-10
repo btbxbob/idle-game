@@ -6,45 +6,51 @@ window.gameInitialized = false;
 
 // Function that will be called from Rust/WASM to update UI
 window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, woodPerSecond, stonePerSecond, coinsPerClick) {
-    const coinsElement = document.getElementById('coins');
-    const woodElement = document.getElementById('wood');
-    const stoneElement = document.getElementById('stone');
-    const cpsElement = document.getElementById('cps');
-    const wpsElement = document.getElementById('wps');
-    const spsElement = document.getElementById('sps');
-    const cpcElement = document.getElementById('cpc');
-    const coinDisplay = document.getElementById('coin-display');
-    
-    if (coinsElement) {
-        coinsElement.textContent = `Coins: ${Math.floor(coins)}`;
-    }
-    
-    if (woodElement) {
-        woodElement.textContent = `Wood: ${Math.floor(wood)}`;
-    }
-    
-    if (stoneElement) {
-        stoneElement.textContent = `Stone: ${Math.floor(stone)}`;
-    }
-    
-    if (cpsElement) {
-        cpsElement.textContent = `Coins/sec: ${coinsPerSecond.toFixed(1)}`;
-    }
-    
-    if (wpsElement) {
-        wpsElement.textContent = `Wood/sec: ${woodPerSecond.toFixed(1)}`;
-    }
-    
-    if (spsElement) {
-        spsElement.textContent = `Stone/sec: ${stonePerSecond.toFixed(1)}`;
-    }
-    
-    if (cpcElement) {
-        cpcElement.textContent = `Coins/click: ${coinsPerClick.toFixed(1)}`;
-    }
-    
-    if (coinDisplay) {
-        coinDisplay.textContent = `${Math.floor(coins)}`;
+    // Use i18n system to update resource displays
+    if (window.i18n) {
+        window.i18n.updateResourceDisplays(coins, wood, stone, coinsPerSecond, woodPerSecond, stonePerSecond, coinsPerClick);
+    } else {
+        // Fallback to direct updates if i18n is not available
+        const coinsElement = document.getElementById('coins');
+        const woodElement = document.getElementById('wood');
+        const stoneElement = document.getElementById('stone');
+        const cpsElement = document.getElementById('cps');
+        const wpsElement = document.getElementById('wps');
+        const spsElement = document.getElementById('sps');
+        const cpcElement = document.getElementById('cpc');
+        const coinDisplay = document.getElementById('coin-display');
+        
+        if (coinsElement) {
+            coinsElement.textContent = `Coins: ${Math.floor(coins)}`;
+        }
+        
+        if (woodElement) {
+            woodElement.textContent = `Wood: ${Math.floor(wood)}`;
+        }
+        
+        if (stoneElement) {
+            stoneElement.textContent = `Stone: ${Math.floor(stone)}`;
+        }
+        
+        if (cpsElement) {
+            cpsElement.textContent = `Coins/sec: ${coinsPerSecond.toFixed(1)}`;
+        }
+        
+        if (wpsElement) {
+            wpsElement.textContent = `Wood/sec: ${woodPerSecond.toFixed(1)}`;
+        }
+        
+        if (spsElement) {
+            spsElement.textContent = `Stone/sec: ${stonePerSecond.toFixed(1)}`;
+        }
+        
+        if (cpcElement) {
+            cpcElement.textContent = `Coins/click: ${coinsPerClick.toFixed(1)}`;
+        }
+        
+        if (coinDisplay) {
+            coinDisplay.textContent = `${Math.floor(coins)}`;
+        }
     }
 };
 
@@ -56,17 +62,23 @@ window.updateUpgradeButtons = function(upgrades) {
         upgrades.forEach((upgrade, index) => {
             const upgradeDiv = document.createElement('div');
             upgradeDiv.className = 'upgrade-item';
+            
+            // Use i18n for dynamic text
+            const costText = window.i18n ? window.i18n.t('cost') : 'Cost';
+            const buyText = window.i18n ? window.i18n.t('buy') : 'Buy';
+            const perBuildingText = window.i18n ? window.i18n.t('perBuilding') : '/sec per building';
+            
             upgradeDiv.innerHTML = `
                 <div>
                     <strong>${upgrade.name}</strong><br>
-                    <small>+${upgrade.productionIncrease}/sec per building</small>
+                    <small>+${upgrade.productionIncrease}${perBuildingText}</small>
                 </div>
                 <div>
-                    <span>Cost: ${Math.floor(upgrade.cost)}</span>
+                    <span>${costText}: ${Math.floor(upgrade.cost)}</span>
                     <button id="buy-upgrade-${index}" 
                             onclick="window.buyUpgrade(${index})"
                             ${!window.gameInitialized ? 'disabled' : ''}>
-                        Buy
+                        ${buyText}
                     </button>
                 </div>
             `;
@@ -83,18 +95,25 @@ window.updateBuildingDisplay = function(buildings) {
         buildings.forEach((building, index) => {
             const buildingDiv = document.createElement('div');
             buildingDiv.className = 'building-item';
+            
+            // Use i18n for dynamic text
+            const ownedText = window.i18n ? window.i18n.t('owned') : 'Owned';
+            const costText = window.i18n ? window.i18n.t('cost') : 'Cost';
+            const buyText = window.i18n ? window.i18n.t('buy') : 'Buy';
+            const perSecondText = window.i18n ? window.i18n.t('perSecond') : '/sec';
+            
             buildingDiv.innerHTML = `
                 <div>
                     <strong>${building.name}</strong><br>
-                    <small>${building.productionRate}/sec</small>
+                    <small>${building.productionRate}${perSecondText}</small>
                 </div>
                 <div>
-                    Owned: ${building.count}<br>
-                    Cost: ${Math.floor(building.cost)}
+                    ${ownedText}: ${building.count}<br>
+                    ${costText}: ${Math.floor(building.cost)}
                     <button id="buy-building-${index}" 
                             onclick="window.buyBuilding(${index})"
                             ${!window.gameInitialized ? 'disabled' : ''}>
-                        Buy
+                        ${buyText}
                     </button>
                 </div>
             `;
@@ -145,5 +164,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.rustGame.click_action();
             }
         });
+    }
+    
+    // Initialize i18n after DOM is loaded
+    if (window.i18n) {
+        window.i18n.updateAllTranslations();
     }
 });

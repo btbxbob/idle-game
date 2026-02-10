@@ -73,6 +73,7 @@ Since this is a browser-based game, manual testing involves:
 - **Global State**: Minimize global variables; current code uses `window` object for WASM integration
 - **Event Handling**: Use modern event listeners rather than inline handlers when possible
 - **Error Handling**: Check for existence of WASM functions before calling them
+- **Internationalization**: Use the `i18n.js` system for all translatable text
 
 ### HTML/CSS Style
 - **HTML**: Semantic structure, proper accessibility attributes
@@ -87,6 +88,7 @@ idle-game/
 ├── src/              # Rust source code
 │   └── lib.rs        # Main game logic with WASM bindings
 ├── js/               # JavaScript frontend
+│   ├── i18n.js       # Internationalization system (zh-CN, en)
 │   ├── game.js       # UI update functions and event handlers
 │   └── bootstrap.js  # WASM module loading and initialization
 ├── css/              # Stylesheets
@@ -108,7 +110,13 @@ idle-game/
 - UI updates from Rust call back to JavaScript via `window.updateResourceDisplay`, `window.updateUpgradeButtons`, etc.
 - Game state managed in Rust, UI state synchronized via callbacks
 
-### State Management
+### Internationalization (i18n)
+- **Primary language**: Simplified Chinese (zh-CN)
+- **Secondary language**: English (en)
+- **Translation keys**: Use descriptive keys like 'gameTitle', 'clickToEarn', 'coins', etc.
+- **Dynamic text**: All user-facing text should use the i18n system
+- **Language selector**: Available in the header for user switching
+- **Adding new languages**: Add new translation objects to `i18n.js`
 - Single source of truth in Rust `GameState`
 - JavaScript maintains minimal state (mainly DOM references)
 - All game logic happens in Rust, JavaScript handles presentation only
@@ -157,6 +165,7 @@ idle-game/
 - Update UI templates in JavaScript functions
 - Add new styles to `style.css`
 - Update build scripts if new dependencies are added
+- Add new translations to `i18n.js` for any new text
 
 ## Dependencies
 
