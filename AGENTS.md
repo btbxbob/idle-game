@@ -43,6 +43,75 @@ Note: Tests are located in `src/lib.rs` under `#[cfg(test)]` modules. There are 
 - Building purchase logic
 - Production calculation
 
+### Run Playwright E2E Tests
+```bash
+# Run all tests
+npm run test
+# or
+npx playwright test
+
+# Run single test file
+npx playwright test tests/example.test.js
+
+# Run with UI
+npm run test:ui
+
+# Generate HTML report
+npx playwright test --reporter=html
+```
+
+**Playwright Test Configuration:**
+- **Test directory**: `tests/`
+- **File naming**: Must use `*.test.js` suffix to be recognized by Playwright
+- **Framework**: Playwright
+- **Auto server**: Configured to automatically start `python server.py` on http://localhost:8080
+- **Browser support**: Chromium, Firefox, Webkit
+- **CI mode**: Uses `reuseExistingServer: !process.env.CI`
+
+**Current Test Files:**
+- `resource-colors.test.js` - Resource color validation
+- `comprehensive-tab.test.js` - Comprehensive tab functionality
+- `debug-tab.test.js` - Debug tab features
+- `multi-tab.test.js` - Multi-tab switching
+- `visual-style.test.js` - Visual style checks
+- `core-issues-fixed.test.js` - Core issues verification
+- `fix-all-issues.test.js` - All issues fix validation
+- `no-undefined-display.test.js` - Undefined display prevention
+- `click-after-failure.test.js` - Click behavior after failure
+- `resource-update.test.js` - Resource update testing
+- `buy-button.test.js` - Buy button functionality
+
+### Test Writing Guidelines
+
+**Basic Structure:**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('test description', async ({ page }) => {
+  await page.goto('http://localhost:8080');
+  
+  // Wait for game initialization
+  await page.waitForFunction(() => window.gameInitialized === true);
+  
+  // Test assertions
+  const element = page.locator('#some-element');
+  await expect(element).toBeVisible();
+});
+```
+
+**Important Notes:**
+1. **File naming**: Must use `*.test.js` suffix
+2. **Async waiting**: Game initialization must wait for `window.gameInitialized === true`
+3. **URL**: Use relative paths based on configured baseURL
+4. **Element selectors**: Use stable IDs or data attributes
+5. **Chinese text**: Use exact Chinese strings for text matching
+
+**Test Types:**
+- **Function tests**: Verify click, buy features work correctly
+- **Visual tests**: Verify colors, layout, styles
+- **Interaction tests**: Verify tab switching, button interactions
+- **Real-time update tests**: Verify resource number updates in real-time
+
 ### Manual Testing
 Since this is a browser-based game, manual testing involves:
 1. Build the project
@@ -85,22 +154,129 @@ Since this is a browser-based game, manual testing involves:
 ## Project Structure
 ```
 idle-game/
-├── src/              # Rust source code
-│   └── lib.rs        # Main game logic with WASM bindings
-├── js/               # JavaScript frontend
-│   ├── i18n.js       # Internationalization system (zh-CN, en)
-│   ├── game.js       # UI update functions and event handlers
-│   └── bootstrap.js  # WASM module loading and initialization
-├── css/              # Stylesheets
-│   └── style.css     # Main stylesheet
-├── assets/           # Game assets (images, sounds, etc.)
-├── pkg/              # Generated WASM output (git ignored)
-├── target/           # Rust build artifacts (git ignored)
-├── build.bat         # Windows build script
-├── build.sh          # Unix build script
-├── server.py         # Development HTTP server
-└── index.html        # Main HTML entry point
+├── docs/                 # Project documentation
+│   ├── DESIGN.md         # Detailed design documentation
+│   └── DEVELOPMENT_GUIDELINES.md  # Development guidelines
+├── src/                  # Rust source code
+│   └── lib.rs            # Main game logic with WASM bindings
+├── js/                   # JavaScript frontend
+│   ├── i18n.js           # Internationalization system (zh-CN, en)
+│   ├── game.js           # UI update functions and event handlers
+│   └── bootstrap.js      # WASM module loading and initialization
+├── css/                  # Stylesheets
+│   └── style.css         # Main stylesheet
+├── tests/                # Playwright end-to-end tests
+├── assets/               # Game assets (images, sounds, etc.)
+├── pkg/                  # Generated WASM output (git ignored)
+├── target/               # Rust build artifacts (git ignored)
+├── build.bat             # Windows build script
+├── build.sh              # Unix build script
+├── server.py             # Development HTTP server
+├── index.html            # Main HTML entry point
+└── TEST_CASES.md         # Test cases documentation
 ```
+
+## Testing Guidelines
+
+### Playwright Test Framework
+The project uses Playwright for end-to-end testing. All test files are located in the `tests/` directory and must follow the `*.test.js` naming convention.
+
+### Test File Structure
+Each test file should:
+1. Import Playwright test utilities: `const { test, expect } = require('@playwright/test');`
+2. Use `test()` blocks for individual test cases
+3. Wait for game initialization: `await page.waitForFunction(() => window.gameInitialized === true);`
+4. Use stable element selectors (IDs or data attributes preferred)
+5. Handle Chinese text with exact string matching
+
+### Running Tests
+```bash
+# All tests
+npm run test
+
+# Single test file
+npx playwright test tests/resource-colors.test.js
+
+# With UI for debugging
+npm run test:ui
+
+# Generate HTML report
+npx playwright test --reporter=html
+```
+
+### Common Test Patterns
+
+**Resource Validation:**
+```javascript
+const coinValue = await page.textContent('#coin-value');
+expect(parseFloat(coinValue)).toBeGreaterThan(0);
+```
+
+**Button Click & State Change:**
+```javascript
+await page.click('#upgrade-button-0');
+await page.waitForFunction(() => window.rustGame.getCoins() >= 0);
+```
+
+**Visual Style Checks:**
+```javascript
+const element = page.locator('#resource-display');
+const color = await element.evaluate(el => getComputedStyle(el).color);
+expect(color).toBe('rgb(241, 196, 15)'); // Gold color
+```
+
+### Test Coverage
+Current test files cover:
+- Resource color validation
+- Tab switching functionality
+- Visual style consistency
+- Core issue fixes
+- Undefined display prevention
+- Click behavior after failures
+- Real-time resource updates
+- Buy button functionality
+
+### Best Practices
+- Write independent tests (no shared state)
+- Use descriptive test names
+- Test one thing per test case
+- Verify both success and failure cases
+- Include assertions for visual feedback
+- Test across multiple browsers (Chromium, Firefox, Webkit)
+
+### Common Pitfalls
+- **Element not found**: Ensure waiting for game initialization with `page.waitForFunction(() => window.gameInitialized === true)`
+- **Chinese text matching**: Use exact Chinese strings
+- **Style tests**: Use `getComputedStyle` to check rendered colors
+- **Layout tests**: Use `boundingBox` to verify element positions
+
+## Development Tips
+
+### Debugging WASM
+- Use `console.log` in Rust via `web_sys::console::log_1`
+- Enable debug builds with `--dev` flag for better error messages
+- Use browser developer tools to inspect WASM module loading
+
+### Performance Considerations
+- Minimize frequency of UI updates from Rust
+- Batch DOM updates when possible
+- Consider debouncing rapid click events
+- Optimize game loop interval (currently 100ms)
+
+### Testing Best Practices
+- **Single Responsibility**: Each test should focus on one specific feature
+- **Independence**: Tests should not depend on other tests' state
+- **Stability**: Avoid using unstable element selectors
+- **Clear Descriptions**: Test names should clearly describe what's being tested
+
+### Extending the Game
+- Add new game mechanics in Rust `lib.rs`
+- Update UI templates in JavaScript functions
+- Add new styles to `style.css`
+- Update build scripts if new dependencies are added
+- Add new translations to `i18n.js` for any new text
+- Add new tests to `tests/*.test.js` for any new functionality
+- Update `TEST_CASES.md` with test coverage information
 
 ## Key Conventions
 
@@ -166,8 +342,23 @@ idle-game/
 - Add new styles to `style.css`
 - Update build scripts if new dependencies are added
 - Add new translations to `i18n.js` for any new text
+- Add new tests to `tests/*.test.js` for any new functionality
+- Update `TEST_CASES.md` with test coverage information
 
-## Dependencies
+## Testing Best Practices
+
+- **Single Responsibility**: Each test should focus on one specific feature
+- **Independence**: Tests should not depend on other tests' state
+- **Stability**: Avoid using unstable element selectors
+- **Clear Descriptions**: Test names should clearly describe what's being tested
+
+### Common Pitfalls
+- **Element not found**: Ensure waiting for game initialization with `page.waitForFunction(() => window.gameInitialized === true)`
+- **Chinese text matching**: Use exact Chinese strings
+- **Style tests**: Use `getComputedStyle` to check rendered colors
+- **Layout tests**: Use `boundingBox` to verify element positions
+
+## Key Conventions
 
 ### Rust Dependencies
 - `wasm-bindgen`: WASM-JS interop
@@ -180,3 +371,7 @@ idle-game/
 - Rust toolchain (stable)
 - `wasm-pack` (installed automatically by build scripts)
 - Python 3 (for development server)
+
+### Testing Dependencies
+- **Playwright**: End-to-end testing framework
+- **Node.js & npm**: Required for running Playwright tests
