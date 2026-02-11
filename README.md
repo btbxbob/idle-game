@@ -41,6 +41,7 @@
 
 ## 运行游戏
 
+### 本地运行
 构建成功后，使用内置的 Python 服务器运行游戏：
 
 ```bash
@@ -48,6 +49,19 @@ python server.py
 ```
 
 然后在浏览器中打开 `http://localhost:8080` 来玩游戏。
+
+### GitHub Pages 托管
+本项目支持直接发布到 GitHub Pages：
+
+1. 在 GitHub 仓库 Settings > Pages
+2. 选择 Source: GitHub Actions
+3. Push 代码到 master 分支，GitHub Actions 会自动构建并部署
+4. 访问 `https://<your-username>.github.io/<repo-name>/` 即可在线游玩
+
+GitHub Actions 工作流会自动：
+- 使用 Rust 工具链编译 WASM
+- 使用 wasm-pack 构建发布版本
+- 将构建产物部署到 GitHub Pages
 
 ## 项目结构
 
