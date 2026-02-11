@@ -25,11 +25,10 @@ test('building and upgrade displays should not show undefined', async ({ page })
   expect(upgradeList).not.toContain('undefined');
   
   // Verify that production rates are displayed correctly
-  // Building should show something like "0.1/sec" not "undefined/sec"
-  expect(buildingList).toMatch(/\d+(\.\d+)?\/秒/); // Chinese format
-  expect(buildingList).toMatch(/\d+(\.\d+)?\/sec/); // English format
+  expect(buildingList).toMatch(/\d+(\.\d+)?\/秒/);
   
-  // Upgrade should show something like "+1.0/sec per building" not "+1.0undefined per building"
-  expect(upgradeList).toMatch(/\+\d+(\.\d+)?\/秒 每建筑/); // Chinese format
-  expect(upgradeList).toMatch(/\+\d+(\.\d+)?\/sec per building/); // English format
+  expect(upgradeList).toMatch(/Better Click|Lumberjack Efficiency|Stone Mason Skill|Autoclicker/);
+  
+  // Specifically check Autoclicker shows click-based description
+  expect(upgradeList).toContain('金币/点击');
 });

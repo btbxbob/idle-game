@@ -26,7 +26,9 @@ test('core display issues fixed', async ({ page }) => {
   expect(buildingList).not.toContain('undefined');
   expect(upgradeList).not.toContain('undefined');
   
-  // Should contain proper production rates
-  expect(buildingList).toMatch(/\d+(\.\d+)?\/秒/); // Chinese format
-  expect(upgradeList).toMatch(/\+\d+(\.\d+)?\/秒 每建筑/); // Chinese format
+  // Should contain proper production rates for buildings
+  expect(buildingList).toMatch(/\d+(\.\d+)?\/秒/);
+  
+  expect(upgradeList).toContain('Autoclicker');
+  expect(upgradeList).toContain('金币/点击');
 });
