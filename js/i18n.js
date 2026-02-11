@@ -29,6 +29,9 @@ class I18n {
                 'buy': 'Buy',
                 'perBuilding': '/sec per building',
                 'perSecond': '/sec',
+                'perClick': ' coins/click',
+                'woodPerSecondShort': ' wood/sec',
+                'stonePerSecondShort': ' stone/sec',
                 
                 // Resource display format
                 'resourceFormat': '{resource}: {amount}',
@@ -61,6 +64,9 @@ class I18n {
                 'buy': '购买',
                 'perBuilding': '/秒 每建筑',
                 'perSecond': '/秒',
+                'perClick': ' 金币/点击',
+                'woodPerSecondShort': ' 木头/秒',
+                'stonePerSecondShort': ' 石头/秒',
                 
                 // Resource display format
                 'resourceFormat': '{resource}: {amount}',

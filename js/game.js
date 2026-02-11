@@ -66,15 +66,33 @@ window.updateUpgradeButtons = function(upgrades) {
             // Use i18n for dynamic text
             const costText = window.i18n ? window.i18n.t('cost') : 'Cost';
             const buyText = window.i18n ? window.i18n.t('buy') : 'Buy';
-            const perBuildingText = window.i18n ? window.i18n.t('perBuilding') : '/sec per building';
             
             // Fix: use production_increase instead of productionIncrease (serde uses snake_case)
             const productionIncrease = upgrade.production_increase || upgrade.productionIncrease || 0;
             
+            // Determine the correct unit based on upgrade type
+            let unitText = '';
+            if (upgrade.name === 'Better Click' || upgrade.name === '更好的点击') {
+                // Better Click increases coins per click
+                unitText = window.i18n ? window.i18n.t('perClick') : ' coins/click';
+            } else if (upgrade.name.startsWith('Autoclicker') || upgrade.name.startsWith('自动点击器')) {
+                // Autoclicker increases coins per second
+                unitText = window.i18n ? window.i18n.t('perSecond') : '/sec';
+            } else if (upgrade.name === 'Lumberjack Efficiency' || upgrade.name === '伐木工效率') {
+                // Lumberjack Efficiency increases wood per second
+                unitText = window.i18n ? window.i18n.t('woodPerSecondShort') : ' wood/sec';
+            } else if (upgrade.name === 'Stone Mason Skill' || upgrade.name === '石匠技能') {
+                // Stone Mason Skill increases stone per second
+                unitText = window.i18n ? window.i18n.t('stonePerSecondShort') : ' stone/sec';
+            } else {
+                // Default fallback
+                unitText = window.i18n ? window.i18n.t('perSecond') : '/sec';
+            }
+            
             upgradeDiv.innerHTML = `
                 <div>
                     <strong>${upgrade.name}</strong><br>
-                    <small>+${productionIncrease}${perBuildingText}</small>
+                    <small>+${productionIncrease}${unitText}</small>
                 </div>
                 <div>
                     <span>${costText}: ${Math.floor(upgrade.cost)}</span>
