@@ -27,6 +27,7 @@ struct GameState {
     coins_per_second: f64,      // 每秒金币产量
     wood_per_second: f64,       // 每秒木头产量
     stone_per_second: f64,      // 每秒石头产量
+    autoclick_count: u32,       // 自动点击器数量
     total_clicks: u32,          // 总点击次数
     last_update_time: f64,      // 最后更新时间戳
 }
@@ -45,7 +46,7 @@ struct Upgrade {
 
 **当前升级列表**：
 - `Better Click`：提升每次点击收益 (+1.0)
-- `Autoclicker Lv1`：提升金币自动产量 (+1.0/sec)
+- `Autoclicker Lv1`：每次游戏循环自动点击1次，获得与手动点击相同的收益
 - `Lumberjack Efficiency`：提升木头自动产量 (+0.2/sec)
 - `Stone Mason Skill`：提升石头自动产量 (+0.3/sec)
 
@@ -108,7 +109,8 @@ struct Worker {
 1. 游戏循环每100ms执行一次
 2. Rust 计算经过时间：`elapsed = (now - last_update_time) / 1000.0`
 3. 更新各资源：`resource += resource_per_second * elapsed`
-4. Rust 调用 `update_resources_only()` 更新UI
+4. 如果拥有自动点击器，执行自动点击：`coins += coins_per_click * autoclick_count`
+5. Rust 调用 `update_resources_only()` 更新UI
 
 ### 3.4 UI更新策略
 - **增量更新**：避免不必要的DOM重绘
@@ -176,7 +178,8 @@ struct Worker {
 ### 7.2 新建筑/升级添加
 1. 在初始化中添加新项目
 2. 在 `update_production` 中添加效果逻辑
-3. 确保成本和生产率平衡
+3. 对于自动点击器，增加 `autoclick_count` 而非 `coins_per_second`
+4. 确保成本和生产率平衡
 
 ### 7.3 工人系统扩展
 - 当前为预留字段
@@ -223,6 +226,12 @@ struct Worker {
 - 修复undefined显示问题
 - 修复字段名序列化问题
 
+### v0.2.3 - Autoclicker设计优化
+- 修复Autoclicker行为：现在每次游戏循环执行真实点击，获得与手动点击相同的收益
+- 添加`autoclick_count`字段跟踪自动点击器数量
+- 移除Autoclicker对`coins_per_second`的影响
+- 改进：自动点击器现在会受益于Better Click等点击升级
+
 ## 10. 未来规划
 
 ### 10.1 短期计划
@@ -262,6 +271,6 @@ struct Worker {
 
 ---
 
-**最后更新**: 2026-02-10  
-**版本**: v0.2.2  
+**最后更新**: 2026-02-11  
+**版本**: v0.2.3  
 **状态**: 稳定可用

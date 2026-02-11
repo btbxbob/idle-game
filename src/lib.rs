@@ -13,6 +13,7 @@ struct GameState {
     coins_per_second: f64,
     wood_per_second: f64,
     stone_per_second: f64,
+    autoclick_count: u32,
     total_clicks: u32,
     last_update_time: f64,
 }
@@ -67,6 +68,7 @@ impl IdleGame {
                 coins_per_second: 0.0,
                 wood_per_second: 0.0,
                 stone_per_second: 0.0,
+                autoclick_count: 0,
                 total_clicks: 0,
                 last_update_time: now,
             })),
@@ -193,7 +195,9 @@ impl IdleGame {
             if self.upgrades[index].name == "Better Click" {
                 state.coins_per_click += self.upgrades[index].production_increase;
             } else if self.upgrades[index].name.starts_with("Autoclicker") {
-                state.coins_per_second += self.upgrades[index].production_increase;
+                let mut state = self.state.borrow_mut();
+                state.autoclick_count += 1;
+                drop(state);
             } else if self.upgrades[index].name == "Lumberjack Efficiency" {
                 // This upgrade will be applied to wood production in update_production
             } else if self.upgrades[index].name == "Stone Mason Skill" {
@@ -300,9 +304,6 @@ impl IdleGame {
         }
 
         for upgrade in &self.upgrades {
-            if upgrade.name.starts_with("Autoclicker") {
-                total_cps += upgrade.production_increase * upgrade.owned as f64;
-            }
             if upgrade.name == "Lumberjack Efficiency" {
                 total_wps += upgrade.production_increase * upgrade.owned as f64;
             }
@@ -326,9 +327,14 @@ impl IdleGame {
             let elapsed = (now - state.last_update_time) / 1000.0;
 
             if elapsed > 0.0 {
-                let new_coins = state.coins + state.coins_per_second * elapsed;
+                let mut new_coins = state.coins + state.coins_per_second * elapsed;
                 let new_wood = state.wood + state.wood_per_second * elapsed;
                 let new_stone = state.stone + state.stone_per_second * elapsed;
+
+                if state.autoclick_count > 0 {
+                    new_coins += state.coins_per_click * state.autoclick_count as f64;
+                }
+
                 (new_coins, new_wood, new_stone, now)
             } else {
                 (state.coins, state.wood, state.stone, state.last_update_time)
@@ -343,7 +349,6 @@ impl IdleGame {
             state.last_update_time = new_last_update_time;
         }
 
-        // Only update resources in game loop, not buttons
         self.update_resources_only();
     }
 
@@ -482,6 +487,7 @@ pub struct TestGameState {
     coins_per_second: f64,
     wood_per_second: f64,
     stone_per_second: f64,
+    autoclick_count: u32,
     total_clicks: u32,
     upgrades: Vec<Upgrade>,
     buildings: Vec<Building>,
@@ -498,6 +504,7 @@ impl TestGameState {
             coins_per_second: 0.0,
             wood_per_second: 0.0,
             stone_per_second: 0.0,
+            autoclick_count: 0,
             total_clicks: 0,
             upgrades: vec![
                 Upgrade {
@@ -606,7 +613,7 @@ impl TestGameState {
             if self.upgrades[index].name == "Better Click" {
                 self.coins_per_click += self.upgrades[index].production_increase;
             } else if self.upgrades[index].name.starts_with("Autoclicker") {
-                self.coins_per_second += self.upgrades[index].production_increase;
+                self.autoclick_count += 1;
             }
 
             self.upgrades[index].owned += 1;
@@ -658,9 +665,6 @@ impl TestGameState {
         }
 
         for upgrade in &self.upgrades {
-            if upgrade.name.starts_with("Autoclicker") {
-                total_cps += upgrade.production_increase * upgrade.owned as f64;
-            }
             if upgrade.name == "Lumberjack Efficiency" {
                 total_wps += upgrade.production_increase * upgrade.owned as f64;
             }
