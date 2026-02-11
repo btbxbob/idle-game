@@ -37,14 +37,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: |
-            index.html
-            js/
-            css/
-            assets/
-            pkg/
-            LICENSE
-            README.md
+          path: .
 
   deploy:
     needs: build
