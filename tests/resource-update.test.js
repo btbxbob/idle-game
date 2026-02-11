@@ -9,7 +9,7 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   
   // Get initial coins count
   const initialCoins = await page.textContent('#coins');
-  const initialCoinsValue = parseInt(initialCoins.replace('Coins: ', ''));
+  const initialCoinsValue = parseInt(initialCoins.split(': ')[1]);
   
   // Click the middle button to get some coins
   await page.click('#click-area');
@@ -20,7 +20,7 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   await page.waitForFunction(
     (expected) => {
       const coinsText = document.getElementById('coins').textContent;
-      const coinsValue = parseInt(coinsText.replace('Coins: ', ''));
+      const coinsValue = parseInt(coinsText.split(': ')[1]);
       return coinsValue > expected;
     },
     initialCoinsValue
@@ -28,7 +28,7 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   
   // Verify coins increased immediately
   const coinsAfterClicks = await page.textContent('#coins');
-  const coinsAfterClicksValue = parseInt(coinsAfterClicks.replace('Coins: ', ''));
+  const coinsAfterClicksValue = parseInt(coinsAfterClicks.split(': ')[1]);
   expect(coinsAfterClicksValue).toBeGreaterThan(initialCoinsValue);
   
   // Get enough coins for a purchase
@@ -40,14 +40,14 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   await page.waitForFunction(
     (expected) => {
       const coinsText = document.getElementById('coins').textContent;
-      const coinsValue = parseInt(coinsText.replace('Coins: ', ''));
+      const coinsValue = parseInt(coinsText.split(': ')[1]);
       return coinsValue > expected;
     },
     coinsAfterClicksValue
   );
   
   const coinsBeforePurchase = await page.textContent('#coins');
-  const coinsBeforePurchaseValue = parseInt(coinsBeforePurchase.replace('Coins: ', ''));
+  const coinsBeforePurchaseValue = parseInt(coinsBeforePurchase.split(': ')[1]);
   
   // Buy Coin Mine - use different strategy for Webkit
   if (browserName === 'webkit') {
@@ -62,7 +62,7 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   await page.waitForFunction(
     (expected) => {
       const coinsText = document.getElementById('coins').textContent;
-      const coinsValue = parseInt(coinsText.replace('Coins: ', ''));
+      const coinsValue = parseInt(coinsText.split(': ')[1]);
       return coinsValue < expected;
     },
     coinsBeforePurchaseValue
@@ -70,7 +70,7 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   
   // Verify coins decreased immediately after purchase
   const coinsAfterPurchase = await page.textContent('#coins');
-  const coinsAfterPurchaseValue = parseInt(coinsAfterPurchase.replace('Coins: ', ''));
+  const coinsAfterPurchaseValue = parseInt(coinsAfterPurchase.split(': ')[1]);
   expect(coinsAfterPurchaseValue).toBeLessThan(coinsBeforePurchaseValue);
   
   // Verify building was purchased

@@ -142,45 +142,53 @@ class I18n {
         this.updateCoinDisplay('coin-display', coins);
     }
     
-    updateCoinDisplay(elementId, amount) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.textContent = Math.floor(amount).toString();
-        }
-    }
+     updateCoinDisplay(elementId, amount) {
+         const element = document.getElementById(elementId);
+         if (element) {
+             // Ensure amount is a valid finite number before processing
+             const safeAmount = (typeof amount === 'number' && isFinite(amount)) ? amount : 0;
+             element.textContent = Math.floor(safeAmount).toString();
+         }
+     }
     
-    updateResourceElement(elementId, resourceKey, amount) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            const resourceName = this.t(resourceKey);
-            element.textContent = this.t('resourceFormat', { 
-                resource: resourceName, 
-                amount: Math.floor(amount) 
-            });
-        }
-    }
+     updateResourceElement(elementId, resourceKey, amount) {
+         const element = document.getElementById(elementId);
+         if (element) {
+             const resourceName = this.t(resourceKey);
+             // Ensure amount is a valid finite number before processing
+             const safeAmount = (typeof amount === 'number' && isFinite(amount)) ? amount : 0;
+             element.textContent = this.t('resourceFormat', { 
+                 resource: resourceName, 
+                 amount: Math.floor(safeAmount) 
+             });
+         }
+     }
     
-    updateProductionElement(elementId, resourceKey, amount) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            const resourceName = this.t(resourceKey);
-            element.textContent = this.t('productionFormat', { 
-                resource: resourceName, 
-                amount: amount.toFixed(1) 
-            });
-        }
-    }
+     updateProductionElement(elementId, resourceKey, amount) {
+         const element = document.getElementById(elementId);
+         if (element) {
+             const resourceName = this.t(resourceKey);
+             // Ensure amount is a valid finite number before processing
+             const safeAmount = (typeof amount === 'number' && isFinite(amount)) ? amount : 0;
+             element.textContent = this.t('productionFormat', { 
+                 resource: resourceName, 
+                 amount: safeAmount.toFixed(1) 
+             });
+         }
+     }
     
-    updateClickElement(elementId, resourceKey, amount) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            const resourceName = this.t(resourceKey);
-            element.textContent = this.t('clickFormat', { 
-                resource: resourceName, 
-                amount: amount.toFixed(1) 
-            });
-        }
-    }
+     updateClickElement(elementId, resourceKey, amount) {
+         const element = document.getElementById(elementId);
+         if (element) {
+             const resourceName = this.t(resourceKey);
+             // Ensure amount is a valid finite number before processing
+             const safeAmount = (typeof amount === 'number' && isFinite(amount)) ? amount : 0;
+             element.textContent = this.t('clickFormat', { 
+                 resource: resourceName, 
+                 amount: safeAmount.toFixed(1) 
+             });
+         }
+     }
     
     // Get available languages
     getAvailableLanguages() {

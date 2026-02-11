@@ -9,7 +9,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   
   // Get initial coins count
   const initialCoins = await page.textContent('#coins');
-  const initialCoinsValue = parseInt(initialCoins.replace('Coins: ', ''));
+  const initialCoinsValue = parseInt(initialCoins.split(': ')[1]);
   console.log('Initial coins:', initialCoinsValue);
   
   // Click the middle button to get enough coins for both purchases
@@ -23,7 +23,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   
   // Verify coins increased
   const coinsAfterClicks = await page.textContent('#coins');
-  const coinsAfterClicksValue = parseInt(coinsAfterClicks.replace('Coins: ', ''));
+  const coinsAfterClicksValue = parseInt(coinsAfterClicks.split(': ')[1]);
   console.log('Coins after clicks:', coinsAfterClicksValue);
   expect(coinsAfterClicksValue).toBeGreaterThan(initialCoinsValue);
   
@@ -37,7 +37,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   
   // Verify purchase was successful - coins should decrease
   const coinsAfterPurchase = await page.textContent('#coins');
-  const coinsAfterPurchaseValue = parseInt(coinsAfterPurchase.replace('Coins: ', ''));
+  const coinsAfterPurchaseValue = parseInt(coinsAfterPurchase.split(': ')[1]);
   console.log('Coins after Coin Mine purchase:', coinsAfterPurchaseValue);
   expect(coinsAfterPurchaseValue).toBeLessThan(coinsAfterClicksValue);
   
@@ -51,7 +51,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   
   // Get current coins per click
   const cpcTextBefore = await page.textContent('#cpc');
-  const cpcValueBefore = parseFloat(cpcTextBefore.replace('Coins/click: ', ''));
+  const cpcValueBefore = parseFloat(cpcTextBefore.split(': ')[1]);
   console.log('CPC before upgrade:', cpcValueBefore);
   
   await betterClickButton.click();
@@ -61,13 +61,13 @@ test('buy buttons should have real-time response', async ({ page }) => {
   
   // Verify upgrade purchase success
   const coinsAfterUpgrade = await page.textContent('#coins');
-  const coinsAfterUpgradeValue = parseInt(coinsAfterUpgrade.replace('Coins: ', ''));
+  const coinsAfterUpgradeValue = parseInt(coinsAfterUpgrade.split(': ')[1]);
   console.log('Coins after Better Click upgrade:', coinsAfterUpgradeValue);
   expect(coinsAfterUpgradeValue).toBeLessThan(coinsAfterPurchaseValue);
   
   // Verify coins per click increased
   const cpcTextAfter = await page.textContent('#cpc');
-  const cpcValueAfter = parseFloat(cpcTextAfter.replace('Coins/click: ', ''));
+  const cpcValueAfter = parseFloat(cpcTextAfter.split(': ')[1]);
   console.log('CPC after upgrade:', cpcValueAfter);
   expect(cpcValueAfter).toBeGreaterThan(cpcValueBefore);
 });

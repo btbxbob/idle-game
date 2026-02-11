@@ -195,9 +195,7 @@ impl IdleGame {
             if self.upgrades[index].name == "Better Click" {
                 state.coins_per_click += self.upgrades[index].production_increase;
             } else if self.upgrades[index].name.starts_with("Autoclicker") {
-                let mut state = self.state.borrow_mut();
                 state.autoclick_count += 1;
-                drop(state);
             } else if self.upgrades[index].name == "Lumberjack Efficiency" {
                 // This upgrade will be applied to wood production in update_production
             } else if self.upgrades[index].name == "Stone Mason Skill" {
@@ -205,7 +203,7 @@ impl IdleGame {
             }
 
             self.upgrades[index].owned += 1;
-            self.upgrades[index].cost *= 1.5;
+            self.upgrades[index].cost = self.upgrades[index].cost * 1.5;
 
             drop(state);
 
@@ -312,6 +310,23 @@ impl IdleGame {
             }
         }
 
+        // Ensure values are finite and non-negative before updating the state
+        total_cps = if total_cps.is_finite() && total_cps >= 0.0 {
+            total_cps
+        } else {
+            0.0
+        };
+        total_wps = if total_wps.is_finite() && total_wps >= 0.0 {
+            total_wps
+        } else {
+            0.0
+        };
+        total_sps = if total_sps.is_finite() && total_sps >= 0.0 {
+            total_sps
+        } else {
+            0.0
+        };
+
         let mut state = self.state.borrow_mut();
         state.coins_per_second = total_cps;
         state.wood_per_second = total_wps;
@@ -326,13 +341,17 @@ impl IdleGame {
             let state = self.state.borrow();
             let elapsed = (now - state.last_update_time) / 1000.0;
 
-            if elapsed > 0.0 {
+            if elapsed > 0.0 && elapsed < 3600.0 {
+                // Limit max elapsed time to prevent huge jumps
                 let mut new_coins = state.coins + state.coins_per_second * elapsed;
                 let new_wood = state.wood + state.wood_per_second * elapsed;
                 let new_stone = state.stone + state.stone_per_second * elapsed;
 
-                if state.autoclick_count > 0 {
-                    new_coins += state.coins_per_click * state.autoclick_count as f64;
+                // Clamp values to prevent overflow to infinity or NaN
+                new_coins = new_coins.max(0.0);
+                let clamped_autoclick_effect = state.coins_per_click * state.autoclick_count as f64;
+                if state.autoclick_count > 0 && clamped_autoclick_effect.is_finite() {
+                    new_coins += clamped_autoclick_effect;
                 }
 
                 (new_coins, new_wood, new_stone, now)
@@ -341,11 +360,24 @@ impl IdleGame {
             }
         };
 
+        // Double check for NaN/Infinite values before updating
         {
             let mut state = self.state.borrow_mut();
-            state.coins = new_coins;
-            state.wood = new_wood;
-            state.stone = new_stone;
+            state.coins = if new_coins.is_finite() {
+                new_coins
+            } else {
+                state.coins
+            };
+            state.wood = if new_wood.is_finite() {
+                new_wood
+            } else {
+                state.wood
+            };
+            state.stone = if new_stone.is_finite() {
+                new_stone
+            } else {
+                state.stone
+            };
             state.last_update_time = new_last_update_time;
         }
 
@@ -434,17 +466,25 @@ impl IdleGame {
         let global_obj = window.as_ref();
 
         let coins_val = self.get_coins();
+        let wood_val = self.get_wood();
+        let stone_val = self.get_stone();
         let coins_per_sec = self.get_coins_per_second();
+        let wood_per_sec = self.get_wood_per_second();
+        let stone_per_sec = self.get_stone_per_second();
         let coins_per_click = self.get_coins_per_click();
 
         let update_resource_display_result =
             js_sys::Reflect::get(global_obj, &"updateResourceDisplay".into());
         if let Ok(update_func) = update_resource_display_result {
             let update_resource_display: js_sys::Function = update_func.into();
-            let _ = update_resource_display.call3(
+            let _ = update_resource_display.call7(
                 &JsValue::NULL,
                 &coins_val.into(),
+                &wood_val.into(),
+                &stone_val.into(),
                 &coins_per_sec.into(),
+                &wood_per_sec.into(),
+                &stone_per_sec.into(),
                 &coins_per_click.into(),
             );
         }

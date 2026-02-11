@@ -20,37 +20,53 @@ window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, wood
         const cpcElement = document.getElementById('cpc');
         const coinDisplay = document.getElementById('coin-display');
         
-        if (coinsElement) {
-            coinsElement.textContent = `Coins: ${Math.floor(coins)}`;
-        }
+         if (coinsElement) {
+             // Ensure the value is a valid finite number
+             const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
+             coinsElement.textContent = `Coins: ${Math.floor(safeCoins)}`;
+         }
         
-        if (woodElement) {
-            woodElement.textContent = `Wood: ${Math.floor(wood)}`;
-        }
+         if (woodElement) {
+             // Ensure the value is a valid finite number
+             const safeWood = (typeof wood === 'number' && isFinite(wood)) ? wood : 0;
+             woodElement.textContent = `Wood: ${Math.floor(safeWood)}`;
+         }
         
-        if (stoneElement) {
-            stoneElement.textContent = `Stone: ${Math.floor(stone)}`;
-        }
+         if (stoneElement) {
+             // Ensure the value is a valid finite number
+             const safeStone = (typeof stone === 'number' && isFinite(stone)) ? stone : 0;
+             stoneElement.textContent = `Stone: ${Math.floor(safeStone)}`;
+         }
         
-        if (cpsElement) {
-            cpsElement.textContent = `Coins/sec: ${coinsPerSecond.toFixed(1)}`;
-        }
+         if (cpsElement) {
+             // Ensure the value is a valid finite number
+             const safeCoinsPerSec = (typeof coinsPerSecond === 'number' && isFinite(coinsPerSecond)) ? coinsPerSecond : 0;
+             cpsElement.textContent = `Coins/sec: ${safeCoinsPerSec.toFixed(1)}`;
+         }
         
-        if (wpsElement) {
-            wpsElement.textContent = `Wood/sec: ${woodPerSecond.toFixed(1)}`;
-        }
+         if (wpsElement) {
+             // Ensure the value is a valid finite number
+             const safeWoodPerSec = (typeof woodPerSecond === 'number' && isFinite(woodPerSecond)) ? woodPerSecond : 0;
+             wpsElement.textContent = `Wood/sec: ${safeWoodPerSec.toFixed(1)}`;
+         }
         
-        if (spsElement) {
-            spsElement.textContent = `Stone/sec: ${stonePerSecond.toFixed(1)}`;
-        }
+         if (spsElement) {
+             // Ensure the value is a valid finite number
+             const safeStonePerSec = (typeof stonePerSecond === 'number' && isFinite(stonePerSecond)) ? stonePerSecond : 0;
+             spsElement.textContent = `Stone/sec: ${safeStonePerSec.toFixed(1)}`;
+         }
         
-        if (cpcElement) {
-            cpcElement.textContent = `Coins/click: ${coinsPerClick.toFixed(1)}`;
-        }
+         if (cpcElement) {
+             // Ensure the value is a valid finite number
+             const safeCoinsPerClick = (typeof coinsPerClick === 'number' && isFinite(coinsPerClick)) ? coinsPerClick : 0;
+             cpcElement.textContent = `Coins/click: ${safeCoinsPerClick.toFixed(1)}`;
+         }
         
-        if (coinDisplay) {
-            coinDisplay.textContent = `${Math.floor(coins)}`;
-        }
+         if (coinDisplay) {
+             // Ensure the value is a valid finite number
+             const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
+             coinDisplay.textContent = `${Math.floor(safeCoins)}`;
+         }
     }
 };
 
@@ -76,8 +92,8 @@ window.updateUpgradeButtons = function(upgrades) {
                 // Better Click increases coins per click
                 unitText = window.i18n ? window.i18n.t('perClick') : ' coins/click';
             } else if (upgrade.name.startsWith('Autoclicker') || upgrade.name.startsWith('自动点击器')) {
-                // Autoclicker increases coins per second
-                unitText = window.i18n ? window.i18n.t('perSecond') : '/sec';
+                // Autoclicker now performs real clicks equivalent to coins per click
+                unitText = window.i18n ? window.i18n.t('perClick') : ' per tick';
             } else if (upgrade.name === 'Lumberjack Efficiency' || upgrade.name === '伐木工效率') {
                 // Lumberjack Efficiency increases wood per second
                 unitText = window.i18n ? window.i18n.t('woodPerSecondShort') : ' wood/sec';

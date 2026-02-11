@@ -9,7 +9,7 @@ test('click should work after failed purchase', async ({ page }) => {
   
   // Get initial coins
   const initialCoins = await page.textContent('#coins');
-  const initialCoinsValue = parseInt(initialCoins.replace('Coins: ', ''));
+  const initialCoinsValue = parseInt(initialCoins.split(': ')[1]);
   console.log('Initial coins:', initialCoinsValue);
   expect(initialCoinsValue).toBe(0);
   
@@ -19,7 +19,7 @@ test('click should work after failed purchase', async ({ page }) => {
   await page.waitForTimeout(200);
   
   const coinsAfterClick = await page.textContent('#coins');
-  const coinsAfterClickValue = parseInt(coinsAfterClick.replace('Coins: ', ''));
+  const coinsAfterClickValue = parseInt(coinsAfterClick.split(': ')[1]);
   console.log('Coins after 1 click:', coinsAfterClickValue);
   expect(coinsAfterClickValue).toBe(1);
   
@@ -30,7 +30,7 @@ test('click should work after failed purchase', async ({ page }) => {
   
   // Verify purchase failed but coins should still be 1
   const coinsAfterFailedPurchase = await page.textContent('#coins');
-  const coinsAfterFailedPurchaseValue = parseInt(coinsAfterFailedPurchase.replace('Coins: ', ''));
+  const coinsAfterFailedPurchaseValue = parseInt(coinsAfterFailedPurchase.split(': ')[1]);
   console.log('Coins after failed purchase:', coinsAfterFailedPurchaseValue);
   expect(coinsAfterFailedPurchaseValue).toBe(1);
   
@@ -40,7 +40,7 @@ test('click should work after failed purchase', async ({ page }) => {
   await page.waitForTimeout(300);
   
   const coinsAfterClickPostFailure = await page.textContent('#coins');
-  const coinsAfterClickPostFailureValue = parseInt(coinsAfterClickPostFailure.replace('Coins: ', ''));
+  const coinsAfterClickPostFailureValue = parseInt(coinsAfterClickPostFailure.split(': ')[1]);
   console.log('Coins after click post-failure:', coinsAfterClickPostFailureValue);
   
   // If the bug exists, this will still be 1 (click didn't work)
