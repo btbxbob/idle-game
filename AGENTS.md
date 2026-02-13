@@ -173,7 +173,7 @@ idle-game/
 ├── build.sh              # Unix build script
 ├── server.py             # Development HTTP server
 ├── index.html            # Main HTML entry point
-└── TEST_CASES.md         # Test cases documentation
+└── docs/TEST_CASES.md    # Test cases documentation
 ```
 
 ## Testing Guidelines
