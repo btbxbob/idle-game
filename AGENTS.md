@@ -156,7 +156,8 @@ Since this is a browser-based game, manual testing involves:
 idle-game/
 ├── docs/                 # Project documentation
 │   ├── DESIGN.md         # Detailed design documentation
-│   └── DEVELOPMENT_GUIDELINES.md  # Development guidelines
+│   ├── DEVELOPMENT_GUIDELINES.md  # Development guidelines
+│   └── unit_tests.md     # Unit test documentation
 ├── src/                  # Rust source code
 │   └── lib.rs            # Main game logic with WASM bindings
 ├── js/                   # JavaScript frontend
@@ -180,6 +181,11 @@ idle-game/
 
 ### Playwright Test Framework
 The project uses Playwright for end-to-end testing. All test files are located in the `tests/` directory and must follow the `*.test.js` naming convention.
+
+### Unit Tests
+Unit tests are located in `src/lib.rs` starting from line 400, using the `#[cfg(test)] mod tests` module. These tests use a `TestGameState` structure that provides game state functionality without WASM dependencies, allowing testing in standard Rust environments.
+
+For more details about unit tests, see `docs/unit_tests.md`.
 
 ### Test File Structure
 Each test file should:
