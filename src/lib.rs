@@ -349,7 +349,10 @@ impl IdleGame {
 
                 // Clamp values to prevent overflow to infinity or NaN
                 new_coins = new_coins.max(0.0);
-                let clamped_autoclick_effect = state.coins_per_click * state.autoclick_count as f64;
+                
+                // Calculate autoclick effect based on elapsed time (assuming 10 clicks per second per autoclicker)
+                let autoclicks_per_second = 10.0; // 10 clicks per second per autoclicker
+                let clamped_autoclick_effect = state.coins_per_click * state.autoclick_count as f64 * autoclicks_per_second * elapsed;
                 if state.autoclick_count > 0 && clamped_autoclick_effect.is_finite() {
                     new_coins += clamped_autoclick_effect;
                 }
