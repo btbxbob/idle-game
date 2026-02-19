@@ -126,7 +126,7 @@ window.updateUpgradeButtons = function(upgrades) {
                 upgradeList.appendChild(upgradeDiv);
             });
         } else {
-            // 长度相同，只需更新现有项目的内部 HTML
+            // 长度相同，只需更新现有项目的内部HTML
             upgrades.forEach((upgrade, index) => {
                 const upgradeItem = document.getElementById(`upgrade-item-${index}`);
                 if (upgradeItem) {
@@ -143,25 +143,6 @@ window.updateUpgradeButtons = function(upgrades) {
                     if (costSpan) {
                         costSpan.textContent = `${costText}: ${Math.floor(upgrade.cost)}`;
                     }
-                    
-                    if (buyButton) {
-                        // 更新按钮文字，以防万一翻译有所变化
-                        const buttonText = buyButton.textContent;
-                        if (buttonText !== buyText) {
-                            buyButton.textContent = buyText;
-                        }
-                        
-                        // 更新按钮的禁用状态，基于资源是否足够
-                        let sufficientFunds = true;
-                        if (window.rustGame) {
-                            const currentCoins = window.rustGame.getCoins();
-                            sufficientFunds = currentCoins >= upgrade.cost;
-                        }
-                        buyButton.disabled = !window.gameInitialized || !sufficientFunds;
-                    }
-                }
-            });
-        }
                     
                     if (buyButton) {
                         // 更新按钮文字，以防万一翻译有所变化
