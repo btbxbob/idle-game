@@ -9,6 +9,8 @@ class I18n {
                 'clickToEarn': 'Click to earn coins and buy upgrades!',
                 'upgrades': 'Upgrades',
                 'buildings': 'Buildings',
+                'workers': 'Workers',
+                'settings': 'Settings',
                 'footerText': 'Idle Game Framework built with Rust and WebAssembly',
                 
                 // Resource labels
@@ -23,6 +25,9 @@ class I18n {
                 // Click area
                 'clickToEarnCoins': 'Click to earn coins',
                 
+                // Workers
+                'workersPlaceholder': 'Worker system will be implemented in a future version',
+                
                 // Building/Upgrade labels
                 'cost': 'Cost',
                 'owned': 'Owned',
@@ -32,6 +37,15 @@ class I18n {
                 'perClick': ' coins/click',
                 'woodPerSecondShort': ' wood/sec',
                 'stonePerSecondShort': ' stone/sec',
+                
+                // Settings
+                'theme': 'Theme',
+                'language': 'Language',
+                'lightTheme': 'Light Theme',
+                'darkTheme': 'Dark Theme',
+                'gameVersion': 'Game Version',
+                'resetGame': 'Reset Game',
+                'resetGameConfirm': 'Are you sure you want to reset the game? All progress will be lost!',
                 
                 // Resource display format
                 'resourceFormat': '{resource}: {amount}',
@@ -44,6 +58,8 @@ class I18n {
                 'clickToEarn': '点击赚取金币并购买升级！',
                 'upgrades': '升级',
                 'buildings': '建筑',
+                'workers': '工人',
+                'settings': '设置',
                 'footerText': '使用 Rust 和 WebAssembly 构建的闲置游戏框架',
                 
                 // Resource labels
@@ -58,6 +74,9 @@ class I18n {
                 // Click area
                 'clickToEarnCoins': '点击赚取金币',
                 
+                // Workers
+                'workersPlaceholder': '工人系统将在未来版本中实现',
+                
                 // Building/Upgrade labels
                 'cost': '花费',
                 'owned': '拥有',
@@ -68,10 +87,19 @@ class I18n {
                 'woodPerSecondShort': ' 木头/秒',
                 'stonePerSecondShort': ' 石头/秒',
                 
+                // Settings
+                'theme': '主题',
+                'language': '语言',
+                'lightTheme': '亮色主题',
+                'darkTheme': '暗色主题',
+                'gameVersion': '游戏版本',
+                'resetGame': '重置游戏',
+                'resetGameConfirm': '确定要重置游戏吗？所有进度将丢失！',
+                
                 // Resource display format
                 'resourceFormat': '{resource}: {amount}',
-                'productionFormat': '{resource}/秒: {amount}',
-                'clickFormat': '{resource}/点击: {amount}'
+                'productionFormat': '{resource}/秒：{amount}',
+                'clickFormat': '{resource}/点击：{amount}'
             }
         };
     }
@@ -106,11 +134,29 @@ class I18n {
         this.updateElement('click-to-earn', 'clickToEarn');
         this.updateElement('upgrades-header', 'upgrades');
         this.updateElement('buildings-header', 'buildings');
+        this.updateElement('workers-header', 'workers');
+        this.updateElement('settings-header', 'settings');
         this.updateElement('footer-text', 'footerText');
         this.updateElement('click-to-earn-coins', 'clickToEarnCoins');
+        this.updateElement('workers-placeholder', 'workersPlaceholder');
+        
+        // Update settings labels
+        this.updateLabel('theme-select-setting', 'theme');
+        this.updateLabel('language-select-setting', 'language');
         
         // Update resource displays (these will be handled by resource update functions)
         this.updateResourceDisplays();
+    }
+    
+    // Update a label element
+    updateLabel(elementId, translationKey) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            const label = element.previousElementSibling;
+            if (label && label.tagName === 'LABEL') {
+                label.textContent = this.t(translationKey) + ' / ' + this.t(translationKey, {locale: 'en'});
+            }
+        }
     }
     
     // Update a specific element with translation

@@ -13,6 +13,13 @@
         <header>
             <h1 id="game-title">Rust WASM 闲置游戏</h1>
             <p id="click-to-earn">点击赚取金币并购买升级！</p>
+            <!-- Theme selector -->
+            <div id="theme-selector">
+                <select id="theme-select">
+                    <option value="light">亮色主题</option>
+                    <option value="dark">暗色主题</option>
+                </select>
+            </div>
             <!-- Language selector -->
             <div id="language-selector">
                 <select id="language-select">
@@ -26,25 +33,25 @@
         <div id="banner">
             <div id="resources">
                 <div class="resource-item">
-                    <span id="coins">金币: 0</span>
+                    <span id="coins">金币：0</span>
                 </div>
                 <div class="resource-item">
-                    <span id="wood">木头: 0</span>
+                    <span id="wood">木头：0</span>
                 </div>
                 <div class="resource-item">
-                    <span id="stone">石头: 0</span>
+                    <span id="stone">石头：0</span>
                 </div>
                 <div class="resource-item">
-                    <span id="cps">金币/秒: 0</span>
+                    <span id="cps">金币/秒：0</span>
                 </div>
                 <div class="resource-item">
-                    <span id="wps">木头/秒: 0</span>
+                    <span id="wps">木头/秒：0</span>
                 </div>
                 <div class="resource-item">
-                    <span id="sps">石头/秒: 0</span>
+                    <span id="sps">石头/秒：0</span>
                 </div>
                 <div class="resource-item">
-                    <span id="cpc">金币/点击: 1</span>
+                    <span id="cpc">金币/点击：1</span>
                 </div>
             </div>
         </div>
@@ -102,6 +109,13 @@
                     <h3 id="settings-header">设置</h3>
                     <div id="settings-content">
                         <div class="setting-item">
+                            <label for="theme-select-setting">主题 / Theme:</label>
+                            <select id="theme-select-setting">
+                                <option value="light">亮色主题</option>
+                                <option value="dark">暗色主题</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
                             <label for="language-select-setting">语言 / Language:</label>
                             <select id="language-select-setting">
                                 <option value="zh-CN">简体中文</option>
@@ -109,7 +123,7 @@
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label>游戏版本: v0.2.3</label>
+                            <label>游戏版本：v0.2.3</label>
                         </div>
                         <div class="setting-item">
                             <button id="reset-game">重置游戏</button>
@@ -124,12 +138,12 @@
         </footer>
     </div>
     
-    <!-- 注意：在构建后此脚本将被替换为实际的WASM绑定 -->
+    <!-- 注意：在构建后此脚本将被替换为实际的 WASM 绑定 -->
     <script src="js/i18n.js"></script>
     <script src="js/game.js"></script>
     <script src="js/bootstrap.js"></script>
     
-    <!-- Tab navigation script -->
+    <!-- Tab navigation and settings script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Tab navigation
@@ -149,6 +163,53 @@
                     document.getElementById(`tab-${tabName}`).classList.add('active');
                 });
             });
+            
+            // Theme management
+            function loadTheme() {
+                const savedTheme = localStorage.getItem('gameTheme') || 'light';
+                return savedTheme;
+            }
+            
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+                // Update both theme selectors
+                const themeSelect = document.getElementById('theme-select');
+                const themeSelectSetting = document.getElementById('theme-select-setting');
+                if (themeSelect) themeSelect.value = theme;
+                if (themeSelectSetting) themeSelectSetting.value = theme;
+            }
+            
+            function saveTheme(theme) {
+                localStorage.setItem('gameTheme', theme);
+            }
+            
+            // Initialize theme on page load
+            const currentTheme = loadTheme();
+            applyTheme(currentTheme);
+            
+            // Theme selector in header
+            const themeSelect = document.getElementById('theme-select');
+            if (themeSelect) {
+                themeSelect.addEventListener('change', function() {
+                    const selectedTheme = this.value;
+                    applyTheme(selectedTheme);
+                    saveTheme(selectedTheme);
+                });
+            }
+            
+            // Theme selector in settings
+            const themeSelectSetting = document.getElementById('theme-select-setting');
+            if (themeSelectSetting) {
+                themeSelectSetting.addEventListener('change', function() {
+                    const selectedTheme = this.value;
+                    applyTheme(selectedTheme);
+                    saveTheme(selectedTheme);
+                });
+            }
             
             // Language selector in header
             const languageSelect = document.getElementById('language-select');

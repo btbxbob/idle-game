@@ -1,18 +1,17 @@
 /* ASCII ART / TUI 风格增强样式 */
-/* 黑白配色 + 纯 ASCII 字符装饰 */
+/* 使用 CSS 变量支持主题切换 */
 
-/* 1. 白底黑字配色方案 */
+/* 1. 主题化背景配色 */
 body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    background-image: none !important;
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
 }
 
 #game-container {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
-    box-shadow: 8px 8px 0px #000000 !important;
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--border-color) !important;
+    box-shadow: 8px 8px 0px var(--shadow-color) !important;
 }
 
 /* 2. ASCII 边框字符装饰 */
@@ -20,7 +19,7 @@ body {
     content: "╔════════════════════════════════════════════════════════════════════════╗";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     padding: 5px 0;
     text-align: center;
 }
@@ -29,15 +28,15 @@ body {
     content: "╚════════════════════════════════════════════════════════════════════════╝";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     padding: 5px 0;
     text-align: center;
 }
 
 header {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border-bottom: 2px solid #000000 !important;
+    background-color: var(--header-bg) !important;
+    color: var(--header-text) !important;
+    border-bottom: 2px solid var(--border-color) !important;
     border: none !important;
     position: relative;
 }
@@ -46,7 +45,7 @@ header::before {
     content: "┌─ Game Header ───────────────────────────────────────────────────────┐";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-bottom: 10px;
     font-size: 12px;
 }
@@ -55,16 +54,16 @@ header::after {
     content: "└──────────────────────────────────────────────────────────────────────┘";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-top: 10px;
     font-size: 12px;
 }
 
-/* 3. 资源面板 - 白底黑字边框 */
+/* 3. 资源面板 - 主题化配色 */
 #resource-panel {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--border-color) !important;
     position: relative;
     padding: 15px !important;
 }
@@ -73,7 +72,7 @@ header::after {
     content: "┌─ Resources ─────────────────────────────────────────────────────────┐";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-bottom: 10px;
     font-size: 12px;
 }
@@ -82,38 +81,38 @@ header::after {
     content: "└──────────────────────────────────────────────────────────────────────┘";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-top: 10px;
     font-size: 12px;
 }
 
-/* 4. 资源项 - 白底黑字项目符号 */
+/* 4. 资源项 - 主题化项目符号 */
 .resource-item {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--border-color) !important;
     font-family: 'Courier New', monospace !important;
     font-size: 14px !important;
 }
 
 .resource-item::before {
-    content: "  > " !important;
+    content: "  > ";
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--text-color);
 }
 
-/* 5. 标签页导航 - 白底黑字分隔符 */
+/* 5. 标签页导航 - 主题化配色 */
 #tab-navigation {
-    background-color: #ffffff !important;
-    border-bottom: 2px solid #000000 !important;
+    background-color: var(--panel-bg) !important;
+    border-bottom: 2px solid var(--border-color) !important;
     border: none !important;
     padding: 0 !important;
 }
 
 .tab-button {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
+    background-color: var(--tab-inactive-bg) !important;
+    color: var(--tab-inactive-text) !important;
+    border: 2px solid var(--border-color) !important;
     border-right: none !important;
     border-radius: 0 !important;
     margin-right: -2px !important;
@@ -124,30 +123,30 @@ header::after {
 }
 
 .tab-button.active {
-    background-color: #000000 !important;
-    color: #ffffff !important;
+    background-color: var(--tab-active-bg) !important;
+    color: var(--tab-active-text) !important;
     transform: translate(2px, 2px) !important;
-    box-shadow: 2px 2px 0px #000000 !important;
+    box-shadow: 2px 2px 0px var(--shadow-color) !important;
 }
 
 .tab-button.active::before {
-    content: "> " !important;
-    color: #ffffff;
+    content: "> ";
+    color: var(--tab-active-text);
     font-family: 'Courier New', monospace;
 }
 
-/* 6. 内容区域 - 白底黑字边框 */
+/* 6. 内容区域 - 主题化配色 */
 #main-content {
-    background-color: #f8f8f8 !important;
-    border: 1px solid #000000 !important;
-    color: #000000 !important;
+    background-color: var(--main-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-color) !important;
 }
 
-/* 7. 升级/建筑面板 - 白底黑字边框 */
+/* 7. 升级/建筑面板 - 主题化配色 */
 #upgrades, #buildings, #workers, #settings {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--border-color) !important;
     position: relative;
     padding: 15px !important;
 }
@@ -156,7 +155,7 @@ header::after {
     content: "┌─ Items ──────────────────────────────────────────────────────────────┐";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-bottom: 10px;
     font-size: 12px;
 }
@@ -165,52 +164,52 @@ header::after {
     content: "└──────────────────────────────────────────────────────────────────────┘";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-top: 10px;
     font-size: 12px;
 }
 
-/* 8. 升级/建筑项 - 白底黑字项目符号 */
+/* 8. 升级/建筑项 - 主题化配色 */
 .upgrade-item, .building-item {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #000000 !important;
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--border-color) !important;
     font-family: 'Courier New', monospace !important;
 }
 
 .upgrade-item::before, .building-item::before {
-    content: "  [ ] " !important;
+    content: "  [ ] ";
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--text-color);
 }
 
 .upgrade-item:hover::before, .building-item:hover::before {
-    content: "  [*] " !important;
+    content: "  [*] ";
 }
 
-/* 9. 按钮 - 黑底白字风格 */
+/* 9. 按钮 - 主题化配色 */
 .upgrade-item button, .building-item button {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: 2px solid #000000 !important;
+    background-color: var(--button-bg) !important;
+    color: var(--button-text) !important;
+    border: 2px solid var(--border-color) !important;
     border-radius: 0 !important;
     font-family: 'Courier New', monospace !important;
 }
 
 .upgrade-item button:hover:not(:disabled),
 .building-item button:hover:not(:disabled) {
-    background-color: #111111 !important;
+    background-color: var(--button-hover-bg) !important;
     transform: none !important;
     box-shadow: none !important;
 }
 
-/* 10. 点击区域 - 黑底白字风格 */
+/* 10. 点击区域 - 主题化配色 */
 #click-area {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: 3px solid #000000 !important;
+    background-color: var(--click-area-bg) !important;
+    color: var(--click-area-text) !important;
+    border: 3px solid var(--border-color) !important;
     border-radius: 0 !important;
-    box-shadow: 4px 4px 0px #000000 !important;
+    box-shadow: 4px 4px 0px var(--shadow-color) !important;
     font-family: 'Courier New', monospace !important;
 }
 
@@ -218,7 +217,7 @@ header::after {
     content: "┌──────┐";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     text-align: center;
     margin-bottom: 5px;
 }
@@ -227,7 +226,7 @@ header::after {
     content: "└──────┘";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     text-align: center;
     margin-top: 5px;
 }
@@ -237,11 +236,11 @@ header::after {
     font-family: 'Courier New', monospace !important;
 }
 
-/* 11. 页脚 - 白底黑字边框 */
+/* 11. 页脚 - 主题化配色 */
 footer {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border-top: 2px solid #000000 !important;
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
+    border-top: 2px solid var(--border-color) !important;
     border: none !important;
 }
 
@@ -249,7 +248,7 @@ footer::before {
     content: "┌─ Footer ─────────────────────────────────────────────────────────────┐";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-bottom: 10px;
     font-size: 12px;
 }
@@ -258,14 +257,14 @@ footer::after {
     content: "└──────────────────────────────────────────────────────────────────────┘";
     display: block;
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--border-color);
     margin-top: 10px;
     font-size: 12px;
 }
 
-/* 12. 标题 - 纯文本样式 */
+/* 12. 标题 - 主题化配色 */
 h3 {
-    color: #ffffff !important;
+    color: var(--text-color) !important;
     font-family: 'Courier New', monospace !important;
     font-weight: bold !important;
 }
@@ -276,34 +275,49 @@ h3 {
     50% { opacity: 0; }
 }
 
-/* 14. 资源颜色 - 保持原有配色 */
+/* 14. 资源颜色 - 保持原有配色（这些是特定资源颜色，不随主题变化） */
 #coins { color: #FFD700 !important; }
 #wood { color: #8B4513 !important; }
 #stone { color: #696969 !important; }
-#cps, #wps, #sps, #cpc { color: #000000 !important; }
+#cps, #wps, #sps, #cpc { color: var(--text-color) !important; }
 
-/* 15. 禁用滚动条自定义（使用系统默认） */
+/* 15. 滚动条主题化 */
 ::-webkit-scrollbar {
-    display: none !important;
+    width: 12px;
+    height: 12px;
 }
 
-/* 16. 设置项 */
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border: 1px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border: 1px solid var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+
+/* 16. 设置项 - 主题化配色 */
 .setting-item {
-    background-color: #000000 !important;
-    color: #ffffff !important;
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
     border: none !important;
 }
 
 .setting-item::before {
-    content: "  [S] " !important;
+    content: "  [S] ";
     font-family: 'Courier New', monospace;
-    color: #ffffff;
+    color: var(--text-color);
 }
 
-/* 17. ASCII 艺术大标题 */
+/* 17. ASCII 艺术大标题 - 主题化配色 */
 header h1 {
     font-size: 2em !important;
-    color: #ffffff !important;
+    color: var(--header-text) !important;
     text-shadow: none !important;
     font-weight: bold !important;
     letter-spacing: 3px !important;
@@ -311,7 +325,7 @@ header h1 {
     text-transform: uppercase !important;
 }
 
-/* 18. 扫描线效果（终端风格） */
+/* 18. 扫描线效果（终端风格）- 降低不透明度以适应两种主题 */
 body::after {
     content: '';
     position: fixed;
@@ -321,7 +335,7 @@ body::after {
     height: 100%;
     background: linear-gradient(
         rgba(0, 0, 0, 0) 50%,
-        rgba(0, 255, 0, 0.05) 51%,
+        rgba(128, 128, 128, 0.08) 51%,
         rgba(0, 0, 0, 0) 52%
     );
     background-size: 100% 4px;
@@ -330,9 +344,11 @@ body::after {
     opacity: 0.3;
 }
 
-/* 19. ASCII 艺术装饰图案 */
-.click-area::before {
-    content: "  [ CLICK ]  " !important;
+/* 19. 主题选择器和语言选择器 - 主题化配色 */
+#theme-select, #language-select {
+    background-color: var(--panel-bg) !important;
+    color: var(--text-color) !important;
+    border: 2px solid var(--border-color) !important;
 }
 
 /* 20. 字体统一 */

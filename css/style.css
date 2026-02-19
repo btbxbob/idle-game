@@ -1,3 +1,57 @@
+/* Theme Variables - Light Theme (Default) */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --border-color: #000000;
+    --header-bg: #ffffff;
+    --header-text: #000000;
+    --main-bg: #f8f8f8;
+    --panel-bg: #ffffff;
+    --button-bg: #000000;
+    --button-text: #ffffff;
+    --button-hover-bg: #333333;
+    --button-disabled-bg: #cccccc;
+    --button-disabled-text: #666666;
+    --tab-active-bg: #000000;
+    --tab-active-text: #ffffff;
+    --tab-inactive-bg: #ffffff;
+    --tab-inactive-text: #000000;
+    --scrollbar-track: #f1f1f1;
+    --scrollbar-thumb: #000000;
+    --scrollbar-thumb-hover: #333333;
+    --shadow-color: #000000;
+    --click-area-bg: #000000;
+    --click-area-text: #ffffff;
+    --grid-pattern-color: rgba(0,0,0,0.1);
+}
+
+/* Dark Theme */
+body.dark-theme {
+    --bg-color: #000000;
+    --text-color: #ffffff;
+    --border-color: #ffffff;
+    --header-bg: #000000;
+    --header-text: #ffffff;
+    --main-bg: #1a1a1a;
+    --panel-bg: #000000;
+    --button-bg: #ffffff;
+    --button-text: #000000;
+    --button-hover-bg: #cccccc;
+    --button-disabled-bg: #444444;
+    --button-disabled-text: #888888;
+    --tab-active-bg: #ffffff;
+    --tab-active-text: #000000;
+    --tab-inactive-bg: #000000;
+    --tab-inactive-text: #ffffff;
+    --scrollbar-track: #1a1a1a;
+    --scrollbar-thumb: #ffffff;
+    --scrollbar-thumb-hover: #cccccc;
+    --shadow-color: #ffffff;
+    --click-area-bg: #ffffff;
+    --click-area-text: #000000;
+    --grid-pattern-color: rgba(255,255,255,0.1);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,16 +60,16 @@
 
 body {
     font-family: 'Courier New', monospace, 'Arial', sans-serif;
-    background-color: #ffffff !important;  /* 强制设为白色背景 */
-    color: #000000 !important;
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     /* ASCII art inspired background pattern */
     background-image: 
-        radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0);
+        radial-gradient(circle at 1px 1px, var(--grid-pattern-color) 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, var(--grid-pattern-color) 1px, transparent 0);
     background-size: 20px 20px;
     background-position: 0 0, 10px 10px;
 }
@@ -26,20 +80,20 @@ body {
     height: 90vh;
     display: flex;
     flex-direction: column;
-    background-color: #ffffff;
-    border: 2px solid #000000;
+    background-color: var(--panel-bg);
+    border: 2px solid var(--border-color);
     border-radius: 0;
     overflow: hidden;
-    box-shadow: 8px 8px 0px #000000;
+    box-shadow: 8px 8px 0px var(--shadow-color);
     /* ASCII terminal style */
     font-family: 'Courier New', monospace;
 }
 
 header {
-    background-color: #ffffff;
+    background-color: var(--header-bg);
     padding: 20px;
     text-align: center;
-    border-bottom: 2px solid #000000;
+    border-bottom: 2px solid var(--border-color);
     position: relative;
     /* ASCII header style */
     font-family: 'Courier New', monospace;
@@ -52,9 +106,9 @@ header {
 }
 
 #language-select {
-    background-color: #ffffff;
-    color: #000000;
-    border: 2px solid #000000;
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
     border-radius: 0;
     padding: 5px 10px;
     font-size: 14px;
@@ -63,12 +117,34 @@ header {
 }
 
 #language-select:hover {
-    background-color: #f0f0f0;
+    background-color: var(--button-hover-bg);
+}
+
+/* Theme Selector */
+#theme-selector {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+#theme-select {
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+#theme-select:hover {
+    background-color: var(--button-hover-bg);
 }
 
 header h1 {
     font-size: 2.5em;
-    color: #000000;
+    color: var(--header-text);
     text-shadow: none;
     /* ASCII art style - bold and blocky */
     font-weight: bold;
@@ -77,9 +153,9 @@ header h1 {
 
 /* Banner Area - Resource Display */
 #banner {
-    background-color: #ffffff;
+    background-color: var(--panel-bg);
     padding: 1px 2px;
-    border-bottom: 2px solid #000000;
+    border-bottom: 2px solid var(--border-color);
     overflow-x: auto;
     line-height: 1.1;
     font-size: 0.9em;
@@ -95,9 +171,9 @@ header h1 {
 }
 
 #banner .resource-item {
-    background-color: #ffffff;
+    background-color: var(--panel-bg);
     padding: 1px 2px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border-color);
     border-radius: 0;
     font-family: 'Courier New', monospace;
     font-size: 10px;
@@ -109,26 +185,26 @@ header h1 {
 }
 
 /* Banner resource colors */
-#banner #coins { color: #FFD700 !important; font-weight: bold; background-color: #000000 !important; }
-#banner #wood { color: #FFFFFF !important; font-weight: bold; background-color: #8B4513 !important; }
-#banner #stone { color: #FFFFFF !important; font-weight: bold; background-color: #696969 !important; }
-#banner #cps { color: #000000 !important; font-weight: bold; background-color: #FFD700 !important; }
-#banner #wps { color: #FFFFFF !important; font-weight: bold; background-color: #228B22 !important; }
-#banner #sps { color: #000000 !important; font-weight: bold; background-color: #708090 !important; }
-#banner #cpc { color: #FFFFFF !important; font-weight: bold; background-color: #4169E1 !important; }
+#banner #coins { color: #FFD700 !important; font-weight: bold; background-color: var(--text-color) !important; }
+#banner #wood { color: var(--button-text) !important; font-weight: bold; background-color: #8B4513 !important; }
+#banner #stone { color: var(--button-text) !important; font-weight: bold; background-color: #696969 !important; }
+#banner #cps { color: var(--text-color) !important; font-weight: bold; background-color: #FFD700 !important; }
+#banner #wps { color: var(--button-text) !important; font-weight: bold; background-color: #228B22 !important; }
+#banner #sps { color: var(--text-color) !important; font-weight: bold; background-color: #708090 !important; }
+#banner #cpc { color: var(--button-text) !important; font-weight: bold; background-color: #4169E1 !important; }
 
 /* Tab Navigation */
 #tab-navigation {
     display: flex;
-    background-color: #ffffff;
-    border-bottom: 2px solid #000000;
+    background-color: var(--panel-bg);
+    border-bottom: 2px solid var(--border-color);
     padding: 0;
 }
 
 .tab-button {
-    background-color: #ffffff;
-    color: #000000;
-    border: 2px solid #000000;
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
     border-bottom: none;
     border-radius: 0;
     padding: 12px 20px;
@@ -140,16 +216,16 @@ header h1 {
 }
 
 .tab-button:hover {
-    background-color: #f0f0f0;
+    background-color: var(--button-hover-bg);
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
+    box-shadow: 2px 2px 0px var(--shadow-color);
 }
 
 .tab-button.active {
-    background-color: #000000;
-    color: #ffffff;
+    background-color: var(--text-color);
+    color: var(--click-area-text);
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
+    box-shadow: 2px 2px 0px var(--shadow-color);
 }
 
 /* Main Content with Tabs */
@@ -158,8 +234,8 @@ header h1 {
     flex-direction: column;
     flex-grow: 1;
     overflow-y: auto;
-    background-color: #f8f8f8;
-    border: 1px solid #000000;
+    background-color: var(--main-bg);
+    border: 1px solid var(--border-color);
     padding: 20px;
 }
 
@@ -193,9 +269,9 @@ header h1 {
 }
 
 #resource-panel {
-    background-color: #ffffff;
+    background-color: var(--panel-bg);
     padding: 15px;
-    border: 2px solid #000000;
+    border: 2px solid var(--border-color);
     border-radius: 0;
 }
 
@@ -207,9 +283,9 @@ header h1 {
 
 /* General resource-item for other parts of the app, excluding banner */
 #main-content .resource-item {
-    background-color: #ffffff;
+    background-color: var(--panel-bg);
     padding: 10px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border-color);
     border-radius: 0;
     /* ASCII terminal style */
     font-family: 'Courier New', monospace;
@@ -219,9 +295,9 @@ header h1 {
 footer {
     text-align: center;
     padding: 15px;
-    background-color: #ffffff;
-    border-top: 2px solid #000000;
-    color: #000000;
+    background-color: var(--panel-bg);
+    border-top: 2px solid var(--border-color);
+    color: var(--text-color);
     font-family: 'Courier New', monospace;
     font-size: 12px;
 }
@@ -237,8 +313,8 @@ footer {
     width: 200px;
     height: 200px;
     /* ASCII-inspired button style */
-    background-color: #000000;
-    color: #ffffff;
+    background-color: var(--text-color);
+    color: var(--click-area-text);
     border: 3px solid #000000;
     border-radius: 0;
     display: flex;
@@ -254,7 +330,7 @@ footer {
 
 #click-area:hover {
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
+    box-shadow: 2px 2px 0px var(--shadow-color);
 }
 
 #click-area:active {
@@ -273,7 +349,7 @@ footer {
 }
 
 #click-area p {
-    color: #ffffff;
+    color: var(--click-area-text);
     font-size: 1em;
     margin-top: 5px;
     text-align: center;
@@ -281,9 +357,9 @@ footer {
 }
 
 #upgrades, #buildings, #workers, #settings {
-    background-color: #ffffff;
+    background-color: var(--panel-bg);
     padding: 15px;
-    border: 2px solid #000000;
+    border: 2px solid var(--border-color);
     border-radius: 0;
     width: 100%;
     max-width: 600px;
@@ -297,9 +373,9 @@ footer {
 }
 
  .upgrade-item, .building-item, .worker-item, .setting-item {
-    background-color: #ffffff;
+    background-color: var(--panel-bg);
     padding: 10px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border-color);
     border-radius: 0;
     display: flex;
     justify-content: space-between;
@@ -321,9 +397,9 @@ footer {
 }
 
 .upgrade-item button, .building-item button, .worker-item button, .setting-item button {
-    background-color: #000000;
-    color: #ffffff;
-    border: 2px solid #000000;
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    border: 2px solid var(--border-color);
     padding: 5px 10px;
     border-radius: 0;
     cursor: pointer;
@@ -334,96 +410,16 @@ footer {
 
 .upgrade-item button:hover:not(:disabled), .building-item button:hover:not(:disabled), 
 .worker-item button:hover:not(:disabled), .setting-item button:hover:not(:disabled) {
-    background-color: #333333;
+    background-color: var(--button-hover-bg);
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
+    box-shadow: 2px 2px 0px var(--shadow-color);
 }
 
 .upgrade-item button:disabled, .building-item button:disabled, 
 .worker-item button:disabled, .setting-item button:disabled {
-    background-color: #cccccc;
-    color: #666666;
+    background-color: var(--button-disabled-bg);
+    color: var(--button-disabled-text);
     cursor: not-allowed;
-}
-
-button {
-    background-color: #000000;
-    color: white;
-    border: 2px solid #000000;
-    padding: 8px 15px;
-    border-radius: 0;
-    cursor: pointer;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    transition: all 0.1s ease;
-    box-shadow: 2px 2px 0px #000000;
-}
-
-button:hover:not(:disabled) {
-    background-color: #333333;
-    transform: translate(2px, 2px);
-    box-shadow: 0px 0px 0px #000000;
-}
-
-button:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-button.purchase-failed {
-    animation: ascii-shake 0.3s ease-in-out, ascii-flash 0.3s ease-in-out;
-}
-
-@keyframes ascii-shake {
-    0%, 100% { transform: translate(0, 0); }
-    25% { transform: translate(-2px, -2px); }
-    75% { transform: translate(2px, 2px); }
-}
-
-@keyframes ascii-flash {
-    0%, 100% { background-color: #000000; color: #ffffff; }
-    50% { background-color: #ff0000; color: #ffffff; }
-}
-
-h3 {
-    color: #000000;
-    margin-bottom: 10px;
-    text-align: center;
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-/* ASCII Art inspired decorative elements */
-.banner .resource-item::before {
-    content: "● ";
-    font-family: 'Courier New', monospace;
-}
-
-.upgrade-item::before, .building-item::before, .worker-item::before {
-    content: "■ ";
-    font-family: 'Courier New', monospace;
-}
-
-.setting-item::before {
-    content: "⚙ ";
-    font-family: 'Courier New', monospace;
-}
-
-/* Resources tab active state */
-#tab-resources.active {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Resources tab layout */
-#tab-resources {
-    align-items: center;
 }
 
 /* ASCII terminal scrollbar */
@@ -433,1214 +429,15 @@ h3 {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border: 1px solid #000000;
+    background: var(--scrollbar-track);
+    border: 1px solid var(--border-color);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #000000;
-    border: 1px solid #ffffff;
+    background: var(--scrollbar-thumb);
+    border: 1px solid var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #333333;
-}
-
-@media (max-width: 768px) {
-    #tab-resources {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Mobile ASCII style */
-    body {
-        background-size: 10px 10px;
-    }
-    
-    .tab-button {
-        padding: 10px 15px;
-        font-size: 12px;
-    }
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-    display: block;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 32px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 32px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 32px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 33px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 33px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 35px;
-    flex: 0 0 auto;
-    margin: 0;
-}
-
-#banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: nowrap;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 36px;
-    flex: 0 0 auto;
-}
-
-#banner .resource-item {
-    background-color: #ffffff;
-    padding: 1px 2px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-    white-space: nowrap;
-    text-align: left;
-    min-width: 48px;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-}
-
-#banner .resource-item::before {
-    content: "";
-}
-
-#banner #coins { color: #FFD700 !important; font-weight: bold; background-color: #000000 !important; }
-#banner #wood { color: #FFFFFF !important; font-weight: bold; background-color: #8B4513 !important; }
-#banner #stone { color: #FFFFFF !important; font-weight: bold; background-color: #696969 !important; }
-#banner #cps { color: #000000 !important; font-weight: bold; background-color: #FFD700 !important; }
-#banner #wps { color: #FFFFFF !important; font-weight: bold; background-color: #228B22 !important; }
-#banner #sps { color: #000000 !important; font-weight: bold; background-color: #708090 !important; }
-#banner #cpc { color: #FFFFFF !important; font-weight: bold; background-color: #4169E1 !important; }
-
-/* Tab Navigation */
-#tab-navigation {
-    display: flex;
-    background-color: #ffffff;
-    border-bottom: 2px solid #000000;
-    padding: 0;
-}
-
-.tab-button {
-    background-color: #ffffff;
-    color: #000000;
-    border: 2px solid #000000;
-    border-bottom: none;
-    border-radius: 0;
-    padding: 12px 20px;
-    cursor: pointer;
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    transition: all 0.1s ease;
-    margin-right: -2px; /* Remove border overlap */
-}
-
-.tab-button:hover {
-    background-color: #f0f0f0;
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
-}
-
-.tab-button.active {
-    background-color: #000000;
-    color: #ffffff;
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
-}
-
-/* Main Content with Tabs */
-#main-content {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow-y: auto;
-    background-color: #f8f8f8;
-    border: 1px solid #000000;
-    padding: 20px;
-}
-
-.tab-content {
-    display: none;
-    width: 100%;
-}
-
-.tab-content.active {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* Resources tab active state */
-#tab-resources.active {
-    display: grid !important;
-    grid-template-columns: 1fr 2fr;
-    gap: 20px;
-}
-
-/* Resources tab layout - remove display property */
-#tab-resources {
-    grid-template-columns: 1fr 2fr;
-    gap: 20px;
-}
-
-/* Other tabs layout - remove display property */
-#tab-upgrades, #tab-buildings, #tab-workers, #tab-settings {
-    align-items: center;
-}
-
-#resource-panel {
-    background-color: #ffffff;
-    padding: 15px;
-    border: 2px solid #000000;
-    border-radius: 0;
-}
-
-#resources {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* General resource-item for other parts of the app, excluding banner */
-#main-content .resource-item {
-    background-color: #ffffff;
-    padding: 10px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    /* ASCII terminal style */
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-}
-
-footer {
-    text-align: center;
-    padding: 15px;
-    background-color: #ffffff;
-    border-top: 2px solid #000000;
-    color: #000000;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-}
-
-#main-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-#click-area {
-    width: 200px;
-    height: 200px;
-    /* ASCII-inspired button style */
-    background-color: #000000;
-    color: #ffffff;
-    border: 3px solid #000000;
-    border-radius: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.1s ease;
-    /* ASCII art inspired - blocky and pixel-like */
-    font-family: 'Courier New', monospace;
-    box-shadow: 4px 4px 0px #000000;
-}
-
-#click-area:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
-}
-
-#click-area:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0px 0px 0px #000000;
-}
-
-#coin-display {
-    font-size: 2em;
-    font-weight: bold;
-    color: #FFD700; /* Gold color for coins */
-    text-align: center;
-    /* ASCII large number style */
-    font-family: 'Courier New', monospace;
-    letter-spacing: 3px;
-}
-
-#click-area p {
-    color: #ffffff;
-    font-size: 1em;
-    margin-top: 5px;
-    text-align: center;
-    font-family: 'Courier New', monospace;
-}
-
-#upgrades, #buildings, #workers, #settings {
-    background-color: #ffffff;
-    padding: 15px;
-    border: 2px solid #000000;
-    border-radius: 0;
-    width: 100%;
-    max-width: 600px;
-}
-
-#upgrade-list, #building-list, #worker-list, #settings-content {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.upgrade-item, .building-item, .worker-item, .setting-item {
-    background-color: #ffffff;
-    padding: 10px;
-    border: 1px solid #000000;
-    border-radius: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /* ASCII terminal item style */
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-}
-
-.setting-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-}
-
-.setting-item label, .setting-item select, .setting-item button {
-    width: 100%;
-    max-width: 300px;
-}
-
-.upgrade-item button, .building-item button, .worker-item button, .setting-item button {
-    background-color: #000000;
-    color: #ffffff;
-    border: 2px solid #000000;
-    padding: 5px 10px;
-    border-radius: 0;
-    cursor: pointer;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    transition: all 0.1s ease;
-}
-
-.upgrade-item button:hover:not(:disabled), .building-item button:hover:not(:disabled), 
-.worker-item button:hover:not(:disabled), .setting-item button:hover:not(:disabled) {
-    background-color: #333333;
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px #000000;
-}
-
-.upgrade-item button:disabled, .building-item button:disabled, 
-.worker-item button:disabled, .setting-item button:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
-}
-
-button {
-    background-color: #000000;
-    color: white;
-    border: 2px solid #000000;
-    padding: 8px 15px;
-    border-radius: 0;
-    cursor: pointer;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    transition: all 0.1s ease;
-    box-shadow: 2px 2px 0px #000000;
-}
-
-button:hover:not(:disabled) {
-    background-color: #333333;
-    transform: translate(2px, 2px);
-    box-shadow: 0px 0px 0px #000000;
-}
-
-button:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-button.purchase-failed {
-    animation: ascii-shake 0.3s ease-in-out, ascii-flash 0.3s ease-in-out;
-}
-
-@keyframes ascii-shake {
-    0%, 100% { transform: translate(0, 0); }
-    25% { transform: translate(-2px, -2px); }
-    75% { transform: translate(2px, 2px); }
-}
-
-@keyframes ascii-flash {
-    0%, 100% { background-color: #000000; color: #ffffff; }
-    50% { background-color: #ff0000; color: #ffffff; }
-}
-
-h3 {
-    color: #000000;
-    margin-bottom: 10px;
-    text-align: center;
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-/* ASCII Art inspired decorative elements */
-#banner .resource-item::before {
-    content: "● ";
-    font-family: 'Courier New', monospace;
-}
-
-.upgrade-item::before, .building-item::before, .worker-item::before {
-    content: "■ ";
-    font-family: 'Courier New', monospace;
-}
-
-.setting-item::before {
-    content: "⚙ ";
-    font-family: 'Courier New', monospace;
-}
-
-.upgrade-item::before, .building-item::before, .worker-item::before {
-    content: "■ ";
-    font-family: 'Courier New', monospace;
-}
-
-.setting-item::before {
-    content: "⚙ ";
-    font-family: 'Courier New', monospace;
-}
-
-/* ASCII terminal scrollbar */
-::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border: 1px solid #000000;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #000000;
-    border: 1px solid #ffffff;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #333333;
-}
-
-@media (max-width: 768px) {
-    #tab-resources {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Mobile ASCII style */
-    body {
-        background-size: 10px 10px;
-    }
-    
-    .tab-button {
-        padding: 10px 15px;
-        font-size: 12px;
-    }
+    background: var(--scrollbar-thumb-hover);
 }
