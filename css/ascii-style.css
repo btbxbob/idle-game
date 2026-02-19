@@ -244,23 +244,7 @@ footer {
     border: none !important;
 }
 
-footer::before {
-    content: "┌─ Footer ─────────────────────────────────────────────────────────────┐";
-    display: block;
-    font-family: 'Courier New', monospace;
-    color: var(--border-color);
-    margin-bottom: 10px;
-    font-size: 12px;
-}
 
-footer::after {
-    content: "└──────────────────────────────────────────────────────────────────────┘";
-    display: block;
-    font-family: 'Courier New', monospace;
-    color: var(--border-color);
-    margin-top: 10px;
-    font-size: 12px;
-}
 
 /* 12. 标题 - 主题化配色 */
 h3 {
