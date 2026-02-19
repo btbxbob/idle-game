@@ -131,8 +131,9 @@ window.updateUpgradeButtons = function(upgrades) {
                 const upgradeItem = document.getElementById(`upgrade-item-${index}`);
                 if (upgradeItem) {
                     // 只更新需要改变的内容：成本和按钮状态（如果适用）
-                    // 使用更精确的选择器：选择第二个 div 中的 span
-                    const secondDiv = upgradeItem.querySelector('div:last-child');
+                    // 使用更精确的选择器：选择第二个 div 中的 span（索引从 0 开始）
+                    const allDivs = upgradeItem.querySelectorAll('div');
+                    const secondDiv = allDivs.length > 1 ? allDivs[1] : null;
                     const costSpan = secondDiv ? secondDiv.querySelector('span') : null;
                     const buyButton = upgradeItem.querySelector('button');
                     
