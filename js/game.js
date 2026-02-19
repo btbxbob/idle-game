@@ -155,7 +155,7 @@ window.updateUpgradeButtons = function(upgrades) {
                         // 更新按钮的禁用状态，基于资源是否足够
                         let sufficientFunds = true;
                         if (window.rustGame) {
-                            const currentCoins = window.rustGame.getCoins();
+                            const currentCoins = window.rustGame.get_coins();
                             sufficientFunds = currentCoins >= upgrade.cost;
                         }
                         buyButton.disabled = !window.gameInitialized || !sufficientFunds;
@@ -235,7 +235,7 @@ window.updateBuildingDisplay = function(buildings) {
                 if (buyButton) {
                     let sufficientFunds = true;
                     if (window.rustGame) {
-                        const currentCoins = window.rustGame.getCoins();
+                        const currentCoins = window.rustGame.get_coins();
                         sufficientFunds = currentCoins >= building.cost;
                     }
                     buyButton.disabled = !window.gameInitialized || !sufficientFunds;
