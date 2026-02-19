@@ -4,7 +4,10 @@
   "description": "Playwright tests for idle game",
   "scripts": {
     "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "lint:syntax": "node scripts/lint-syntax.js",
+    "lint": "npm run lint:syntax",
+    "precommit": "npm run lint:syntax"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2"
