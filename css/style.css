@@ -6,8 +6,8 @@
 
 body {
     font-family: 'Courier New', monospace, 'Arial', sans-serif;
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #ffffff !important;  /* 强制设为白色背景 */
+    color: #000000 !important;
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -83,6 +83,383 @@ header h1 {
     overflow-x: auto;
     line-height: 1.1;
     font-size: 0.9em;
+}
+
+#banner #resources {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1px;
+    flex-wrap: nowrap;
+}
+
+#banner .resource-item {
+    background-color: #ffffff;
+    padding: 1px 2px;
+    border: 1px solid #000000;
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    white-space: nowrap;
+    text-align: left;
+    min-width: 30px;
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+/* Banner resource colors */
+#banner #coins { color: #FFD700 !important; font-weight: bold; background-color: #000000 !important; }
+#banner #wood { color: #FFFFFF !important; font-weight: bold; background-color: #8B4513 !important; }
+#banner #stone { color: #FFFFFF !important; font-weight: bold; background-color: #696969 !important; }
+#banner #cps { color: #000000 !important; font-weight: bold; background-color: #FFD700 !important; }
+#banner #wps { color: #FFFFFF !important; font-weight: bold; background-color: #228B22 !important; }
+#banner #sps { color: #000000 !important; font-weight: bold; background-color: #708090 !important; }
+#banner #cpc { color: #FFFFFF !important; font-weight: bold; background-color: #4169E1 !important; }
+
+/* Tab Navigation */
+#tab-navigation {
+    display: flex;
+    background-color: #ffffff;
+    border-bottom: 2px solid #000000;
+    padding: 0;
+}
+
+.tab-button {
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    border-bottom: none;
+    border-radius: 0;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    transition: all 0.1s ease;
+    margin-right: -2px; /* Remove border overlap */
+}
+
+.tab-button:hover {
+    background-color: #f0f0f0;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+.tab-button.active {
+    background-color: #000000;
+    color: #ffffff;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+/* Main Content with Tabs */
+#main-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #f8f8f8;
+    border: 1px solid #000000;
+    padding: 20px;
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Resources tab active state */
+#tab-resources.active {
+    display: grid !important;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+}
+
+/* Resources tab layout - remove display property */
+#tab-resources {
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+}
+
+/* Other tabs layout - remove display property */
+#tab-upgrades, #tab-buildings, #tab-workers, #tab-settings {
+    align-items: center;
+}
+
+#resource-panel {
+    background-color: #ffffff;
+    padding: 15px;
+    border: 2px solid #000000;
+    border-radius: 0;
+}
+
+#resources {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* General resource-item for other parts of the app, excluding banner */
+#main-content .resource-item {
+    background-color: #ffffff;
+    padding: 10px;
+    border: 1px solid #000000;
+    border-radius: 0;
+    /* ASCII terminal style */
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border-top: 2px solid #000000;
+    color: #000000;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+#main-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#click-area {
+    width: 200px;
+    height: 200px;
+    /* ASCII-inspired button style */
+    background-color: #000000;
+    color: #ffffff;
+    border: 3px solid #000000;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    /* ASCII art inspired - blocky and pixel-like */
+    font-family: 'Courier New', monospace;
+    box-shadow: 4px 4px 0px #000000;
+}
+
+#click-area:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+#click-area:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #000000;
+}
+
+#coin-display {
+    font-size: 2em;
+    font-weight: bold;
+    color: #FFD700; /* Gold color for coins */
+    text-align: center;
+    /* ASCII large number style */
+    font-family: 'Courier New', monospace;
+    letter-spacing: 3px;
+}
+
+#click-area p {
+    color: #ffffff;
+    font-size: 1em;
+    margin-top: 5px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+#upgrades, #buildings, #workers, #settings {
+    background-color: #ffffff;
+    padding: 15px;
+    border: 2px solid #000000;
+    border-radius: 0;
+    width: 100%;
+    max-width: 600px;
+}
+
+#upgrade-list, #building-list, #worker-list, #settings-content {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+ .upgrade-item, .building-item, .worker-item, .setting-item {
+    background-color: #ffffff;
+    padding: 10px;
+    border: 1px solid #000000;
+    border-radius: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* ASCII terminal item style */
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.setting-item label, .setting-item select, .setting-item button {
+    width: 100%;
+    max-width: 300px;
+}
+
+.upgrade-item button, .building-item button, .worker-item button, .setting-item button {
+    background-color: #000000;
+    color: #ffffff;
+    border: 2px solid #000000;
+    padding: 5px 10px;
+    border-radius: 0;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    transition: all 0.1s ease;
+}
+
+.upgrade-item button:hover:not(:disabled), .building-item button:hover:not(:disabled), 
+.worker-item button:hover:not(:disabled), .setting-item button:hover:not(:disabled) {
+    background-color: #333333;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+.upgrade-item button:disabled, .building-item button:disabled, 
+.worker-item button:disabled, .setting-item button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+button {
+    background-color: #000000;
+    color: white;
+    border: 2px solid #000000;
+    padding: 8px 15px;
+    border-radius: 0;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    transition: all 0.1s ease;
+    box-shadow: 2px 2px 0px #000000;
+}
+
+button:hover:not(:disabled) {
+    background-color: #333333;
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px #000000;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+button.purchase-failed {
+    animation: ascii-shake 0.3s ease-in-out, ascii-flash 0.3s ease-in-out;
+}
+
+@keyframes ascii-shake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-2px, -2px); }
+    75% { transform: translate(2px, 2px); }
+}
+
+@keyframes ascii-flash {
+    0%, 100% { background-color: #000000; color: #ffffff; }
+    50% { background-color: #ff0000; color: #ffffff; }
+}
+
+h3 {
+    color: #000000;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* ASCII Art inspired decorative elements */
+.banner .resource-item::before {
+    content: "● ";
+    font-family: 'Courier New', monospace;
+}
+
+.upgrade-item::before, .building-item::before, .worker-item::before {
+    content: "■ ";
+    font-family: 'Courier New', monospace;
+}
+
+.setting-item::before {
+    content: "⚙ ";
+    font-family: 'Courier New', monospace;
+}
+
+/* Resources tab active state */
+#tab-resources.active {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Resources tab layout */
+#tab-resources {
+    align-items: center;
+}
+
+/* ASCII terminal scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 1px solid #000000;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #000000;
+    border: 1px solid #ffffff;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #333333;
+}
+
+@media (max-width: 768px) {
+    #tab-resources {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Mobile ASCII style */
+    body {
+        background-size: 10px 10px;
+    }
+    
+    .tab-button {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
 }
 
 #banner #resources {
@@ -1220,18 +1597,6 @@ h3 {
 .setting-item::before {
     content: "⚙ ";
     font-family: 'Courier New', monospace;
-}
-
-/* Resources tab active state */
-#tab-resources.active {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Resources tab layout */
-#tab-resources {
-    align-items: center;
 }
 
 .upgrade-item::before, .building-item::before, .worker-item::before {

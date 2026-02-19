@@ -1,18 +1,18 @@
 /* ASCII ART / TUI 风格增强样式 */
 /* 黑白配色 + 纯 ASCII 字符装饰 */
 
-/* 1. 纯黑白配色方案 */
+/* 1. 白底黑字配色方案 */
 body {
-    background-color: #000000 !important;
-    color: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     background-image: none !important;
 }
 
 #game-container {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: none !important;
-    box-shadow: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+    box-shadow: 8px 8px 0px #000000 !important;
 }
 
 /* 2. ASCII 边框字符装饰 */
@@ -35,10 +35,10 @@ body {
 }
 
 header {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-bottom: none !important;
-    border: 1px solid #ffffff;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+    border: none !important;
     position: relative;
 }
 
@@ -60,13 +60,13 @@ header::after {
     font-size: 12px;
 }
 
-/* 3. 资源面板 - 纯文本边框 */
+/* 3. 资源面板 - 白底黑字边框 */
 #resource-panel {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
     position: relative;
-    padding: 20px !important;
+    padding: 15px !important;
 }
 
 #resource-panel::before {
@@ -87,11 +87,11 @@ header::after {
     font-size: 12px;
 }
 
-/* 4. 资源项 - 纯文本项目符号 */
+/* 4. 资源项 - 白底黑字项目符号 */
 .resource-item {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
     font-family: 'Courier New', monospace !important;
     font-size: 14px !important;
 }
@@ -102,21 +102,21 @@ header::after {
     color: #ffffff;
 }
 
-/* 5. 标签页导航 - 纯文本分隔符 */
+/* 5. 标签页导航 - 白底黑字分隔符 */
 #tab-navigation {
-    background-color: #000000 !important;
-    border-bottom: none !important;
-    border: 1px solid #ffffff;
+    background-color: #ffffff !important;
+    border-bottom: 2px solid #000000 !important;
+    border: none !important;
     padding: 0 !important;
 }
 
 .tab-button {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-right: 1px solid #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+    border-right: none !important;
     border-radius: 0 !important;
-    margin-right: 0 !important;
+    margin-right: -2px !important;
 }
 
 .tab-button:last-child {
@@ -124,10 +124,10 @@ header::after {
 }
 
 .tab-button.active {
-    background-color: #333333 !important;
+    background-color: #000000 !important;
     color: #ffffff !important;
-    transform: none !important;
-    box-shadow: none !important;
+    transform: translate(2px, 2px) !important;
+    box-shadow: 2px 2px 0px #000000 !important;
 }
 
 .tab-button.active::before {
@@ -136,20 +136,20 @@ header::after {
     font-family: 'Courier New', monospace;
 }
 
-/* 6. 内容区域 - 纯文本边框 */
+/* 6. 内容区域 - 白底黑字边框 */
 #main-content {
-    background-color: #000000 !important;
-    border: none !important;
-    color: #ffffff !important;
+    background-color: #f8f8f8 !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
 }
 
-/* 7. 升级/建筑面板 - 纯文本边框 */
+/* 7. 升级/建筑面板 - 白底黑字边框 */
 #upgrades, #buildings, #workers, #settings {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
     position: relative;
-    padding: 20px !important;
+    padding: 15px !important;
 }
 
 #upgrades::before, #buildings::before {
@@ -170,11 +170,11 @@ header::after {
     font-size: 12px;
 }
 
-/* 8. 升级/建筑项 - 纯文本项目符号 */
+/* 8. 升级/建筑项 - 白底黑字项目符号 */
 .upgrade-item, .building-item {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
     font-family: 'Courier New', monospace !important;
 }
 
@@ -188,11 +188,11 @@ header::after {
     content: "  [*] " !important;
 }
 
-/* 9. 按钮 - 纯文本框 */
+/* 9. 按钮 - 黑底白字风格 */
 .upgrade-item button, .building-item button {
     background-color: #000000 !important;
     color: #ffffff !important;
-    border: 1px solid #ffffff !important;
+    border: 2px solid #000000 !important;
     border-radius: 0 !important;
     font-family: 'Courier New', monospace !important;
 }
@@ -204,13 +204,13 @@ header::after {
     box-shadow: none !important;
 }
 
-/* 10. 点击区域 - 纯文本边框 */
+/* 10. 点击区域 - 黑底白字风格 */
 #click-area {
     background-color: #000000 !important;
     color: #ffffff !important;
-    border: 2px solid #ffffff !important;
+    border: 3px solid #000000 !important;
     border-radius: 0 !important;
-    box-shadow: none !important;
+    box-shadow: 4px 4px 0px #000000 !important;
     font-family: 'Courier New', monospace !important;
 }
 
@@ -233,16 +233,16 @@ header::after {
 }
 
 #coin-display {
-    color: #ffffff !important;
+    color: #FFD700 !important;
     font-family: 'Courier New', monospace !important;
 }
 
-/* 11. 页脚 - 纯文本边框 */
+/* 11. 页脚 - 白底黑字边框 */
 footer {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-top: none !important;
-    border: 1px solid #ffffff;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-top: 2px solid #000000 !important;
+    border: none !important;
 }
 
 footer::before {
@@ -276,10 +276,11 @@ h3 {
     50% { opacity: 0; }
 }
 
-/* 14. 移除所有颜色 */
-#coins, #wood, #stone, #cps, #wps, #sps, #cpc {
-    color: #ffffff !important;
-}
+/* 14. 资源颜色 - 保持原有配色 */
+#coins { color: #FFD700 !important; }
+#wood { color: #8B4513 !important; }
+#stone { color: #696969 !important; }
+#cps, #wps, #sps, #cpc { color: #000000 !important; }
 
 /* 15. 禁用滚动条自定义（使用系统默认） */
 ::-webkit-scrollbar {
