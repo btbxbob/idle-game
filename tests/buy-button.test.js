@@ -27,6 +27,10 @@ test('buy buttons should have real-time response', async ({ page }) => {
   console.log('Coins after clicks:', coinsAfterClicksValue);
   expect(coinsAfterClicksValue).toBeGreaterThan(initialCoinsValue);
   
+  // Switch to buildings tab first
+  await page.click('button[data-tab="buildings"]');
+  await page.waitForTimeout(100);
+  
   // Buy Coin Mine first
   const coinMineButton = page.locator('#buy-building-0');
   
@@ -44,7 +48,11 @@ test('buy buttons should have real-time response', async ({ page }) => {
   // Verify building count was updated
   const buildingListAfter = await page.textContent('#building-list');
   console.log('Building list after:', buildingListAfter);
-  expect(buildingListAfter).toContain('Owned: 1');
+  expect(buildingListAfter).toMatch(/拥有:\s*1/);
+  
+  // Switch to upgrades tab
+  await page.click('button[data-tab="upgrades"]');
+  await page.waitForTimeout(100);
   
   // Test upgrade purchase as well
   const betterClickButton = page.locator('#buy-upgrade-0');

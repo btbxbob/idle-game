@@ -49,6 +49,10 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   const coinsBeforePurchase = await page.textContent('#coins');
   const coinsBeforePurchaseValue = parseInt(coinsBeforePurchase.split(': ')[1]);
   
+  // Switch to buildings tab
+  await page.click('button[data-tab="buildings"]');
+  await page.waitForTimeout(100);
+  
   // Buy Coin Mine - use different strategy for Webkit
   if (browserName === 'webkit') {
     // For Webkit, use evaluate to call the function directly
@@ -75,5 +79,5 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   
   // Verify building was purchased
   const buildingList = await page.textContent('#building-list');
-  expect(buildingList).toContain('Owned: 1');
+  expect(buildingList).toMatch(/拥有:\s*1/);
 });

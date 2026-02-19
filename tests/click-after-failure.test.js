@@ -23,6 +23,10 @@ test('click should work after failed purchase', async ({ page }) => {
   console.log('Coins after 1 click:', coinsAfterClickValue);
   expect(coinsAfterClickValue).toBe(1);
   
+  // Switch to buildings tab
+  await page.click('button[data-tab="buildings"]');
+  await page.waitForTimeout(100);
+  
   // Try to buy Coin Mine (cost: 15) with insufficient coins (1 < 15)
   await page.click('#buy-building-0');
   
@@ -33,6 +37,10 @@ test('click should work after failed purchase', async ({ page }) => {
   const coinsAfterFailedPurchaseValue = parseInt(coinsAfterFailedPurchase.split(': ')[1]);
   console.log('Coins after failed purchase:', coinsAfterFailedPurchaseValue);
   expect(coinsAfterFailedPurchaseValue).toBe(1);
+  
+  // Switch back to resources tab to access click area
+  await page.click('button[data-tab="resources"]');
+  await page.waitForTimeout(100);
   
   // Now try to click again - this should work if the bug doesn't exist
   await page.click('#click-area');

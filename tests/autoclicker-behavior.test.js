@@ -28,6 +28,10 @@ test('autoclicker should perform real clicks instead of passive production', asy
   const coinsBeforeUpgradeValue = parseInt(coinsBeforeUpgrade.split(': ')[1]);
   console.log('Coins before Better Click:', coinsBeforeUpgradeValue);
   
+  // Switch to upgrades tab
+  await page.click('button[data-tab="upgrades"]');
+  await page.waitForTimeout(100);
+  
   // Buy Better Click upgrade to increase click value to 2
   await page.click('#buy-upgrade-0'); // Better Click is index 0
   await page.waitForTimeout(300);
@@ -35,6 +39,10 @@ test('autoclicker should perform real clicks instead of passive production', asy
   // Check that coins per click increased
   const cpcAfterBetterClick = await page.textContent('#cpc');
   console.log('Coins per click after Better Click:', cpcAfterBetterClick);
+  
+  // Switch back to resources tab to click for coins
+  await page.click('button[data-tab="resources"]');
+  await page.waitForTimeout(100);
   
   // Now buy Autoclicker Lv1 (should perform real clicks equal to coins-per-click value)
   // Buy enough coins to afford Autoclicker (costs 50)
@@ -50,6 +58,10 @@ test('autoclicker should perform real clicks instead of passive production', asy
   const coinDisplayBefore = await page.textContent('#coin-display');
   console.log('Coins before autoclicker (after buy):', coinsBeforeAutoclickerValue);
   console.log('Coin display before:', coinDisplayBefore);
+  
+  // Switch to upgrades tab to buy autoclicker
+  await page.click('button[data-tab="upgrades"]');
+  await page.waitForTimeout(100);
   
   // Purchase Autoclicker upgrade
   await page.click('#buy-upgrade-1'); // Autoclicker Lv1 is index 1

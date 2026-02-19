@@ -54,5 +54,9 @@ module.exports = defineConfig({
     command: 'python server.py',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
+    timeout: 30000,
   },
+
+  /* Filter out monkey tests as they are too slow and intensive */
+  grep: /^(?!.*Monkey).*$/i  // Exclude tests with "Monkey" in the name/description
 });

@@ -45,6 +45,10 @@ test('fix all display and functionality issues', async ({ page }) => {
   console.log('Coins before autoclicker:', coinsBeforeAutoclickerValue);
   expect(coinsBeforeAutoclickerValue).toBeGreaterThanOrEqual(60);
   
+  // Switch to upgrades tab
+  await page.click('button[data-tab="upgrades"]');
+  await page.waitForTimeout(100);
+  
   await page.click('#buy-upgrade-0'); // Better Click is index 0
   await page.waitForTimeout(500);
   
