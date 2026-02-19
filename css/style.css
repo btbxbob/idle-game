@@ -444,9 +444,13 @@ footer {
 
 /* Version info in footer */
 #version-info {
-    margin-top: 5px;
+    margin-top: 8px;
     font-size: 11px;
     opacity: 0.8;
+}
+
+#version-label {
+    margin-right: 5px;
 }
 
 #version-number {
