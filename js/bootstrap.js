@@ -39,7 +39,7 @@ function startGameLoop(game) {
         if (game && typeof game.game_loop === 'function') {
             game.game_loop();
         }
-    }, 100); // 每100毫秒运行一次
+    }, 1000); // 每1000毫秒运行一次
 }
 
 // 页面加载完成后初始化游戏
