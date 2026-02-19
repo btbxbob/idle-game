@@ -44,6 +44,7 @@ class I18n {
                 'lightTheme': 'Light Theme',
                 'darkTheme': 'Dark Theme',
                 'gameVersion': 'Game Version',
+                'version': 'Version',
                 'resetGame': 'Reset Game',
                 'resetGameConfirm': 'Are you sure you want to reset the game? All progress will be lost!',
                 
@@ -93,6 +94,7 @@ class I18n {
                 'lightTheme': '亮色主题',
                 'darkTheme': '暗色主题',
                 'gameVersion': '游戏版本',
+                'version': '版本',
                 'resetGame': '重置游戏',
                 'resetGameConfirm': '确定要重置游戏吗？所有进度将丢失！',
                 
@@ -137,6 +139,7 @@ class I18n {
         this.updateElement('workers-header', 'workers');
         this.updateElement('settings-header', 'settings');
         this.updateElement('footer-text', 'footerText');
+        this.updateElement('version-info', 'version');
         this.updateElement('click-to-earn-coins', 'clickToEarnCoins');
         this.updateElement('workers-placeholder', 'workersPlaceholder');
         
