@@ -49,7 +49,7 @@ body.dark-theme {
     --shadow-color: #ffffff;
     --click-area-bg: #ffffff;
     --click-area-text: #000000;
-    --grid-pattern-color: rgba(255,255,255,0.1);
+    --grid-pattern-color: rgba(255,255,255,0.2);
 }
 
 * {
