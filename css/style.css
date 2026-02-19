@@ -442,9 +442,10 @@ footer {
     background: var(--scrollbar-thumb-hover);
 }
 
-/* Version info in footer */
+/* Version info in footer - compact single line */
 #version-info {
-    margin-top: 8px;
+    display: inline-block;
+    margin-left: 15px;
     font-size: 11px;
     opacity: 0.8;
 }
