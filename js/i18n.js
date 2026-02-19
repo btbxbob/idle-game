@@ -139,7 +139,6 @@ class I18n {
         this.updateElement('workers-header', 'workers');
         this.updateElement('settings-header', 'settings');
         this.updateElement('footer-text', 'footerText');
-        this.updateElement('version-label', 'version');
         this.updateElement('click-to-earn-coins', 'clickToEarnCoins');
         this.updateElement('workers-placeholder', 'workersPlaceholder');
         

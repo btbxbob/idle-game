@@ -300,6 +300,10 @@ footer {
     color: var(--text-color);
     font-family: 'Courier New', monospace;
     font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
 }
 
 #main-area {
