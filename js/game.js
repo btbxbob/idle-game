@@ -126,12 +126,14 @@ window.updateUpgradeButtons = function(upgrades) {
                 upgradeList.appendChild(upgradeDiv);
             });
         } else {
-            // 长度相同，只需更新现有项目的内部HTML
+            // 长度相同，只需更新现有项目的内部 HTML
             upgrades.forEach((upgrade, index) => {
                 const upgradeItem = document.getElementById(`upgrade-item-${index}`);
                 if (upgradeItem) {
                     // 只更新需要改变的内容：成本和按钮状态（如果适用）
-                    const costSpan = upgradeItem.querySelector('span');
+                    // 使用更精确的选择器：选择第二个 div 中的 span
+                    const secondDiv = upgradeItem.querySelector('div:last-child');
+                    const costSpan = secondDiv ? secondDiv.querySelector('span') : null;
                     const buyButton = upgradeItem.querySelector('button');
                     
                     // Use i18n for dynamic text
@@ -141,6 +143,25 @@ window.updateUpgradeButtons = function(upgrades) {
                     if (costSpan) {
                         costSpan.textContent = `${costText}: ${Math.floor(upgrade.cost)}`;
                     }
+                    
+                    if (buyButton) {
+                        // 更新按钮文字，以防万一翻译有所变化
+                        const buttonText = buyButton.textContent;
+                        if (buttonText !== buyText) {
+                            buyButton.textContent = buyText;
+                        }
+                        
+                        // 更新按钮的禁用状态，基于资源是否足够
+                        let sufficientFunds = true;
+                        if (window.rustGame) {
+                            const currentCoins = window.rustGame.getCoins();
+                            sufficientFunds = currentCoins >= upgrade.cost;
+                        }
+                        buyButton.disabled = !window.gameInitialized || !sufficientFunds;
+                    }
+                }
+            });
+        }
                     
                     if (buyButton) {
                         // 更新按钮文字，以防万一翻译有所变化
