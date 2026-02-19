@@ -33,3 +33,10 @@ pkg/
 # Playwright test results and reports
 test-results/
 playwright-report/
+# Test reports
+playwright-report/
+test-results/
+
+# Agent working directories
+.sisyphus/
+.opencode/
