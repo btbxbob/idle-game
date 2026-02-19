@@ -296,7 +296,7 @@ footer {
     text-align: center;
     padding: 15px;
     background-color: var(--panel-bg);
-    border-top: 2px solid var(--border-color);
+    
     color: var(--text-color);
     font-family: 'Courier New', monospace;
     font-size: 12px;
