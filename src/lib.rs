@@ -424,19 +424,43 @@ impl IdleGame {
     pub fn update_upgrades_only(&self) {
         let window = match web_sys::window() {
             Some(win) => win,
-            None => return,
+            None => {
+                web_sys::console::log_1(&"update_upgrades_only: window is None".into());
+                return;
+            },
         };
         let global_obj = window.as_ref();
 
+        web_sys::console::log_1(&format!("update_upgrades_only: upgrades count={}", self.upgrades.len()).into());
+        for (i, upgrade) in self.upgrades.iter().enumerate() {
+            web_sys::console::log_1(&format!("  upgrade[{}]: name={}, cost={}", i, upgrade.name, upgrade.cost).into());
+        }
+
         let upgrades_serialized = match serde_wasm_bindgen::to_value(&self.upgrades) {
-            Ok(val) => val,
-            Err(_) => return,
+            Ok(val) => {
+                web_sys::console::log_1(&"update_upgrades_only: serialization OK".into());
+                val
+            },
+            Err(e) => {
+                web_sys::console::log_1(&format!("update_upgrades_only: serialization ERROR: {:?}", e).into());
+                return;
+            },
         };
-        let update_upgrades_result =
-            js_sys::Reflect::get(global_obj, &"updateUpgradeButtons".into());
-        if let Ok(update_func) = update_upgrades_result {
-            let update_upgrades: js_sys::Function = update_func.into();
-            let _ = update_upgrades.call1(&JsValue::NULL, &upgrades_serialized);
+        
+        let update_upgrades_result = js_sys::Reflect::get(global_obj, &"updateUpgradeButtons".into());
+        match update_upgrades_result {
+            Ok(update_func_val) => {
+                web_sys::console::log_1(&"update_upgrades_only: got updateUpgradeButtons function".into());
+                let update_func: js_sys::Function = update_func_val.into();
+                let call_result = update_func.call1(&JsValue::NULL, &upgrades_serialized);
+                match call_result {
+                    Ok(_) => web_sys::console::log_1(&"update_upgrades_only: call SUCCESS".into()),
+                    Err(e) => web_sys::console::log_1(&format!("update_upgrades_only: call ERROR: {:?}", e).into()),
+                }
+            },
+            Err(e) => {
+                web_sys::console::log_1(&format!("update_upgrades_only: get function ERROR: {:?}", e).into());
+            }
         }
     }
 

@@ -153,12 +153,8 @@ window.updateUpgradeButtons = function(upgrades) {
                         }
                         
                         // 更新按钮的禁用状态，基于资源是否足够
-                        let sufficientFunds = true;
-                        if (window.rustGame) {
-                            const currentCoins = window.rustGame.get_coins();
-                            sufficientFunds = currentCoins >= upgrade.cost;
-                        }
-                        buyButton.disabled = !window.gameInitialized || !sufficientFunds;
+                        // 注意：不在这里调用 get_coins()，避免 Rust 递归借用错误
+                        // buyButton.disabled 会在下一次资源更新时设置
                     }
                 }
             });
