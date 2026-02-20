@@ -236,6 +236,60 @@ header::after {
     font-family: 'Courier New', monospace !important;
 }
 
+/* Header ASCII Coin Click Area */
+#coin-click-area {
+    background: transparent !important;
+    color: var(--coin-gold) !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-family: 'Courier New', monospace !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+#coin-click-area:hover {
+    transform: scale(1.05) !important;
+}
+
+#coin-click-area:active {
+    transform: scale(0.95) !important;
+}
+
+#coin-container {
+    position: relative !important;
+    display: inline-block !important;
+}
+
+#ascii-coin {
+    color: #FFD700 !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    line-height: 1.0 !important;
+    font-size: 10px !important;
+    text-shadow: 0 0 3px #FFD700 !important;
+}
+
+#header-coin-display {
+    color: #000000 !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    letter-spacing: 2px !important;
+    font-size: 1.8em !important;
+    text-shadow: 0 0 2px rgba(255, 215, 0, 0.5) !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
 /* 11. 页脚 - 主题化配色 */
 footer {
     background-color: var(--panel-bg) !important;

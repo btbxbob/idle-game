@@ -19,53 +19,58 @@ window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, wood
         const spsElement = document.getElementById('sps');
         const cpcElement = document.getElementById('cpc');
         const coinDisplay = document.getElementById('coin-display');
+        const headerCoinDisplay = document.getElementById('header-coin-display');
         
          if (coinsElement) {
              // Ensure the value is a valid finite number
              const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
-             coinsElement.textContent = `Coins: ${Math.floor(safeCoins)}`;
+             coinsElement.textContent = `金币：${Math.floor(safeCoins)}`;
          }
         
          if (woodElement) {
              // Ensure the value is a valid finite number
              const safeWood = (typeof wood === 'number' && isFinite(wood)) ? wood : 0;
-             woodElement.textContent = `Wood: ${Math.floor(safeWood)}`;
+             woodElement.textContent = `木头：${Math.floor(safeWood)}`;
          }
         
          if (stoneElement) {
              // Ensure the value is a valid finite number
              const safeStone = (typeof stone === 'number' && isFinite(stone)) ? stone : 0;
-             stoneElement.textContent = `Stone: ${Math.floor(safeStone)}`;
+             stoneElement.textContent = `石头：${Math.floor(safeStone)}`;
          }
         
          if (cpsElement) {
              // Ensure the value is a valid finite number
              const safeCoinsPerSec = (typeof coinsPerSecond === 'number' && isFinite(coinsPerSecond)) ? coinsPerSecond : 0;
-             cpsElement.textContent = `Coins/sec: ${safeCoinsPerSec.toFixed(1)}`;
+             cpsElement.textContent = `金币/秒：${safeCoinsPerSec.toFixed(1)}`;
          }
         
          if (wpsElement) {
              // Ensure the value is a valid finite number
              const safeWoodPerSec = (typeof woodPerSecond === 'number' && isFinite(woodPerSecond)) ? woodPerSecond : 0;
-             wpsElement.textContent = `Wood/sec: ${safeWoodPerSec.toFixed(1)}`;
+             wpsElement.textContent = `木头/秒：${safeWoodPerSec.toFixed(1)}`;
          }
         
          if (spsElement) {
              // Ensure the value is a valid finite number
              const safeStonePerSec = (typeof stonePerSecond === 'number' && isFinite(stonePerSecond)) ? stonePerSecond : 0;
-             spsElement.textContent = `Stone/sec: ${safeStonePerSec.toFixed(1)}`;
+             spsElement.textContent = `石头/秒：${safeStonePerSec.toFixed(1)}`;
          }
         
          if (cpcElement) {
              // Ensure the value is a valid finite number
-             const safeCoinsPerClick = (typeof coinsPerClick === 'number' && isFinite(coinsPerClick)) ? coinsPerClick : 0;
-             cpcElement.textContent = `Coins/click: ${safeCoinsPerClick.toFixed(1)}`;
+             const safeCoinsPerClick = (typeof coinsPerClick === 'number' && isFinite(coinsPerClick)) ? coinsPerClick : 1;
+             cpcElement.textContent = `金币/点击：${safeCoinsPerClick.toFixed(1)}`;
          }
         
          if (coinDisplay) {
-             // Ensure the value is a valid finite number
              const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
              coinDisplay.textContent = `${Math.floor(safeCoins)}`;
+         }
+         
+         if (headerCoinDisplay) {
+             const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
+             headerCoinDisplay.textContent = `${Math.floor(safeCoins)}`;
          }
     }
 };
@@ -276,9 +281,20 @@ window.buyBuilding = function(index) {
 
 // Handle click interaction
 document.addEventListener('DOMContentLoaded', function() {
+    // Old click area (for backward compatibility)
     const clickArea = document.getElementById('click-area');
     if (clickArea) {
         clickArea.addEventListener('click', function() {
+            if (window.rustGame && typeof window.rustGame.click_action === 'function') {
+                window.rustGame.click_action();
+            }
+        });
+    }
+    
+    // New header coin click area
+    const headerCoinClickArea = document.getElementById('coin-click-area');
+    if (headerCoinClickArea) {
+        headerCoinClickArea.addEventListener('click', function() {
             if (window.rustGame && typeof window.rustGame.click_action === 'function') {
                 window.rustGame.click_action();
             }
@@ -335,6 +351,25 @@ window.scheduleUpdate = function(type, data) {
         window.updateTimeout = setTimeout(() => {
             window.updateTimeout = null;
             window.dequeueUpdates();
-        }, 16); // 约60fps，与浏览器刷新率同步
+        }, 16);
+    }
+};
+
+window.updateStatisticsPanel = function() {
+    if (window.statisticsManager && typeof window.statisticsManager.renderToPanel === 'function') {
+        const statisticsTab = document.getElementById('tab-statistics');
+        if (statisticsTab && statisticsTab.classList.contains('active')) {
+            window.statisticsManager.renderToPanel('statistics-list');
+        }
+    }
+};
+
+window.updateUnlocksPanel = function() {
+    if (window.unlockManager && typeof window.unlockManager.renderUnlocks === 'function') {
+        const unlocksTab = document.getElementById('tab-unlocks');
+        if (unlocksTab && unlocksTab.classList.contains('active')) {
+            window.unlockManager.update();
+            window.unlockManager.renderUnlocks();
+        }
     }
 };

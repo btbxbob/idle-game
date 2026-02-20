@@ -62,6 +62,10 @@
             <button class="tab-button" data-tab="upgrades">升级</button>
             <button class="tab-button" data-tab="buildings">建筑</button>
             <button class="tab-button" data-tab="workers">工人</button>
+            <button class="tab-button" data-tab="statistics">统计</button>
+            <button class="tab-button" data-tab="achievements">成就</button>
+            <button class="tab-button" data-tab="crafting">合成</button>
+            <button class="tab-button" data-tab="unlocks">解锁</button>
             <button class="tab-button" data-tab="settings">设置</button>
         </div>
         
@@ -97,8 +101,46 @@
             <div id="tab-workers" class="tab-content">
                 <div id="workers">
                     <h3 id="workers-header">工人</h3>
-                    <div id="worker-list">
+                    <div id="workers-list">
                         <p id="workers-placeholder">工人系统将在未来版本中实现</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistics Tab -->
+            <div id="tab-statistics" class="tab-content">
+                <div id="statistics">
+                    <h3 id="statistics-header">统计</h3>
+                    <div id="statistics-list"></div>
+                </div>
+            </div>
+            
+            <!-- Achievements Tab -->
+            <div id="tab-achievements" class="tab-content">
+                <div id="achievements">
+                    <h3 id="achievements-header">成就</h3>
+                    <div id="achievements-list">
+                        <p id="achievements-placeholder">成就系统将在未来版本中实现</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Crafting Tab -->
+            <div id="tab-crafting" class="tab-content">
+                <div id="crafting">
+                    <h3 id="crafting-header">合成</h3>
+                    <div id="crafting-list">
+                        <p id="crafting-placeholder">合成系统将在未来版本中实现</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Unlocks Tab -->
+            <div id="tab-unlocks" class="tab-content">
+                <div id="unlocks">
+                    <h3 id="unlocks-header">解锁</h3>
+                    <div id="unlock-list">
+                        <p id="unlocks-placeholder">解锁系统将在未来版本中实现</p>
                     </div>
                 </div>
             </div>
@@ -142,6 +184,11 @@
     <!-- 注意：在构建后此脚本将被替换为实际的 WASM 绑定 -->
     <script src="js/i18n.js"></script>
     <script src="js/game.js"></script>
+    <script src="js/statistics.js"></script>
+    <script src="js/crafting.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/unlocks.js"></script>
+    <script src="js/workers.js"></script>
     <script src="js/bootstrap.js"></script>
     
     <!-- Tab navigation and settings script -->
@@ -162,6 +209,19 @@
                     // Add active class to clicked button and corresponding content
                     this.classList.add('active');
                     document.getElementById(`tab-${tabName}`).classList.add('active');
+                    
+                    // Call render function for specific tabs when activated
+                    if (tabName === 'achievements' && window.achievementsManager) {
+                        window.achievementsManager.renderAchievements();
+                    } else if (tabName === 'statistics' && window.statisticsManager) {
+                        window.statisticsManager.renderStatistics();
+                    } else if (tabName === 'crafting' && window.craftingManager) {
+                        window.craftingManager.renderCrafting();
+                    } else if (tabName === 'unlocks' && window.unlockManager) {
+                        window.unlockManager.renderUnlocks();
+                    } else if (tabName === 'workers' && window.workerManager) {
+                        window.workerManager.renderWorkers();
+                    }
                 });
             });
             

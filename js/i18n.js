@@ -27,6 +27,30 @@ class I18n {
                 
                 // Workers
                 'workersPlaceholder': 'Worker system will be implemented in a future version',
+                'unassigned': 'Unassigned',
+                'assigned': 'Assigned',
+                'level': 'Level',
+                'assignedBuilding': 'Assigned Building',
+                'efficiency': 'Efficiency',
+                'skills': 'Skills',
+                'preferences': 'Preferences',
+                'experience': 'Experience',
+                'assignWorker': 'Assign Worker',
+                'reassignWorker': 'Reassign Worker',
+                'assign': 'Assign',
+                'reassign': 'Reassign',
+                'selectBuilding': 'Select Building',
+                'unassign': 'Unassign',
+                'invalidWorker': 'Invalid Worker',
+                'currentLevel': 'Current Level',
+                'efficiencyBonus': 'Efficiency Bonus',
+                'preference': 'Preference',
+                'cancel': 'Cancel',
+                'confirm': 'Confirm',
+                'assignFailed': 'Assignment Failed',
+                'totalWorkers': 'Total Workers',
+                'assignedWorkers': 'Assigned',
+                'noWorkers': 'No workers available',
                 
                 // Building/Upgrade labels
                 'cost': 'Cost',
@@ -51,7 +75,32 @@ class I18n {
                 // Resource display format
                 'resourceFormat': '{resource}: {amount}',
                 'productionFormat': '{resource}/sec: {amount}',
-                'clickFormat': '{resource}/click: {amount}'
+                'clickFormat': '{resource}/click: {amount}',
+                
+                // Statistics
+                'statisticsTab': 'Statistics',
+                'gameStats': 'Game Statistics',
+                'progressStats': 'Progress Statistics',
+                'totalClicks': 'Total Clicks',
+                'totalCoinsEarned': 'Total Coins Earned',
+                'totalWoodEarned': 'Total Wood Earned',
+                'totalStoneEarned': 'Total Stone Earned',
+                'totalResourcesCrafted': 'Total Resources Crafted',
+                'playTime': 'Play Time',
+                'buildingsPurchased': 'Buildings Purchased',
+                'upgradesPurchased': 'Upgrades Purchased',
+                'achievementsUnlocked': 'Achievements Unlocked',
+                'achievementUnlockedTitle': 'Achievement Unlocked!',
+                'achievementUnlocked': 'Achievement Unlocked',
+                'justNow': 'Just now',
+                'minutesAgo': '{count} minutes ago',
+                'hoursAgo': '{count} hours ago',
+                'daysAgo': '{count} days ago',
+                'achievementCategory_clicks': 'Clicks',
+                'achievementCategory_resources': 'Resources',
+                'achievementCategory_buildings': 'Buildings',
+                'achievementCategory_crafting': 'Crafting',
+                'achievementCategory_unlocks': 'Unlocks'
             },
             'zh-CN': {
                 // Game title and headers
@@ -77,6 +126,30 @@ class I18n {
                 
                 // Workers
                 'workersPlaceholder': '工人系统将在未来版本中实现',
+                'unassigned': '未分配',
+                'assigned': '已分配',
+                'level': '等级',
+                'assignedBuilding': '分配建筑',
+                'efficiency': '效率',
+                'skills': '技能',
+                'preferences': '偏好',
+                'experience': '经验',
+                'assignWorker': '分配工人',
+                'reassignWorker': '重新分配',
+                'assign': '分配',
+                'reassign': '重新分配',
+                'selectBuilding': '选择建筑',
+                'unassign': '取消分配',
+                'invalidWorker': '无效工人',
+                'currentLevel': '当前等级',
+                'efficiencyBonus': '效率加成',
+                'preference': '偏好',
+                'cancel': '取消',
+                'confirm': '确认',
+                'assignFailed': '分配失败',
+                'totalWorkers': '总工人',
+                'assignedWorkers': '已分配',
+                'noWorkers': '没有工人',
                 
                 // Building/Upgrade labels
                 'cost': '花费',
@@ -101,7 +174,32 @@ class I18n {
                 // Resource display format
                 'resourceFormat': '{resource}: {amount}',
                 'productionFormat': '{resource}/秒：{amount}',
-                'clickFormat': '{resource}/点击：{amount}'
+                'clickFormat': '{resource}/点击：{amount}',
+                
+                // Statistics
+                'statisticsTab': '统计',
+                'gameStats': '游戏统计',
+                'progressStats': '进度统计',
+                'totalClicks': '总点击次数',
+                'totalCoinsEarned': '总获得金币',
+                'totalWoodEarned': '总获得木头',
+                'totalStoneEarned': '总获得石头',
+                'totalResourcesCrafted': '总合成物品',
+                'playTime': '游戏时间',
+                'buildingsPurchased': '购买建筑',
+                'upgradesPurchased': '购买升级',
+                'achievementsUnlocked': '解锁成就',
+                'achievementUnlockedTitle': '成就解锁!',
+                'achievementUnlocked': '成就解锁',
+                'justNow': '刚刚',
+                'minutesAgo': '{count}分钟前',
+                'hoursAgo': '{count}小时前',
+                'daysAgo': '{count}天前',
+                'achievementCategory_clicks': '点击',
+                'achievementCategory_resources': '资源',
+                'achievementCategory_buildings': '建筑',
+                'achievementCategory_crafting': '合成',
+                'achievementCategory_unlocks': '解锁'
             }
         };
     }
@@ -141,6 +239,8 @@ class I18n {
         this.updateElement('footer-text', 'footerText');
         this.updateElement('click-to-earn-coins', 'clickToEarnCoins');
         this.updateElement('workers-placeholder', 'workersPlaceholder');
+        
+        this.updateElement('workers-list', 'noWorkers');
         
         // Update settings labels
         this.updateLabel('theme-select-setting', 'theme');

@@ -157,6 +157,7 @@ header h1 {
     padding: 1px 2px;
     border-bottom: 2px solid var(--border-color);
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     line-height: 1.1;
     font-size: 0.9em;
 }
@@ -168,6 +169,7 @@ header h1 {
     align-items: center;
     gap: 1px;
     flex-wrap: nowrap;
+    flex-shrink: 0;
 }
 
 #banner .resource-item {
@@ -466,4 +468,930 @@ footer {
     padding: 2px 6px;
     border-radius: 3px;
     margin-left: 3px;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* Small phones (375px and below) */
+@media (max-width: 375px) {
+    #game-container {
+        height: 100vh;
+        max-width: 100%;
+        border: 1px solid var(--border-color);
+        box-shadow: 4px 4px 0px var(--shadow-color);
+    }
+
+    header h1 {
+        font-size: 1.5em;
+        letter-spacing: 1px;
+    }
+
+    #banner {
+        padding: 2px 4px;
+    }
+
+    #banner #resources {
+        gap: 2px;
+    }
+
+    #banner .resource-item {
+        font-size: 8px;
+        min-width: 25px;
+        padding: 2px 3px;
+    }
+
+    .tab-button {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    #click-area {
+        width: 150px;
+        height: 150px;
+    }
+
+    #coin-display {
+        font-size: 1.5em;
+    }
+
+    #upgrades, #buildings, #workers, #settings {
+        max-width: 100%;
+        padding: 10px;
+    }
+
+    .upgrade-item, .building-item, .worker-item, .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .upgrade-item button, .building-item button, .worker-item button, .setting-item button {
+        width: 100%;
+    }
+
+    footer {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 10px;
+    }
+}
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+    #game-container {
+        height: 100vh;
+        max-width: 100%;
+        border-radius: 0;
+    }
+
+    header h1 {
+        font-size: 2em;
+    }
+
+    #banner .resource-item {
+        font-size: 9px;
+        min-width: 28px;
+    }
+
+    .tab-button {
+        padding: 10px 14px;
+        font-size: 12px;
+    }
+
+    #tab-resources.active {
+        grid-template-columns: 1fr;
+    }
+
+    #resource-panel {
+        margin-bottom: 15px;
+    }
+
+    #click-area {
+        width: 180px;
+        height: 180px;
+    }
+
+    #main-content {
+        padding: 15px;
+    }
+}
+
+/* Small laptops (1024px and below) */
+@media (max-width: 1024px) {
+    #game-container {
+        height: 95vh;
+    }
+
+    header h1 {
+        font-size: 2.2em;
+    }
+
+    .tab-button {
+        padding: 11px 16px;
+    }
+
+    #main-content {
+        padding: 18px;
+    }
+
+    #upgrades, #buildings, #workers, #settings {
+        max-width: 100%;
+    }
+}
+
+/* Large desktops (1200px and above) */
+@media (min-width: 1200px) {
+    #game-container {
+        max-width: 1400px;
+    }
+
+    header h1 {
+        font-size: 2.8em;
+    }
+
+    .tab-button {
+        padding: 14px 24px;
+        font-size: 15px;
+    }
+
+    #click-area {
+        width: 220px;
+        height: 220px;
+    }
+
+    #upgrades, #buildings, #workers, #settings {
+        max-width: 700px;
+    }
+
+    .upgrade-item, .building-item, .worker-item, .setting-item {
+        font-size: 13px;
+    }
+}
+
+/* ========================================
+   NEW UI COMPONENT STYLES
+   ======================================== */
+
+/* Statistics Grid */
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+/* Statistic Item */
+.statistic-item {
+    background-color: var(--panel-bg);
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.1s ease;
+}
+
+.statistic-item:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.statistic-item .stat-label {
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.statistic-item .stat-value {
+    color: #FFD700;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+/* Achievement Item */
+.achievement-item {
+    background-color: var(--panel-bg);
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.1s ease;
+    position: relative;
+}
+
+.achievement-item.locked {
+    opacity: 0.6;
+    background-color: var(--main-bg);
+    border-style: dashed;
+}
+
+.achievement-item.locked .achievement-name {
+    color: var(--button-disabled-text);
+}
+
+.achievement-item.locked .achievement-description {
+    color: var(--button-disabled-text);
+    font-style: italic;
+}
+
+.achievement-item.unlocked {
+    border-left: 3px solid #FFD700;
+}
+
+.achievement-item.unlocked:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.achievement-item .achievement-info {
+    flex: 1;
+}
+
+.achievement-item .achievement-name {
+    color: var(--text-color);
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.achievement-item .achievement-description {
+    color: var(--text-color);
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.achievement-item .achievement-progress {
+    color: var(--text-color);
+    font-size: 11px;
+    min-width: 80px;
+    text-align: right;
+}
+
+.achievement-item .achievement-reward {
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 11px;
+    margin-left: 10px;
+}
+
+/* Crafting Recipe */
+.crafting-recipe {
+    background-color: var(--panel-bg);
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.1s ease;
+}
+
+.crafting-recipe:hover:not(.locked) {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.crafting-recipe.locked {
+    opacity: 0.5;
+    background-color: var(--main-bg);
+}
+
+.crafting-recipe .recipe-info {
+    flex: 1;
+}
+
+.crafting-recipe .recipe-name {
+    color: var(--text-color);
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.crafting-recipe .recipe-cost {
+    color: var(--text-color);
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.crafting-recipe .recipe-cost span {
+    margin-right: 8px;
+}
+
+.crafting-recipe button {
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    border: 2px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 0;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    transition: all 0.1s ease;
+}
+
+.crafting-recipe button:hover:not(:disabled) {
+    background-color: var(--button-hover-bg);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.crafting-recipe button:disabled {
+    background-color: var(--button-disabled-bg);
+    color: var(--button-disabled-text);
+    cursor: not-allowed;
+}
+
+/* Unlock Feature */
+.unlock-feature {
+    background-color: var(--panel-bg);
+    padding: 15px 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    text-align: center;
+    transition: all 0.1s ease;
+    margin-bottom: 15px;
+}
+
+.unlock-feature.locked {
+    opacity: 0.7;
+    border-style: dashed;
+}
+
+.unlock-feature.unlocked {
+    border-left: 4px solid #FFD700;
+    text-align: left;
+}
+
+.unlock-feature:hover:not(.locked) {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.unlock-feature .unlock-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.unlock-feature .unlock-title {
+    color: var(--text-color);
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.unlock-feature .unlock-description {
+    color: var(--text-color);
+    font-size: 12px;
+    opacity: 0.8;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.unlock-feature .unlock-requirement {
+    color: var(--button-disabled-text);
+    font-size: 11px;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Progress Bar */
+.progress-bar {
+    background-color: var(--main-bg);
+    border: 1px solid var(--border-color);
+    height: 16px;
+    border-radius: 0;
+    margin: 8px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    background-color: #FFD700;
+    height: 100%;
+    transition: width 0.3s ease;
+    border-right: 1px solid var(--border-color);
+}
+
+.progress-text {
+    display: block;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-color);
+    margin-top: 4px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Unlock Action Button */
+.unlock-feature button {
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    border: 2px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 0;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    transition: all 0.1s ease;
+    margin-top: 10px;
+}
+
+.unlock-feature button:hover:not(:disabled) {
+    background-color: var(--button-hover-bg);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.unlock-feature button:disabled {
+    background-color: var(--button-disabled-bg);
+    color: var(--button-disabled-text);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.unlock-feature .unlocked-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* No Unlocks Message */
+.no-unlocks {
+    text-align: center;
+    color: var(--button-disabled-text);
+    font-size: 13px;
+    padding: 30px;
+    font-style: italic;
+}
+
+/* Achievement Notification */
+.achievement-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--panel-bg);
+    border: 2px solid #FFD700;
+    border-left: 4px solid #FFD700;
+    padding: 15px 20px;
+    border-radius: 0;
+    box-shadow: 4px 4px 0px var(--shadow-color);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    z-index: 1000;
+    min-width: 280px;
+    max-width: 350px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.achievement-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.achievement-notification.hide {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.achievement-notification .notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.achievement-notification .notification-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.achievement-notification .notification-text {
+    flex: 1;
+}
+
+.achievement-notification .notification-title {
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.achievement-notification .notification-name {
+    color: var(--text-color);
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.achievement-notification .notification-description {
+    color: var(--text-color);
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+/* Responsive adjustments for new components */
+@media (max-width: 375px) {
+    .statistic-item,
+    .achievement-item,
+    .crafting-recipe {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .crafting-recipe button {
+        width: 100%;
+    }
+
+    .achievement-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .achievement-notification {
+        top: 10px;
+        right: 10px;
+        min-width: 250px;
+    }
+}
+
+#workers-list {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.workers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.worker-card {
+    background-color: var(--panel-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    padding: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    transition: all 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 3px 3px 0px var(--shadow-color);
+}
+
+.worker-card:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px var(--shadow-color);
+}
+
+.worker-header {
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.worker-name {
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.worker-level {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.worker-body {
+    padding: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.worker-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.worker-info-row:last-child {
+    border-bottom: none;
+}
+
+.worker-label {
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 12px;
+}
+
+.worker-value {
+    color: var(--text-color);
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.worker-value.efficiency {
+    color: #27ae60;
+}
+
+.worker-xp-section {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 2px solid var(--border-color);
+}
+
+.xp-progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: var(--main-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.xp-progress-fill {
+    height: 100%;
+    background-color: #FFD700;
+    transition: width 0.3s ease;
+}
+
+.worker-footer {
+    padding: 10px 12px;
+    border-top: 2px solid var(--border-color);
+    background-color: var(--main-bg);
+}
+
+.worker-assign-btn {
+    width: 100%;
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    border: 2px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 0;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    transition: all 0.1s ease;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.worker-assign-btn:hover:not(:disabled) {
+    background-color: var(--button-hover-bg);
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+.worker-assign-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: var(--panel-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 8px 8px 0px var(--shadow-color);
+}
+
+.modal-header {
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--click-area-text);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+}
+
+.modal-close:hover {
+    opacity: 0.8;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.form-control {
+    width: 100%;
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    padding: 10px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    border-radius: 0;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #FFD700;
+}
+
+.worker-preview {
+    background-color: var(--main-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.preview-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.preview-row:last-child {
+    border-bottom: none;
+}
+
+.preview-label {
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 12px;
+}
+
+.preview-value {
+    color: var(--text-color);
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    transition: all 0.1s ease;
+}
+
+.btn-primary {
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--button-hover-bg);
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+.btn-secondary {
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--button-hover-bg);
+    color: var(--click-area-text);
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+@media (max-width: 375px) {
+    .workers-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .worker-card {
+        font-size: 12px;
+    }
+
+    .worker-header {
+        padding: 8px 10px;
+    }
+
+    .worker-body {
+        padding: 10px;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
+}
+
+@media (max-width: 768px) {
+    .workers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 12px;
+    }
 }
