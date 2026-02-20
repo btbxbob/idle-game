@@ -294,18 +294,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // New header coin click area
     const headerCoinClickArea = document.getElementById('coin-click-area');
     if (headerCoinClickArea) {
-        headerCoinClickArea.addEventListener('click', function() {
+        headerCoinClickArea.addEventListener('click', function(e) {
             if (window.rustGame && typeof window.rustGame.click_action === 'function') {
                 window.rustGame.click_action();
+                createCoinParticles(e.clientX, e.clientY);
             }
         });
     }
     
     const coinButton = document.getElementById('coin-button');
     if (coinButton) {
-        coinButton.addEventListener('click', function() {
+        coinButton.addEventListener('click', function(e) {
             if (window.rustGame && typeof window.rustGame.click_action === 'function') {
                 window.rustGame.click_action();
+                createCoinParticles(e.clientX, e.clientY);
             }
         });
     }
@@ -315,6 +317,33 @@ document.addEventListener('DOMContentLoaded', function() {
         window.i18n.updateAllTranslations();
     }
 });
+
+// Particle effect when clicking coin button
+function createCoinParticles(x, y) {
+    const coinButton = document.getElementById('coin-button');
+    if (!coinButton) return;
+    
+    const particleCount = 8;
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'coin-particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        
+        // Random direction - particles spread out in a circle
+        const angle = (Math.PI * 2 * i) / particleCount;
+        const distance = 50 + Math.random() * 30;
+        particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+        particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+        
+        document.body.appendChild(particle);
+        
+        // Cleanup after animation completes
+        setTimeout(() => {
+            particle.remove();
+        }, 600);
+    }
+}
 
 // 批量UI更新优化：将多个UI更新操作打包以减少DOM修改次数
 window.updateQueue = [];

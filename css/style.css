@@ -1,55 +1,88 @@
-/* Theme Variables - Light Theme (Default) */
+/* Theme Variables - Light Theme (Default) - Amber Terminal */
 :root {
-    --bg-color: #ffffff;
-    --text-color: #000000;
-    --border-color: #000000;
-    --header-bg: #ffffff;
-    --header-text: #000000;
-    --main-bg: #f8f8f8;
-    --panel-bg: #ffffff;
-    --button-bg: #000000;
-    --button-text: #ffffff;
-    --button-hover-bg: #333333;
-    --button-disabled-bg: #cccccc;
+    --bg-color: #0a0a0a;
+    --text-color: #ffb000;
+    --border-color: #ffb000;
+    --header-bg: #0a0a0a;
+    --header-text: #ffb000;
+    --main-bg: #0f0f0f;
+    --panel-bg: #0a0a0a;
+    --button-bg: #ffb000;
+    --button-text: #0a0a0a;
+    --button-hover-bg: #ffcc00;
+    --button-disabled-bg: #444444;
     --button-disabled-text: #666666;
-    --tab-active-bg: #000000;
-    --tab-active-text: #ffffff;
-    --tab-inactive-bg: #ffffff;
-    --tab-inactive-text: #000000;
-    --scrollbar-track: #f1f1f1;
-    --scrollbar-thumb: #000000;
-    --scrollbar-thumb-hover: #333333;
-    --shadow-color: #000000;
-    --click-area-bg: #000000;
-    --click-area-text: #ffffff;
-    --grid-pattern-color: rgba(0,0,0,0.1);
+    --tab-active-bg: #ffb000;
+    --tab-active-text: #0a0a0a;
+    --tab-inactive-bg: #0a0a0a;
+    --tab-inactive-text: #ffb000;
+    --scrollbar-track: #0f0f0f;
+    --scrollbar-thumb: #ffb000;
+    --scrollbar-thumb-hover: #ffcc00;
+    --shadow-color: #ffb000;
+    --click-area-bg: #ffb000;
+    --click-area-text: #0a0a0a;
+    --grid-pattern-color: rgba(255, 176, 0, 0.08);
+    --glow-color: rgba(255, 176, 0, 0.5);
+    --scanline-color: rgba(0, 0, 0, 0.5);
 }
 
-/* Dark Theme */
+/* Dark Theme - Green Terminal */
 body.dark-theme {
-    --bg-color: #000000;
-    --text-color: #ffffff;
-    --border-color: #ffffff;
-    --header-bg: #000000;
-    --header-text: #ffffff;
-    --main-bg: #1a1a1a;
-    --panel-bg: #000000;
-    --button-bg: #ffffff;
-    --button-text: #000000;
-    --button-hover-bg: #cccccc;
+    --bg-color: #050505;
+    --text-color: #00ff41;
+    --border-color: #00ff41;
+    --header-bg: #050505;
+    --header-text: #00ff41;
+    --main-bg: #0a0a0a;
+    --panel-bg: #050505;
+    --button-bg: #00ff41;
+    --button-text: #050505;
+    --button-hover-bg: #00ff6a;
     --button-disabled-bg: #444444;
-    --button-disabled-text: #888888;
-    --tab-active-bg: #ffffff;
-    --tab-active-text: #000000;
-    --tab-inactive-bg: #000000;
-    --tab-inactive-text: #ffffff;
-    --scrollbar-track: #1a1a1a;
-    --scrollbar-thumb: #ffffff;
-    --scrollbar-thumb-hover: #cccccc;
-    --shadow-color: #ffffff;
-    --click-area-bg: #ffffff;
-    --click-area-text: #000000;
-    --grid-pattern-color: rgba(255,255,255,0.2);
+    --button-disabled-text: #666666;
+    --tab-active-bg: #00ff41;
+    --tab-active-text: #050505;
+    --tab-inactive-bg: #050505;
+    --tab-inactive-text: #00ff41;
+    --scrollbar-track: #0a0a0a;
+    --scrollbar-thumb: #00ff41;
+    --scrollbar-thumb-hover: #00ff6a;
+    --shadow-color: #00ff41;
+    --click-area-bg: #00ff41;
+    --click-area-text: #050505;
+    --grid-pattern-color: rgba(0, 255, 65, 0.08);
+    --glow-color: rgba(0, 255, 65, 0.5);
+    --scanline-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Cyan Terminal Theme */
+body.cyan-theme {
+    --bg-color: #050505;
+    --text-color: #00ffff;
+    --border-color: #00ffff;
+    --header-bg: #050505;
+    --header-text: #00ffff;
+    --main-bg: #0a0a0a;
+    --panel-bg: #050505;
+    --button-bg: #00ffff;
+    --button-text: #050505;
+    --button-hover-bg: #66ffff;
+    --button-disabled-bg: #444444;
+    --button-disabled-text: #666666;
+    --tab-active-bg: #00ffff;
+    --tab-active-text: #050505;
+    --tab-inactive-bg: #050505;
+    --tab-inactive-text: #00ffff;
+    --scrollbar-track: #0a0a0a;
+    --scrollbar-thumb: #00ffff;
+    --scrollbar-thumb-hover: #66ffff;
+    --shadow-color: #00ffff;
+    --click-area-bg: #00ffff;
+    --click-area-text: #050505;
+    --grid-pattern-color: rgba(0, 255, 255, 0.08);
+    --glow-color: rgba(0, 255, 255, 0.5);
+    --scanline-color: rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -72,6 +105,41 @@ body {
         radial-gradient(circle at 1px 1px, var(--grid-pattern-color) 1px, transparent 0);
     background-size: 20px 20px;
     background-position: 0 0, 10px 10px;
+    /* CRT scanline effect */
+    position: relative;
+    overflow: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        var(--scanline-color) 0px,
+        var(--scanline-color) 1px,
+        transparent 2px,
+        transparent 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.15;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.5;
 }
 
 #game-container {
@@ -84,9 +152,11 @@ body {
     border: 2px solid var(--border-color);
     border-radius: 0;
     overflow: hidden;
-    box-shadow: 8px 8px 0px var(--shadow-color);
+    box-shadow: 0 0 30px var(--glow-color), 8px 8px 0px var(--shadow-color);
     /* ASCII terminal style */
     font-family: 'Courier New', monospace;
+    position: relative;
+    z-index: 1;
 }
 
 header {
@@ -145,10 +215,10 @@ header {
 #game-title {
     font-size: 2.5em;
     color: var(--header-text);
-    text-shadow: none;
-    /* ASCII art style - bold and blocky */
+    /* ASCII art style - bold and blocky with terminal glow */
     font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
 }
 
 /* Coin Button - Gold Coin Style */
@@ -210,26 +280,49 @@ header {
 
 #banner .resource-item {
     background-color: var(--panel-bg);
-    padding: 1px 2px;
+    padding: 6px 12px;
     border: 1px solid var(--border-color);
-    border-radius: 0;
+    border-radius: 4px;
     font-family: 'Courier New', monospace;
-    font-size: 10px;
+    font-size: 11px;
     white-space: nowrap;
     text-align: left;
     min-width: 30px;
     flex: 0 0 auto;
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
 }
 
-/* Banner resource colors */
-#banner #coins { color: #FFD700 !important; font-weight: bold; background-color: var(--text-color) !important; }
-#banner #wood { color: var(--button-text) !important; font-weight: bold; background-color: #8B4513 !important; }
-#banner #stone { color: var(--button-text) !important; font-weight: bold; background-color: #696969 !important; }
-#banner #cps { color: var(--text-color) !important; font-weight: bold; background-color: #FFD700 !important; }
-#banner #wps { color: var(--button-text) !important; font-weight: bold; background-color: #228B22 !important; }
-#banner #sps { color: var(--text-color) !important; font-weight: bold; background-color: #708090 !important; }
-#banner #cpc { color: var(--button-text) !important; font-weight: bold; background-color: #4169E1 !important; }
+#banner .resource-item:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px var(--shadow-color);
+}
+
+#banner .resource-icon {
+    font-size: 1.3em;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+/* Resource rate separator - visual grouping */
+#banner .resource-rate {
+    border-left: 2px solid var(--border-color);
+    margin-left: 4px;
+}
+
+/* Banner resource colors - thematic and distinct */
+#banner #coins { color: #FFD700; }    /* Gold */
+#banner #wood { color: #DEB887; }     /* Burlywood - light brown */
+#banner #stone { color: #A9A9A9; }    /* Dark Gray */
+
+/* Production rates - purple tones */
+#banner #cps { color: #DDA0DD; }      /* Plum */
+#banner #wps { color: #98FB98; }      /* Pale Green */
+#banner #sps { color: #B0C4DE; }      /* Light Steel Blue */
+#banner #cpc { color: #FFA07A; }      /* Light Salmon */
 
 /* Tab Navigation */
 #tab-navigation {
@@ -251,6 +344,7 @@ header {
     font-weight: bold;
     transition: all 0.1s ease;
     margin-right: -2px; /* Remove border overlap */
+    text-shadow: 0 0 5px var(--glow-color);
 }
 
 .tab-button:hover {
@@ -354,10 +448,10 @@ footer {
 #click-area {
     width: 200px;
     height: 200px;
-    /* ASCII-inspired button style */
+    /* ASCII-inspired button style with terminal glow */
     background-color: var(--text-color);
     color: var(--click-area-text);
-    border: 3px solid #000000;
+    border: 3px solid var(--border-color);
     border-radius: 0;
     display: flex;
     flex-direction: column;
@@ -367,7 +461,7 @@ footer {
     transition: all 0.1s ease;
     /* ASCII art inspired - blocky and pixel-like */
     font-family: 'Courier New', monospace;
-    box-shadow: 4px 4px 0px #000000;
+    box-shadow: 4px 4px 0px var(--shadow-color), 0 0 15px var(--glow-color);
 }
 
 #click-area:hover {
@@ -385,9 +479,10 @@ footer {
     font-weight: bold;
     color: #FFD700; /* Gold color for coins */
     text-align: center;
-    /* ASCII large number style */
+    /* ASCII large number style with glow */
     font-family: 'Courier New', monospace;
     letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 #click-area p {
@@ -535,7 +630,12 @@ footer {
     #banner .resource-item {
         font-size: 8px;
         min-width: 25px;
-        padding: 2px 3px;
+        padding: 4px 6px;
+        gap: 4px;
+    }
+
+    #banner .resource-icon {
+        font-size: 1.1em;
     }
 
     .tab-button {
@@ -589,6 +689,12 @@ footer {
     #banner .resource-item {
         font-size: 9px;
         min-width: 28px;
+        padding: 5px 8px;
+        gap: 5px;
+    }
+
+    #banner .resource-icon {
+        font-size: 1.2em;
     }
 
     .tab-button {
@@ -667,6 +773,41 @@ footer {
 }
 
 /* ========================================
+   CRT ANIMATIONS & EFFECTS
+   ======================================== */
+
+/* Subtle CRT flicker animation */
+@keyframes crt-flicker {
+    0% { opacity: 1; }
+    95% { opacity: 1; }
+    96% { opacity: 0.98; }
+    97% { opacity: 1; }
+    98% { opacity: 0.99; }
+    100% { opacity: 1; }
+}
+
+#game-container {
+    animation: crt-flicker 0.15s infinite;
+}
+
+/* Text glow pulse for active elements */
+@keyframes glow-pulse {
+    0%, 100% { text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color); }
+    50% { text-shadow: 0 0 15px var(--glow-color), 0 0 30px var(--glow-color), 0 0 40px var(--glow-color); }
+}
+
+#game-title {
+    animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Button hover glow effect */
+.btn-primary:hover,
+.tab-button.active,
+#click-area:hover {
+    filter: drop-shadow(0 0 8px var(--glow-color));
+}
+
+/* ========================================
    NEW UI COMPONENT STYLES
    ======================================== */
 
@@ -703,10 +844,11 @@ footer {
 }
 
 .statistic-item .stat-value {
-    color: #FFD700;
+    color: var(--text-color);
     font-weight: bold;
     font-family: 'Courier New', monospace;
     letter-spacing: 1px;
+    text-shadow: 0 0 8px var(--glow-color);
 }
 
 /* Achievement Item */
@@ -1429,5 +1571,41 @@ footer {
     .workers-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 12px;
+    }
+}
+
+/* ========================================
+   COIN PARTICLE EFFECTS
+   ======================================== */
+
+.coin-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particle-fly 0.6s ease-out forwards;
+    z-index: 1000;
+}
+
+/* Dark theme particles - green */
+body.dark-theme .coin-particle {
+    background: linear-gradient(135deg, #00ff41, #00cc33);
+}
+
+/* Cyan theme particles - cyan */
+body.cyan-theme .coin-particle {
+    background: linear-gradient(135deg, #00ffff, #00cccc);
+}
+
+@keyframes particle-fly {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--tx), var(--ty)) scale(0);
     }
 }

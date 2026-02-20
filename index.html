@@ -22,24 +22,31 @@
         <div id="banner">
             <div id="resources">
                 <div class="resource-item">
+                    <span class="resource-icon">🪙</span>
                     <span id="coins">金币：0</span>
                 </div>
                 <div class="resource-item">
+                    <span class="resource-icon">🪵</span>
                     <span id="wood">木头：0</span>
                 </div>
                 <div class="resource-item">
+                    <span class="resource-icon">🪨</span>
                     <span id="stone">石头：0</span>
                 </div>
-                <div class="resource-item">
+                <div class="resource-item resource-rate">
+                    <span class="resource-icon">⏱️</span>
                     <span id="cps">金币/秒：0</span>
                 </div>
-                <div class="resource-item">
+                <div class="resource-item resource-rate">
+                    <span class="resource-icon">🌲</span>
                     <span id="wps">木头/秒：0</span>
                 </div>
-                <div class="resource-item">
+                <div class="resource-item resource-rate">
+                    <span class="resource-icon">⛏️</span>
                     <span id="sps">石头/秒：0</span>
                 </div>
-                <div class="resource-item">
+                <div class="resource-item resource-rate">
+                    <span class="resource-icon">⚡</span>
                     <span id="cpc">金币/点击：1</span>
                 </div>
             </div>
@@ -131,8 +138,9 @@
                         <div class="setting-item">
                             <label for="theme-select-setting">主题 / Theme:</label>
                             <select id="theme-select-setting">
-                                <option value="light">亮色主题</option>
-                                <option value="dark">暗色主题</option>
+                                <option value="light">琥珀终端 (Amber)</option>
+                                <option value="dark">绿色终端 (Green)</option>
+                                <option value="cyan">青色终端 (Cyan)</option>
                             </select>
                         </div>
                         <div class="setting-item">
@@ -210,11 +218,17 @@
             }
             
             function applyTheme(theme) {
+                // Remove all theme classes first
+                document.body.classList.remove('dark-theme', 'cyan-theme');
+                
+                // Apply selected theme
                 if (theme === 'dark') {
                     document.body.classList.add('dark-theme');
-                } else {
-                    document.body.classList.remove('dark-theme');
+                } else if (theme === 'cyan') {
+                    document.body.classList.add('cyan-theme');
                 }
+                // light theme is default (no class needed)
+                
                 // Update both theme selectors
                 const themeSelect = document.getElementById('theme-select');
                 const themeSelectSetting = document.getElementById('theme-select-setting');
