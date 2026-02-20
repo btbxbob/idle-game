@@ -10,7 +10,7 @@ async function initWasm() {
         
         // 尝试从 localStorage 加载存档
         try {
-            const loaded = game.load_from_local_storage();
+            const loaded = game.loadFromLocalStorage();
             if (loaded) {
                 console.log('Game loaded from localStorage');
             } else {
@@ -82,6 +82,9 @@ function startGameLoop(game) {
         }
         if (window.updateAchievementsPanel) {
             window.updateAchievementsPanel();
+        }
+        if (window.updateCoinButton) {
+            window.updateCoinButton();
         }
     }, 1000);
 }

@@ -301,6 +301,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    const coinButton = document.getElementById('coin-button');
+    if (coinButton) {
+        coinButton.addEventListener('click', function() {
+            if (window.rustGame && typeof window.rustGame.click_action === 'function') {
+                window.rustGame.click_action();
+            }
+        });
+    }
+    
     // Initialize i18n after DOM is loaded
     if (window.i18n) {
         window.i18n.updateAllTranslations();
@@ -371,5 +380,14 @@ window.updateUnlocksPanel = function() {
             window.unlockManager.update();
             window.unlockManager.renderUnlocks();
         }
+    }
+};
+
+window.updateCoinButton = function() {
+    if (!window.rustGame) return;
+    const coins = window.rustGame.get_coins();
+    const coinCount = document.getElementById('coin-count');
+    if (coinCount) {
+        coinCount.textContent = Math.floor(coins).toLocaleString();
     }
 };
