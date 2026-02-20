@@ -1,88 +1,101 @@
-/* Theme Variables - Light Theme (Default) - Classic Black/White */
+/* ========================================================================
+   THEME VARIABLES - RETRO-FUTURISTIC TERMINAL AESTHETIC
+   ======================================================================== */
+
+/* Amber Terminal Theme (Default) - Warm nostalgic glow */
 :root {
-    --bg-color: #ffffff;
-    --text-color: #000000;
-    --border-color: #000000;
-    --header-bg: #ffffff;
-    --header-text: #000000;
-    --main-bg: #f8f8f8;
-    --panel-bg: #ffffff;
-    --button-bg: #000000;
-    --button-text: #ffffff;
-    --button-hover-bg: #333333;
-    --button-disabled-bg: #cccccc;
-    --button-disabled-text: #666666;
-    --tab-active-bg: #000000;
-    --tab-active-text: #ffffff;
-    --tab-inactive-bg: #ffffff;
-    --tab-inactive-text: #000000;
-    --scrollbar-track: #f1f1f1;
-    --scrollbar-thumb: #000000;
-    --scrollbar-thumb-hover: #333333;
+    --bg-color: #1a1815;
+    --text-color: #ffb000;
+    --border-color: #ff9d00;
+    --header-bg: #1a1815;
+    --header-text: #ffb000;
+    --main-bg: #0f0e0d;
+    --panel-bg: #1a1815;
+    --button-bg: #ffb000;
+    --button-text: #1a1815;
+    --button-hover-bg: #ffc833;
+    --button-disabled-bg: #4a4438;
+    --button-disabled-text: #8a7f60;
+    --tab-active-bg: #ffb000;
+    --tab-active-text: #1a1815;
+    --tab-inactive-bg: #1a1815;
+    --tab-inactive-text: #ffb000;
+    --scrollbar-track: #0f0e0d;
+    --scrollbar-thumb: #ffb000;
+    --scrollbar-thumb-hover: #ffc833;
     --shadow-color: #000000;
-    --click-area-bg: #000000;
-    --click-area-text: #ffffff;
-    --grid-pattern-color: rgba(0,0,0,0.1);
-    --glow-color: rgba(0, 0, 0, 0.3);
-    --scanline-color: rgba(0, 0, 0, 0.15);
+    --click-area-bg: #ffb000;
+    --click-area-text: #1a1815;
+    --grid-pattern-color: rgba(255, 176, 0, 0.03);
+    --glow-color: rgba(255, 176, 0, 0.4);
+    --scanline-color: rgba(0, 0, 0, 0.3);
+    --noise-opacity: 0.02;
+    --vignette-opacity: 0.6;
+    --chromatic-aberration: 1px;
 }
 
-/* Dark Theme - Classic Black/White */
+/* Dark Terminal Theme - Cool phosphor green */
 body.dark-theme {
-    --bg-color: #000000;
-    --text-color: #ffffff;
-    --border-color: #ffffff;
-    --header-bg: #000000;
-    --header-text: #ffffff;
-    --main-bg: #1a1a1a;
-    --panel-bg: #000000;
-    --button-bg: #ffffff;
-    --button-text: #000000;
-    --button-hover-bg: #cccccc;
-    --button-disabled-bg: #444444;
-    --button-disabled-text: #888888;
-    --tab-active-bg: #ffffff;
-    --tab-active-text: #000000;
-    --tab-inactive-bg: #000000;
-    --tab-inactive-text: #ffffff;
-    --scrollbar-track: #1a1a1a;
-    --scrollbar-thumb: #ffffff;
-    --scrollbar-thumb-hover: #cccccc;
-    --shadow-color: #ffffff;
-    --click-area-bg: #ffffff;
-    --click-area-text: #000000;
-    --grid-pattern-color: rgba(255,255,255,0.2);
-    --glow-color: rgba(255, 255, 255, 0.3);
-    --scanline-color: rgba(255, 255, 255, 0.1);
+    --bg-color: #0a0f0a;
+    --text-color: #00ff41;
+    --border-color: #00cc33;
+    --header-bg: #0a0f0a;
+    --header-text: #00ff41;
+    --main-bg: #050805;
+    --panel-bg: #0a0f0a;
+    --button-bg: #00ff41;
+    --button-text: #0a0f0a;
+    --button-hover-bg: #33ff66;
+    --button-disabled-bg: #2a3a2a;
+    --button-disabled-text: #4a6a4a;
+    --tab-active-bg: #00ff41;
+    --tab-active-text: #0a0f0a;
+    --tab-inactive-bg: #0a0f0a;
+    --tab-inactive-text: #00ff41;
+    --scrollbar-track: #050805;
+    --scrollbar-thumb: #00ff41;
+    --scrollbar-thumb-hover: #33ff66;
+    --shadow-color: #000000;
+    --click-area-bg: #00ff41;
+    --click-area-text: #0a0f0a;
+    --grid-pattern-color: rgba(0, 255, 65, 0.03);
+    --glow-color: rgba(0, 255, 65, 0.5);
+    --scanline-color: rgba(0, 0, 0, 0.35);
+    --noise-opacity: 0.03;
+    --vignette-opacity: 0.7;
+    --chromatic-aberration: 1px;
 }
 
-/* Cyan Terminal Theme */
+/* Cyan Terminal Theme - Electric blue futuristic */
 body.cyan-theme {
-    --bg-color: #050505;
+    --bg-color: #050a10;
     --text-color: #00ffff;
-    --border-color: #00ffff;
-    --header-bg: #050505;
+    --border-color: #00cccc;
+    --header-bg: #050a10;
     --header-text: #00ffff;
-    --main-bg: #0a0a0a;
-    --panel-bg: #050505;
+    --main-bg: #020508;
+    --panel-bg: #050a10;
     --button-bg: #00ffff;
-    --button-text: #050505;
+    --button-text: #050a10;
     --button-hover-bg: #66ffff;
-    --button-disabled-bg: #444444;
-    --button-disabled-text: #666666;
+    --button-disabled-bg: #1a2a3a;
+    --button-disabled-text: #4a6a7a;
     --tab-active-bg: #00ffff;
-    --tab-active-text: #050505;
-    --tab-inactive-bg: #050505;
+    --tab-active-text: #050a10;
+    --tab-inactive-bg: #050a10;
     --tab-inactive-text: #00ffff;
-    --scrollbar-track: #0a0a0a;
+    --scrollbar-track: #020508;
     --scrollbar-thumb: #00ffff;
     --scrollbar-thumb-hover: #66ffff;
-    --shadow-color: #00ffff;
+    --shadow-color: #000000;
     --click-area-bg: #00ffff;
-    --click-area-text: #050505;
-    --grid-pattern-color: rgba(0, 255, 255, 0.08);
-    --glow-color: rgba(0, 255, 255, 0.5);
-    --scanline-color: rgba(0, 0, 0, 0.5);
+    --click-area-text: #050a10;
+    --grid-pattern-color: rgba(0, 255, 255, 0.03);
+    --glow-color: rgba(0, 255, 255, 0.6);
+    --scanline-color: rgba(0, 0, 0, 0.4);
+    --noise-opacity: 0.02;
+    --vignette-opacity: 0.65;
+    --chromatic-aberration: 1px;
 }
 
 * {
@@ -92,20 +105,18 @@ body.cyan-theme {
 }
 
 body {
-    font-family: 'Courier New', monospace, 'Arial', sans-serif;
+    font-family: 'Courier New', monospace;
     background-color: var(--bg-color) !important;
     color: var(--text-color) !important;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* ASCII art inspired background pattern */
     background-image: 
         radial-gradient(circle at 1px 1px, var(--grid-pattern-color) 1px, transparent 0),
         radial-gradient(circle at 1px 1px, var(--grid-pattern-color) 1px, transparent 0);
     background-size: 20px 20px;
     background-position: 0 0, 10px 10px;
-    /* CRT scanline effect */
     position: relative;
     overflow: hidden;
 }
@@ -126,7 +137,13 @@ body::before {
     );
     pointer-events: none;
     z-index: 9999;
-    opacity: 0.15;
+    opacity: 0.2;
+    animation: scanline-scroll 8s linear infinite;
+}
+
+@keyframes scanline-scroll {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
 }
 
 body::after {
@@ -136,10 +153,13 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+    background: 
+        radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,var(--vignette-opacity)) 100%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     pointer-events: none;
     z-index: 9998;
-    opacity: 0.5;
+    opacity: var(--noise-opacity);
+    mix-blend-mode: overlay;
 }
 
 #game-container {
@@ -152,21 +172,63 @@ body::after {
     border: 2px solid var(--border-color);
     border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 0 30px var(--glow-color), 8px 8px 0px var(--shadow-color);
-    /* ASCII terminal style */
+    box-shadow: 
+        0 0 40px var(--glow-color),
+        0 0 80px rgba(0, 0, 0, 0.5),
+        inset 0 0 60px rgba(0, 0, 0, 0.3);
     font-family: 'Courier New', monospace;
     position: relative;
     z-index: 1;
+    animation: crt-flicker 0.15s infinite;
+}
+
+#game-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(0, 0, 0, 0.2) 100%
+    );
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.5;
 }
 
 header {
     background-color: var(--header-bg);
-    padding: 20px;
+    padding: 25px 20px 30px;
     text-align: center;
     border-bottom: 2px solid var(--border-color);
     position: relative;
-    /* ASCII header style */
     font-family: 'Courier New', monospace;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--border-color),
+        transparent
+    );
+    animation: header-scan 3s ease-in-out infinite;
+    opacity: 0.5;
+}
+
+@keyframes header-scan {
+    0%, 100% { left: -100%; }
+    50% { left: 100%; }
 }
 
 #language-selector {
@@ -213,43 +275,106 @@ header {
 }
 
 #game-title {
-    font-size: 2.5em;
+    font-size: 2.8em;
     color: var(--header-text);
-    /* ASCII art style - bold and blocky with terminal glow */
     font-weight: bold;
-    letter-spacing: 3px;
-    text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    text-shadow: 
+        0 0 10px var(--glow-color),
+        0 0 20px var(--glow-color),
+        0 0 40px var(--glow-color),
+        0 0 80px var(--glow-color);
+    animation: title-glow 4s ease-in-out infinite, text-flicker 0.2s infinite;
+    position: relative;
+    display: inline-block;
 }
 
-/* Coin Button - Gold Coin Style */
+@keyframes title-glow {
+    0%, 100% { 
+        text-shadow: 
+            0 0 10px var(--glow-color),
+            0 0 20px var(--glow-color),
+            0 0 40px var(--glow-color);
+    }
+    50% { 
+        text-shadow: 
+            0 0 15px var(--glow-color),
+            0 0 30px var(--glow-color),
+            0 0 60px var(--glow-color),
+            0 0 100px var(--glow-color);
+    }
+}
+
+@keyframes text-flicker {
+    0%, 100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.95; }
+    94% { opacity: 1; }
+    95% { opacity: 0.98; }
+    96% { opacity: 1; }
+}
+
 #coin-button {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    border: 3px solid #FF8C00;
-    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
+    background: radial-gradient(
+        ellipse at 30% 30%,
+        var(--button-hover-bg) 0%,
+        var(--button-bg) 50%,
+        var(--border-color) 100%
+    );
+    border: 3px solid var(--border-color);
+    box-shadow: 
+        0 0 15px var(--glow-color),
+        0 0 30px var(--glow-color),
+        inset 0 0 20px var(--glow-color);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2em;
-    color: #8B4513;
+    color: var(--button-text);
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     position: absolute;
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    animation: coin-pulse 2s ease-in-out infinite;
+}
+
+@keyframes coin-pulse {
+    0%, 100% { 
+        box-shadow: 
+            0 0 15px var(--glow-color),
+            0 0 30px var(--glow-color),
+            inset 0 0 20px var(--glow-color);
+    }
+    50% { 
+        box-shadow: 
+            0 0 20px var(--glow-color),
+            0 0 40px var(--glow-color),
+            inset 0 0 30px var(--glow-color);
+    }
 }
 
 #coin-button:hover {
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%) scale(1.08);
+    box-shadow: 
+        0 0 25px var(--glow-color),
+        0 0 50px var(--glow-color),
+        inset 0 0 30px var(--glow-color);
 }
 
 #coin-button:active {
-    transform: translateY(-50%) scale(0.95);
+    transform: translateY(-50%) scale(0.92);
+    box-shadow: 
+        0 0 10px var(--glow-color),
+        0 0 20px var(--glow-color),
+        inset 0 0 15px var(--glow-color);
 }
 
 #coin-count {
@@ -333,31 +458,71 @@ header {
 }
 
 .tab-button {
-    background-color: var(--panel-bg);
-    color: var(--text-color);
+    background-color: var(--tab-inactive-bg);
+    color: var(--tab-inactive-text);
     border: 2px solid var(--border-color);
     border-bottom: none;
     border-radius: 0;
-    padding: 12px 20px;
+    padding: 14px 24px;
     cursor: pointer;
     font-family: 'Courier New', monospace;
     font-weight: bold;
-    transition: all 0.1s ease;
-    margin-right: -2px; /* Remove border overlap */
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-right: -2px;
     text-shadow: 0 0 5px var(--glow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.tab-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transition: left 0.5s ease;
+}
+
+.tab-button:hover::before {
+    left: 100%;
 }
 
 .tab-button:hover {
     background-color: var(--button-hover-bg);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(0, -2px);
+    box-shadow: 
+        0 4px 15px var(--glow-color),
+        0 0 30px var(--glow-color);
 }
 
 .tab-button.active {
-    background-color: var(--text-color);
-    color: var(--click-area-text);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    background-color: var(--tab-active-bg);
+    color: var(--tab-active-text);
+    transform: translate(0, -2px);
+    box-shadow: 
+        0 4px 20px var(--glow-color),
+        0 0 40px var(--glow-color),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--tab-active-bg);
 }
 
 /* Main Content with Tabs */
@@ -426,16 +591,40 @@ header {
 
 footer {
     text-align: center;
-    padding: 15px;
+    padding: 18px 20px;
     background-color: var(--panel-bg);
-    
     color: var(--text-color);
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 11px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 15px;
+    border-top: 2px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--border-color),
+        transparent
+    );
+    animation: footer-scan 4s ease-in-out infinite;
+    opacity: 0.5;
+}
+
+@keyframes footer-scan {
+    0%, 100% { left: -100%; }
+    50% { left: 100%; }
 }
 
 #main-area {
@@ -448,8 +637,12 @@ footer {
 #click-area {
     width: 200px;
     height: 200px;
-    /* ASCII-inspired button style with terminal glow */
-    background-color: var(--text-color);
+    background: radial-gradient(
+        ellipse at 30% 30%,
+        var(--button-hover-bg) 0%,
+        var(--button-bg) 60%,
+        var(--border-color) 100%
+    );
     color: var(--click-area-text);
     border: 3px solid var(--border-color);
     border-radius: 0;
@@ -458,20 +651,51 @@ footer {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: all 0.1s ease;
-    /* ASCII art inspired - blocky and pixel-like */
+    transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Courier New', monospace;
-    box-shadow: 4px 4px 0px var(--shadow-color), 0 0 15px var(--glow-color);
+    box-shadow: 
+        0 0 20px var(--glow-color),
+        0 0 40px var(--glow-color),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+#click-area::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 70%
+    );
+    animation: click-rotate 8s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes click-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 #click-area:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: scale(1.05);
+    box-shadow: 
+        0 0 30px var(--glow-color),
+        0 0 60px var(--glow-color),
+        inset 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
 #click-area:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0px 0px 0px #000000;
+    transform: scale(0.95);
+    box-shadow: 
+        0 0 15px var(--glow-color),
+        0 0 30px var(--glow-color),
+        inset 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
 #coin-display {
@@ -534,22 +758,28 @@ footer {
 }
 
 .upgrade-item button, .building-item button, .worker-item button, .setting-item button {
-    background-color: var(--text-color);
-    color: var(--click-area-text);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: 2px solid var(--border-color);
-    padding: 5px 10px;
+    padding: 8px 16px;
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
     font-family: 'Courier New', monospace;
-    transition: all 0.1s ease;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--glow-color);
 }
 
 .upgrade-item button:hover:not(:disabled), .building-item button:hover:not(:disabled), 
 .worker-item button:hover:not(:disabled), .setting-item button:hover:not(:disabled) {
     background-color: var(--button-hover-bg);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(0, -2px);
+    box-shadow: 
+        0 4px 20px var(--glow-color),
+        0 0 30px var(--glow-color);
 }
 
 .upgrade-item button:disabled, .building-item button:disabled, 
@@ -557,6 +787,8 @@ footer {
     background-color: var(--button-disabled-bg);
     color: var(--button-disabled-text);
     cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.5;
 }
 
 /* ASCII terminal scrollbar */
@@ -674,6 +906,47 @@ footer {
     }
 }
 
+/* Medium phones (430px and below - iPhone 15 Pro Max, etc.) */
+@media (max-width: 430px) {
+    header {
+        padding: 15px 10px;
+        min-height: auto;
+    }
+    
+    header h1 {
+        font-size: 1.6em;
+    }
+    
+    #banner {
+        padding: 3px 5px;
+        max-width: 100%;
+    }
+    
+    #banner .resource-item {
+        font-size: 9px;
+        min-width: 26px;
+        padding: 5px 7px;
+        gap: 4px;
+    }
+    
+    #banner .resource-icon {
+        font-size: 1.15em;
+    }
+    
+    .tab-button {
+        padding: 9px 11px;
+        font-size: 11px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    #tab-navigation {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 2px 0;
+    }
+}
+
 /* Tablets (768px and below) */
 @media (max-width: 768px) {
     #game-container {
@@ -773,31 +1046,70 @@ footer {
 }
 
 /* ========================================
-   CRT ANIMATIONS & EFFECTS
+   ENHANCED CRT ANIMATIONS & EFFECTS
    ======================================== */
 
 /* Subtle CRT flicker animation */
 @keyframes crt-flicker {
     0% { opacity: 1; }
-    95% { opacity: 1; }
-    96% { opacity: 0.98; }
-    97% { opacity: 1; }
-    98% { opacity: 0.99; }
+    92% { opacity: 1; }
+    93% { opacity: 0.97; }
+    94% { opacity: 1; }
+    95% { opacity: 0.98; }
+    96% { opacity: 1; }
+    97% { opacity: 0.99; }
+    98% { opacity: 1; }
     100% { opacity: 1; }
 }
 
-#game-container {
-    animation: crt-flicker 0.15s infinite;
-}
-
-/* Text glow pulse for active elements */
-@keyframes glow-pulse {
+/* Chromatic aberration effect on hover */
+@keyframes chromatic-shift {
     0%, 100% { text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color); }
-    50% { text-shadow: 0 0 15px var(--glow-color), 0 0 30px var(--glow-color), 0 0 40px var(--glow-color); }
+    33% { text-shadow: -1px 0 10px var(--glow-color), 1px 0 20px var(--glow-color); }
+    66% { text-shadow: 1px 0 10px var(--glow-color), -1px 0 20px var(--glow-color); }
 }
 
-#game-title {
-    animation: glow-pulse 3s ease-in-out infinite;
+/* Screen curvature simulation */
+#game-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(0, 0, 0, 0.1) 100%
+    );
+    pointer-events: none;
+    z-index: 11;
+    opacity: 0.4;
+}
+
+/* Random text glitch effect */
+@keyframes text-glitch {
+    0%, 100% { clip-path: inset(0 0 0 0); }
+    2% { clip-path: inset(10% 0 80% 0); transform: translateX(-2px); }
+    4% { clip-path: inset(80% 0 5% 0); transform: translateX(2px); }
+    6% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+}
+
+/* Enhanced glow pulse for active elements */
+@keyframes glow-pulse-enhanced {
+    0%, 100% { 
+        box-shadow: 
+            0 0 10px var(--glow-color),
+            0 0 20px var(--glow-color),
+            0 0 30px var(--glow-color);
+    }
+    50% { 
+        box-shadow: 
+            0 0 20px var(--glow-color),
+            0 0 40px var(--glow-color),
+            0 0 60px var(--glow-color),
+            0 0 80px var(--glow-color);
+    }
 }
 
 /* Button hover glow effect */
@@ -822,7 +1134,7 @@ footer {
 /* Statistic Item */
 .statistic-item {
     background-color: var(--panel-bg);
-    padding: 12px 15px;
+    padding: 14px 18px;
     border: 1px solid var(--border-color);
     border-radius: 0;
     font-family: 'Courier New', monospace;
@@ -830,31 +1142,52 @@ footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.1s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.statistic-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 0;
+    background: var(--border-color);
+    transition: height 0.3s ease;
+}
+
+.statistic-item:hover::before {
+    height: 100%;
 }
 
 .statistic-item:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(-3px, 0);
+    box-shadow: 
+        0 0 15px var(--glow-color),
+        0 0 30px var(--glow-color),
+        inset 3px 0 0 var(--border-color);
 }
 
 .statistic-item .stat-label {
     color: var(--text-color);
     font-weight: bold;
+    opacity: 0.8;
 }
 
 .statistic-item .stat-value {
     color: var(--text-color);
     font-weight: bold;
     font-family: 'Courier New', monospace;
-    letter-spacing: 1px;
-    text-shadow: 0 0 8px var(--glow-color);
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px var(--glow-color);
 }
 
 /* Achievement Item */
 .achievement-item {
     background-color: var(--panel-bg);
-    padding: 12px 15px;
+    padding: 16px 18px;
     border: 1px solid var(--border-color);
     border-radius: 0;
     font-family: 'Courier New', monospace;
@@ -862,12 +1195,28 @@ footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.1s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    overflow: hidden;
+}
+
+.achievement-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border-color), transparent);
+    transition: width 0.3s ease;
+}
+
+.achievement-item:hover::after {
+    width: 100%;
 }
 
 .achievement-item.locked {
-    opacity: 0.6;
+    opacity: 0.5;
     background-color: var(--main-bg);
     border-style: dashed;
 }
@@ -883,11 +1232,14 @@ footer {
 
 .achievement-item.unlocked {
     border-left: 3px solid #FFD700;
+    box-shadow: inset 10px 0 20px rgba(255, 215, 0, 0.05);
 }
 
 .achievement-item.unlocked:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(-3px, 0);
+    box-shadow: 
+        inset 10px 0 20px rgba(255, 215, 0, 0.1),
+        0 0 15px var(--glow-color);
 }
 
 .achievement-item .achievement-info {
@@ -923,7 +1275,7 @@ footer {
 /* Crafting Recipe */
 .crafting-recipe {
     background-color: var(--panel-bg);
-    padding: 12px 15px;
+    padding: 16px 18px;
     border: 1px solid var(--border-color);
     border-radius: 0;
     font-family: 'Courier New', monospace;
@@ -931,17 +1283,37 @@ footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.1s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.crafting-recipe::before {
+    content: '⚡';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    color: var(--button-bg);
+}
+
+.crafting-recipe:hover:not(.locked)::before {
+    opacity: 1;
 }
 
 .crafting-recipe:hover:not(.locked) {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(-3px, 0);
+    box-shadow: 
+        0 0 15px var(--glow-color),
+        0 0 30px var(--glow-color),
+        inset 3px 0 0 var(--border-color);
 }
 
 .crafting-recipe.locked {
-    opacity: 0.5;
+    opacity: 0.4;
     background-color: var(--main-bg);
+    filter: grayscale(0.8);
 }
 
 .crafting-recipe .recipe-info {
@@ -965,56 +1337,99 @@ footer {
 }
 
 .crafting-recipe button {
-    background-color: var(--text-color);
-    color: var(--click-area-text);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: 2px solid var(--border-color);
-    padding: 6px 12px;
+    padding: 8px 16px;
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
-    transition: all 0.1s ease;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--glow-color);
 }
 
 .crafting-recipe button:hover:not(:disabled) {
     background-color: var(--button-hover-bg);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(0, -2px);
+    box-shadow: 
+        0 4px 20px var(--glow-color),
+        0 0 30px var(--glow-color);
 }
 
 .crafting-recipe button:disabled {
     background-color: var(--button-disabled-bg);
     color: var(--button-disabled-text);
     cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.4;
 }
 
 /* Unlock Feature */
 .unlock-feature {
     background-color: var(--panel-bg);
-    padding: 15px 18px;
+    padding: 20px 22px;
     border: 2px solid var(--border-color);
     border-radius: 0;
     font-family: 'Courier New', monospace;
     font-size: 13px;
     text-align: center;
-    transition: all 0.1s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+.unlock-feature::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 215, 0, 0.05) 0%,
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.unlock-feature:hover:not(.locked)::before {
+    opacity: 1;
 }
 
 .unlock-feature.locked {
-    opacity: 0.7;
+    opacity: 0.5;
     border-style: dashed;
+    filter: grayscale(0.6);
 }
 
 .unlock-feature.unlocked {
     border-left: 4px solid #FFD700;
     text-align: left;
+    box-shadow: inset 10px 0 30px rgba(255, 215, 0, 0.08);
+}
+
+.unlock-feature.unlocked::after {
+    content: '✓';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 20px;
+    color: #FFD700;
+    text-shadow: 0 0 10px #FFD700;
 }
 
 .unlock-feature:hover:not(.locked) {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(-3px, 0);
+    box-shadow: 
+        inset 10px 0 30px rgba(255, 215, 0, 0.1),
+        0 0 20px var(--glow-color);
 }
 
 .unlock-feature .unlock-icon {
@@ -1049,48 +1464,96 @@ footer {
 .progress-bar {
     background-color: var(--main-bg);
     border: 1px solid var(--border-color);
-    height: 16px;
+    height: 20px;
     border-radius: 0;
     margin: 8px 0;
     position: relative;
     overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+    );
+    animation: progress-shimmer 2s infinite;
+}
+
+@keyframes progress-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .progress-bar-fill {
-    background-color: #FFD700;
+    background: linear-gradient(
+        90deg,
+        var(--button-bg) 0%,
+        var(--button-hover-bg) 100%
+    );
     height: 100%;
-    transition: width 0.3s ease;
-    border-right: 1px solid var(--border-color);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 0 10px var(--glow-color),
+        0 0 20px var(--glow-color);
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .progress-text {
     display: block;
     text-align: center;
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-color);
-    margin-top: 4px;
+    margin-top: 6px;
     font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 0 5px var(--glow-color);
 }
 
 /* Unlock Action Button */
 .unlock-feature button {
-    background-color: var(--text-color);
-    color: var(--click-area-text);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: 2px solid var(--border-color);
-    padding: 8px 16px;
+    padding: 10px 20px;
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
     font-family: 'Courier New', monospace;
-    font-size: 13px;
-    transition: all 0.1s ease;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 15px var(--glow-color);
     margin-top: 10px;
 }
 
 .unlock-feature button:hover:not(:disabled) {
     background-color: var(--button-hover-bg);
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    transform: translate(0, -3px);
+    box-shadow: 
+        0 6px 25px var(--glow-color),
+        0 0 40px var(--glow-color);
 }
 
 .unlock-feature button:disabled {
@@ -1099,6 +1562,7 @@ footer {
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    opacity: 0.4;
 }
 
 .unlock-feature .unlocked-badge {
@@ -1248,25 +1712,66 @@ footer {
     padding: 0;
     font-family: 'Courier New', monospace;
     font-size: 13px;
-    transition: all 0.1s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    box-shadow: 3px 3px 0px var(--shadow-color);
+    box-shadow: 
+        0 0 15px var(--glow-color),
+        4px 4px 0px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.worker-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 0;
+    background: var(--button-bg);
+    transition: height 0.3s ease;
+}
+
+.worker-card:hover::before {
+    height: 100%;
 }
 
 .worker-card:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0px var(--shadow-color);
+    transform: translate(-2px, -2px);
+    box-shadow: 
+        0 0 25px var(--glow-color),
+        6px 6px 0px var(--shadow-color);
 }
 
 .worker-header {
-    background-color: var(--text-color);
-    color: var(--click-area-text);
-    padding: 10px 12px;
+    background: linear-gradient(
+        90deg,
+        var(--button-bg) 0%,
+        var(--border-color) 100%
+    );
+    color: var(--button-text);
+    padding: 12px 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 2px solid var(--border-color);
+    position: relative;
+}
+
+.worker-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--button-hover-bg),
+        transparent
+    );
 }
 
 .worker-name {
@@ -1346,28 +1851,34 @@ footer {
 
 .worker-assign-btn {
     width: 100%;
-    background-color: var(--text-color);
-    color: var(--click-area-text);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: 2px solid var(--border-color);
-    padding: 8px 12px;
+    padding: 10px 15px;
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
     font-family: 'Courier New', monospace;
-    font-size: 13px;
-    transition: all 0.1s ease;
-    box-shadow: 2px 2px 0px var(--shadow-color);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--glow-color);
 }
 
 .worker-assign-btn:hover:not(:disabled) {
     background-color: var(--button-hover-bg);
-    transform: translate(2px, 2px);
-    box-shadow: 0px 0px 0px var(--shadow-color);
+    transform: translate(0, -2px);
+    box-shadow: 
+        0 4px 20px var(--glow-color),
+        0 0 30px var(--glow-color);
 }
 
 .worker-assign-btn:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0px 0px 0px var(--shadow-color);
+    transform: translate(0, 1px);
+    box-shadow: 
+        0 2px 10px var(--glow-color),
+        0 0 15px var(--glow-color);
 }
 
 .modal-overlay {
