@@ -11,6 +11,9 @@
 <body>
     <div id="game-container">
         <header>
+            <div id="coin-button" class="clickable">
+                <span id="coin-count">0</span>
+            </div>
             <h1 id="game-title">Rust WASM 闲置游戏</h1>
             <p id="click-to-earn">点击赚取金币并购买升级！</p>
             <!-- Theme selector -->
@@ -58,8 +61,7 @@
         
         <!-- Tab Navigation -->
         <div id="tab-navigation">
-            <button class="tab-button active" data-tab="resources">资源</button>
-            <button class="tab-button" data-tab="upgrades">升级</button>
+            <button class="tab-button active" data-tab="upgrades">升级</button>
             <button class="tab-button" data-tab="buildings">建筑</button>
             <button class="tab-button" data-tab="workers">工人</button>
             <button class="tab-button" data-tab="statistics">统计</button>
@@ -71,18 +73,8 @@
         
         <!-- Main Content Area with Tabs -->
         <main id="main-content">
-            <!-- Resources Tab -->
-            <div id="tab-resources" class="tab-content active">
-                <div id="main-area">
-                    <div id="click-area" class="clickable">
-                        <div id="coin-display">0</div>
-                        <p id="click-to-earn-coins">点击赚取金币</p>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Upgrades Tab -->
-            <div id="tab-upgrades" class="tab-content">
+            <div id="tab-upgrades" class="tab-content active">
                 <div id="upgrades">
                     <h3 id="upgrades-header">升级</h3>
                     <div id="upgrade-list"></div>
@@ -214,9 +206,9 @@
                     if (tabName === 'achievements' && window.achievementsManager) {
                         window.achievementsManager.renderAchievements();
                     } else if (tabName === 'statistics' && window.statisticsManager) {
-                        window.statisticsManager.renderStatistics();
+                        window.statisticsManager.renderToPanel('tab-statistics');
                     } else if (tabName === 'crafting' && window.craftingManager) {
-                        window.craftingManager.renderCrafting();
+                        window.craftingManager.renderRecipes();
                     } else if (tabName === 'unlocks' && window.unlockManager) {
                         window.unlockManager.renderUnlocks();
                     } else if (tabName === 'workers' && window.workerManager) {

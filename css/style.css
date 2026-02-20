@@ -142,13 +142,49 @@ header {
     background-color: var(--button-hover-bg);
 }
 
-header h1 {
+#game-title {
     font-size: 2.5em;
     color: var(--header-text);
     text-shadow: none;
     /* ASCII art style - bold and blocky */
     font-weight: bold;
     letter-spacing: 2px;
+}
+
+/* Coin Button - Gold Coin Style */
+#coin-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    border: 3px solid #FF8C00;
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    color: #8B4513;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#coin-button:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+#coin-button:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+#coin-count {
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
 }
 
 /* Banner Area - Resource Display */
