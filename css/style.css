@@ -1,59 +1,59 @@
-/* Theme Variables - Light Theme (Default) - Amber Terminal */
+/* Theme Variables - Light Theme (Default) - Classic Black/White */
 :root {
-    --bg-color: #0a0a0a;
-    --text-color: #ffb000;
-    --border-color: #ffb000;
-    --header-bg: #0a0a0a;
-    --header-text: #ffb000;
-    --main-bg: #0f0f0f;
-    --panel-bg: #0a0a0a;
-    --button-bg: #ffb000;
-    --button-text: #0a0a0a;
-    --button-hover-bg: #ffcc00;
-    --button-disabled-bg: #444444;
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --border-color: #000000;
+    --header-bg: #ffffff;
+    --header-text: #000000;
+    --main-bg: #f8f8f8;
+    --panel-bg: #ffffff;
+    --button-bg: #000000;
+    --button-text: #ffffff;
+    --button-hover-bg: #333333;
+    --button-disabled-bg: #cccccc;
     --button-disabled-text: #666666;
-    --tab-active-bg: #ffb000;
-    --tab-active-text: #0a0a0a;
-    --tab-inactive-bg: #0a0a0a;
-    --tab-inactive-text: #ffb000;
-    --scrollbar-track: #0f0f0f;
-    --scrollbar-thumb: #ffb000;
-    --scrollbar-thumb-hover: #ffcc00;
-    --shadow-color: #ffb000;
-    --click-area-bg: #ffb000;
-    --click-area-text: #0a0a0a;
-    --grid-pattern-color: rgba(255, 176, 0, 0.08);
-    --glow-color: rgba(255, 176, 0, 0.5);
-    --scanline-color: rgba(0, 0, 0, 0.5);
+    --tab-active-bg: #000000;
+    --tab-active-text: #ffffff;
+    --tab-inactive-bg: #ffffff;
+    --tab-inactive-text: #000000;
+    --scrollbar-track: #f1f1f1;
+    --scrollbar-thumb: #000000;
+    --scrollbar-thumb-hover: #333333;
+    --shadow-color: #000000;
+    --click-area-bg: #000000;
+    --click-area-text: #ffffff;
+    --grid-pattern-color: rgba(0,0,0,0.1);
+    --glow-color: rgba(0, 0, 0, 0.3);
+    --scanline-color: rgba(0, 0, 0, 0.15);
 }
 
-/* Dark Theme - Green Terminal */
+/* Dark Theme - Classic Black/White */
 body.dark-theme {
-    --bg-color: #050505;
-    --text-color: #00ff41;
-    --border-color: #00ff41;
-    --header-bg: #050505;
-    --header-text: #00ff41;
-    --main-bg: #0a0a0a;
-    --panel-bg: #050505;
-    --button-bg: #00ff41;
-    --button-text: #050505;
-    --button-hover-bg: #00ff6a;
+    --bg-color: #000000;
+    --text-color: #ffffff;
+    --border-color: #ffffff;
+    --header-bg: #000000;
+    --header-text: #ffffff;
+    --main-bg: #1a1a1a;
+    --panel-bg: #000000;
+    --button-bg: #ffffff;
+    --button-text: #000000;
+    --button-hover-bg: #cccccc;
     --button-disabled-bg: #444444;
-    --button-disabled-text: #666666;
-    --tab-active-bg: #00ff41;
-    --tab-active-text: #050505;
-    --tab-inactive-bg: #050505;
-    --tab-inactive-text: #00ff41;
-    --scrollbar-track: #0a0a0a;
-    --scrollbar-thumb: #00ff41;
-    --scrollbar-thumb-hover: #00ff6a;
-    --shadow-color: #00ff41;
-    --click-area-bg: #00ff41;
-    --click-area-text: #050505;
-    --grid-pattern-color: rgba(0, 255, 65, 0.08);
-    --glow-color: rgba(0, 255, 65, 0.5);
-    --scanline-color: rgba(0, 0, 0, 0.5);
+    --button-disabled-text: #888888;
+    --tab-active-bg: #ffffff;
+    --tab-active-text: #000000;
+    --tab-inactive-bg: #000000;
+    --tab-inactive-text: #ffffff;
+    --scrollbar-track: #1a1a1a;
+    --scrollbar-thumb: #ffffff;
+    --scrollbar-thumb-hover: #cccccc;
+    --shadow-color: #ffffff;
+    --click-area-bg: #ffffff;
+    --click-area-text: #000000;
+    --grid-pattern-color: rgba(255,255,255,0.2);
+    --glow-color: rgba(255, 255, 255, 0.3);
+    --scanline-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Cyan Terminal Theme */
@@ -1589,9 +1589,9 @@ footer {
     z-index: 1000;
 }
 
-/* Dark theme particles - green */
+/* Dark theme particles - black */
 body.dark-theme .coin-particle {
-    background: linear-gradient(135deg, #00ff41, #00cc33);
+    background: linear-gradient(135deg, #ffffff, #cccccc);
 }
 
 /* Cyan theme particles - cyan */
