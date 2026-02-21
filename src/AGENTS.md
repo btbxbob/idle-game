@@ -1,32 +1,53 @@
-# src/ - Rust Game Logic
+# src/ - Rust Game Logic (Modular)
 
-**Location**: `src/lib.rs` (~3000 lines, 38 tests)
+**Location**: `src/` directory (19 files, ~1800 lines, 38 tests)
+**Structure**: Modular - recently refactored from single 2983-line file
 
 ## Overview
-ALL core game logic in single Rust file. Compiled to WASM via wasm-bindgen.
+Modular Rust game logic. Compiled to WASM via wasm-bindgen. **Recently split** from monolithic lib.rs into organized modules.
 
-## Structure
+## WHERE TO LOOK (UPDATED)
+| Task | Location | Notes |
+|------|----------|-------|
+| Add game mechanic | `core/idle_game.rs` | Core logic |
+| Add state field | `state/game_state.rs` | Pure data |
+| Add entity | `entities/` | Building/Upgrade/Worker |
+| Add system logic | `systems/` | Achievement/Crafting/etc |
+| Add WASM export | `core/idle_game.rs` + `#[wasm_bindgen]` | Export section |
+| Add test | `test_utils/test_game_state.rs` | `#[cfg(test)]` |
+| Fix borrow error | `core/idle_game.rs` | Check `RefCell` scopes |
+
+## Module Structure
 ```
-src/lib.rs
-├── GameState struct         # Game state (Rc<RefCell>)
-├── Statistics struct        # 9 metrics tracking
-├── Achievement struct       # 13 achievements, 5 categories
-├── CraftingRecipe struct    # 6 bidirectional recipes
-├── UnlockedFeature struct   # 5 progressive unlocks
-├── Worker struct            # 5 types, levels, XP, efficiency
-├── IdleGame impl            # Main game logic
-└── #[cfg(test)] tests      # 38 unit tests
+src/
+├── lib.rs                    # Entry point (19 lines, re-exports only)
+├── core/                     # Core game logic
+│   ├── idle_game.rs          # IdleGame struct + main operations
+│   └── mod.rs
+├── state/                    # Pure data structures
+│   ├── game_state.rs         # GameState
+│   ├── statistics.rs         # Statistics (9 metrics)
+│   └── mod.rs
+├── entities/                 # Game entities (pure data)
+│   ├── upgrade.rs            # Upgrade
+│   ├── building.rs           # Building
+│   ├── worker.rs             # Worker (levels, XP)
+│   └── mod.rs
+├── systems/                  # Business logic
+│   ├── achievement.rs        # 13 achievements
+│   ├── crafting.rs           # 6 recipes
+│   ├── unlock.rs             # 5 unlocks
+│   ├── production.rs         # Production calculation
+│   └── mod.rs
+├── ui/                       # WASM-JS callbacks
+│   ├── callbacks.rs          # update_* functions
+│   └── mod.rs
+└── test_utils/               # Testing (no WASM deps)
+    ├── test_game_state.rs    # TestGameState + 38 tests
+    └── mod.rs
 ```
 
-## WHERE TO LOOK
-| Task | Location | Line Range |
-|------|----------|------------|
-| Add game mechanic | `lib.rs` | Core logic section |
-| Add WASM export | `lib.rs` + `#[wasm_bindgen]` | Export section |
-| Add test | `lib.rs` `#[cfg(test)]` | ~line 2300+ |
-| Fix borrow error | `lib.rs` | Check `RefCell` scopes |
-
-## ANTI-PATTERNS (CRITICAL)
+## ANTI-PATTERNS (CRITICAL) - Unchanged from monolithic
 ### Rust Borrowing - MUST FOLLOW
 ```rust
 // ❌ FORBIDDEN - borrow conflict
@@ -48,7 +69,7 @@ self.check_achievement(); // OK
 - ALWAYS use scope blocks `{ }` to release borrows
 - Drop borrows before calling other methods
 
-### WASM Exports
+### WASM Exports - Unchanged
 ```rust
 // ❌ FORBIDDEN - Vec<T> direct exposure
 pub fn get_achievements(&self) -> Vec<Achievement>
@@ -56,56 +77,4 @@ pub fn get_achievements(&self) -> Vec<Achievement>
 // ✅ REQUIRED - skip for complex types
 #[wasm_bindgen(skip)]
 achievements: Vec<Achievement>
-
-// ✅ OR provide wrapper function
-#[wasm_bindgen]
-pub fn get_achievement_count(&self) -> usize
 ```
-
-## Key Patterns
-### GameState Management
-```rust
-state: Rc<RefCell<GameState>>
-```
-- Use `Rc<RefCell<T>>` for shared mutable state
-- Always borrow within scope blocks
-- Release borrows before calling other methods
-
-### WASM Exports Pattern
-```rust
-#[wasm_bindgen]
-pub fn click_action(&mut self) {
-    // 1. Update statistics (scope block)
-    {
-        let mut stats = self.statistics.borrow_mut();
-        stats.total_clicks += 1;
-    }
-    
-    // 2. Update game state (separate scope)
-    {
-        let mut state = self.state.borrow_mut();
-        state.coins += earned;
-    }
-    
-    // 3. Call other methods (all borrows released)
-    self.check_achievement("...");
-}
-```
-
-## Commands
-```bash
-# Run tests
-cargo test
-
-# Build WASM
-wasm-pack build --target web --out-dir pkg --dev
-
-# Check errors
-cargo clippy
-```
-
-## Dependencies
-- `wasm-bindgen` - WASM-JS interop
-- `web-sys` - Web API bindings
-- `serde` - Serialization
-- `serde-wasm-bindgen` - Serde + WASM integration

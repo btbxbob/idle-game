@@ -1,7 +1,149 @@
 # Idle Game Project Knowledge Base
 
+**Generated**: 2026-02-21
+**Commit**: Modular Refactoring Complete
+**Stack**: Rust + WebAssembly + JavaScript
+**Architecture**: Core game logic in Rust (WASM), UI in vanilla JS
+
 ## Overview
-Rust + WebAssembly idle game with JavaScript frontend. Core game logic in Rust, compiled to WASM, with JS/HTML/CSS frontend.
+Rust + WebAssembly idle game with JavaScript frontend. Core logic in Rust (modular), compiled to WASM, with JS/HTML/CSS frontend.
+
+## Project Structure (UPDATED - Modular)
+```
+idle-game/
+├── src/                      # Rust game logic (MODULAR)
+│   ├── lib.rs               # Entry point (19 lines, exports only)
+│   ├── core/                # Core game logic (~1200 lines)
+│   │   ├── mod.rs
+│   │   └── idle_game.rs     # IdleGame struct + operations
+│   ├── state/               # Pure data structures
+│   │   ├── game_state.rs    # GameState
+│   │   └── statistics.rs    # Statistics (9 metrics)
+│   ├── entities/            # Game entities (pure data)
+│   │   ├── upgrade.rs       # Upgrade
+│   │   ├── building.rs      # Building
+│   │   └── worker.rs        # Worker (levels, XP)
+│   ├── systems/             # Business logic systems
+│   │   ├── achievement.rs   # 13 achievements
+│   │   ├── crafting.rs      # 6 bidirectional recipes
+│   │   ├── unlock.rs        # 5 progressive unlocks
+│   │   └── production.rs    # Production calculation
+│   ├── ui/                  # WASM-JS callbacks
+│   │   └── callbacks.rs     # update_* functions
+│   └── test_utils/          # Test utilities
+│       └── test_game_state.rs  # TestGameState + 38 tests
+├── js/                      # 8 JS modules (Manager pattern)
+├── tests/                   # 34+ Playwright E2E tests
+├── css/style.css            # Responsive styles
+├── index.html               # 9 tabs
+└── docs/                    # Design docs
+```
+
+## WHERE TO LOOK (UPDATED)
+| Task | Location | Notes |
+|------|----------|-------|
+| Add game mechanic | `src/core/idle_game.rs` | Core Rust logic |
+| Add state field | `src/state/game_state.rs` | Pure data |
+| Add entity | `src/entities/` | Building/Upgrade/Worker |
+| Add system logic | `src/systems/` | Achievement/Crafting/etc |
+| Add UI panel | `js/*.js` + `index.html` | Manager + tab |
+| Add test (Rust) | `src/test_utils/test_game_state.rs` | `#[cfg(test)]` |
+| Add test (E2E) | `tests/*.test.js` | Playwright, `*.test.js` suffix |
+| Add translation | `js/i18n.js` | zh-CN + en pairs |
+| Fix borrow error | `src/core/idle_game.rs` | Check `RefCell` scopes |
+| Add CSS style | `css/style.css` | Mobile-first, 4 breakpoints |
+
+## Core Systems (5)
+1. **Statistics** - 9 metrics (clicks, resources, time, etc.)
+2. **Achievements** - 13 achievements, 5 categories, toast notifications
+3. **Crafting** - 6 bidirectional recipes (100:10:1 ratio)
+4. **Unlocks** - 5 progressive features with threshold checks
+5. **Workers** - 5 types, assignment, levels, XP, efficiency bonuses
+
+## Build Commands
+```bash
+# Development
+wasm-pack build --target web --out-dir pkg --dev
+python server.py  # http://localhost:8080
+
+# Production
+wasm-pack build --target web --out-dir pkg --release
+
+# Tests
+cargo test        # Rust (38 tests)
+npm run test      # Playwright (34 tests)
+```
+
+## ANTI-PATTERNS (CRITICAL)
+### Rust Borrowing
+- ❌ Never hold `RefCell` borrows across function calls
+- ❌ Never borrow `state` and `statistics` simultaneously
+- ✅ ALWAYS use scope blocks to release borrows before calling methods
+
+```rust
+// ❌ WRONG - borrow conflict
+let state = self.state.borrow();
+let stats = self.statistics.borrow();
+self.check_achievement(); // PANIC: state still borrowed!
+
+// ✅ CORRECT - release borrows first
+{
+    let state = self.state.borrow();
+    let value = state.coins;
+} // released
+self.check_achievement(); // OK
+```
+
+### WASM Exports
+- ❌ Don't expose `Vec<T>` directly (use `#[wasm_bindgen(skip)]`)
+- ❌ Don't call JS from Rust without `Result` handling
+- ✅ Use `Rc<RefCell<T>>` for shared mutable state
+
+### JavaScript
+- ❌ Don't modify game state directly (call Rust via `window.rustGame`)
+- ❌ Don't assume WASM ready (check `window.gameInitialized`)
+- ✅ Use manager pattern: `window.statisticsManager.update()`
+
+### General
+- ❌ Don't mix business logic between Rust and JS
+- ❌ Don't hardcode i18n strings (use `js/i18n.js`)
+- ❌ Don't bypass 1000ms game loop (performance)
+
+## Key Patterns
+### WASM Integration
+```
+User click → JS handler → Rust function → State update → JS callback → DOM update
+```
+
+### Manager Pattern (JS)
+```javascript
+class StatisticsManager {
+  constructor(rustGame) { this.rustGame = rustGame; }
+  update() { return this.rustGame.get_statistics(); }
+  renderToPanel(id) { /* DOM updates */ }
+}
+```
+
+### Test Pattern (Playwright)
+```javascript
+test('description', async ({ page }) => {
+  await page.goto('http://localhost:8080');
+  await page.waitForFunction(() => window.gameInitialized === true);
+  // Test assertions
+});
+```
+
+## Testing
+- **Rust**: `#[cfg(test)]` in `src/lib.rs` (38 tests)
+- **Playwright**: `tests/*.test.js` (34 tests, `*.test.js` suffix required)
+- **Wait for**: `window.gameInitialized === true`
+- **i18n**: Exact Chinese strings for matching
+
+## Sub-AGENTS
+- [`src/AGENTS.md`](src/AGENTS.md) - Rust logic, borrowing, WASM exports
+- [`js/AGENTS.md`](js/AGENTS.md) - Manager pattern, WASM integration
+- [`tests/AGENTS.md`](tests/AGENTS.md) - Playwright patterns
+- [`docs/AGENTS.md`](docs/AGENTS.md) - Documentation structure
 
 ## Build Commands
 
