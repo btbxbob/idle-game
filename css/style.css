@@ -724,6 +724,31 @@ footer {
         -webkit-overflow-scrolling: touch;
         padding: 2px 0;
     }
+    
+    #main-content {
+        padding: 10px;
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+    
+    .tab-content {
+        gap: 10px;
+        min-width: 100%;
+    }
+    
+    .tab-content.active {
+        padding: 0;
+    }
+    
+    #upgrades, #buildings, #workers, #settings {
+        width: 100%;
+        max-width: 100%;
+        padding: 10px !important;
+    }
+    
+    #workers-list, #upgrades-list, #building-list, #settings-content {
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
