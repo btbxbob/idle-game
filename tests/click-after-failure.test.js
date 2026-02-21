@@ -14,7 +14,7 @@ test('click should work after failed purchase', async ({ page }) => {
   expect(initialCoinsValue).toBe(0);
   
   // Click once to get 1 coin
-  await page.click('#click-area');
+  await page.click('#coin-button');
   
   await page.waitForTimeout(200);
   
@@ -38,12 +38,8 @@ test('click should work after failed purchase', async ({ page }) => {
   console.log('Coins after failed purchase:', coinsAfterFailedPurchaseValue);
   expect(coinsAfterFailedPurchaseValue).toBe(1);
   
-  // Switch back to resources tab to access click area
-  await page.click('button[data-tab="resources"]');
-  await page.waitForTimeout(100);
-  
-  // Now try to click again - this should work if the bug doesn't exist
-  await page.click('#click-area');
+  // Click again - should work regardless of current tab
+  await page.click('#coin-button');
   
   await page.waitForTimeout(300);
   

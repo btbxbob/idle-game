@@ -38,8 +38,12 @@ test('particle effect works in dark theme', async ({ page }) => {
   // Wait for game initialization
   await page.waitForFunction(() => window.gameInitialized === true);
   
+  // Switch to settings tab to access theme selector
+  await page.click('button[data-tab="settings"]');
+  await page.waitForTimeout(100);
+  
   // Switch to dark theme
-  const themeSelect = page.locator('#theme-select');
+  const themeSelect = page.locator('#theme-select-setting');
   await themeSelect.selectOption('dark');
   
   // Wait for theme to apply
@@ -49,17 +53,17 @@ test('particle effect works in dark theme', async ({ page }) => {
   const bodyClass = await page.locator('body').getAttribute('class');
   expect(bodyClass).toContain('dark-theme');
   
-  // Click the coin button
+  // Click the coin button (visible in header regardless of tab)
   const coinButton = page.locator('#coin-button');
   await coinButton.click();
   
   // Wait for particles to appear
   await page.waitForSelector('.coin-particle', { timeout: 1000 });
   
-  // Verify particles have correct color for dark theme
+  // Verify particles have correct color for dark theme (white to gray gradient)
   const particle = page.locator('.coin-particle').first();
   const bgColor = await particle.evaluate(el => 
     getComputedStyle(el).background
   );
-  expect(bgColor).toContain('0, 255, 65'); // Green for dark theme
+  expect(bgColor).toContain('255, 255, 255'); // White for dark theme
 });
