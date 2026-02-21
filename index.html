@@ -54,20 +54,152 @@
         
         <!-- Tab Navigation -->
         <div id="tab-navigation">
-            <button class="tab-button active" data-tab="upgrades">升级</button>
-            <button class="tab-button" data-tab="buildings">建筑</button>
-            <button class="tab-button" data-tab="workers">工人</button>
-            <button class="tab-button" data-tab="statistics">统计</button>
-            <button class="tab-button" data-tab="achievements">成就</button>
-            <button class="tab-button" data-tab="crafting">合成</button>
-            <button class="tab-button" data-tab="unlocks">解锁</button>
-            <button class="tab-button" data-tab="settings">设置</button>
+            <button type="button" class="tab-button active" data-tab="resources">资源</button>
+            <button type="button" class="tab-button" data-tab="upgrades">升级</button>
+            <button type="button" class="tab-button" data-tab="buildings">建筑</button>
+            <button type="button" class="tab-button" data-tab="workers">工人</button>
+            <button type="button" class="tab-button" data-tab="statistics">统计</button>
+            <button type="button" class="tab-button" data-tab="achievements">成就</button>
+            <button type="button" class="tab-button" data-tab="crafting">合成</button>
+            <button type="button" class="tab-button" data-tab="unlocks">解锁</button>
+            <button type="button" class="tab-button" data-tab="settings">设置</button>
         </div>
         
         <!-- Main Content Area with Tabs -->
         <main id="main-content">
+            <!-- Resources Tab -->
+            <div id="tab-resources" class="tab-content active">
+                <div id="resources-panel">
+                    <h3 id="resources-header">资源</h3>
+                    
+                    <!-- Resource Category Tabs -->
+                    <div id="resource-category-tabs">
+                        <button type="button" class="category-tab-button active" data-category="primary">初级资源</button>
+                        <button type="button" class="category-tab-button" data-category="secondary">次级资源</button>
+                        <button type="button" class="category-tab-button" data-category="advanced">高级资源</button>
+                    </div>
+                    
+                    <!-- Primary Resources (10 items) -->
+                    <div id="primary-resources" class="resource-panel">
+                        <div class="resource-grid">
+                            <div class="resource-item" data-resource="coins">
+                                <span class="resource-icon">🪙</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="wood">
+                                <span class="resource-icon">🪵</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="stone">
+                                <span class="resource-icon">🪨</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="ironOre">
+                                <span class="resource-icon">ite</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="copperOre">
+                                <span class="resource-icon">🔶</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="aluminumOre">
+                                <span class="resource-icon">⚪</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="coal">
+                                <span class="resource-icon">⚫</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="oil">
+                                <span class="resource-icon">🛢️</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="crystal">
+                                <span class="resource-icon">💎</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                            <div class="resource-item" data-resource="food">
+                                <span class="resource-icon">🍞</span>
+                                <span class="resource-name"></span>
+                                <span class="resource-amount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Secondary Resources (40 items) -->
+                    <div id="secondary-resources" class="resource-panel" style="display:none">
+                        <div class="resource-grid">
+                            <div class="resource-item" data-resource="ironIngot"><span class="resource-icon">ite</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="copperIngot"><span class="resource-icon">🔶</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="aluminumIngot"><span class="resource-icon">⚪</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="steelPlate"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="copperPlate"><span class="resource-icon">🔶</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="aluminumPlate"><span class="resource-icon">⚪</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="glass"><span class="resource-icon">🪟</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="plastic"><span class="resource-icon">🧪</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="chemicals"><span class="resource-icon">⚗️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="fuel"><span class="resource-icon">⛽</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="paper"><span class="resource-icon">📄</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="ink"><span class="resource-icon">🖋️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="cloth"><span class="resource-icon">🧵</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="leather"><span class="resource-icon">👜</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="ceramic"><span class="resource-icon">🏺</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="cement"><span class="resource-icon">🧱</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="brick"><span class="resource-icon">🧱</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="rebar"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="wire"><span class="resource-icon">🔌</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="pipe"><span class="resource-icon">🚿</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="valve"><span class="resource-icon">⚙️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="gear"><span class="resource-icon">⚙️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="bearing"><span class="resource-icon">⚙️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="spring"><span class="resource-icon">🌀</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="screw"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="nut"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="washer"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="pump"><span class="resource-icon">💧</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="motor"><span class="resource-icon">⚡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="sensor"><span class="resource-icon">📡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="circuitBoard"><span class="resource-icon">🔌</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="capacitor"><span class="resource-icon">⚡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="resistor"><span class="resource-icon">⚡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="diode"><span class="resource-icon">⚡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="transistor"><span class="resource-icon">⚡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="transformer"><span class="resource-icon">⚡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="generator"><span class="resource-icon">⚡</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="compressor"><span class="resource-icon">💨</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="battery"><span class="resource-icon">🔋</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Resources (10 items) -->
+                    <div id="advanced-resources" class="resource-panel" style="display:none">
+                        <div class="resource-grid">
+                            <div class="resource-item" data-resource="microchip"><span class="resource-icon">💾</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="engine"><span class="resource-icon">🚀</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="robot"><span class="resource-icon">🤖</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="satellite"><span class="resource-icon">🛰️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="spaceship"><span class="resource-icon">🚀</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="quantumComputer"><span class="resource-icon">💻</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="antimatter"><span class="resource-icon">⚛️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="darkMatter"><span class="resource-icon">🌌</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="timeCrystal"><span class="resource-icon">💎</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="nanobot"><span class="resource-icon">🦠</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Upgrades Tab -->
-            <div id="tab-upgrades" class="tab-content active">
+            <div id="tab-upgrades" class="tab-content">
                 <div id="upgrades">
                     <h3 id="upgrades-header">升级</h3>
                     <div id="upgrade-list"></div>
@@ -154,24 +286,24 @@
                             <label>游戏版本：v0.4.0</label>
                         </div>
                         <div class="setting-item">
-                            <button id="reset-game">重置游戏</button>
+                            <button type="button" id="reset-game">重置游戏</button>
                         </div>
                         <hr style="margin: 20px 0; border: 1px solid #ccc;">
                         <div class="setting-item">
                             <h4 style="margin: 10px 0;">保存/加载 Save</h4>
                         </div>
                         <div class="setting-item">
-                            <button id="manual-save">手动保存</button>
+                            <button type="button" id="manual-save">手动保存</button>
                             <span id="save-status" style="margin-left: 10px; font-size: 12px;"></span>
                         </div>
                         <div class="setting-item">
-                            <button id="export-base64">导出为 BASE64</button>
+                            <button type="button" id="export-base64">导出为 BASE64</button>
                         </div>
                         <div class="setting-item">
                             <textarea id="import-export-text" placeholder="在此粘贴 BASE64 字符串..." rows="4" style="width: 100%; font-family: monospace; font-size: 12px;"></textarea>
                         </div>
                         <div class="setting-item">
-                            <button id="import-base64">从 BASE64 导入</button>
+                            <button type="button" id="import-base64">从 BASE64 导入</button>
                         </div>
                     </div>
                 </div>
@@ -192,6 +324,7 @@
     <script src="js/achievements.js"></script>
     <script src="js/unlocks.js"></script>
     <script src="js/workers.js"></script>
+    <script src="js/resource-manager.js"></script>
     <script src="js/bootstrap.js"></script>
     
     <!-- Tab navigation and settings script -->
@@ -206,8 +339,8 @@
                     const tabName = this.getAttribute('data-tab');
                     
                     // Remove active class from all buttons and contents
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
+                    tabButtons.forEach(btn => { btn.classList.remove('active'); });
+                    tabContents.forEach(content => { content.classList.remove('active'); });
                     
                     // Add active class to clicked button and corresponding content
                     this.classList.add('active');

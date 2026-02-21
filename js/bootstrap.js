@@ -49,6 +49,11 @@ async function initWasm() {
             window.workerManager = new window.WorkerManager(game);
         }
         
+        if (window.ResourceManager && window.i18n) {
+            window.resourceManager = new window.ResourceManager(game, window.i18n);
+            window.resourceManager.initialize();
+        }
+        
         if (game && typeof game.update_ui === 'function') {
             game.update_ui();
         }
@@ -91,6 +96,9 @@ function startGameLoop(game) {
         }
         if (window.updateCoinButton) {
             window.updateCoinButton();
+        }
+        if (window.updateResourcePanel) {
+            window.updateResourcePanel();
         }
     }, 1000);
     

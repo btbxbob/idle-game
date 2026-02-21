@@ -1,10 +1,14 @@
 use crate::entities::{Building, Upgrade, Worker};
+use crate::state::resource::ResourceType;
 use crate::state::{GameState, Statistics};
-use crate::systems::{Achievement, CraftingRecipe, UnlockedFeature};
+use crate::systems::{
+    achievement::Achievement, crafting::CraftingRecipe, production, unlock::UnlockedFeature,
+};
 use base64::{engine::general_purpose, Engine as _};
 use js_sys::Date;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
@@ -59,9 +63,9 @@ impl IdleGame {
     pub fn load_game(&mut self, saved: SavedGame) {
         {
             let mut state = self.state.borrow_mut();
-            state.coins = saved.state.coins;
-            state.wood = saved.state.wood;
-            state.stone = saved.state.stone;
+            state.set_coins(saved.state.get_coins());
+            state.set_wood(saved.state.get_wood());
+            state.set_stone(saved.state.get_stone());
             state.coins_per_click = saved.state.coins_per_click;
             state.coins_per_second = saved.state.coins_per_second;
             state.wood_per_second = saved.state.wood_per_second;
@@ -239,9 +243,13 @@ impl IdleGame {
 
         IdleGame {
             state: Rc::new(RefCell::new(GameState {
-                coins: 0.0,
-                wood: 0.0,
-                stone: 0.0,
+                resources: {
+                    let mut resources = HashMap::new();
+                    resources.insert(ResourceType::Gold, 0.0);
+                    resources.insert(ResourceType::Wood, 0.0);
+                    resources.insert(ResourceType::Stone, 0.0);
+                    resources
+                },
                 coins_per_click: 1.0,
                 coins_per_second: 0.0,
                 wood_per_second: 0.0,
@@ -249,6 +257,7 @@ impl IdleGame {
                 autoclick_count: 0,
                 total_clicks: 0,
                 last_update_time: now,
+                version: crate::state::game_state::SAVE_VERSION.to_string(),
             })),
             statistics: Rc::new(RefCell::new(Statistics {
                 total_clicks: 0,
@@ -262,62 +271,7 @@ impl IdleGame {
                 upgrades_purchased: 0,
             })),
             achievements: achievements,
-            crafting_recipes: vec![
-                CraftingRecipe {
-                    id: "coins_to_wood".to_string(),
-                    name: "金币换木材".to_string(),
-                    input_resource: "coins".to_string(),
-                    input_amount: 100.0,
-                    output_resource: "wood".to_string(),
-                    output_amount: 10.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "wood_to_coins".to_string(),
-                    name: "木材换金币".to_string(),
-                    input_resource: "wood".to_string(),
-                    input_amount: 10.0,
-                    output_resource: "coins".to_string(),
-                    output_amount: 100.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "coins_to_stone".to_string(),
-                    name: "金币换石头".to_string(),
-                    input_resource: "coins".to_string(),
-                    input_amount: 100.0,
-                    output_resource: "stone".to_string(),
-                    output_amount: 1.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "stone_to_coins".to_string(),
-                    name: "石头换金币".to_string(),
-                    input_resource: "stone".to_string(),
-                    input_amount: 1.0,
-                    output_resource: "coins".to_string(),
-                    output_amount: 100.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "wood_to_stone".to_string(),
-                    name: "木材换石头".to_string(),
-                    input_resource: "wood".to_string(),
-                    input_amount: 10.0,
-                    output_resource: "stone".to_string(),
-                    output_amount: 1.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "stone_to_wood".to_string(),
-                    name: "石头换木材".to_string(),
-                    input_resource: "stone".to_string(),
-                    input_amount: 1.0,
-                    output_resource: "wood".to_string(),
-                    output_amount: 10.0,
-                    unlocked: true,
-                },
-            ],
+            crafting_recipes: CraftingRecipe::get_default_recipes(),
             upgrades: vec![
                 Upgrade {
                     name: "Better Click".to_string(),
@@ -349,58 +303,65 @@ impl IdleGame {
                 },
             ],
             buildings: vec![
+                // 10 primary resource buildings
                 Building {
-                    name: "Coin Mine".to_string(),
+                    name: "金币矿山".to_string(),
                     cost: 15.0,
-                    production_rate: 0.1,
-                    count: 0,
-                },
-                Building {
-                    name: "Coin Factory".to_string(),
-                    cost: 100.0,
                     production_rate: 1.0,
                     count: 0,
                 },
                 Building {
-                    name: "Coin Corporation".to_string(),
-                    cost: 500.0,
-                    production_rate: 5.0,
+                    name: "伐木场".to_string(),
+                    cost: 20.0,
+                    production_rate: 1.0,
                     count: 0,
                 },
                 Building {
-                    name: "Woodcutter".to_string(),
-                    cost: 20.0,
+                    name: "采石场".to_string(),
+                    cost: 25.0,
+                    production_rate: 0.5,
+                    count: 0,
+                },
+                Building {
+                    name: "铁矿场".to_string(),
+                    cost: 50.0,
+                    production_rate: 0.5,
+                    count: 0,
+                },
+                Building {
+                    name: "铜矿场".to_string(),
+                    cost: 40.0,
+                    production_rate: 0.6,
+                    count: 0,
+                },
+                Building {
+                    name: "铝矿场".to_string(),
+                    cost: 60.0,
+                    production_rate: 0.4,
+                    count: 0,
+                },
+                Building {
+                    name: "煤矿场".to_string(),
+                    cost: 70.0,
+                    production_rate: 0.5,
+                    count: 0,
+                },
+                Building {
+                    name: "石油井".to_string(),
+                    cost: 100.0,
+                    production_rate: 0.3,
+                    count: 0,
+                },
+                Building {
+                    name: "水晶矿".to_string(),
+                    cost: 150.0,
                     production_rate: 0.2,
                     count: 0,
                 },
                 Building {
-                    name: "Lumber Mill".to_string(),
-                    cost: 80.0,
-                    production_rate: 1.5,
-                    count: 0,
-                },
-                Building {
-                    name: "Forest Workshop".to_string(),
-                    cost: 400.0,
-                    production_rate: 4.0,
-                    count: 0,
-                },
-                Building {
-                    name: "Stone Quarry".to_string(),
-                    cost: 25.0,
-                    production_rate: 0.15,
-                    count: 0,
-                },
-                Building {
-                    name: "Rock Crusher".to_string(),
-                    cost: 90.0,
-                    production_rate: 1.2,
-                    count: 0,
-                },
-                Building {
-                    name: "Mason Workshop".to_string(),
-                    cost: 450.0,
-                    production_rate: 4.5,
+                    name: "农场".to_string(),
+                    cost: 30.0,
+                    production_rate: 0.8,
                     count: 0,
                 },
             ],
@@ -524,7 +485,7 @@ impl IdleGame {
         {
             let mut state = self.state.borrow_mut();
             let earned = state.coins_per_click;
-            state.coins += earned;
+            state.add_coins(earned);
             state.total_clicks += 1;
         } // state borrow released here
 
@@ -543,22 +504,25 @@ impl IdleGame {
         }
 
         let upgrade_cost = self.upgrades[index].cost;
-        let state = self.state.borrow();
+        let can_afford = {
+            let state = self.state.borrow();
+            state.get_coins() + 1e-10 >= upgrade_cost
+        };
 
-        if state.coins + 1e-10 >= upgrade_cost {
-            drop(state);
-            let mut state = self.state.borrow_mut();
-            state.coins -= upgrade_cost;
+        if can_afford {
+            {
+                let mut state = self.state.borrow_mut();
+                state.spend_coins(upgrade_cost);
 
-            if self.upgrades[index].name == "Better Click" {
-                state.coins_per_click += self.upgrades[index].production_increase;
-            } else if self.upgrades[index].name.starts_with("Autoclicker") {
-                state.autoclick_count += 1;
+                if self.upgrades[index].name == "Better Click" {
+                    state.coins_per_click += self.upgrades[index].production_increase;
+                } else if self.upgrades[index].name.starts_with("Autoclicker") {
+                    state.autoclick_count += 1;
+                }
+
+                self.upgrades[index].owned += 1;
+                self.upgrades[index].cost = self.upgrades[index].cost * 1.5;
             }
-
-            self.upgrades[index].owned += 1;
-            self.upgrades[index].cost = self.upgrades[index].cost * 1.5;
-            drop(state);
 
             let mut stats = self.statistics.borrow_mut();
             stats.upgrades_purchased += 1;
@@ -569,7 +533,6 @@ impl IdleGame {
             self.update_upgrades_only();
             true
         } else {
-            drop(state);
             self.update_resources_only();
             false
         }
@@ -582,15 +545,18 @@ impl IdleGame {
         }
 
         let building_cost = self.buildings[index].cost;
-        let state = self.state.borrow();
+        let can_afford = {
+            let state = self.state.borrow();
+            state.get_coins() + 1e-10 >= building_cost
+        };
 
-        if state.coins + 1e-10 >= building_cost {
-            drop(state);
-            let mut state = self.state.borrow_mut();
-            state.coins -= building_cost;
-            self.buildings[index].count += 1;
-            self.buildings[index].cost *= 1.15;
-            drop(state);
+        if can_afford {
+            {
+                let mut state = self.state.borrow_mut();
+                state.spend_coins(building_cost);
+                self.buildings[index].count += 1;
+                self.buildings[index].cost *= 1.15;
+            }
 
             let mut stats = self.statistics.borrow_mut();
             stats.buildings_purchased += 1;
@@ -605,73 +571,78 @@ impl IdleGame {
             self.update_buildings_only();
             true
         } else {
-            drop(state);
             self.update_resources_only();
             false
         }
     }
 
     #[wasm_bindgen]
-    pub fn craft_resource(&mut self, recipe_id: &str) -> bool {
+    pub fn craft_resource(&mut self, recipe_id: &str) -> Result<bool, String> {
         let recipe = match self.crafting_recipes.iter().find(|r| r.id == recipe_id) {
             Some(r) => r.clone(),
-            None => return false,
+            None => return Err(format!("Invalid recipe ID: {}", recipe_id)),
         };
 
-        let mut state = self.state.borrow_mut();
-        let input_amount = match recipe.input_resource.as_str() {
-            "coins" => state.coins,
-            "wood" => state.wood,
-            "stone" => state.stone,
-            _ => return false,
+        if !recipe.unlocked {
+            return Err(format!("Recipe not unlocked: {}", recipe.name));
+        }
+
+        let can_craft = {
+            let state = self.state.borrow();
+            let input_amount = state.get_resource(recipe.input_resource);
+            input_amount + 1e-10 >= recipe.input_amount
         };
 
-        if input_amount + 1e-10 >= recipe.input_amount {
-            match recipe.input_resource.as_str() {
-                "coins" => state.coins -= recipe.input_amount,
-                "wood" => state.wood -= recipe.input_amount,
-                "stone" => state.stone -= recipe.input_amount,
-                _ => return false,
-            }
+        if !can_craft {
+            return Err(format!(
+                "Insufficient resources: need {} {:?}, have {}",
+                recipe.input_amount,
+                recipe.input_resource,
+                {
+                    let state = self.state.borrow();
+                    state.get_resource(recipe.input_resource)
+                }
+            ));
+        }
 
-            match recipe.output_resource.as_str() {
-                "coins" => state.coins += recipe.output_amount,
-                "wood" => state.wood += recipe.output_amount,
-                "stone" => state.stone += recipe.output_amount,
-                _ => return false,
-            }
+        {
+            let mut state = self.state.borrow_mut();
+            let current = state.get_resource(recipe.input_resource);
+            state.set_resource(recipe.input_resource, current - recipe.input_amount);
+        }
 
-            drop(state);
+        {
+            let mut state = self.state.borrow_mut();
+            let current = state.get_resource(recipe.output_resource);
+            state.set_resource(recipe.output_resource, current + recipe.output_amount);
+        }
 
+        {
             let mut stats = self.statistics.borrow_mut();
             stats.total_resources_crafted += 1;
-            drop(stats);
-
-            self.check_achievement("first_craft");
-            self.check_achievement("craft_master_100");
-
-            self.update_resources_only();
-            true
-        } else {
-            drop(state);
-            self.update_resources_only();
-            false
         }
+
+        self.check_achievement("first_craft");
+        self.check_achievement("craft_master_100");
+
+        self.update_resources_only();
+
+        Ok(true)
     }
 
     #[wasm_bindgen]
     pub fn get_coins(&self) -> f64 {
-        self.state.borrow().coins
+        self.state.borrow().get_coins()
     }
 
     #[wasm_bindgen]
     pub fn get_wood(&self) -> f64 {
-        self.state.borrow().wood
+        self.state.borrow().get_wood()
     }
 
     #[wasm_bindgen]
     pub fn get_stone(&self) -> f64 {
-        self.state.borrow().stone
+        self.state.borrow().get_stone()
     }
 
     #[wasm_bindgen]
@@ -695,8 +666,46 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
-    pub fn get_statistics(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.statistics.borrow().clone()).unwrap_or(JsValue::NULL)
+    pub fn get_resources(&self) -> JsValue {
+        let state = self.state.borrow();
+        let mut resources = serde_wasm_bindgen::to_value(&HashMap::<String, f64>::new()).unwrap();
+
+        for (resource_type, amount) in state.resources.iter() {
+            let key = format!("{:?}", resource_type);
+            js_sys::Reflect::set(
+                &mut resources,
+                &JsValue::from_str(&key),
+                &JsValue::from_f64(*amount),
+            )
+            .unwrap();
+        }
+
+        js_sys::Reflect::set(
+            &mut resources,
+            &JsValue::from_str("coinsPerSecond"),
+            &JsValue::from_f64(state.coins_per_second),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &mut resources,
+            &JsValue::from_str("woodPerSecond"),
+            &JsValue::from_f64(state.wood_per_second),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &mut resources,
+            &JsValue::from_str("stonePerSecond"),
+            &JsValue::from_f64(state.stone_per_second),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &mut resources,
+            &JsValue::from_str("coinsPerClick"),
+            &JsValue::from_f64(state.coins_per_click),
+        )
+        .unwrap();
+
+        resources
     }
 
     #[wasm_bindgen]
@@ -878,14 +887,45 @@ impl IdleGame {
             let boosted_production = base_production * worker_bonus;
 
             match building.name.as_str() {
-                "Coin Mine" | "Coin Factory" | "Coin Corporation" => {
+                // Coins - 金币矿山
+                "金币矿山" => {
                     total_cps += boosted_production;
                 }
-                "Woodcutter" | "Lumber Mill" | "Forest Workshop" => {
+                // Wood - 伐木场
+                "伐木场" => {
                     total_wps += boosted_production;
                 }
-                "Stone Quarry" | "Rock Crusher" | "Mason Workshop" => {
+                // Stone - 采石场
+                "采石场" => {
                     total_sps += boosted_production;
+                }
+                // Iron Ore - 铁矿场 (produces coins for now)
+                "铁矿场" => {
+                    total_cps += boosted_production;
+                }
+                // Copper Ore - 铜矿场 (produces coins for now)
+                "铜矿场" => {
+                    total_cps += boosted_production;
+                }
+                // Aluminum Ore - 铝矿场 (produces coins for now)
+                "铝矿场" => {
+                    total_cps += boosted_production;
+                }
+                // Coal - 煤矿场 (produces coins for now)
+                "煤矿场" => {
+                    total_cps += boosted_production;
+                }
+                // Oil - 石油井 (produces coins for now)
+                "石油井" => {
+                    total_cps += boosted_production;
+                }
+                // Crystal - 水晶矿 (produces coins for now)
+                "水晶矿" => {
+                    total_cps += boosted_production;
+                }
+                // Food - 农场 (produces coins for now)
+                "农场" => {
+                    total_cps += boosted_production;
                 }
                 _ => {}
             }
@@ -955,14 +995,19 @@ impl IdleGame {
     pub fn game_loop(&mut self) {
         let now = Date::now();
 
+        // Get production rates from production system BEFORE borrowing state mutably
+        let production =
+            production::update_production(&self.buildings, &self.upgrades, &self.workers);
+
         let (new_coins, new_wood, new_stone, new_last_update_time, elapsed) = {
             let state = self.state.borrow();
             let elapsed = (now - state.last_update_time) / 1000.0;
 
             if elapsed > 0.0 && elapsed < 3600.0 {
-                let mut new_coins = state.coins + state.coins_per_second * elapsed;
-                let new_wood = state.wood + state.wood_per_second * elapsed;
-                let new_stone = state.stone + state.stone_per_second * elapsed;
+                // Use production[0] for coins, production[1] for wood, production[2] for stone
+                let mut new_coins = state.get_coins() + production[0] * elapsed;
+                let new_wood = state.get_wood() + production[1] * elapsed;
+                let new_stone = state.get_stone() + production[2] * elapsed;
 
                 new_coins = new_coins.max(0.0);
 
@@ -978,9 +1023,9 @@ impl IdleGame {
                 (new_coins, new_wood, new_stone, now, elapsed)
             } else {
                 (
-                    state.coins,
-                    state.wood,
-                    state.stone,
+                    state.get_coins(),
+                    state.get_wood(),
+                    state.get_stone(),
                     state.last_update_time,
                     0.0,
                 )
@@ -989,21 +1034,25 @@ impl IdleGame {
 
         {
             let mut state = self.state.borrow_mut();
-            state.coins = if new_coins.is_finite() {
+            let current_coins = state.get_coins();
+            let current_wood = state.get_wood();
+            let current_stone = state.get_stone();
+
+            state.set_coins(if new_coins.is_finite() {
                 new_coins
             } else {
-                state.coins
-            };
-            state.wood = if new_wood.is_finite() {
+                current_coins
+            });
+            state.set_wood(if new_wood.is_finite() {
                 new_wood
             } else {
-                state.wood
-            };
-            state.stone = if new_stone.is_finite() {
+                current_wood
+            });
+            state.set_stone(if new_stone.is_finite() {
                 new_stone
             } else {
-                state.stone
-            };
+                current_stone
+            });
             state.last_update_time = new_last_update_time;
         }
 
@@ -1288,9 +1337,9 @@ impl IdleGame {
         // Reset game state (coins, wood, stone, etc.)
         {
             let mut state = self.state.borrow_mut();
-            state.coins = 0.0;
-            state.wood = 0.0;
-            state.stone = 0.0;
+            state.set_coins(0.0);
+            state.set_wood(0.0);
+            state.set_stone(0.0);
             state.coins_per_click = 1.0;
             state.coins_per_second = 0.0;
             state.wood_per_second = 0.0;
@@ -1357,9 +1406,9 @@ impl IdleGame {
             let stats = self.statistics.borrow();
             (
                 state.total_clicks as f64,
-                state.coins,
-                state.wood,
-                state.stone,
+                state.get_coins(),
+                state.get_wood(),
+                state.get_stone(),
                 stats.buildings_purchased as f64,
                 stats.total_resources_crafted as f64,
                 stats.achievements_unlocked_count as f64,
@@ -1453,7 +1502,7 @@ impl IdleGame {
 
         let current_value = match feature.requirement_type.as_str() {
             "total_clicks" => state.total_clicks as f64,
-            "total_coins" => state.coins,
+            "total_coins" => state.get_coins(),
             "buildings_owned" => stats.buildings_purchased as f64,
             _ => 0.0,
         };

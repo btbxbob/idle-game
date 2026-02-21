@@ -1,4 +1,5 @@
 use crate::entities::{Building, Upgrade, Worker};
+use crate::state::resource::ResourceType;
 use crate::state::Statistics;
 use crate::systems::{Achievement, CraftingRecipe, UnlockedFeature};
 
@@ -268,54 +269,54 @@ impl TestGameState {
                 CraftingRecipe {
                     id: "coins_to_wood".to_string(),
                     name: "金币换木材".to_string(),
-                    input_resource: "coins".to_string(),
+                    input_resource: ResourceType::Gold,
                     input_amount: 100.0,
-                    output_resource: "wood".to_string(),
+                    output_resource: ResourceType::Wood,
                     output_amount: 10.0,
                     unlocked: true,
                 },
                 CraftingRecipe {
                     id: "wood_to_coins".to_string(),
                     name: "木材换金币".to_string(),
-                    input_resource: "wood".to_string(),
+                    input_resource: ResourceType::Wood,
                     input_amount: 10.0,
-                    output_resource: "coins".to_string(),
+                    output_resource: ResourceType::Gold,
                     output_amount: 100.0,
                     unlocked: true,
                 },
                 CraftingRecipe {
                     id: "coins_to_stone".to_string(),
                     name: "金币换石头".to_string(),
-                    input_resource: "coins".to_string(),
+                    input_resource: ResourceType::Gold,
                     input_amount: 100.0,
-                    output_resource: "stone".to_string(),
+                    output_resource: ResourceType::Stone,
                     output_amount: 1.0,
                     unlocked: true,
                 },
                 CraftingRecipe {
                     id: "stone_to_coins".to_string(),
                     name: "石头换金币".to_string(),
-                    input_resource: "stone".to_string(),
+                    input_resource: ResourceType::Stone,
                     input_amount: 1.0,
-                    output_resource: "coins".to_string(),
+                    output_resource: ResourceType::Gold,
                     output_amount: 100.0,
                     unlocked: true,
                 },
                 CraftingRecipe {
                     id: "wood_to_stone".to_string(),
                     name: "木材换石头".to_string(),
-                    input_resource: "wood".to_string(),
+                    input_resource: ResourceType::Wood,
                     input_amount: 10.0,
-                    output_resource: "stone".to_string(),
+                    output_resource: ResourceType::Stone,
                     output_amount: 1.0,
                     unlocked: true,
                 },
                 CraftingRecipe {
                     id: "stone_to_wood".to_string(),
                     name: "石头换木材".to_string(),
-                    input_resource: "stone".to_string(),
+                    input_resource: ResourceType::Stone,
                     input_amount: 1.0,
-                    output_resource: "wood".to_string(),
+                    output_resource: ResourceType::Wood,
                     output_amount: 10.0,
                     unlocked: true,
                 },
@@ -513,25 +514,25 @@ impl TestGameState {
             None => return false,
         };
 
-        let input_amount = match recipe.input_resource.as_str() {
-            "coins" => self.coins,
-            "wood" => self.wood,
-            "stone" => self.stone,
+        let input_amount = match recipe.input_resource {
+            ResourceType::Gold => self.coins,
+            ResourceType::Wood => self.wood,
+            ResourceType::Stone => self.stone,
             _ => return false,
         };
 
         if input_amount + 1e-10 >= recipe.input_amount {
-            match recipe.input_resource.as_str() {
-                "coins" => self.coins -= recipe.input_amount,
-                "wood" => self.wood -= recipe.input_amount,
-                "stone" => self.stone -= recipe.input_amount,
+            match recipe.input_resource {
+                ResourceType::Gold => self.coins -= recipe.input_amount,
+                ResourceType::Wood => self.wood -= recipe.input_amount,
+                ResourceType::Stone => self.stone -= recipe.input_amount,
                 _ => return false,
             }
 
-            match recipe.output_resource.as_str() {
-                "coins" => self.coins += recipe.output_amount,
-                "wood" => self.wood += recipe.output_amount,
-                "stone" => self.stone += recipe.output_amount,
+            match recipe.output_resource {
+                ResourceType::Gold => self.coins += recipe.output_amount,
+                ResourceType::Wood => self.wood += recipe.output_amount,
+                ResourceType::Stone => self.stone += recipe.output_amount,
                 _ => return false,
             }
 
@@ -747,7 +748,6 @@ impl TestGameState {
         worker.efficiency_multiplier - 1.0
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -1004,39 +1004,39 @@ mod tests {
         assert_eq!(recipes.len(), 6);
 
         assert_eq!(recipes[0].id, "coins_to_wood");
-        assert_eq!(recipes[0].input_resource, "coins");
+        assert_eq!(recipes[0].input_resource, ResourceType::Gold);
         assert_eq!(recipes[0].input_amount, 100.0);
-        assert_eq!(recipes[0].output_resource, "wood");
+        assert_eq!(recipes[0].output_resource, ResourceType::Wood);
         assert_eq!(recipes[0].output_amount, 10.0);
 
         assert_eq!(recipes[1].id, "wood_to_coins");
-        assert_eq!(recipes[1].input_resource, "wood");
+        assert_eq!(recipes[1].input_resource, ResourceType::Wood);
         assert_eq!(recipes[1].input_amount, 10.0);
-        assert_eq!(recipes[1].output_resource, "coins");
+        assert_eq!(recipes[1].output_resource, ResourceType::Gold);
         assert_eq!(recipes[1].output_amount, 100.0);
 
         assert_eq!(recipes[2].id, "coins_to_stone");
-        assert_eq!(recipes[2].input_resource, "coins");
+        assert_eq!(recipes[2].input_resource, ResourceType::Gold);
         assert_eq!(recipes[2].input_amount, 100.0);
-        assert_eq!(recipes[2].output_resource, "stone");
+        assert_eq!(recipes[2].output_resource, ResourceType::Stone);
         assert_eq!(recipes[2].output_amount, 1.0);
 
         assert_eq!(recipes[3].id, "stone_to_coins");
-        assert_eq!(recipes[3].input_resource, "stone");
+        assert_eq!(recipes[3].input_resource, ResourceType::Stone);
         assert_eq!(recipes[3].input_amount, 1.0);
-        assert_eq!(recipes[3].output_resource, "coins");
+        assert_eq!(recipes[3].output_resource, ResourceType::Gold);
         assert_eq!(recipes[3].output_amount, 100.0);
 
         assert_eq!(recipes[4].id, "wood_to_stone");
-        assert_eq!(recipes[4].input_resource, "wood");
+        assert_eq!(recipes[4].input_resource, ResourceType::Wood);
         assert_eq!(recipes[4].input_amount, 10.0);
-        assert_eq!(recipes[4].output_resource, "stone");
+        assert_eq!(recipes[4].output_resource, ResourceType::Stone);
         assert_eq!(recipes[4].output_amount, 1.0);
 
         assert_eq!(recipes[5].id, "stone_to_wood");
-        assert_eq!(recipes[5].input_resource, "stone");
+        assert_eq!(recipes[5].input_resource, ResourceType::Stone);
         assert_eq!(recipes[5].input_amount, 1.0);
-        assert_eq!(recipes[5].output_resource, "wood");
+        assert_eq!(recipes[5].output_resource, ResourceType::Wood);
         assert_eq!(recipes[5].output_amount, 10.0);
     }
 

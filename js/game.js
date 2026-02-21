@@ -189,10 +189,13 @@ window.updateBuildingDisplay = function(buildings) {
                 // Fix: use production_rate instead of productionRate (serde uses snake_case)
                 const productionRate = building.production_rate || building.productionRate || 0;
                 
+                // Get resource name based on building name
+                const resourceName = getResourceNameForBuilding(building.name);
+                
                 buildingDiv.innerHTML = `
                     <div>
                         <strong>${building.name}</strong><br>
-                        <small>${productionRate}${perSecondText}</small>
+                        <small>+${productionRate} ${resourceName}${perSecondText}</small>
                     </div>
                     <div>
                         ${ownedText}: ${building.count}<br>
@@ -245,6 +248,25 @@ window.updateBuildingDisplay = function(buildings) {
         }
     }
 };
+
+// Helper function to get resource name for building
+function getResourceNameForBuilding(buildingName) {
+    const buildingResourceMap = {
+        '金币矿山': 'coins',
+        '伐木场': 'wood',
+        '采石场': 'stone',
+        '铁矿场': 'coins',
+        '铜矿场': 'coins',
+        '铝矿场': 'coins',
+        '煤矿场': 'coins',
+        '石油井': 'coins',
+        '水晶矿': 'coins',
+        '农场': 'coins'
+    };
+    
+    const resourceKey = buildingResourceMap[buildingName] || 'coins';
+    return window.i18n ? window.i18n.t(resourceKey) : resourceKey;
+}
 
 // Functions called from UI to communicate with Rust/WASM
 window.buyUpgrade = function(index) {

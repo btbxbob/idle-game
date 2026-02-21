@@ -1651,6 +1651,207 @@ footer {
 }
 
 /* ========================================
+   RESOURCE PANEL & GRID
+   ======================================== */
+
+.resource-panel {
+    display: none;
+    padding: 20px;
+    background-color: var(--panel-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+}
+
+.resource-panel.active {
+    display: block;
+}
+
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    transition: all 0.1s ease;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.resource-item:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+.resource-icon {
+    font-size: 1.5em;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-right: 12px;
+    width: 30px;
+    text-align: center;
+}
+
+.resource-name {
+    color: var(--text-color);
+    font-weight: bold;
+    flex: 1;
+    letter-spacing: 0.5px;
+}
+
+.resource-amount {
+    color: var(--text-color);
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px var(--glow-color);
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Category Tab Buttons */
+.category-tab-button {
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 12px;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 2px 2px 0px var(--shadow-color);
+}
+
+.category-tab-button:hover {
+    background-color: var(--button-hover-bg);
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+.category-tab-button.active {
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--shadow-color);
+}
+
+.category-tab-button:disabled {
+    background-color: var(--button-disabled-bg);
+    color: var(--button-disabled-text);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Resource Category Panel */
+.category-panel {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: var(--main-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+}
+
+.category-panel h4 {
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Resource rate display */
+.resource-rate {
+    display: block;
+    font-size: 10px;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* Resource color variations */
+.resource-item.coins .resource-amount {
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.resource-item.wood .resource-amount {
+    color: #DEB887;
+    text-shadow: 0 0 8px rgba(222, 184, 135, 0.3);
+}
+
+.resource-item.stone .resource-amount {
+    color: #A9A9A9;
+    text-shadow: 0 0 8px rgba(169, 169, 169, 0.3);
+}
+
+/* Responsive adjustments for resource panel */
+@media (max-width: 375px) {
+    .resource-panel {
+        padding: 15px;
+    }
+
+    .resource-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .resource-item {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .resource-icon {
+        font-size: 1.3em;
+        margin-right: 10px;
+        width: 25px;
+    }
+
+    .resource-amount {
+        font-size: 13px;
+        min-width: 50px;
+    }
+
+    .category-tab-button {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 768px) {
+    .resource-panel {
+        padding: 18px;
+    }
+
+    .resource-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    .category-tab-button {
+        padding: 9px 14px;
+        font-size: 11px;
+    }
+}
+
+/* ========================================
    COIN PARTICLE EFFECTS
    ======================================== */
 
