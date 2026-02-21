@@ -1,7 +1,9 @@
 use crate::entities::{Building, Upgrade, Worker};
 use crate::state::{GameState, Statistics};
 use crate::systems::{Achievement, CraftingRecipe, UnlockedFeature};
+use base64::{engine::general_purpose, Engine as _};
 use js_sys::Date;
+use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -19,6 +21,76 @@ pub struct IdleGame {
     #[wasm_bindgen(skip)]
     unlocked_features: Vec<UnlockedFeature>,
     statistics: Rc<RefCell<Statistics>>,
+}
+
+/// Complete game save data structure for persistence
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SavedGame {
+    pub state: GameState,
+    pub statistics: Statistics,
+    pub upgrades: Vec<Upgrade>,
+    pub buildings: Vec<Building>,
+    pub workers: Vec<Worker>,
+    pub achievements: Vec<Achievement>,
+    pub crafting_recipes: Vec<CraftingRecipe>,
+    pub unlocked_features: Vec<UnlockedFeature>,
+    pub save_timestamp: f64,
+    pub version: String,
+}
+
+impl IdleGame {
+    /// Serialize entire game state to SavedGame structure
+    pub fn save_game(&self) -> SavedGame {
+        SavedGame {
+            state: self.state.borrow().clone(),
+            statistics: self.statistics.borrow().clone(),
+            upgrades: self.upgrades.clone(),
+            buildings: self.buildings.clone(),
+            workers: self.workers.clone(),
+            achievements: self.achievements.clone(),
+            crafting_recipes: self.crafting_recipes.clone(),
+            unlocked_features: self.unlocked_features.clone(),
+            save_timestamp: Date::now(),
+            version: "0.2.6".to_string(),
+        }
+    }
+
+    /// Load game state from SavedGame structure
+    pub fn load_game(&mut self, saved: SavedGame) {
+        {
+            let mut state = self.state.borrow_mut();
+            state.coins = saved.state.coins;
+            state.wood = saved.state.wood;
+            state.stone = saved.state.stone;
+            state.coins_per_click = saved.state.coins_per_click;
+            state.coins_per_second = saved.state.coins_per_second;
+            state.wood_per_second = saved.state.wood_per_second;
+            state.stone_per_second = saved.state.stone_per_second;
+            state.autoclick_count = saved.state.autoclick_count;
+            state.total_clicks = saved.state.total_clicks;
+            state.last_update_time = saved.state.last_update_time;
+        }
+
+        {
+            let mut stats = self.statistics.borrow_mut();
+            stats.total_clicks = saved.statistics.total_clicks;
+            stats.total_coins_earned = saved.statistics.total_coins_earned;
+            stats.total_wood_earned = saved.statistics.total_wood_earned;
+            stats.total_stone_earned = saved.statistics.total_stone_earned;
+            stats.total_resources_crafted = saved.statistics.total_resources_crafted;
+            stats.achievements_unlocked_count = saved.statistics.achievements_unlocked_count;
+            stats.play_time_seconds = saved.statistics.play_time_seconds;
+            stats.buildings_purchased = saved.statistics.buildings_purchased;
+            stats.upgrades_purchased = saved.statistics.upgrades_purchased;
+        }
+
+        self.upgrades = saved.upgrades;
+        self.buildings = saved.buildings;
+        self.workers = saved.workers;
+        self.achievements = saved.achievements;
+        self.crafting_recipes = saved.crafting_recipes;
+        self.unlocked_features = saved.unlocked_features;
+    }
 }
 
 #[wasm_bindgen]
@@ -1260,10 +1332,7 @@ impl IdleGame {
             }
         }
     }
-}
 
-#[wasm_bindgen]
-impl IdleGame {
     #[wasm_bindgen(js_name = get_achievements)]
     pub fn get_achievements_js(&self) -> JsValue {
         match serde_wasm_bindgen::to_value(&self.achievements) {
@@ -1393,5 +1462,95 @@ impl IdleGame {
         drop(state);
 
         current_value >= feature.requirement_value
+    }
+}
+
+#[wasm_bindgen]
+impl IdleGame {
+    /// Save game to localStorage via JS interop
+    #[wasm_bindgen(js_name = saveToLocalStorage)]
+    pub fn save_to_local_storage(&self) -> Result<(), JsValue> {
+        let saved_game = self.save_game();
+
+        // Serialize to JSON
+        let json_str = serde_json::to_string(&saved_game)
+            .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))?;
+
+        // Save to localStorage using JavaScript
+        let window = web_sys::window().ok_or_else(|| JsValue::from_str("Window not available"))?;
+
+        let local_storage = window
+            .local_storage()
+            .map_err(|e| JsValue::from_str(&format!("localStorage access error: {:?}", e)))?
+            .ok_or_else(|| JsValue::from_str("localStorage not available"))?;
+
+        local_storage
+            .set_item("idle_game_save", &json_str)
+            .map_err(|e| JsValue::from_str(&format!("localStorage set error: {:?}", e)))?;
+
+        Ok(())
+    }
+
+    /// Load game from localStorage via JS interop
+    #[wasm_bindgen(js_name = loadFromLocalStorage)]
+    pub fn load_from_local_storage(&mut self) -> Result<bool, JsValue> {
+        let window = web_sys::window().ok_or_else(|| JsValue::from_str("Window not available"))?;
+
+        let local_storage = window
+            .local_storage()
+            .map_err(|e| JsValue::from_str(&format!("localStorage access error: {:?}", e)))?
+            .ok_or_else(|| JsValue::from_str("localStorage not available"))?;
+
+        // Try to get saved game data
+        let saved_data = local_storage
+            .get_item("idle_game_save")
+            .map_err(|e| JsValue::from_str(&format!("localStorage get error: {:?}", e)))?;
+
+        match saved_data {
+            Some(json_str) => {
+                // Deserialize from JSON
+                let saved_game: SavedGame = serde_json::from_str(&json_str)
+                    .map_err(|e| JsValue::from_str(&format!("Deserialization error: {}", e)))?;
+
+                // Load the saved game state
+                self.load_game(saved_game);
+                Ok(true)
+            }
+            None => Ok(false), // No saved game found
+        }
+    }
+
+    /// Export game save to BASE64 string
+    #[wasm_bindgen(js_name = exportToBase64)]
+    pub fn export_to_base64(&self) -> Result<String, JsValue> {
+        let saved_game = self.save_game();
+
+        // Serialize to JSON
+        let json_str = serde_json::to_string(&saved_game)
+            .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))?;
+
+        // Encode to BASE64
+        let base64_str = general_purpose::STANDARD.encode(&json_str);
+        Ok(base64_str)
+    }
+
+    /// Import game save from BASE64 string
+    #[wasm_bindgen(js_name = importFromBase64)]
+    pub fn import_from_base64(&mut self, base64_str: &str) -> Result<(), JsValue> {
+        // Decode from BASE64
+        let json_bytes = general_purpose::STANDARD
+            .decode(base64_str)
+            .map_err(|e| JsValue::from_str(&format!("BASE64 decode error: {}", e)))?;
+
+        let json_str = String::from_utf8(json_bytes)
+            .map_err(|e| JsValue::from_str(&format!("UTF8 conversion error: {}", e)))?;
+
+        // Deserialize from JSON
+        let saved_game: SavedGame = serde_json::from_str(&json_str)
+            .map_err(|e| JsValue::from_str(&format!("Deserialization error: {}", e)))?;
+
+        // Load the saved game state
+        self.load_game(saved_game);
+        Ok(())
     }
 }

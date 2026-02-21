@@ -67,6 +67,7 @@ async function initWasm() {
 
 // 启动游戏主循环
 function startGameLoop(game) {
+    // 主游戏循环 - 每秒更新资源和成就
     setInterval(() => {
         if (game && typeof game.game_loop === 'function') {
             game.game_loop();
@@ -87,6 +88,18 @@ function startGameLoop(game) {
             window.updateCoinButton();
         }
     }, 1000);
+    
+    // 自动保存 - 每 15 秒保存一次
+    setInterval(() => {
+        if (game && typeof game.saveToLocalStorage === 'function') {
+            try {
+                game.saveToLocalStorage();
+                console.log('Game auto-saved at', new Date().toLocaleTimeString());
+            } catch (saveError) {
+                console.error('Auto-save failed:', saveError);
+            }
+        }
+    }, 15000); // 15 seconds
 }
 
 // 页面加载完成后初始化游戏

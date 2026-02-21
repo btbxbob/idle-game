@@ -312,6 +312,86 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Manual save button
+    const manualSaveBtn = document.getElementById('manual-save');
+    if (manualSaveBtn) {
+        manualSaveBtn.addEventListener('click', function() {
+            if (window.rustGame && typeof window.rustGame.saveToLocalStorage === 'function') {
+                try {
+                    window.rustGame.saveToLocalStorage();
+                    const statusEl = document.getElementById('save-status');
+                    if (statusEl) {
+                        statusEl.textContent = '已保存 ✓';
+                        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+                    }
+                    console.log('Game manually saved at', new Date().toLocaleTimeString());
+                } catch (saveError) {
+                    console.error('Manual save failed:', saveError);
+                    const statusEl = document.getElementById('save-status');
+                    if (statusEl) {
+                        statusEl.textContent = '保存失败 ✗';
+                        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+                    }
+                }
+            }
+        });
+    }
+    
+    // Export to BASE64 button
+    const exportBtn = document.getElementById('export-base64');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            if (window.rustGame && typeof window.rustGame.exportToBase64 === 'function') {
+                try {
+                    const base64Str = window.rustGame.exportToBase64();
+                    const textArea = document.getElementById('import-export-text');
+                    if (textArea) {
+                        textArea.value = base64Str;
+                        textArea.select();
+                        document.execCommand('copy');
+                        alert('导出成功！已复制到剪贴板。');
+                    }
+                    console.log('Game exported to BASE64 at', new Date().toLocaleTimeString());
+                } catch (exportError) {
+                    console.error('Export failed:', exportError);
+                    alert('导出失败：' + exportError.message);
+                }
+            }
+        });
+    }
+    
+    // Import from BASE64 button
+    const importBtn = document.getElementById('import-base64');
+    if (importBtn) {
+        importBtn.addEventListener('click', function() {
+            const textArea = document.getElementById('import-export-text');
+            if (!textArea || !textArea.value.trim()) {
+                alert('请先粘贴 BASE64 字符串。');
+                return;
+            }
+            
+            if (window.rustGame && typeof window.rustGame.importFromBase64 === 'function') {
+                if (!confirm('导入将覆盖当前游戏进度。确定继续吗？')) {
+                    return;
+                }
+                
+                try {
+                    window.rustGame.importFromBase64(textArea.value.trim());
+                    alert('导入成功！游戏已加载。');
+                    console.log('Game imported from BASE64 at', new Date().toLocaleTimeString());
+                    
+                    // Refresh UI
+                    if (window.rustGame.update_ui) {
+                        window.rustGame.update_ui();
+                    }
+                } catch (importError) {
+                    console.error('Import failed:', importError);
+                    alert('导入失败：' + (importError.message || '无效的 BASE64 字符串'));
+                }
+            }
+        });
+    }
+    
     // Initialize i18n after DOM is loaded
     if (window.i18n) {
         window.i18n.updateAllTranslations();
