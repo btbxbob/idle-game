@@ -345,54 +345,6 @@ function createCoinParticles(x, y) {
     }
 }
 
-// 批量UI更新优化：将多个UI更新操作打包以减少DOM修改次数
-window.updateQueue = [];
-window.updateTimeout = null;
-
-window.dequeueUpdates = function() {
-    if (window.updateQueue.length === 0) return;
-    
-    // 处理队列中所有的更新请求
-    const updates = [...window.updateQueue];
-    window.updateQueue = []; // 清空队列
-    
-    // 执行批量更新
-    updates.forEach(update => {
-        switch(update.type) {
-            case 'resources':
-                window.updateResourceDisplay(
-                    update.data.coins, 
-                    update.data.wood, 
-                    update.data.stone, 
-                    update.data.cps,
-                    update.data.wps,
-                    update.data.sps,
-                    update.data.cpc
-                );
-                break;
-            case 'upgrades':
-                window.updateUpgradeButtons(update.data);
-                break;
-            case 'buildings':
-                window.updateBuildingDisplay(update.data);
-                break;
-        }
-    });
-};
-
-window.scheduleUpdate = function(type, data) {
-    // 将更新请求加入队列
-    window.updateQueue.push({type, data});
-    
-    // 如果没有预定的更新执行，则设定一个
-    if (!window.updateTimeout) {
-        window.updateTimeout = setTimeout(() => {
-            window.updateTimeout = null;
-            window.dequeueUpdates();
-        }, 16);
-    }
-};
-
 window.updateStatisticsPanel = function() {
     if (window.statisticsManager && typeof window.statisticsManager.renderToPanel === 'function') {
         const statisticsTab = document.getElementById('tab-statistics');
