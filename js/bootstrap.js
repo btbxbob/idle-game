@@ -9,15 +9,20 @@ async function initWasm() {
         const game = init.init_game();
         
         // 尝试从 localStorage 加载存档
+        let gameLoaded = false;
         try {
             const loaded = game.loadFromLocalStorage();
             if (loaded) {
-                console.log('Game loaded from localStorage');
+                gameLoaded = true;
+                console.log('✅ Game loaded from localStorage at', new Date().toLocaleString());
+                console.log('   Coins:', game.get_coins());
+                console.log('   Wood:', game.get_wood());
+                console.log('   Stone:', game.get_stone());
             } else {
-                console.log('No saved game found, starting new game');
+                console.log('ℹ️ No saved game found, starting new game');
             }
         } catch (loadError) {
-            console.error('Error loading saved game:', loadError);
+            console.error('❌ Error loading saved game:', loadError);
         }
         
         // 将游戏实例暴露到全局作用域供 UI 使用
