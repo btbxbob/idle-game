@@ -1,4 +1,4 @@
-use crate::entities::{Building, Upgrade, Worker};
+use crate::entities::{Building, Housing, Upgrade, Worker};
 use crate::state::resource::ResourceType;
 use crate::state::{GameState, Statistics};
 use crate::systems::{
@@ -17,6 +17,7 @@ pub struct IdleGame {
     state: Rc<RefCell<GameState>>,
     upgrades: Vec<Upgrade>,
     buildings: Vec<Building>,
+    housing_buildings: Vec<Housing>,
     workers: Vec<Worker>,
     #[wasm_bindgen(skip)]
     achievements: Vec<Achievement>,
@@ -34,6 +35,7 @@ pub struct SavedGame {
     pub statistics: Statistics,
     pub upgrades: Vec<Upgrade>,
     pub buildings: Vec<Building>,
+    pub housing_buildings: Vec<Housing>,
     pub workers: Vec<Worker>,
     pub achievements: Vec<Achievement>,
     pub crafting_recipes: Vec<CraftingRecipe>,
@@ -50,6 +52,7 @@ impl IdleGame {
             statistics: self.statistics.borrow().clone(),
             upgrades: self.upgrades.clone(),
             buildings: self.buildings.clone(),
+            housing_buildings: self.housing_buildings.clone(),
             workers: self.workers.clone(),
             achievements: self.achievements.clone(),
             crafting_recipes: self.crafting_recipes.clone(),
@@ -90,6 +93,7 @@ impl IdleGame {
 
         self.upgrades = saved.upgrades;
         self.buildings = saved.buildings;
+        self.housing_buildings = saved.housing_buildings;
         self.workers = saved.workers;
         self.achievements = saved.achievements;
         self.crafting_recipes = saved.crafting_recipes;
@@ -365,6 +369,7 @@ impl IdleGame {
                     count: 0,
                 },
             ],
+            housing_buildings: vec![],
             workers: vec![
                 Worker {
                     name: "矿工".to_string(),
@@ -576,7 +581,71 @@ impl IdleGame {
         }
     }
 
+
     #[wasm_bindgen]
+    pub fn build_housing(&mut self, cost: JsValue) -> Result<bool, String> {
+        // Parse cost from JsValue to HashMap
+        let cost_map: HashMap<String, f64> = serde_wasm_bindgen::from_value(cost)
+            .map_err(|e| format!("Failed to parse cost: {}", e))?;
+
+        // Validate cost is not empty
+        if cost_map.is_empty() {
+            return Err("Cost cannot be empty".to_string());
+        }
+
+        // Check if player can afford the housing
+        let can_afford = {
+            let state = self.state.borrow();
+            for (resource, amount) in cost_map.iter() {
+                let current = match resource.as_str() {
+                    "Gold" => state.get_coins(),
+                    "Wood" => state.get_wood(),
+                    "Stone" => state.get_stone(),
+                    _ => return Err(format!("Unknown resource: {}", resource)),
+                };
+                if current + 1e-10 < *amount {
+                    return Err(format!(
+                        "Insufficient {}: need {}, have {}",
+                        resource, amount, current
+                    ));
+                }
+            }
+            true
+        };
+
+        if !can_afford {
+            self.update_resources_only();
+            return Ok(false);
+        }
+
+        // Deduct resources
+        {
+            let mut state = self.state.borrow_mut();
+            for (resource, amount) in cost_map.iter() {
+                match resource.as_str() {
+                    "Gold" => state.spend_coins(*amount),
+                    "Wood" => state.spend_wood(*amount),
+                    "Stone" => state.spend_stone(*amount),
+                    _ => return Err(format!("Unknown resource: {}", resource)),
+                };
+            }
+        }
+
+        // Create new housing with unique name
+        let housing_name = format!("住房{}", self.housing_buildings.len() + 1);
+        let total_capacity: u32 = cost_map.values().map(|&v| v as u32).sum();
+        let new_housing = Housing::new(&housing_name, cost_map.clone(), total_capacity);
+        self.housing_buildings.push(new_housing);
+
+        // Update statistics (release borrow before calling other methods)
+        {
+            let mut stats = self.statistics.borrow_mut();
+            stats.buildings_purchased += 1;
+        }
+
+        self.update_resources_only();
+        Ok(true)
+    }
     pub fn craft_resource(&mut self, recipe_id: &str) -> Result<bool, String> {
         let recipe = match self.crafting_recipes.iter().find(|r| r.id == recipe_id) {
             Some(r) => r.clone(),
