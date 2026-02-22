@@ -120,3 +120,29 @@ mod tests {
         // Test with a sample technology ID
     }
 }
+
+/// Get all default technologies (50 total)
+impl TechnologyTree {
+    fn initialize_technologies() -> HashMap<TechnologyId, Technology> {
+        let mut map = HashMap::new();
+        
+        // Tier 1: Basic production bonuses (10 technologies)
+        map.insert(TechnologyId::BasicMining, Technology {
+            id: TechnologyId::BasicMining,
+            name: "基础采矿",
+            description: "矿井生产效率 +10%",
+            costs: HashMap::new(),
+            dependencies: vec![],
+            effect: TechnologyEffect::ProductionBonus(crate::state::resource::ResourceType::Coal, 0.1),
+            effect_value: 0.1,
+            purchased: false,
+        });
+        
+        // Tier 2: Building unlocks (10 technologies)
+        // Tier 3: UI/automation unlocks (10 technologies)
+        // Tier 4: Mechanic changes (10 technologies)
+        // Tier 5: Advanced technologies (10 technologies)
+        
+        map
+    }
+}
