@@ -26,4 +26,18 @@ impl Housing {
             count: 0,
         }
     }
+
+    pub fn get_upgrade_cost(&self) -> HashMap<String, f64> {
+        // Upgrade cost scales with level: base_cost * 1.5^(count)
+        let mut upgrade_cost = HashMap::new();
+        let multiplier = 1.5_f64.powi(self.count as i32);
+        for (resource, &base_amount) in self.cost.iter() {
+            upgrade_cost.insert(resource.clone(), base_amount * multiplier);
+        }
+        upgrade_cost
+    }
+
+    pub fn upgrade(&mut self) {
+        self.count += 1;
+    }
 }

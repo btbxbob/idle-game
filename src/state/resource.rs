@@ -78,6 +78,10 @@ pub enum ResourceType {
     DarkMatter,      // 暗物质
     TimeCrystal,     // 时间水晶
     Nanobot,         // 纳米机器
+    
+    // ========== Special Resources (2) ==========
+    Corpse, // 尸体
+    Maggot, // 蛆虫
 }
 
 impl ResourceType {
@@ -148,6 +152,10 @@ impl ResourceType {
             ResourceType::DarkMatter => "暗物质",
             ResourceType::TimeCrystal => "时间水晶",
             ResourceType::Nanobot => "纳米机器",
+
+            // Special
+            ResourceType::Corpse => "尸体",
+            ResourceType::Maggot => "蛆虫",
         }
     }
 
@@ -232,6 +240,9 @@ impl ResourceType {
             | ResourceType::DarkMatter
             | ResourceType::TimeCrystal
             | ResourceType::Nanobot => ResourceTier::Advanced,
+
+            // Special resources have no tier (default to Primary)
+            ResourceType::Corpse | ResourceType::Maggot => ResourceTier::Primary,
         }
     }
 
@@ -311,6 +322,10 @@ impl ResourceType {
             ResourceType::DarkMatter => "#2F2F4F", // Dark Slate
             ResourceType::TimeCrystal => "#BA55D3", // Medium Orchid
             ResourceType::Nanobot => "#00FA9A",   // Medium Spring Green
+
+            // Special - Dark/organic colors
+            ResourceType::Corpse => "#4A4A4A", // Dark Gray
+            ResourceType::Maggot => "#F5F5DC", // Beige
         }
     }
 }

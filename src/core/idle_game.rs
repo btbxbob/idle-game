@@ -646,6 +646,73 @@ impl IdleGame {
         self.update_resources_only();
         Ok(true)
     }
+
+    #[wasm_bindgen]
+    pub fn upgrade_housing(&mut self, building_index: usize) -> Result<bool, String> {
+        // Validate index
+        if building_index >= self.housing_buildings.len() {
+            return Err(format!("Invalid housing index: {}", building_index));
+        }
+
+        // Get upgrade cost
+        let upgrade_cost = {
+            let housing = &self.housing_buildings[building_index];
+            housing.get_upgrade_cost()
+        };
+
+        // Check if player can afford the upgrade
+        let can_afford = {
+            let state = self.state.borrow();
+            for (resource, amount) in upgrade_cost.iter() {
+                let current = match resource.as_str() {
+                    "Gold" => state.get_coins(),
+                    "Wood" => state.get_wood(),
+                    "Stone" => state.get_stone(),
+                    _ => return Err(format!("Unknown resource: {}", resource)),
+                };
+                if current + 1e-10 < *amount {
+                    return Err(format!(
+                        "Insufficient {}: need {}, have {}",
+                        resource, amount, current
+                    ));
+                }
+            }
+            true
+        };
+
+        if !can_afford {
+            self.update_resources_only();
+            return Ok(false);
+        }
+
+        // Deduct resources
+        {
+            let mut state = self.state.borrow_mut();
+            for (resource, amount) in upgrade_cost.iter() {
+                match resource.as_str() {
+                    "Gold" => state.spend_coins(*amount),
+                    "Wood" => state.spend_wood(*amount),
+                    "Stone" => state.spend_stone(*amount),
+                    _ => return Err(format!("Unknown resource: {}", resource)),
+                };
+            }
+        }
+
+        // Upgrade the housing
+        {
+            let housing = &mut self.housing_buildings[building_index];
+            housing.upgrade();
+        }
+
+        // Update statistics (release borrow before calling other methods)
+        {
+            let mut stats = self.statistics.borrow_mut();
+            stats.buildings_purchased += 1;
+        }
+
+        self.update_resources_only();
+        Ok(true)
+    }
     pub fn craft_resource(&mut self, recipe_id: &str) -> Result<bool, String> {
         let recipe = match self.crafting_recipes.iter().find(|r| r.id == recipe_id) {
             Some(r) => r.clone(),
