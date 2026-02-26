@@ -1,8 +1,10 @@
 use crate::entities::technology::{Technology, TechnologyId, TechnologyEffect};
+use serde::{Deserialize, Serialize};
 use crate::state::GameState;
 use std::collections::{HashMap, HashSet};
 
 /// Technology tree system managing research and dependencies
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TechnologyTree {
     pub technologies: HashMap<TechnologyId, Technology>,
     pub unlocked: HashSet<TechnologyId>,
@@ -21,7 +23,7 @@ impl TechnologyTree {
 
     /// Get all default technologies
     pub fn get_all_technologies() -> HashMap<TechnologyId, Technology> {
-        let mut map = HashMap::new();
+        let map = HashMap::new();
         // Add initial set of technologies here
         map
     }
@@ -78,7 +80,7 @@ impl TechnologyTree {
     }
 
     /// Apply technology effect to game state
-    pub fn apply_effect(&self, tech_id: TechnologyId, game_state: &mut GameState) {
+    pub fn apply_effect(&self, tech_id: TechnologyId, _game_state: &mut GameState) {
         if let Some(tech) = self.technologies.get(&tech_id) {
             match &tech.effect {
                 TechnologyEffect::ProductionBonus(_, _) => {
@@ -116,21 +118,22 @@ mod tests {
 
     #[test]
     fn test_is_unlocked_initially_false() {
-        let tree = TechnologyTree::new();
+        let _tree = TechnologyTree::new();
         // Test with a sample technology ID
     }
 }
 
 /// Get all default technologies (50 total)
 impl TechnologyTree {
+    #[allow(dead_code)]
     fn initialize_technologies() -> HashMap<TechnologyId, Technology> {
         let mut map = HashMap::new();
         
         // Tier 1: Basic production bonuses (10 technologies)
         map.insert(TechnologyId::BasicMining, Technology {
             id: TechnologyId::BasicMining,
-            name: "基础采矿",
-            description: "矿井生产效率 +10%",
+            name: "基础采矿".to_string(),
+            description: "矿井生产效率 +10%".to_string(),
             costs: HashMap::new(),
             dependencies: vec![],
             effect: TechnologyEffect::ProductionBonus(crate::state::resource::ResourceType::Coal, 0.1),
