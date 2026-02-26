@@ -1,80 +1,77 @@
-# src/ - Rust Game Logic (Modular)
+# src/ - Rust Game Logic (Phase 2)
 
-**Location**: `src/` directory (19 files, ~1800 lines, 38 tests)
-**Structure**: Modular - recently refactored from single 2983-line file
+**Location**: `src/` directory (33 files, ~7000 lines, 109 tests)
+**Structure**: Phase 2 complete - technology, decay, prestige, housing, population systems
 
-## Overview
-Modular Rust game logic. Compiled to WASM via wasm-bindgen. **Recently split** from monolithic lib.rs into organized modules.
+## WHERE TO LOOK
 
-## WHERE TO LOOK (UPDATED)
 | Task | Location | Notes |
 |------|----------|-------|
-| Add game mechanic | `core/idle_game.rs` | Core logic |
-| Add state field | `state/game_state.rs` | Pure data |
-| Add entity | `entities/` | Building/Upgrade/Worker |
-| Add system logic | `systems/` | Achievement/Crafting/etc |
-| Add WASM export | `core/idle_game.rs` + `#[wasm_bindgen]` | Export section |
-| Add test | `test_utils/test_game_state.rs` | `#[cfg(test)]` |
+| Add game mechanic | `core/idle_game.rs` | Core logic, ~1700 lines |
+| Add state field | `state/game_state.rs` | Add `#[serde(default)]` |
+| Add entity | `entities/` | Building/Worker/Technology/Population |
+| Add system logic | `systems/` | 10 system modules |
+| Add test | `test_utils/` | TestGameState + balance tests |
 | Fix borrow error | `core/idle_game.rs` | Check `RefCell` scopes |
 
 ## Module Structure
+
 ```
 src/
-├── lib.rs                    # Entry point (19 lines, re-exports only)
-├── core/                     # Core game logic
+├── lib.rs                    # Entry point (21 lines)
+├── core/
 │   ├── idle_game.rs          # IdleGame struct + main operations
 │   └── mod.rs
-├── state/                    # Pure data structures
-│   ├── game_state.rs         # GameState
+├── state/
+│   ├── game_state.rs         # GameState (save/load)
 │   ├── statistics.rs         # Statistics (9 metrics)
+│   ├── resource.rs           # 60+ ResourceType variants
+│   ├── job_stats.rs          # Per-worker job statistics
+│   ├── work_stats.rs         # Work tracking
 │   └── mod.rs
-├── entities/                 # Game entities (pure data)
-│   ├── upgrade.rs            # Upgrade
-│   ├── building.rs           # Building
-│   ├── worker.rs             # Worker (levels, XP)
+├── entities/
+│   ├── building.rs           # Building definitions
+│   ├── worker.rs             # Worker (gender/hobbies/traits/XP)
+│   ├── upgrade.rs            # Upgrade definitions
+│   ├── technology.rs         # Technology tree nodes
+│   ├── automation.rs         # Automation buildings
+│   ├── population_queue.rs   # Housing queue system
 │   └── mod.rs
-├── systems/                  # Business logic
-│   ├── achievement.rs        # 13 achievements
-│   ├── crafting.rs           # 6 recipes
-│   ├── unlock.rs             # 5 unlocks
-│   ├── production.rs         # Production calculation
+├── systems/
+│   ├── achievement.rs        # 13 achievements, 5 categories
+│   ├── crafting.rs           # 6+ bidirectional recipes
+│   ├── production.rs         # Per-resource production
+│   ├── unlock.rs             # 5 progressive unlocks
+│   ├── decay.rs              # Corpse decay system
+│   ├── technology.rs         # Tech tree processing
+│   ├── prestige.rs           # Reset-for-bonus
+│   ├── population.rs         # Housing/population logic
 │   └── mod.rs
-├── ui/                       # WASM-JS callbacks
+├── utils/
+│   ├── name_generator.rs     # Worker names
+│   ├── worker_generator.rs   # Worker traits/hobbies
+│   └── mod.rs
+├── ui/
 │   ├── callbacks.rs          # update_* functions
 │   └── mod.rs
-└── test_utils/               # Testing (no WASM deps)
-    ├── test_game_state.rs    # TestGameState + 38 tests
+└── test_utils/
+    ├── test_game_state.rs    # Core tests (109 total)
+    ├── balance_test.rs       # Balance validation
     └── mod.rs
 ```
 
-## ANTI-PATTERNS (CRITICAL) - Unchanged from monolithic
-### Rust Borrowing - MUST FOLLOW
-```rust
-// ❌ FORBIDDEN - borrow conflict
-let state = self.state.borrow();
-let stats = self.statistics.borrow();
-self.check_achievement(); // PANIC!
+## rand 0.10 API
 
-// ✅ REQUIRED - use scope blocks
-{
-    let state = self.state.borrow();
-    let value = state.coins;
-} // released BEFORE next call
-self.check_achievement(); // OK
+```rust
+use rand::RngExt;  // Required for random_range
+
+// OLD: rng.gen_range(1..10)
+// NEW: rng.random_range(1..10)
+
+// OLD: slice.choose_multiple(&mut rng, n)
+// NEW: slice.sample(&mut rng, n)  // requires IndexedRandom
 ```
 
-**Key Rules**:
-- Never hold `RefCell` borrows across method calls
-- Never borrow `state` and `statistics` simultaneously
-- ALWAYS use scope blocks `{ }` to release borrows
-- Drop borrows before calling other methods
+## Anti-Patterns
 
-### WASM Exports - Unchanged
-```rust
-// ❌ FORBIDDEN - Vec<T> direct exposure
-pub fn get_achievements(&self) -> Vec<Achievement>
-
-// ✅ REQUIRED - skip for complex types
-#[wasm_bindgen(skip)]
-achievements: Vec<Achievement>
-```
+See root `AGENTS.md` for borrow rules and WASM export patterns.

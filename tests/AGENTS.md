@@ -1,207 +1,75 @@
 # tests/ - Playwright E2E Tests
 
-**Location**: `tests/` directory (34 test files)
+**Location**: `tests/` directory (50 test files)
+**Framework**: Playwright (Chromium, Firefox, Webkit)
 
-## Overview
-Playwright end-to-end tests. Tests game functionality across Chromium, Firefox, Webkit.
+## Test Categories (50 files)
 
-## Test Structure
-```
-tests/
-├── *.test.js            # Must use .test.js suffix
-├── statistics.test.js   # Statistics system tests
-├── achievements.test.js # Achievement system tests
-├── crafting.test.js     # Crafting system tests
-├── unlocks.test.js      # Unlock system tests
-├── workers.test.js      # Worker system tests
-├── responsive.test.js   # Responsive design tests
-└── ...                  # 34 total test files
-```
+### Core Mechanics
+- `statistics.test.js`, `achievements.test.js`, `crafting.test.js`
+- `unlocks.test.js`, `workers.test.js`, `workers-panel.test.js`
 
-## WHERE TO LOOK
-| Task | Location | Notes |
-|------|----------|-------|
-| Add test | New `*.test.js` file | Suffix REQUIRED |
-| Fix test | Existing test file | Wait for `gameInitialized` |
-| Run tests | `npm run test` | Auto-starts server |
+### Resources (Phase 2)
+- `primary-resources.test.js`, `secondary-resources.test.js`, `advanced-resources.test.js`
+- `resource-production-complete.test.js`, `resource-crafting-complete.test.js`
+- `resource-update.test.js`
+
+### System Flows (Phase 2)
+- `technology-tree-flow.test.js`, `housing-system-flow.test.js`
+- `worker-simulation-flow.test.js`, `life-death-cycle.test.js`
+
+### UI & Visual
+- `responsive.test.js`, `responsive-iphone-15-pro.test.js`, `responsive-layout.test.js`
+- `visual-style.test.js`, `particle-effect.test.js`
+- `tab-structure.test.js`, `tab-evidence.test.js`, `comprehensive-tab.test.js`
+
+### Performance
+- `performance-benchmark.test.js`, `performance-stress-test.test.js`, `performance-quick-test.test.js`
+
+### QA & Regression
+- `monkey-test.test.js`, `manual-qa.test.js`, `autoclicker-removed.test.js`
+- `core-issues-fixed.test.js`, `fix-all-issues.test.js`, `no-undefined-display.test.js`
 
 ## Test Pattern (MANDATORY)
 ```javascript
 const { test, expect } = require('@playwright/test');
 
-test('test description', async ({ page }) => {
-  // 1. Navigate to game
+test('description', async ({ page }) => {
   await page.goto('http://localhost:8080');
-  
-  // 2. CRITICAL: Wait for WASM initialization
-  await page.waitForFunction(() => window.gameInitialized === true);
-  
-  // 3. Test assertions
-  const coinValue = await page.textContent('#coin-value');
-  expect(parseFloat(coinValue)).toBeGreaterThan(0);
+  await page.waitForFunction(() => window.gameInitialized === true);  // CRITICAL
+  // Use exact Chinese strings for text matching
 });
 ```
 
-## ANTI-PATTERNS (CRITICAL)
-### Playwright Tests - MUST FOLLOW
-```javascript
-// ❌ FORBIDDEN - skip gameInitialized wait
-await page.goto('http://localhost:8080');
-const coins = await page.textContent('#coin-value');
-
-// ✅ REQUIRED - always wait first
-await page.goto('http://localhost:8080');
-await page.waitForFunction(() => window.gameInitialized === true);
-const coins = await page.textContent('#coin-value');
-```
-
-```javascript
-// ❌ FORBIDDEN - English text matching (game is in Chinese)
-await expect(page.locator('text=Coins')).toBeVisible();
-
-// ✅ REQUIRED - exact Chinese strings
-await expect(page.locator('text=金币')).toBeVisible();
-```
-
-```javascript
-// ❌ FORBIDDEN - unstable selectors
-await page.click('.upgrade-button');
-
-// ✅ REQUIRED - use stable IDs
-await page.click('#upgrade-button-0');
-```
-
-## Test Categories
-
-### 1. Function Tests
-Test game mechanics work correctly:
-```javascript
-test('click earns coins', async ({ page }) => {
-  await page.goto('http://localhost:8080');
-  await page.waitForFunction(() => window.gameInitialized === true);
-  
-  const initialCoins = await page.textContent('#coin-value');
-  await page.click('#click-area');
-  await page.waitForTimeout(100);
-  
-  const newCoins = await page.textContent('#coin-value');
-  expect(parseFloat(newCoins)).toBeGreaterThan(parseFloat(initialCoins));
-});
-```
-
-### 2. Visual Tests
-Test colors, layout, styles:
-```javascript
-test('resource display has gold color', async ({ page }) => {
-  await page.goto('http://localhost:8080');
-  await page.waitForFunction(() => window.gameInitialized === true);
-  
-  const element = page.locator('#resource-display');
-  const color = await element.evaluate(el => getComputedStyle(el).color);
-  expect(color).toBe('rgb(241, 196, 15)'); // Gold
-});
-```
-
-### 3. Interaction Tests
-Test tab switching, button clicks:
-```javascript
-test('tab switching works', async ({ page }) => {
-  await page.goto('http://localhost:8080');
-  await page.waitForFunction(() => window.gameInitialized === true);
-  
-  await page.click('[data-tab="achievements"]');
-  await expect(page.locator('#tab-achievements')).toHaveClass(/active/);
-});
-```
-
-### 4. Responsive Tests
-Test mobile layouts:
-```javascript
-test('mobile layout works', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 667 });
-  await page.goto('http://localhost:8080');
-  await page.waitForFunction(() => window.gameInitialized === true);
-  
-  // Check horizontal scroll
-  const resources = page.locator('#resources');
-  await expect(resources).toHaveCSS('overflow-x', 'auto');
-});
-```
-
-## Commands
-```bash
-# Run all tests
-npm run test
-
-# Single test file
-npx playwright test tests/statistics.test.js
-
-# With UI for debugging
-npm run test:ui
-
-# Generate HTML report
-npx playwright test --reporter=html
-
-# Run specific browser
-npx playwright test --project=chromium
-```
+## ANTI-PATTERNS
+- ❌ Skip `gameInitialized` wait → flaky tests
+- ❌ English text matching → game is zh-CN primary
+- ❌ Unstable selectors (`.class`) → use `#id` selectors
+- ❌ Missing `*.test.js` suffix → Playwright won't find it
 
 ## Configuration
 ```javascript
 // playwright.config.js
 module.exports = {
   testDir: 'tests/',
-  testMatch: '*.test.js',  // Suffix REQUIRED
-  timeout: 30000,
-  use: {
-    baseURL: 'http://localhost:8080',
-    headless: true,
-  },
-  projects: [
-    { name: 'chromium', use: { browser: 'chromium' } },
-    { name: 'firefox', use: { browser: 'firefox' } },
-    { name: 'webkit', use: { browser: 'webkit' } },
-  ],
+  testMatch: '*.test.js',
   webServer: {
     command: 'python server.py',
     port: 8080,
     reuseExistingServer: !process.env.CI,
   },
+  projects: [
+    { name: 'chromium' },
+    { name: 'firefox' },
+    { name: 'webkit' },
+  ],
 };
 ```
 
-## Common Assertions
-```javascript
-// Text content
-const text = await page.textContent('#element-id');
-expect(parseFloat(text)).toBeGreaterThan(0);
-
-// Visibility
-await expect(page.locator('#element')).toBeVisible();
-
-// CSS classes
-await expect(page.locator('#tab')).toHaveClass(/active/);
-
-// CSS properties
-const color = await element.evaluate(el => getComputedStyle(el).color);
-expect(color).toBe('rgb(241, 196, 15)');
-
-// Element count
-const items = await page.locator('.achievement-item').count();
-expect(items).toBeGreaterThanOrEqual(13);
-```
-
-## Debugging
-```javascript
-// Pause test for inspection
-await page.pause();
-
-// Take screenshot
-await page.screenshot({ path: 'debug.png' });
-
-// Console logs
-page.on('console', msg => console.log(msg.text()));
-
-// Slow down for visual debugging
-test.slow();
+## Commands
+```bash
+npm run test                                    # All tests
+npx playwright test tests/specific.test.js      # Single file
+npm run test:ui                                 # With UI debugger
+npx playwright test --project=chromium          # Single browser
 ```

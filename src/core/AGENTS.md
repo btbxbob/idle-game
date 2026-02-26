@@ -1,9 +1,9 @@
 # src/core/ - IdleGame Core Logic
 
-**Location**: `src/core/idle_game.rs` (~1400 lines)
+**Location**: `src/core/idle_game.rs` (~1700 lines)
 
 ## Overview
-IdleGame struct + core game operations (click, buy, craft, game_loop).
+IdleGame struct + core game operations (10 systems: resources, workers, tech, housing, decay, prestige).
 
 ## WHERE TO LOOK
 | Task | Location |
@@ -14,17 +14,24 @@ IdleGame struct + core game operations (click, buy, craft, game_loop).
 | Resource crafting | `idle_game.rs` `craft_resource()` |
 | Game loop tick | `idle_game.rs` `game_loop()` |
 | Achievement check | `idle_game.rs` `check_achievement()` |
+| Spawn worker | `idle_game.rs` `spawn_worker()` |
+| Kill worker | `idle_game.rs` `kill_worker()` |
+| Corpse decay | `idle_game.rs` `process_decay()` |
+| Research tech | `idle_game.rs` `research_technology()` |
+| Housing capacity | `idle_game.rs` `manage_housing()` |
+| Population growth | `idle_game.rs` `process_population()` |
+| Prestige reset | `idle_game.rs` `prestige_reset()` |
 
 ## ANTI-PATTERNS (CRITICAL)
 ### Borrow Scopes - MUST FOLLOW
 ```rust
-// ❌ FORBIDDEN - borrow across method calls
+// FORBIDDEN - borrow across method calls
 let state = self.state.borrow();
 if state.coins >= cost {
     self.check_achievement(); // PANIC: state still borrowed
 }
 
-// ✅ REQUIRED - explicit drop before method calls
+// REQUIRED - explicit drop before method calls
 let state = self.state.borrow();
 if state.coins >= cost {
     drop(state); // or use scope block { }
@@ -77,14 +84,14 @@ if state.coins >= cost {
 
 ### WASM Export Boundaries
 ```rust
-// ✅ Exported to JS
+// Exported to JS
 #[wasm_bindgen]
 pub fn click_action(&mut self) { }
 
-// ✅ Internal helper (not exported)
+// Internal helper (not exported)
 fn check_achievement(&mut self, id: &str) { }
 
-// ✅ Skipped complex types
+// Skipped complex types
 #[wasm_bindgen(skip)]
 achievements: Vec<Achievement>
 ```
