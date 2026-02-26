@@ -96,7 +96,7 @@ pub fn check_worker_starvation(
 
 #[cfg(test)]
 mod tests {
-    use super::super::entities::worker::{Gender, Hobby, Trait};
+    use crate::entities::worker::{Gender, Hobby, Trait};
     use super::*;
 
     fn create_test_worker() -> Worker {
@@ -111,15 +111,16 @@ mod tests {
             xp: 0.0,
             xp_to_next_level: 100.0,
             gender: Gender::Male,
-            hobbies: vec![Hobby::Mining],
-            traits: vec![Trait::Diligent],
-            skill_level: 1,
-            mood: 100.0,
-            health: 100.0,
-            starvation_start_time: 0.0,
+            hobbies: vec![Hobby::Fishing],
+            primary_trait: Trait::Diligent,
+            secondary_traits: vec![],
+            happiness: 50.0,
+            hunger: 0.0,
             is_hungry: false,
+            starvation_start_time: 0.0,
         }
     }
+
 
     #[test]
     fn test_no_food_consumption_before_interval() {

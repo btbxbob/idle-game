@@ -386,6 +386,8 @@ impl TestGameState {
                     secondary_traits: Vec::new(),
                     happiness: 50.0,
                     hunger: 0.0,
+                    is_hungry: false,
+                    starvation_start_time: 0.0,
                 },
                 Worker {
                     name: "伐木工".to_string(),
@@ -403,6 +405,8 @@ impl TestGameState {
                     secondary_traits: Vec::new(),
                     happiness: 50.0,
                     hunger: 0.0,
+                    is_hungry: false,
+                    starvation_start_time: 0.0,
                 },
                 Worker {
                     name: "石匠".to_string(),
@@ -420,6 +424,8 @@ impl TestGameState {
                     secondary_traits: Vec::new(),
                     happiness: 50.0,
                     hunger: 0.0,
+                    is_hungry: false,
+                    starvation_start_time: 0.0,
                 },
             ],
         }

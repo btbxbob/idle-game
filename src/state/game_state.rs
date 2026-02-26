@@ -17,6 +17,14 @@ pub struct GameState {
     pub autoclick_count: u32,
     pub total_clicks: u32,
     pub last_update_time: f64,
+    #[serde(default)]
+    pub prestige_points: f64,
+    #[serde(default = "default_prestige_multiplier")]
+    pub prestige_multiplier: f64,
+}
+
+fn default_prestige_multiplier() -> f64 {
+    1.0
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -49,6 +57,8 @@ impl<'de> Deserialize<'de> for GameState {
             autoclick_count: u32,
             total_clicks: u32,
             last_update_time: f64,
+            prestige_points: Option<f64>,
+            prestige_multiplier: Option<f64>,
         }
 
         let map = HashMap::<String, serde_json::Value>::deserialize(deserializer)?;
@@ -108,6 +118,8 @@ impl<'de> Deserialize<'de> for GameState {
                 autoclick_count: new.autoclick_count,
                 total_clicks: new.total_clicks,
                 last_update_time: new.last_update_time,
+                prestige_points: new.prestige_points.unwrap_or(0.0),
+                prestige_multiplier: new.prestige_multiplier.unwrap_or(1.0),
             })
         }
     }
@@ -130,6 +142,8 @@ impl GameState {
             autoclick_count: old.autoclick_count,
             total_clicks: old.total_clicks,
             last_update_time: old.last_update_time,
+            prestige_points: 0.0,
+            prestige_multiplier: 1.0,
         }
     }
     pub fn get_resource(&self, resource: ResourceType) -> f64 {
@@ -229,6 +243,8 @@ impl Default for GameState {
             total_clicks: 0,
             last_update_time: 0.0,
             version: SAVE_VERSION.to_string(),
+            prestige_points: 0.0,
+            prestige_multiplier: 1.0,
         }
     }
 }
@@ -322,6 +338,8 @@ mod tests {
             autoclick_count: 20,
             total_clicks: 200,
             last_update_time: 9876543210.0,
+            prestige_points: 0.0,
+            prestige_multiplier: 1.0,
         };
 
         let new_json = serde_json::to_string(&new_format).unwrap();

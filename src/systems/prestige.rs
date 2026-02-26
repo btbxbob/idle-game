@@ -35,7 +35,7 @@ mod tests {
             autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
-            prestige_points: 0,
+            prestige_points: 0.0,
             prestige_multiplier: 1.0,
         };
 
@@ -58,7 +58,7 @@ mod tests {
             autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
-            prestige_points: 0,
+            prestige_points: 0.0,
             prestige_multiplier: 1.0,
         };
 
@@ -81,7 +81,7 @@ mod tests {
             autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
-            prestige_points: 0,
+            prestige_points: 0.0,
             prestige_multiplier: 1.0,
         };
 

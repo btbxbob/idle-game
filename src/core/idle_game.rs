@@ -262,6 +262,8 @@ impl IdleGame {
                 total_clicks: 0,
                 last_update_time: now,
                 version: crate::state::game_state::SAVE_VERSION.to_string(),
+                prestige_points: 0.0,
+                prestige_multiplier: 1.0,
             })),
             statistics: Rc::new(RefCell::new(Statistics {
                 total_clicks: 0,

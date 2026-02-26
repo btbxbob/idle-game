@@ -284,6 +284,10 @@ pub struct Worker {
     pub happiness: f64,
     #[serde(default)]
     pub hunger: f64, // 饥饿度 0-100，0=饱食，100=饿死
+    #[serde(default)]
+    pub is_hungry: bool,        // 是否饥饿
+    #[serde(default)]
+    pub starvation_start_time: f64,  // 开始饥饿的时间戳
 }
 
 fn default_happiness() -> f64 {
@@ -309,6 +313,8 @@ impl Worker {
             secondary_traits: Vec::new(),
             happiness: 50.0,
             hunger: 0.0, // 初始不饿
+            is_hungry: false,
+            starvation_start_time: 0.0,
         }
     }
 
@@ -339,8 +345,12 @@ impl Worker {
             secondary_traits,
             happiness: 50.0,
             hunger: 0.0, // 初始不饿
+            is_hungry: false,
+            starvation_start_time: 0.0,
         }
     }
+
+    /// 添加爱好（最多2个）
 
     /// 添加爱好（最多2个）
     pub fn add_hobby(&mut self, hobby: Hobby) {
