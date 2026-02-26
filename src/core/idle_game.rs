@@ -2,7 +2,8 @@ use crate::entities::{Building, Housing, Upgrade, Worker};
 use crate::state::resource::ResourceType;
 use crate::state::{GameState, Statistics};
 use crate::systems::{
-    achievement::Achievement, crafting::CraftingRecipe, production, unlock::UnlockedFeature,
+    achievement::Achievement, crafting::CraftingRecipe, production,
+    technology::TechnologyTree, unlock::UnlockedFeature,
 };
 use base64::{engine::general_purpose, Engine as _};
 use js_sys::Date;
@@ -24,7 +25,10 @@ pub struct IdleGame {
     #[wasm_bindgen(skip)]
     crafting_recipes: Vec<CraftingRecipe>,
     #[wasm_bindgen(skip)]
+    #[wasm_bindgen(skip)]
     unlocked_features: Vec<UnlockedFeature>,
+    #[wasm_bindgen(skip)]
+    technology_tree: TechnologyTree,
     statistics: Rc<RefCell<Statistics>>,
 }
 
@@ -40,6 +44,8 @@ pub struct SavedGame {
     pub achievements: Vec<Achievement>,
     pub crafting_recipes: Vec<CraftingRecipe>,
     pub unlocked_features: Vec<UnlockedFeature>,
+    #[serde(default)]
+    pub technology_tree: TechnologyTree,
     pub save_timestamp: f64,
     pub version: String,
 }
@@ -57,6 +63,7 @@ impl IdleGame {
             achievements: self.achievements.clone(),
             crafting_recipes: self.crafting_recipes.clone(),
             unlocked_features: self.unlocked_features.clone(),
+            technology_tree: self.technology_tree.clone(),
             save_timestamp: Date::now(),
             version: "0.2.6".to_string(),
         }
@@ -98,6 +105,7 @@ impl IdleGame {
         self.achievements = saved.achievements;
         self.crafting_recipes = saved.crafting_recipes;
         self.unlocked_features = saved.unlocked_features;
+        self.technology_tree = saved.technology_tree;
     }
 }
 
@@ -426,6 +434,7 @@ impl IdleGame {
                     requirement_value: 25.0,
                 },
             ],
+            technology_tree: TechnologyTree::new(),
         }
     }
 
@@ -1156,6 +1165,24 @@ impl IdleGame {
 
             // Update production after worker XP changes (must be after grant_worker_xp)
             self.update_production();
+            // Food consumption and starvation check
+            {
+                let mut state = self.state.borrow_mut();
+                let mut last_consumption = state.last_update_time;
+                let _hungry = crate::systems::population::consume_food_for_workers(
+                    &mut self.workers,
+                    &mut state.resources,
+                    now,
+                    &mut last_consumption,
+                );
+                let mut corpse_decay_time = 0.0;
+                let _deaths = crate::systems::population::check_worker_starvation_deaths(
+                    &mut self.workers,
+                    &mut state.resources,
+                    now,
+                    &mut corpse_decay_time,
+                );
+            }
         }
 
         self.check_achievement("first_coins_100");
@@ -1689,5 +1716,59 @@ impl IdleGame {
         // Load the saved game state
         self.load_game(saved_game);
         Ok(())
+    }
+
+    // ========== Technology System WASM Exports ==========
+
+    #[wasm_bindgen]
+    pub fn research_technology(&mut self, tech_id_str: &str) -> Result<bool, JsValue> {
+        use crate::entities::technology::TechnologyId;
+        let tech_id = match serde_json::from_str::<TechnologyId>(&format!("\"{}\"" , tech_id_str)) {
+            Ok(id) => id,
+            Err(_) => return Err(JsValue::from_str(&format!("Invalid technology ID: {}", tech_id_str))),
+        };
+
+        if !self.technology_tree.can_research(tech_id) {
+            return Err(JsValue::from_str("Cannot research: dependencies not met or already purchased"));
+        }
+
+        // Check affordability
+        {
+            let state = self.state.borrow();
+            if let Some(tech) = self.technology_tree.technologies.get(&tech_id) {
+                for (resource, cost) in &tech.costs {
+                    if state.get_resource(*resource) < *cost {
+                        return Err(JsValue::from_str(&format!("Cannot afford: need {} {:?}", cost, resource)));
+                    }
+                }
+            }
+        }
+
+        // Deduct costs
+        {
+            let mut state = self.state.borrow_mut();
+            if let Some(tech) = self.technology_tree.technologies.get(&tech_id) {
+                for (resource, cost) in &tech.costs {
+                    let current = state.get_resource(*resource);
+                    state.set_resource(*resource, current - cost);
+                }
+            }
+        }
+
+        // Research
+        self.technology_tree.research(tech_id)
+            .map_err(|e| JsValue::from_str(&e))?;
+        Ok(true)
+    }
+
+    #[wasm_bindgen]
+    pub fn get_technology_tree_json(&self) -> String {
+        serde_json::to_string(&self.technology_tree).unwrap_or_else(|_| "{}".to_string())
+    }
+
+    #[wasm_bindgen]
+    pub fn get_available_technologies_json(&self) -> String {
+        let available = self.technology_tree.get_available_research();
+        serde_json::to_string(&available).unwrap_or_else(|_| "[]".to_string())
     }
 }
