@@ -23,6 +23,7 @@ pub fn calculate_production(
     resource: ResourceType,
 ) -> f64 {
     let building_name = match resource {
+        // Tier 1: Basic Resources
         ResourceType::Gold => "金币矿山",
         ResourceType::Wood => "伐木场",
         ResourceType::Stone => "采石场",
@@ -33,7 +34,59 @@ pub fn calculate_production(
         ResourceType::Oil => "石油井",
         ResourceType::Crystal => "水晶矿",
         ResourceType::Food => "农场",
-        _ => return 0.0,
+        // Tier 2: Processed Resources (40)
+        ResourceType::IronIngot => "铁锭冶炼厂",
+        ResourceType::CopperIngot => "铜锭冶炼厂",
+        ResourceType::AluminumIngot => "铝锭冶炼厂",
+        ResourceType::SteelPlate => "钢铁厂",
+        ResourceType::CopperPlate => "铜板厂",
+        ResourceType::AluminumPlate => "铝板厂",
+        ResourceType::Glass => "玻璃厂",
+        ResourceType::Plastic => "塑料厂",
+        ResourceType::Chemicals => "化学品厂",
+        ResourceType::Fuel => "燃料精炼厂",
+        ResourceType::Paper => "造纸厂",
+        ResourceType::Ink => "墨水厂",
+        ResourceType::Cloth => "纺织厂",
+        ResourceType::Leather => "皮革厂",
+        ResourceType::Ceramic => "陶瓷厂",
+        ResourceType::Cement => "水泥厂",
+        ResourceType::Brick => "砖厂",
+        ResourceType::Rebar => "钢筋厂",
+        ResourceType::Wire => "电线厂",
+        ResourceType::Pipe => "管道厂",
+        ResourceType::Valve => "阀门厂",
+        ResourceType::Gear => "齿轮厂",
+        ResourceType::Bearing => "轴承厂",
+        ResourceType::Spring => "弹簧厂",
+        ResourceType::Screw => "螺丝厂",
+        ResourceType::Nut => "螺母厂",
+        ResourceType::Washer => "垫片厂",
+        ResourceType::Pump => "泵厂",
+        ResourceType::Motor => "马达厂",
+        ResourceType::Sensor => "传感器厂",
+        ResourceType::CircuitBoard => "电路板厂",
+        ResourceType::Capacitor => "电容器厂",
+        ResourceType::Resistor => "电阻厂",
+        ResourceType::Diode => "二极管厂",
+        ResourceType::Transistor => "晶体管厂",
+        ResourceType::Transformer => "变压器厂",
+        ResourceType::Generator => "发电机厂",
+        ResourceType::Compressor => "压缩机厂",
+        ResourceType::Battery => "电池厂",
+        // Tier 3: High-Tech Resources (10)
+        ResourceType::Microchip => "芯片制造厂",
+        ResourceType::Engine => "引擎装配厂",
+        ResourceType::Robot => "机器人工厂",
+        ResourceType::Satellite => "卫星装配中心",
+        ResourceType::Spaceship => "太空船坞",
+        ResourceType::QuantumComputer => "量子计算中心",
+        ResourceType::Antimatter => "反物质反应堆",
+        ResourceType::DarkMatter => "暗物质提取器",
+        ResourceType::TimeCrystal => "时间水晶合成器",
+        ResourceType::Nanobot => "纳米机器人工厂",
+        // Special Resources - no production buildings
+        ResourceType::Corpse | ResourceType::Maggot => return 0.0,
     };
 
     let building = match buildings.iter().find(|b| b.name == building_name) {
@@ -122,17 +175,7 @@ mod tests {
     }
 
     fn create_test_workers() -> Vec<Worker> {
-        vec![Worker {
-            name: "矿工".to_string(),
-            skills: "mining".to_string(),
-            background: "擅长挖矿的工人".to_string(),
-            preferences: "金币矿山".to_string(),
-            assigned_building: None,
-            level: 1,
-            efficiency_multiplier: 1.0,
-            xp: 0.0,
-            xp_to_next_level: 100.0,
-        }]
+        vec![Worker::new("矿工", "mining", "擅长挖矿的工人", "金币矿山")]
     }
 
     #[test]
@@ -279,7 +322,7 @@ mod tests {
         let upgrades = vec![];
 
         let production = update_production(&buildings, &upgrades, &workers);
-        assert_eq!(production.len(), 10);
+        assert_eq!(production.len(), 60);
         assert!(production[0] > 0.0);
         assert!(production[1] > 0.0);
         assert!(production[2] > 0.0);
@@ -305,9 +348,10 @@ pub fn update_production(
     buildings: &[Building],
     upgrades: &[Upgrade],
     workers: &[Worker],
-) -> [f64; 10] {
-    let mut production = [0.0; 10];
+) -> [f64; 60] {
+    let mut production = [0.0; 60];
 
+    // Tier 1: Basic Resources (0-9)
     production[0] = calculate_production(buildings, workers, ResourceType::Gold);
     production[1] = calculate_production(buildings, workers, ResourceType::Wood);
     production[2] = calculate_production(buildings, workers, ResourceType::Stone);
@@ -318,6 +362,62 @@ pub fn update_production(
     production[7] = calculate_production(buildings, workers, ResourceType::Oil);
     production[8] = calculate_production(buildings, workers, ResourceType::Crystal);
     production[9] = calculate_production(buildings, workers, ResourceType::Food);
+
+    // Tier 2: Processed Resources (10-49)
+    production[10] = calculate_production(buildings, workers, ResourceType::IronIngot);
+    production[11] = calculate_production(buildings, workers, ResourceType::CopperIngot);
+    production[12] = calculate_production(buildings, workers, ResourceType::AluminumIngot);
+    production[13] = calculate_production(buildings, workers, ResourceType::SteelPlate);
+    production[14] = calculate_production(buildings, workers, ResourceType::CopperPlate);
+    production[15] = calculate_production(buildings, workers, ResourceType::AluminumPlate);
+    production[16] = calculate_production(buildings, workers, ResourceType::Glass);
+    production[17] = calculate_production(buildings, workers, ResourceType::Plastic);
+    production[18] = calculate_production(buildings, workers, ResourceType::Chemicals);
+    production[19] = calculate_production(buildings, workers, ResourceType::Fuel);
+    production[20] = calculate_production(buildings, workers, ResourceType::Paper);
+    production[21] = calculate_production(buildings, workers, ResourceType::Ink);
+    production[22] = calculate_production(buildings, workers, ResourceType::Cloth);
+    production[23] = calculate_production(buildings, workers, ResourceType::Leather);
+    production[24] = calculate_production(buildings, workers, ResourceType::Ceramic);
+    production[25] = calculate_production(buildings, workers, ResourceType::Cement);
+    production[26] = calculate_production(buildings, workers, ResourceType::Brick);
+    production[27] = calculate_production(buildings, workers, ResourceType::Rebar);
+    production[28] = calculate_production(buildings, workers, ResourceType::Wire);
+    production[29] = calculate_production(buildings, workers, ResourceType::Pipe);
+    production[30] = calculate_production(buildings, workers, ResourceType::Valve);
+    production[31] = calculate_production(buildings, workers, ResourceType::Gear);
+    production[32] = calculate_production(buildings, workers, ResourceType::Bearing);
+    production[33] = calculate_production(buildings, workers, ResourceType::Spring);
+    production[34] = calculate_production(buildings, workers, ResourceType::Screw);
+    production[35] = calculate_production(buildings, workers, ResourceType::Nut);
+    production[36] = calculate_production(buildings, workers, ResourceType::Washer);
+    production[37] = calculate_production(buildings, workers, ResourceType::Pump);
+    production[38] = calculate_production(buildings, workers, ResourceType::Motor);
+    production[39] = calculate_production(buildings, workers, ResourceType::Sensor);
+    production[40] = calculate_production(buildings, workers, ResourceType::CircuitBoard);
+    production[41] = calculate_production(buildings, workers, ResourceType::Capacitor);
+    production[42] = calculate_production(buildings, workers, ResourceType::Resistor);
+    production[43] = calculate_production(buildings, workers, ResourceType::Diode);
+    production[44] = calculate_production(buildings, workers, ResourceType::Transistor);
+    production[45] = calculate_production(buildings, workers, ResourceType::Transformer);
+    production[46] = calculate_production(buildings, workers, ResourceType::Generator);
+    production[47] = calculate_production(buildings, workers, ResourceType::Compressor);
+    production[48] = calculate_production(buildings, workers, ResourceType::Battery);
+
+    // Tier 3: High-Tech Resources (49-58)
+    production[49] = calculate_production(buildings, workers, ResourceType::Microchip);
+    production[50] = calculate_production(buildings, workers, ResourceType::Engine);
+    production[51] = calculate_production(buildings, workers, ResourceType::Robot);
+    production[52] = calculate_production(buildings, workers, ResourceType::Satellite);
+    production[53] = calculate_production(buildings, workers, ResourceType::Spaceship);
+    production[54] = calculate_production(buildings, workers, ResourceType::QuantumComputer);
+    production[55] = calculate_production(buildings, workers, ResourceType::Antimatter);
+    production[56] = calculate_production(buildings, workers, ResourceType::DarkMatter);
+    production[57] = calculate_production(buildings, workers, ResourceType::TimeCrystal);
+    production[58] = calculate_production(buildings, workers, ResourceType::Nanobot);
+
+    // Special Resources (59-60) - no production
+    production[59] = 0.0; // Corpse
 
     for upgrade in upgrades {
         if upgrade.name == "Lumberjack Efficiency" {

@@ -1,112 +1,131 @@
-//! Worker name generator using creative word combinations
-//! Generates unique names by combining natural elements with colors
+//! English name generator for NPCs and workers
+//! Generates random first and last names based on gender
 
-use std::collections::HashSet;
+use rand::prelude::IndexedRandom;
+use rand::rng;
 
-/// Natural elements list (50 items)
-const NATURAL_ELEMENTS: &[&str] = &[
-    "River",
-    "Sky",
-    "Ocean",
-    "Stone",
-    "Forest",
-    "Mountain",
-    "Valley",
-    "Stream",
-    "Meadow",
-    "Cliff",
-    "Waterfall",
-    "Canyon",
-    "Glacier",
-    "Volcano",
-    "Desert",
-    "Island",
-    "Peninsula",
-    "Bay",
-    "Harbor",
-    "Reef",
-    "Cave",
-    "Cavern",
-    "Grotto",
-    "Spring",
-    "Well",
-    "Grove",
-    "Thicket",
-    "Woodland",
-    "Prairie",
-    "Plain",
-    "Savanna",
-    "Tundra",
-    "Marsh",
-    "Swamp",
-    "Bog",
-    "Dune",
-    "Peak",
-    "Summit",
-    "Ridge",
-    "Hill",
-    "Knoll",
-    "Butte",
-    "Mesa",
-    "Plateau",
-    "Basin",
-    "Delta",
-    "Estuary",
-    "Lagoon",
-    "Oasis",
-    "Coast",
-];
-
-/// Colors list (20 items)
-const COLORS: &[&str] = &[
-    "Blue", "Green", "Red", "Silver", "Golden", "Purple", "Crimson", "Azure", "Emerald", "Ruby",
-    "Amber", "Jade", "Ivory", "Onyx", "Pearl", "Coral", "Sage", "Copper", "Bronze", "Violet",
-];
-
-/// Simple pseudo-random number generator
-static mut COUNTER: u32 = 0;
-
-fn random_index(max: usize) -> usize {
-    unsafe {
-        COUNTER = COUNTER.wrapping_add(0x9E3779B9);
-        (COUNTER as usize) % max
-    }
+/// Gender enum for name generation
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Gender {
+    Male,
+    Female,
+    Other,
 }
 
-/// Generate a single name by combining element and color
-pub fn generate_name() -> String {
-    let element_idx = random_index(NATURAL_ELEMENTS.len());
-    let color_idx = random_index(COLORS.len());
-    let pattern = random_index(2);
+/// English name generator
+pub struct NameGenerator;
 
-    let element = NATURAL_ELEMENTS[element_idx];
-    let color = COLORS[color_idx];
-
-    if pattern == 0 {
-        format!("{} {}", element, color)
-    } else {
-        format!("{} {}", color, element)
+impl NameGenerator {
+    /// Generate random full name
+    pub fn generate_full_name(gender: Gender) -> String {
+        let first_name = Self::generate_first_name(gender);
+        let last_name = Self::generate_last_name();
+        format!("{} {}", first_name, last_name)
     }
-}
 
-/// Generate a unique name not in the existing list
-pub fn generate_unique_name(existing: &[String]) -> String {
-    let existing_set: HashSet<&String> = existing.iter().collect();
+    /// Generate first name (based on gender)
+    fn generate_first_name(gender: Gender) -> &'static str {
+        let male_names = [
+            "James",
+            "John",
+            "Robert",
+            "Michael",
+            "William",
+            "David",
+            "Richard",
+            "Joseph",
+            "Thomas",
+            "Charles",
+            "Christopher",
+            "Daniel",
+            "Matthew",
+            "Anthony",
+            "Mark",
+            "Donald",
+            "Steven",
+            "Paul",
+            "Andrew",
+            "Joshua",
+            "Kenneth",
+            "Kevin",
+            "Brian",
+            "George",
+            "Edward",
+        ];
 
-    // Safety limit to prevent infinite loops
-    let max_attempts = 1000;
-    let mut attempts = 0;
+        let female_names = [
+            "Mary",
+            "Patricia",
+            "Jennifer",
+            "Linda",
+            "Elizabeth",
+            "Susan",
+            "Jessica",
+            "Sarah",
+            "Karen",
+            "Nancy",
+            "Lisa",
+            "Betty",
+            "Margaret",
+            "Sandra",
+            "Ashley",
+            "Kimberly",
+            "Emily",
+            "Donna",
+            "Michelle",
+            "Dorothy",
+            "Carol",
+            "Amanda",
+            "Melissa",
+            "Deborah",
+            "Stephanie",
+        ];
 
-    while attempts < max_attempts {
-        let name = generate_name();
-        if !existing_set.contains(&name) {
-            return name;
+        let mut rng = rng();
+
+        match gender {
+            Gender::Male => male_names.choose(&mut rng).unwrap(),
+            Gender::Female => female_names.choose(&mut rng).unwrap(),
+            Gender::Other => {
+                let all_names: Vec<_> = male_names.iter().chain(female_names.iter()).collect();
+                *all_names.choose(&mut rng).unwrap()
+            }
         }
-        attempts += 1;
     }
 
-    // Fallback: generate a numbered name if all combinations exhausted
-    format!("Unique_{}", existing.len())
+    /// Generate last name
+    fn generate_last_name() -> &'static str {
+        let last_names = [
+            "Smith",
+            "Johnson",
+            "Williams",
+            "Brown",
+            "Jones",
+            "Garcia",
+            "Miller",
+            "Davis",
+            "Rodriguez",
+            "Martinez",
+            "Hernandez",
+            "Lopez",
+            "Gonzalez",
+            "Wilson",
+            "Anderson",
+            "Thomas",
+            "Taylor",
+            "Moore",
+            "Jackson",
+            "Martin",
+            "Lee",
+            "Perez",
+            "Thompson",
+            "White",
+            "Harris",
+        ];
+
+        let mut rng = rng();
+        last_names.choose(&mut rng).unwrap()
+    }
 }
 
 #[cfg(test)]
@@ -114,106 +133,67 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_generate_name_returns_non_empty() {
-        let name = generate_name();
-        assert!(!name.is_empty());
-        assert!(name.len() > 5);
+    fn test_generate_full_name_male() {
+        let name = NameGenerator::generate_full_name(Gender::Male);
+        assert!(
+            name.contains(' '),
+            "Name should contain a space between first and last name"
+        );
+        let parts: Vec<&str> = name.split(' ').collect();
+        assert_eq!(parts.len(), 2, "Name should have exactly 2 parts");
     }
 
     #[test]
-    fn test_generate_name_format() {
-        let name = generate_name();
-        let parts: Vec<&str> = name.split_whitespace().collect();
-        assert_eq!(parts.len(), 2, "Name should have exactly 2 words");
+    fn test_generate_full_name_female() {
+        let name = NameGenerator::generate_full_name(Gender::Female);
+        assert!(
+            name.contains(' '),
+            "Name should contain a space between first and last name"
+        );
+        let parts: Vec<&str> = name.split(' ').collect();
+        assert_eq!(parts.len(), 2, "Name should have exactly 2 parts");
     }
 
     #[test]
-    fn test_generate_name_contains_valid_words() {
-        for _ in 0..100 {
-            let name = generate_name();
-            let parts: Vec<&str> = name.split_whitespace().collect();
-
-            let has_element = parts.iter().any(|p| NATURAL_ELEMENTS.contains(p));
-            let has_color = parts.iter().any(|p| COLORS.contains(p));
-
-            assert!(
-                has_element || has_color,
-                "Name should contain valid element or color"
-            );
-        }
+    fn test_generate_full_name_other() {
+        let name = NameGenerator::generate_full_name(Gender::Other);
+        assert!(
+            name.contains(' '),
+            "Name should contain a space between first and last name"
+        );
+        let parts: Vec<&str> = name.split(' ').collect();
+        assert_eq!(parts.len(), 2, "Name should have exactly 2 parts");
     }
 
     #[test]
-    fn test_generate_unique_name_returns_unique() {
-        let existing = vec!["River Blue".to_string(), "Sky Green".to_string()];
-        let new_name = generate_unique_name(&existing);
-
-        assert!(!existing.contains(&new_name));
+    fn test_name_generator() {
+        let name1 = NameGenerator::generate_full_name(Gender::Male);
+        let name2 = NameGenerator::generate_full_name(Gender::Female);
+        assert!(name1.contains(' ')); // contains space (first + last name)
+        assert!(name2.contains(' '));
     }
 
     #[test]
-    fn test_generate_500_unique_names() {
-        let mut names: Vec<String> = Vec::new();
-
-        for _ in 0..500 {
-            let name = generate_unique_name(&names);
-            assert!(!names.contains(&name), "Duplicate name generated: {}", name);
-            names.push(name);
-        }
-
-        assert_eq!(names.len(), 500, "Should generate 500 unique names");
-    }
-
-    #[test]
-    fn test_generate_1000_unique_names() {
-        let mut names: Vec<String> = Vec::new();
-
-        for _ in 0..1000 {
-            let name = generate_unique_name(&names);
-            assert!(!names.contains(&name), "Duplicate name generated: {}", name);
-            names.push(name);
-        }
-
-        assert_eq!(names.len(), 1000, "Should generate 1000 unique names");
-    }
-
-    #[test]
-    fn test_name_combination_patterns() {
-        let mut has_element_first = false;
-        let mut has_color_first = false;
-
-        for _ in 0..100 {
-            let name = generate_name();
-            let parts: Vec<&str> = name.split_whitespace().collect();
-
-            if parts.len() == 2 {
-                let first = parts[0];
-                let second = parts[1];
-
-                if NATURAL_ELEMENTS.contains(&first) && COLORS.contains(&second) {
-                    has_element_first = true;
+    fn test_names_are_different() {
+        // Generate multiple names to verify randomness
+        let names: Vec<String> = (0..10)
+            .map(|i| {
+                if i % 2 == 0 {
+                    NameGenerator::generate_full_name(Gender::Male)
+                } else {
+                    NameGenerator::generate_full_name(Gender::Female)
                 }
-                if COLORS.contains(&first) && NATURAL_ELEMENTS.contains(&second) {
-                    has_color_first = true;
-                }
-            }
-        }
+            })
+            .collect();
 
-        assert!(has_element_first, "Should have 'Element Color' pattern");
-        assert!(has_color_first, "Should have 'Color Element' pattern");
-    }
-
-    #[test]
-    fn test_name_aesthetics() {
-        let sample_names: Vec<String> = (0..20).map(|_| generate_name()).collect();
-
-        for name in &sample_names {
-            assert!(name.chars().all(|c| c.is_alphabetic() || c.is_whitespace()));
-
-            let parts: Vec<&str> = name.split_whitespace().collect();
-            for part in parts {
-                assert!(part.chars().next().unwrap().is_uppercase());
-            }
+        // All names should be properly formatted
+        for name in &names {
+            assert!(name.contains(' '), "Each name should have a space");
+            let parts: Vec<&str> = name.split(' ').collect();
+            assert_eq!(parts.len(), 2, "Each name should have exactly 2 parts");
+            // First letter of each part should be uppercase
+            assert!(parts[0].chars().next().unwrap().is_uppercase());
+            assert!(parts[1].chars().next().unwrap().is_uppercase());
         }
     }
 }

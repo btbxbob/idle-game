@@ -4,7 +4,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 
 /// Current save format version
-pub const SAVE_VERSION: &str = "0.2.6";
+pub const SAVE_VERSION: &str = "0.3.0";
 
 #[derive(Serialize, Clone, Debug)]
 pub struct GameState {
@@ -54,12 +54,46 @@ impl<'de> Deserialize<'de> for GameState {
         let map = HashMap::<String, serde_json::Value>::deserialize(deserializer)?;
 
         if map.contains_key("coins") && !map.contains_key("resources") {
-            let old: OldGameState =
-                serde_json::from_value(serde_json::Value::Object(map.into_iter().collect()))
-                    .map_err(de::Error::custom)?;
-
-            Ok(Self::migrate_from_old(old))
+            // Old format without resources - breaking update (0.3.0), reset to default
+            return Ok(Self::default());
         } else {
+            // Check version for breaking update
+            if let Some(version_val) = map.get("version") {
+                if let Some(version_str) = version_val.as_str() {
+                    // Parse versions and compare
+                    fn parse_version(v: &str) -> Option<(u32, u32, u32)> {
+                        let parts: Vec<&str> = v.split('.').collect();
+                        if parts.len() >= 3 {
+                            let major = parts[0].parse().ok()?;
+                            let minor = parts[1].parse().ok()?;
+                            let patch = parts[2].split(|c: char| !c.is_ascii_digit()).next()?.parse().ok()?;
+                            Some((major, minor, patch))
+                        } else {
+                            None
+                        }
+                    }
+                    
+                    let current = parse_version(version_str);
+                    let target = parse_version("0.3.0");
+                    
+                    if let (Some(cur), Some(tgt)) = (current, target) {
+                        if cur < tgt {
+                            // Breaking update: reset to default
+                            return Ok(Self::default());
+                        }
+                    } else {
+                        // Can't parse version, assume old and reset
+                        return Ok(Self::default());
+                    }
+                } else {
+                    // No version string, assume old and reset
+                    return Ok(Self::default());
+                }
+            } else {
+                // No version field, assume old and reset
+                return Ok(Self::default());
+            }
+
             let new: NewGameState =
                 serde_json::from_value(serde_json::Value::Object(map.into_iter().collect()))
                     .map_err(de::Error::custom)?;
@@ -222,23 +256,58 @@ mod tests {
         let old_json = serde_json::to_string(&old_format).unwrap();
 
         let new_state: GameState = serde_json::from_str(&old_json).unwrap();
+        // Old format without resources should reset to default (0.3.0 breaking change)
+        assert_eq!(new_state.get_coins(), 0.0);
+        assert_eq!(new_state.get_wood(), 0.0);
+        assert_eq!(new_state.get_stone(), 0.0);
+        assert_eq!(new_state.version, SAVE_VERSION);
+    }
 
-        assert_eq!(new_state.get_coins(), 100.0);
-        assert_eq!(new_state.get_wood(), 50.0);
-        assert_eq!(new_state.get_stone(), 25.0);
-        assert_eq!(new_state.coins_per_click, 2.0);
-        assert_eq!(new_state.coins_per_second, 5.0);
-        assert_eq!(new_state.wood_per_second, 3.0);
-        assert_eq!(new_state.stone_per_second, 1.0);
-        assert_eq!(new_state.autoclick_count, 10);
-        assert_eq!(new_state.total_clicks, 100);
-        assert_eq!(new_state.last_update_time, 1234567890.0);
-        assert!(new_state.version.contains("migrated"));
+    #[test]
+    fn test_old_version_save_resets() {
+        // Simulate a 0.2.6 version save that should be reset
+        let old_save = r#"{"version":"0.2.6","resources":{"Gold":1000.0,"Wood":500.0,"Stone":200.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"autoclick_count":5,"total_clicks":1000,"last_update_time":1234567890.0}"#;
+        
+        let state: GameState = serde_json::from_str(old_save).unwrap();
+        
+        // Should be reset to default values
+        assert_eq!(state.get_coins(), 0.0);
+        assert_eq!(state.get_wood(), 0.0);
+        assert_eq!(state.get_stone(), 0.0);
+        assert_eq!(state.version, SAVE_VERSION);
+    }
+
+    #[test]
+    fn test_current_version_save_loads() {
+        // Simulate a 0.3.0 version save that should load normally
+        let current_save = r#"{"version":"0.3.0","resources":{"Gold":1000.0,"Wood":500.0,"Stone":200.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"autoclick_count":5,"total_clicks":1000,"last_update_time":1234567890.0}"#;
+        
+        let state: GameState = serde_json::from_str(current_save).unwrap();
+        
+        // Should load with preserved values
+        assert_eq!(state.get_coins(), 1000.0);
+        assert_eq!(state.get_wood(), 500.0);
+        assert_eq!(state.get_stone(), 200.0);
+        assert_eq!(state.version, "0.3.0");
+    }
+
+    #[test]
+    fn test_newer_version_save_loads() {
+        // Simulate a future version that should also load normally
+        let future_save = r#"{"version":"0.4.0","resources":{"Gold":999.0,"Wood":888.0,"Stone":777.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"autoclick_count":5,"total_clicks":1000,"last_update_time":1234567890.0}"#;
+        
+        let state: GameState = serde_json::from_str(future_save).unwrap();
+        
+        // Should load with preserved values
+        assert_eq!(state.get_coins(), 999.0);
+        assert_eq!(state.get_wood(), 888.0);
+        assert_eq!(state.get_stone(), 777.0);
+        assert_eq!(state.version, "0.4.0");
     }
 
     #[test]
     fn test_deserialize_new_format() {
-        let mut resources = HashMap::new();
+        let mut resources: HashMap<ResourceType, f64> = HashMap::new();
         resources.insert(ResourceType::Gold, 200.0);
         resources.insert(ResourceType::Wood, 75.0);
         resources.insert(ResourceType::Stone, 30.0);

@@ -553,6 +553,84 @@ impl CraftingRecipe {
                 output_amount: 1.0,
                 unlocked: false,
             },
+            // ============================================
+            // Special Resources (4 recipes)
+            // ============================================
+            CraftingRecipe {
+                id: "food_to_corpse".to_string(),
+                name: "食物腐烂".to_string(),
+                input_resource: ResourceType::Food,
+                input_amount: 10.0,
+                output_resource: ResourceType::Corpse,
+                output_amount: 1.0,
+                unlocked: false,
+            },
+            CraftingRecipe {
+                id: "corpse_to_maggot".to_string(),
+                name: "尸体分解".to_string(),
+                input_resource: ResourceType::Corpse,
+                input_amount: 1.0,
+                output_resource: ResourceType::Maggot,
+                output_amount: 10.0,
+                unlocked: false,
+            },
+            CraftingRecipe {
+                id: "maggot_to_food".to_string(),
+                name: "蛆虫转化食物".to_string(),
+                input_resource: ResourceType::Maggot,
+                input_amount: 10.0,
+                output_resource: ResourceType::Food,
+                output_amount: 1.0,
+                unlocked: false,
+            },
+            CraftingRecipe {
+                id: "crystal_to_gold".to_string(),
+                name: "水晶炼金".to_string(),
+                input_resource: ResourceType::Crystal,
+                input_amount: 1.0,
+                output_resource: ResourceType::Gold,
+                output_amount: 100.0,
+                unlocked: false,
+            },
+            // ============================================
+            // Extended Metal Recipes (4 recipes - making AluminumPlate usable)
+            // ============================================
+            CraftingRecipe {
+                id: "aluminum_plate_to_aluminum_ingot".to_string(),
+                name: "铝板熔铝锭".to_string(),
+                input_resource: ResourceType::AluminumPlate,
+                input_amount: 1.0,
+                output_resource: ResourceType::AluminumIngot,
+                output_amount: 10.0,
+                unlocked: false,
+            },
+            CraftingRecipe {
+                id: "aluminum_plate_to_wire".to_string(),
+                name: "铝板制电线".to_string(),
+                input_resource: ResourceType::AluminumPlate,
+                input_amount: 1.0,
+                output_resource: ResourceType::Wire,
+                output_amount: 10.0,
+                unlocked: false,
+            },
+            CraftingRecipe {
+                id: "aluminum_plate_to_pipe".to_string(),
+                name: "铝板制管道".to_string(),
+                input_resource: ResourceType::AluminumPlate,
+                input_amount: 1.0,
+                output_resource: ResourceType::Pipe,
+                output_amount: 10.0,
+                unlocked: false,
+            },
+            CraftingRecipe {
+                id: "stone_crystal_to_crystal".to_string(),
+                name: "石头水晶制水晶".to_string(),
+                input_resource: ResourceType::Stone,
+                input_amount: 100.0,
+                output_resource: ResourceType::Crystal,
+                output_amount: 1.0,
+                unlocked: false,
+            },
         ]
     }
 }

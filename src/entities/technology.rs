@@ -318,9 +318,9 @@ pub struct Technology {
     /// Unique identifier
     pub id: TechnologyId,
     /// Chinese name (from id.name())
-    pub name: &'static str,
+    pub name: String,
     /// Description (from id.description())
-    pub description: &'static str,
+    pub description: String,
     /// Resource costs to purchase (multiple resources)
     pub costs: HashMap<ResourceType, f64>,
     /// Prerequisite technologies (can be empty)
@@ -344,8 +344,8 @@ impl Technology {
     ) -> Self {
         Self {
             id,
-            name: id.name(),
-            description: id.description(),
+            name: id.name().to_string(),
+            description: id.description().to_string(),
             costs,
             dependencies,
             effect,

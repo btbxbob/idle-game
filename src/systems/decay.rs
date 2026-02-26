@@ -21,20 +21,20 @@ pub fn produce_maggots(game_state: &mut GameState, _current_time: f64) -> (usize
     let mut maggots_produced = 0usize;
 
     let current_corpses = game_state.get_resource(ResourceType::Corpse);
-    
+
     if current_corpses <= 0.0 {
         return (0, 0);
     }
 
     if current_corpses > 0.0 {
         let corpse_count = current_corpses as usize;
-        
+
         game_state.set_resource(ResourceType::Corpse, 0.0);
-        
+
         let total_maggots = (current_corpses * MAGGOTS_PER_CORPSE) as f64;
         let current_maggots = game_state.get_resource(ResourceType::Maggot);
         game_state.set_resource(ResourceType::Maggot, current_maggots + total_maggots);
-        
+
         corpses_decayed = corpse_count;
         maggots_produced = total_maggots as usize;
     }
@@ -72,7 +72,7 @@ mod tests {
     fn test_no_corpses_no_maggots() {
         let mut game_state = create_test_game_state();
         let (corpses, maggots) = produce_maggots(&mut game_state, 1000.0);
-        
+
         assert_eq!(corpses, 0);
         assert_eq!(maggots, 0);
         assert_eq!(game_state.get_resource(ResourceType::Corpse), 0.0);
@@ -83,9 +83,9 @@ mod tests {
     fn test_one_corpse_produces_20_maggots() {
         let mut game_state = create_test_game_state();
         game_state.set_resource(ResourceType::Corpse, 1.0);
-        
+
         let (corpses, maggots) = produce_maggots(&mut game_state, 1000.0);
-        
+
         assert_eq!(corpses, 1);
         assert_eq!(maggots, 20);
         assert_eq!(game_state.get_resource(ResourceType::Corpse), 0.0);
@@ -96,9 +96,9 @@ mod tests {
     fn test_multiple_corpses_produce_maggots() {
         let mut game_state = create_test_game_state();
         game_state.set_resource(ResourceType::Corpse, 5.0);
-        
+
         let (corpses, maggots) = produce_maggots(&mut game_state, 1000.0);
-        
+
         assert_eq!(corpses, 5);
         assert_eq!(maggots, 100);
         assert_eq!(game_state.get_resource(ResourceType::Corpse), 0.0);
@@ -110,9 +110,9 @@ mod tests {
         let mut game_state = create_test_game_state();
         game_state.set_resource(ResourceType::Corpse, 2.0);
         game_state.set_resource(ResourceType::Maggot, 10.0);
-        
+
         let (corpses, maggots) = produce_maggots(&mut game_state, 1000.0);
-        
+
         assert_eq!(corpses, 2);
         assert_eq!(maggots, 40);
         assert_eq!(game_state.get_resource(ResourceType::Corpse), 0.0);
@@ -123,9 +123,9 @@ mod tests {
     fn test_fractional_corpses() {
         let mut game_state = create_test_game_state();
         game_state.set_resource(ResourceType::Corpse, 2.5);
-        
+
         let (corpses, maggots) = produce_maggots(&mut game_state, 1000.0);
-        
+
         assert_eq!(corpses, 2);
         assert_eq!(maggots, 50);
         assert_eq!(game_state.get_resource(ResourceType::Corpse), 0.0);

@@ -1,4 +1,5 @@
-use crate::entities::{Building, Upgrade, Worker};
+use crate::entities::{Building, Gender, Trait, Upgrade, Worker};
+
 use crate::state::resource::ResourceType;
 use crate::state::Statistics;
 use crate::systems::{Achievement, CraftingRecipe, UnlockedFeature};
@@ -379,6 +380,12 @@ impl TestGameState {
                     efficiency_multiplier: 1.0,
                     xp: 0.0,
                     xp_to_next_level: 100.0,
+                    gender: Gender::default(),
+                    hobbies: Vec::new(),
+                    primary_trait: Trait::default(),
+                    secondary_traits: Vec::new(),
+                    happiness: 50.0,
+                    hunger: 0.0,
                 },
                 Worker {
                     name: "伐木工".to_string(),
@@ -390,6 +397,12 @@ impl TestGameState {
                     efficiency_multiplier: 1.0,
                     xp: 0.0,
                     xp_to_next_level: 100.0,
+                    gender: Gender::default(),
+                    hobbies: Vec::new(),
+                    primary_trait: Trait::default(),
+                    secondary_traits: Vec::new(),
+                    happiness: 50.0,
+                    hunger: 0.0,
                 },
                 Worker {
                     name: "石匠".to_string(),
@@ -401,6 +414,12 @@ impl TestGameState {
                     efficiency_multiplier: 1.0,
                     xp: 0.0,
                     xp_to_next_level: 100.0,
+                    gender: Gender::default(),
+                    hobbies: Vec::new(),
+                    primary_trait: Trait::default(),
+                    secondary_traits: Vec::new(),
+                    happiness: 50.0,
+                    hunger: 0.0,
                 },
             ],
         }

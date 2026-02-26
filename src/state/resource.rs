@@ -78,7 +78,7 @@ pub enum ResourceType {
     DarkMatter,      // 暗物质
     TimeCrystal,     // 时间水晶
     Nanobot,         // 纳米机器
-    
+
     // ========== Special Resources (2) ==========
     Corpse, // 尸体
     Maggot, // 蛆虫
