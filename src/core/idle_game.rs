@@ -1771,4 +1771,39 @@ impl IdleGame {
         let available = self.technology_tree.get_available_research();
         serde_json::to_string(&available).unwrap_or_else(|_| "[]".to_string())
     }
+
+    // ========== Work Overview WASM Export ==========
+    #[wasm_bindgen]
+    pub fn get_work_overview_json(&self) -> String {
+        use crate::state::job_stats::{JobStats, WorkOverview};
+        use std::collections::HashMap;
+        let mut job_map: HashMap<String, (u32, f64)> = HashMap::new();
+        let mut unassigned = 0u32;
+        for worker in &self.workers {
+            if let Some(ref building) = worker.assigned_building {
+                let entry = job_map.entry(building.clone()).or_insert((0, 0.0));
+                entry.0 += 1;
+                entry.1 += worker.efficiency_multiplier;
+            } else {
+                unassigned += 1;
+            }
+        }
+        let jobs: Vec<JobStats> = job_map.into_iter().map(|(job_type, (count, total_eff))| {
+            JobStats {
+                job_type,
+                worker_count: count,
+                avg_efficiency: if count > 0 { total_eff / count as f64 } else { 0.0 },
+                total_output: total_eff,
+            }
+        }).collect();
+        let total_workers = self.workers.len() as u32;
+        let total_efficiency: f64 = self.workers.iter().map(|w| w.efficiency_multiplier).sum();
+        let overview = WorkOverview {
+            jobs,
+            unassigned_workers: unassigned,
+            total_workers,
+            total_efficiency,
+        };
+        serde_json::to_string(&overview).unwrap_or_else(|_| "{}".to_string())
+    }
 }
