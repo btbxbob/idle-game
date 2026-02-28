@@ -10,40 +10,6 @@ async function initWasm() {
         
         // 尝试从 localStorage 加载存档
         let gameLoaded = false;
-        let saveWasReset = false;
-        try {
-            const loaded = game.loadFromLocalStorage();
-            if (loaded) {
-                gameLoaded = true;
-                console.log('✅ Game loaded from localStorage at', new Date().toLocaleString());
-                console.log('   Coins:', game.get_coins());
-                console.log('   Wood:', game.get_wood());
-                console.log('   Stone:', game.get_stone());
-                
-                // Check if save was reset (all resources are 0 but there was a save)
-                if (game.get_coins() === 0 && game.get_wood() === 0 && game.get_stone() === 0) {
-                    saveWasReset = true;
-                    console.warn('⚠️ Save game was reset due to version update (0.3.0)');
-                }
-            } else {
-                console.log('ℹ️ No saved game found, starting new game');
-            }
-        } catch (loadError) {
-            console.error('❌ Error loading saved game:', loadError);
-        }
-        
-        // Show reset notification if save was reset
-        if (saveWasReset) {
-            const message = window.i18n && window.i18n.currentLang === 'zh-CN' 
-                ? '游戏已更新至 v0.3.0，存档已重置。Worker系统已重新设计，请重新开始游戏。' 
-                : 'Game updated to v0.3.0, save has been reset. Worker system has been redesigned, please start a new game.';
-            console.warn(message);
-            // Delay alert to not block initialization
-            setTimeout(() => {
-                alert(message);
-            }, 500);
-        }
-        let gameLoaded = false;
         let hadExistingSave = false;
         try {
             // Check if we have an existing save
@@ -81,25 +47,9 @@ async function initWasm() {
         } catch (loadError) {
             console.error('❌ Error loading saved game:', loadError);
         }
-        let gameLoaded = false;
-        try {
-            const loaded = game.loadFromLocalStorage();
-            if (loaded) {
-                gameLoaded = true;
-                console.log('✅ Game loaded from localStorage at', new Date().toLocaleString());
-                console.log('   Coins:', game.get_coins());
-                console.log('   Wood:', game.get_wood());
-                console.log('   Stone:', game.get_stone());
-            } else {
-                console.log('ℹ️ No saved game found, starting new game');
-            }
-        } catch (loadError) {
-            console.error('❌ Error loading saved game:', loadError);
-        }
         
         // 将游戏实例暴露到全局作用域供 UI 使用
         window.rustGame = game;
-        window.gameInitialized = true;
         window.gameInitialized = true;
         
         // Add click handler for coin-button
@@ -130,6 +80,22 @@ async function initWasm() {
         
         if (window.WorkerManager) {
             window.workerManager = new window.WorkerManager(game);
+        }
+
+        if (window.TechnologyManager) {
+            window.technologyManager = new window.TechnologyManager(game, window.i18n || null);
+        }
+
+        if (window.HousingManager) {
+            window.housingManager = new window.HousingManager(game);
+        }
+
+        if (window.WorkOverviewManager) {
+            window.workOverviewManager = new window.WorkOverviewManager(game);
+        }
+
+        if (window.LifecycleManager) {
+            window.lifecycleManager = new window.LifecycleManager(game);
         }
         
         if (window.ResourceManager && window.i18n) {
@@ -182,6 +148,12 @@ function startGameLoop(game) {
         }
         if (window.updateResourcePanel) {
             window.updateResourcePanel();
+        }
+        if (window.updateTechnologyPanel) {
+            window.updateTechnologyPanel();
+        }
+        if (window.updateLifecyclePanel) {
+            window.updateLifecyclePanel();
         }
     }, 1000);
     

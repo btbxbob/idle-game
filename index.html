@@ -58,6 +58,10 @@
             <button type="button" class="tab-button" data-tab="upgrades">升级</button>
             <button type="button" class="tab-button" data-tab="buildings">建筑</button>
             <button type="button" class="tab-button" data-tab="workers">工人</button>
+            <button type="button" class="tab-button" data-tab="technology">科技</button>
+            <button type="button" class="tab-button" data-tab="work">工作总览</button>
+            <button type="button" class="tab-button" data-tab="housing">住房</button>
+            <button type="button" class="tab-button" data-tab="lifecycle">生命周期</button>
             <button type="button" class="tab-button" data-tab="statistics">统计</button>
             <button type="button" class="tab-button" data-tab="achievements">成就</button>
             <button type="button" class="tab-button" data-tab="crafting">合成</button>
@@ -195,6 +199,7 @@
                             <div class="resource-item" data-resource="nanobot"><span class="resource-icon">🦠</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                         </div>
                     </div>
+                    <div id="lifecycle-resource-widget"></div>
                 </div>
             </div>
             
@@ -225,6 +230,22 @@
             </div>
             
             <!-- Statistics Tab -->
+            <div id="tab-technology" class="tab-content">
+                <div id="technology-panel"></div>
+            </div>
+
+            <div id="tab-work" class="tab-content">
+                <div id="work-overview-panel"></div>
+            </div>
+
+            <div id="tab-housing" class="tab-content">
+                <div id="housing-panel"></div>
+            </div>
+
+            <div id="tab-lifecycle" class="tab-content">
+                <div id="lifecycle-panel"></div>
+            </div>
+
             <div id="tab-statistics" class="tab-content">
                 <div id="statistics">
                     <h3 id="statistics-header">统计</h3>
@@ -325,6 +346,11 @@
     <script src="js/unlocks.js"></script>
     <script src="js/workers.js"></script>
     <script src="js/resource-manager.js"></script>
+    <script src="js/technology-manager.js"></script>
+    <script src="js/housing-manager.js"></script>
+    <script src="js/population-manager.js"></script>
+    <script src="js/work-overview-manager.js"></script>
+    <script src="js/lifecycle-manager.js"></script>
     <script src="js/bootstrap.js"></script>
     
     <!-- Tab navigation and settings script -->
@@ -357,6 +383,16 @@
                         window.unlockManager.renderUnlocks();
                     } else if (tabName === 'workers' && window.workerManager) {
                         window.workerManager.renderWorkers();
+                    } else if (tabName === 'technology' && window.technologyManager) {
+                        window.technologyManager.renderToPanel('technology-panel');
+                    } else if (tabName === 'work' && window.workOverviewManager) {
+                        window.workOverviewManager.renderToPanel('work-overview-panel');
+                    } else if (tabName === 'housing' && window.housingManager) {
+                        window.housingManager.renderToPanel('housing-panel');
+                    } else if (tabName === 'lifecycle' && window.lifecycleManager) {
+                        window.lifecycleManager.renderToPanel('lifecycle-panel');
+                    } else if (tabName === 'resources' && window.lifecycleManager && typeof window.lifecycleManager.renderResourceWidget === 'function') {
+                        window.lifecycleManager.renderResourceWidget('lifecycle-resource-widget');
                     }
                 });
             });
