@@ -40,3 +40,8 @@ test-results/
 # Agent working directories
 .sisyphus/
 .opencode/
+
+# Local temporary helper scripts
+add_*.py
+fix_*.py
+fix_*.js
