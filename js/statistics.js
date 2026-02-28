@@ -7,8 +7,16 @@ class StatisticsManager {
      * Update statistics from Rust game state
      */
     update() {
-        if (this.rustGame && typeof this.rustGame.get_statistics === 'function') {
+        if (!this.rustGame) {
+            return null;
+        }
+
+        // Support both wasm-bindgen naming styles.
+        if (typeof this.rustGame.get_statistics === 'function') {
             return this.rustGame.get_statistics();
+        }
+        if (typeof this.rustGame.getStatistics === 'function') {
+            return this.rustGame.getStatistics();
         }
         return null;
     }
