@@ -631,6 +631,18 @@ impl CraftingRecipe {
                 output_amount: 1.0,
                 unlocked: false,
             },
+            // ============================================
+            // Maggot Factory (maggots → food)
+            // ============================================
+            CraftingRecipe {
+                id: "maggots_to_food".to_string(),
+                name: "蛆虫制食物".to_string(),
+                input_resource: ResourceType::Maggot,
+                input_amount: 10.0,
+                output_resource: ResourceType::Food,
+                output_amount: 5.0,
+                unlocked: true,
+            },
         ]
     }
 }

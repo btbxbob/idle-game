@@ -31,14 +31,15 @@ impl Default for Hobby {
 }
 
 /// 特性枚举
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Default)]
 pub enum Trait {
     // 效率类
-    Diligent,    // 勤奋 +15%效率
+    Diligent, // 勤奋 +15%效率
+    #[default]
     Hardworking, // 努力 +10%效率
-    Lazy,        // 懒惰 -10%效率
-    Efficient,   // 高效 +20%效率
-    Slow,        // 缓慢 -15%效率
+    Lazy,     // 懒惰 -10%效率
+    Efficient, // 高效 +20%效率
+    Slow,     // 缓慢 -15%效率
     // 学习类
     Intelligent, // 聪明 +20% XP
     FastLearner, // 快速学习 +15% XP
@@ -61,12 +62,6 @@ pub enum Trait {
     Creative,    // 创意 +10%
     Persevering, // 坚持不懈 +15%
     Optimistic,  // 乐观 +5%心情恢复
-}
-
-impl Default for Trait {
-    fn default() -> Self {
-        Trait::Hardworking
-    }
 }
 
 /// 特性效果结构
@@ -285,9 +280,9 @@ pub struct Worker {
     #[serde(default)]
     pub hunger: f64, // 饥饿度 0-100，0=饱食，100=饿死
     #[serde(default)]
-    pub is_hungry: bool,        // 是否饥饿
+    pub is_hungry: bool, // 是否饥饿
     #[serde(default)]
-    pub starvation_start_time: f64,  // 开始饥饿的时间戳
+    pub starvation_start_time: f64, // 开始饥饿的时间戳
 }
 
 fn default_happiness() -> f64 {

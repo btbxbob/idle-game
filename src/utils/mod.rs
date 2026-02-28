@@ -3,5 +3,6 @@
 pub mod name_generator;
 pub mod worker_generator;
 
-pub use name_generator::{Gender, NameGenerator};
+pub use crate::entities::worker::Gender;
+pub use name_generator::NameGenerator;
 pub use worker_generator::WorkerGenerator;

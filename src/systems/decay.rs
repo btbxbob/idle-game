@@ -62,7 +62,6 @@ mod tests {
             coins_per_second: 0.0,
             wood_per_second: 0.0,
             stone_per_second: 0.0,
-            autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
             prestige_points: 0.0,

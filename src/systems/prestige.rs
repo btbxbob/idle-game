@@ -1,3 +1,5 @@
+#[cfg(test)]
+use crate::state::game_state::SAVE_VERSION;
 use crate::state::GameState;
 
 /// Calculate Prestige Points (PP) on rebirth
@@ -26,13 +28,12 @@ mod tests {
         resources.insert(ResourceType::Gold, 0.0);
 
         let state = GameState {
-            version: "0.2.6".to_string(),
+            version: SAVE_VERSION.to_string(),
             resources,
             coins_per_click: 1.0,
             coins_per_second: 0.0,
             wood_per_second: 0.0,
             stone_per_second: 0.0,
-            autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
             prestige_points: 0.0,
@@ -49,13 +50,12 @@ mod tests {
         resources.insert(ResourceType::Gold, 1_000_000.0);
 
         let state = GameState {
-            version: "0.2.6".to_string(),
+            version: SAVE_VERSION.to_string(),
             resources,
             coins_per_click: 1.0,
             coins_per_second: 0.0,
             wood_per_second: 0.0,
             stone_per_second: 0.0,
-            autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
             prestige_points: 0.0,
@@ -72,13 +72,12 @@ mod tests {
         resources.insert(ResourceType::Gold, 1_000_000.0);
 
         let state = GameState {
-            version: "0.2.6".to_string(),
+            version: SAVE_VERSION.to_string(),
             resources,
             coins_per_click: 1.0,
             coins_per_second: 0.0,
             wood_per_second: 0.0,
             stone_per_second: 0.0,
-            autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
             prestige_points: 0.0,

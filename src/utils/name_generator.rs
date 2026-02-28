@@ -1,16 +1,9 @@
 //! English name generator for NPCs and workers
 //! Generates random first and last names based on gender
 
+use crate::entities::worker::Gender;
 use rand::prelude::IndexedRandom;
 use rand::rng;
-
-/// Gender enum for name generation
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Gender {
-    Male,
-    Female,
-    Other,
-}
 
 /// English name generator
 pub struct NameGenerator;

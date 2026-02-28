@@ -1,10 +1,11 @@
-use crate::entities::{Building, Housing, Upgrade, Worker};
+use crate::entities::{Building, Housing, PopulationQueue, Upgrade, Worker};
 use crate::state::resource::ResourceType;
 use crate::state::{GameState, Statistics};
 use crate::systems::{
-    achievement::Achievement, crafting::CraftingRecipe, production,
-    technology::TechnologyTree, unlock::UnlockedFeature,
+    achievement::Achievement, crafting::CraftingRecipe, production, technology::TechnologyTree,
+    unlock::UnlockedFeature,
 };
+use crate::utils::WorkerGenerator;
 use base64::{engine::general_purpose, Engine as _};
 use js_sys::Date;
 use serde::{Deserialize, Serialize};
@@ -20,6 +21,12 @@ pub struct IdleGame {
     buildings: Vec<Building>,
     housing_buildings: Vec<Housing>,
     workers: Vec<Worker>,
+    #[wasm_bindgen(skip)]
+    population_queue: PopulationQueue,
+    #[wasm_bindgen(skip)]
+    last_food_consumption_time: f64,
+    #[wasm_bindgen(skip)]
+    last_worker_spawn_time: f64,
     #[wasm_bindgen(skip)]
     achievements: Vec<Achievement>,
     #[wasm_bindgen(skip)]
@@ -41,11 +48,17 @@ pub struct SavedGame {
     pub buildings: Vec<Building>,
     pub housing_buildings: Vec<Housing>,
     pub workers: Vec<Worker>,
+    #[serde(default)]
+    pub population_queue: PopulationQueue,
     pub achievements: Vec<Achievement>,
     pub crafting_recipes: Vec<CraftingRecipe>,
     pub unlocked_features: Vec<UnlockedFeature>,
     #[serde(default)]
     pub technology_tree: TechnologyTree,
+    #[serde(default)]
+    pub last_food_consumption_time: f64,
+    #[serde(default)]
+    pub last_worker_spawn_time: f64,
     pub save_timestamp: f64,
     pub version: String,
 }
@@ -60,12 +73,15 @@ impl IdleGame {
             buildings: self.buildings.clone(),
             housing_buildings: self.housing_buildings.clone(),
             workers: self.workers.clone(),
+            population_queue: self.population_queue.clone(),
             achievements: self.achievements.clone(),
             crafting_recipes: self.crafting_recipes.clone(),
             unlocked_features: self.unlocked_features.clone(),
             technology_tree: self.technology_tree.clone(),
+            last_food_consumption_time: self.last_food_consumption_time,
+            last_worker_spawn_time: self.last_worker_spawn_time,
             save_timestamp: Date::now(),
-            version: "0.2.6".to_string(),
+            version: crate::state::game_state::SAVE_VERSION.to_string(),
         }
     }
 
@@ -80,7 +96,6 @@ impl IdleGame {
             state.coins_per_second = saved.state.coins_per_second;
             state.wood_per_second = saved.state.wood_per_second;
             state.stone_per_second = saved.state.stone_per_second;
-            state.autoclick_count = saved.state.autoclick_count;
             state.total_clicks = saved.state.total_clicks;
             state.last_update_time = saved.state.last_update_time;
         }
@@ -102,10 +117,13 @@ impl IdleGame {
         self.buildings = saved.buildings;
         self.housing_buildings = saved.housing_buildings;
         self.workers = saved.workers;
+        self.population_queue = saved.population_queue;
         self.achievements = saved.achievements;
         self.crafting_recipes = saved.crafting_recipes;
         self.unlocked_features = saved.unlocked_features;
         self.technology_tree = saved.technology_tree;
+        self.last_food_consumption_time = saved.last_food_consumption_time;
+        self.last_worker_spawn_time = saved.last_worker_spawn_time;
     }
 }
 
@@ -266,7 +284,6 @@ impl IdleGame {
                 coins_per_second: 0.0,
                 wood_per_second: 0.0,
                 stone_per_second: 0.0,
-                autoclick_count: 0,
                 total_clicks: 0,
                 last_update_time: now,
                 version: crate::state::game_state::SAVE_VERSION.to_string(),
@@ -290,13 +307,6 @@ impl IdleGame {
                 Upgrade {
                     name: "Better Click".to_string(),
                     cost: 10.0,
-                    production_increase: 1.0,
-                    owned: 0,
-                    unlocked: true,
-                },
-                Upgrade {
-                    name: "Autoclicker Lv1".to_string(),
-                    cost: 50.0,
                     production_increase: 1.0,
                     owned: 0,
                     unlocked: true,
@@ -378,6 +388,12 @@ impl IdleGame {
                     production_rate: 0.8,
                     count: 0,
                 },
+                Building {
+                    name: "蛆虫工厂".to_string(),
+                    cost: 200.0,
+                    production_rate: 1.0,
+                    count: 0,
+                },
             ],
             housing_buildings: vec![],
             workers: vec![
@@ -385,8 +401,16 @@ impl IdleGame {
                 Worker::new("伐木工", "logging", "擅长伐木的工人", "Woodcutter"),
                 Worker::new("石匠", "masonry", "擅长采石的工人", "Stone Quarry"),
                 Worker::new("工厂工人", "factory", "擅长工厂生产的工人", "Coin Factory"),
-                Worker::new("高级工匠", "crafting", "擅长高级制作的工匠", "Mason Workshop"),
+                Worker::new(
+                    "高级工匠",
+                    "crafting",
+                    "擅长高级制作的工匠",
+                    "Mason Workshop",
+                ),
             ],
+            population_queue: PopulationQueue::new(),
+            last_food_consumption_time: now,
+            last_worker_spawn_time: now,
             unlocked_features: vec![
                 UnlockedFeature {
                     id: "workers_tab".to_string(),
@@ -482,8 +506,6 @@ impl IdleGame {
 
                 if self.upgrades[index].name == "Better Click" {
                     state.coins_per_click += self.upgrades[index].production_increase;
-                } else if self.upgrades[index].name.starts_with("Autoclicker") {
-                    state.autoclick_count += 1;
                 }
 
                 self.upgrades[index].owned += 1;
@@ -541,7 +563,6 @@ impl IdleGame {
             false
         }
     }
-
 
     #[wasm_bindgen]
     pub fn build_housing(&mut self, cost: JsValue) -> Result<bool, String> {
@@ -922,10 +943,187 @@ impl IdleGame {
             )
             .unwrap();
 
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("gender"),
+                &JsValue::from_str(&format!("{:?}", worker.gender)),
+            )
+            .unwrap();
+
+            let hobbies = js_sys::Array::new();
+            for hobby in &worker.hobbies {
+                hobbies.push(&JsValue::from_str(&format!("{:?}", hobby)));
+            }
+            js_sys::Reflect::set(&worker_obj, &JsValue::from_str("hobbies"), &hobbies).unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("primaryTrait"),
+                &JsValue::from_str(&format!("{:?}", worker.primary_trait)),
+            )
+            .unwrap();
+
+            let secondary_traits = js_sys::Array::new();
+            for t in &worker.secondary_traits {
+                secondary_traits.push(&JsValue::from_str(&format!("{:?}", t)));
+            }
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("secondaryTraits"),
+                &secondary_traits,
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("happiness"),
+                &JsValue::from_f64(worker.happiness),
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("hunger"),
+                &JsValue::from_f64(worker.hunger),
+            )
+            .unwrap();
+
             workers_array.push(&worker_obj);
         }
 
         workers_array
+    }
+
+    #[wasm_bindgen]
+    pub fn get_worker_count(&self) -> u32 {
+        self.workers.len() as u32
+    }
+
+    #[wasm_bindgen]
+    pub fn get_worker_details(&self, index: usize) -> JsValue {
+        if index >= self.workers.len() {
+            return JsValue::NULL;
+        }
+
+        let worker = &self.workers[index];
+        let worker_obj = js_sys::Object::new();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("index"),
+            &JsValue::from_f64(index as f64),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("name"),
+            &JsValue::from_str(&worker.name),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("skills"),
+            &JsValue::from_str(&worker.skills),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("assignedBuilding"),
+            &match &worker.assigned_building {
+                Some(building) => JsValue::from_str(building),
+                None => JsValue::NULL,
+            },
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("level"),
+            &JsValue::from_f64(worker.level as f64),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("xp"),
+            &JsValue::from_f64(worker.xp),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("xpToNextLevel"),
+            &JsValue::from_f64(worker.xp_to_next_level),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("gender"),
+            &JsValue::from_str(&format!("{:?}", worker.gender)),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("primaryTrait"),
+            &JsValue::from_str(&format!("{:?}", worker.primary_trait)),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("happiness"),
+            &JsValue::from_f64(worker.happiness),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("hunger"),
+            &JsValue::from_f64(worker.hunger),
+        )
+        .unwrap();
+
+        worker_obj.into()
+    }
+
+    #[wasm_bindgen]
+    pub fn assign_worker_auto(&mut self) -> u32 {
+        let mut assigned_count = 0u32;
+        let building_names: Vec<String> = self.buildings.iter().map(|b| b.name.clone()).collect();
+
+        for idx in 0..self.workers.len() {
+            if self.workers[idx].assigned_building.is_some() {
+                continue;
+            }
+
+            // 1) preference exact match
+            let preferred = self.workers[idx].preferences.clone();
+            if building_names.iter().any(|b| b == &preferred) && self.assign_worker(idx, &preferred)
+            {
+                assigned_count += 1;
+                continue;
+            }
+
+            // 2) trait-based fallback
+            let trait_target = match self.workers[idx].primary_trait {
+                crate::entities::worker::Trait::Diligent
+                | crate::entities::worker::Trait::Hardworking
+                | crate::entities::worker::Trait::Efficient => Some("金币矿山"),
+                crate::entities::worker::Trait::Careful
+                | crate::entities::worker::Trait::Persevering => Some("采石场"),
+                _ => None,
+            };
+
+            if let Some(target) = trait_target {
+                if building_names.iter().any(|b| b == target) && self.assign_worker(idx, target) {
+                    assigned_count += 1;
+                    continue;
+                }
+            }
+
+            // 3) first available building
+            if let Some(first_building) = building_names.first() {
+                if self.assign_worker(idx, first_building) {
+                    assigned_count += 1;
+                }
+            }
+        }
+
+        assigned_count
     }
 
     #[wasm_bindgen]
@@ -1059,6 +1257,39 @@ impl IdleGame {
         state.stone_per_second = total_sps;
     }
 
+    fn get_housing_capacity_internal(&self) -> u32 {
+        self.housing_buildings
+            .iter()
+            .map(|h| h.capacity * h.count.max(1))
+            .sum()
+    }
+
+    fn process_housing_queue(&mut self) {
+        let capacity = self.get_housing_capacity_internal() as usize;
+        while self.workers.len() < capacity {
+            match self.population_queue.pop_front() {
+                Some(worker) => self.workers.push(worker),
+                None => break,
+            }
+        }
+    }
+
+    fn try_spawn_worker(&mut self, now: f64) {
+        const WORKER_SPAWN_INTERVAL_MS: f64 = 30_000.0;
+        if now - self.last_worker_spawn_time < WORKER_SPAWN_INTERVAL_MS {
+            return;
+        }
+
+        self.last_worker_spawn_time = now;
+        let worker = WorkerGenerator::generate_random_worker();
+        let capacity = self.get_housing_capacity_internal() as usize;
+        if self.workers.len() < capacity {
+            self.workers.push(worker);
+        } else {
+            self.population_queue.push_back(worker);
+        }
+    }
+
     fn grant_worker_xp(&mut self, elapsed: f64) {
         for i in 0..self.workers.len() {
             if self.workers[i].assigned_building.is_some() {
@@ -1107,15 +1338,6 @@ impl IdleGame {
                 let new_stone = state.get_stone() + production[2] * elapsed;
 
                 new_coins = new_coins.max(0.0);
-
-                let autoclicks_per_second = 10.0;
-                let clamped_autoclick_effect = state.coins_per_click
-                    * state.autoclick_count as f64
-                    * autoclicks_per_second
-                    * elapsed;
-                if state.autoclick_count > 0 && clamped_autoclick_effect.is_finite() {
-                    new_coins += clamped_autoclick_effect;
-                }
 
                 (new_coins, new_wood, new_stone, now, elapsed)
             } else {
@@ -1168,13 +1390,14 @@ impl IdleGame {
             // Food consumption and starvation check
             {
                 let mut state = self.state.borrow_mut();
-                let mut last_consumption = state.last_update_time;
+                let mut last_consumption = self.last_food_consumption_time;
                 let _hungry = crate::systems::population::consume_food_for_workers(
                     &mut self.workers,
                     &mut state.resources,
                     now,
                     &mut last_consumption,
                 );
+                self.last_food_consumption_time = last_consumption;
                 let mut corpse_decay_time = 0.0;
                 let _deaths = crate::systems::population::check_worker_starvation_deaths(
                     &mut self.workers,
@@ -1183,6 +1406,31 @@ impl IdleGame {
                     &mut corpse_decay_time,
                 );
             }
+            // Corpse decay: produce maggots from corpses
+            {
+                let mut state = self.state.borrow_mut();
+                crate::systems::decay::produce_maggots(&mut state, now);
+
+                // Maggot factory: convert maggots into food (10:1 ratio).
+                let maggot_factory_count = self
+                    .buildings
+                    .iter()
+                    .find(|b| b.name == "蛆虫工厂")
+                    .map(|b| b.count as f64)
+                    .unwrap_or(0.0);
+                if maggot_factory_count > 0.0 {
+                    let max_maggot_process = 10.0 * maggot_factory_count * elapsed;
+                    let current_maggot = state.get_resource(ResourceType::Maggot);
+                    let process_amount = current_maggot.min(max_maggot_process).max(0.0);
+                    if process_amount > 0.0 {
+                        state.add_resource(ResourceType::Maggot, -process_amount);
+                        state.add_resource(ResourceType::Food, process_amount / 10.0);
+                    }
+                }
+            }
+
+            self.process_housing_queue();
+            self.try_spawn_worker(now);
         }
 
         self.check_achievement("first_coins_100");
@@ -1459,7 +1707,6 @@ impl IdleGame {
             state.coins_per_second = 0.0;
             state.wood_per_second = 0.0;
             state.stone_per_second = 0.0;
-            state.autoclick_count = 0;
             state.total_clicks = 0;
             state.last_update_time = Date::now();
         }
@@ -1471,9 +1718,8 @@ impl IdleGame {
             // Reset costs to initial values
             match i {
                 0 => upgrade.cost = 10.0, // Better Click
-                1 => upgrade.cost = 50.0, // Autoclicker Lv1
-                2 => upgrade.cost = 20.0, // Lumberjack Efficiency
-                3 => upgrade.cost = 25.0, // Stone Mason Skill
+                1 => upgrade.cost = 20.0, // Lumberjack Efficiency
+                2 => upgrade.cost = 25.0, // Stone Mason Skill
                 _ => {}
             }
         }
@@ -1500,6 +1746,15 @@ impl IdleGame {
     #[wasm_bindgen(js_name = get_achievements)]
     pub fn get_achievements_js(&self) -> JsValue {
         match serde_wasm_bindgen::to_value(&self.achievements) {
+            Ok(val) => val,
+            Err(_) => JsValue::NULL,
+        }
+    }
+
+    #[wasm_bindgen(js_name = getStatistics)]
+    pub fn get_statistics_js(&self) -> JsValue {
+        let stats = self.statistics.borrow().clone();
+        match serde_wasm_bindgen::to_value(&stats) {
             Ok(val) => val,
             Err(_) => JsValue::NULL,
         }
@@ -1723,13 +1978,20 @@ impl IdleGame {
     #[wasm_bindgen]
     pub fn research_technology(&mut self, tech_id_str: &str) -> Result<bool, JsValue> {
         use crate::entities::technology::TechnologyId;
-        let tech_id = match serde_json::from_str::<TechnologyId>(&format!("\"{}\"" , tech_id_str)) {
+        let tech_id = match serde_json::from_str::<TechnologyId>(&format!("\"{}\"", tech_id_str)) {
             Ok(id) => id,
-            Err(_) => return Err(JsValue::from_str(&format!("Invalid technology ID: {}", tech_id_str))),
+            Err(_) => {
+                return Err(JsValue::from_str(&format!(
+                    "Invalid technology ID: {}",
+                    tech_id_str
+                )))
+            }
         };
 
         if !self.technology_tree.can_research(tech_id) {
-            return Err(JsValue::from_str("Cannot research: dependencies not met or already purchased"));
+            return Err(JsValue::from_str(
+                "Cannot research: dependencies not met or already purchased",
+            ));
         }
 
         // Check affordability
@@ -1738,7 +2000,10 @@ impl IdleGame {
             if let Some(tech) = self.technology_tree.technologies.get(&tech_id) {
                 for (resource, cost) in &tech.costs {
                     if state.get_resource(*resource) < *cost {
-                        return Err(JsValue::from_str(&format!("Cannot afford: need {} {:?}", cost, resource)));
+                        return Err(JsValue::from_str(&format!(
+                            "Cannot afford: need {} {:?}",
+                            cost, resource
+                        )));
                     }
                 }
             }
@@ -1756,7 +2021,8 @@ impl IdleGame {
         }
 
         // Research
-        self.technology_tree.research(tech_id)
+        self.technology_tree
+            .research(tech_id)
             .map_err(|e| JsValue::from_str(&e))?;
         Ok(true)
     }
@@ -1788,14 +2054,19 @@ impl IdleGame {
                 unassigned += 1;
             }
         }
-        let jobs: Vec<JobStats> = job_map.into_iter().map(|(job_type, (count, total_eff))| {
-            JobStats {
+        let jobs: Vec<JobStats> = job_map
+            .into_iter()
+            .map(|(job_type, (count, total_eff))| JobStats {
                 job_type,
                 worker_count: count,
-                avg_efficiency: if count > 0 { total_eff / count as f64 } else { 0.0 },
+                avg_efficiency: if count > 0 {
+                    total_eff / count as f64
+                } else {
+                    0.0
+                },
                 total_output: total_eff,
-            }
-        }).collect();
+            })
+            .collect();
         let total_workers = self.workers.len() as u32;
         let total_efficiency: f64 = self.workers.iter().map(|w| w.efficiency_multiplier).sum();
         let overview = WorkOverview {
@@ -1805,5 +2076,56 @@ impl IdleGame {
             total_efficiency,
         };
         serde_json::to_string(&overview).unwrap_or_else(|_| "{}".to_string())
+    }
+
+    #[wasm_bindgen]
+    pub fn get_housing_capacity(&self) -> u32 {
+        self.get_housing_capacity_internal()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_housing_occupied(&self) -> u32 {
+        self.workers.len() as u32
+    }
+
+    #[wasm_bindgen]
+    pub fn get_population_queue_json(&self) -> String {
+        serde_json::to_string(&self.population_queue).unwrap_or_else(|_| "{}".to_string())
+    }
+
+    #[wasm_bindgen]
+    pub fn get_lifecycle_status_json(&self) -> String {
+        let hungry_workers = self.workers.iter().filter(|w| w.is_hungry).count() as u32;
+        let status = serde_json::json!({
+            "workers": self.workers.len() as u32,
+            "hungry_workers": hungry_workers,
+            "queue_workers": self.population_queue.len() as u32,
+            "housing_capacity": self.get_housing_capacity_internal(),
+            "corpses": self.state.borrow().get_resource(ResourceType::Corpse),
+            "maggots": self.state.borrow().get_resource(ResourceType::Maggot),
+            "food": self.state.borrow().get_resource(ResourceType::Food)
+        });
+        serde_json::to_string(&status).unwrap_or_else(|_| "{}".to_string())
+    }
+
+    #[wasm_bindgen]
+    pub fn get_workers_filtered_json(&self, only_unassigned: bool, sort_by: &str) -> String {
+        let mut workers: Vec<&Worker> = self
+            .workers
+            .iter()
+            .filter(|w| !only_unassigned || w.assigned_building.is_none())
+            .collect();
+
+        match sort_by {
+            "level" => workers.sort_by_key(|w| std::cmp::Reverse(w.level)),
+            "efficiency" => workers.sort_by(|a, b| {
+                b.efficiency_multiplier
+                    .partial_cmp(&a.efficiency_multiplier)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            }),
+            _ => workers.sort_by(|a, b| a.name.cmp(&b.name)),
+        }
+
+        serde_json::to_string(&workers).unwrap_or_else(|_| "[]".to_string())
     }
 }

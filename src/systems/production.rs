@@ -34,6 +34,8 @@ pub fn calculate_production(
         ResourceType::Oil => "石油井",
         ResourceType::Crystal => "水晶矿",
         ResourceType::Food => "农场",
+        ResourceType::Corpse => "停尸房",
+        ResourceType::Maggot => "蛆虫工厂",
         // Tier 2: Processed Resources (40)
         ResourceType::IronIngot => "铁锭冶炼厂",
         ResourceType::CopperIngot => "铜锭冶炼厂",
@@ -85,8 +87,6 @@ pub fn calculate_production(
         ResourceType::DarkMatter => "暗物质提取器",
         ResourceType::TimeCrystal => "时间水晶合成器",
         ResourceType::Nanobot => "纳米机器人工厂",
-        // Special Resources - no production buildings
-        ResourceType::Corpse | ResourceType::Maggot => return 0.0,
     };
 
     let building = match buildings.iter().find(|b| b.name == building_name) {

@@ -3,10 +3,9 @@
 
 use crate::entities::worker::{Gender, Hobby, Trait, Worker};
 use crate::utils::name_generator::NameGenerator;
-use rand::RngExt;
-use rand::seq::IndexedRandom;
 use rand::rng;
-
+use rand::seq::IndexedRandom;
+use rand::RngExt;
 
 /// Worker generator for creating random workers
 pub struct WorkerGenerator;
@@ -40,10 +39,7 @@ impl WorkerGenerator {
         let mut rng = rng();
         let count = rng.random_range(1..=2); // 1-2 hobbies
 
-        all_hobbies
-            .sample(&mut rng, count)
-            .cloned()
-            .collect()
+        all_hobbies.sample(&mut rng, count).cloned().collect()
     }
 
     /// Generate random traits (1 primary + 0-2 secondary)
@@ -132,14 +128,7 @@ impl WorkerGenerator {
     pub fn generate_random_worker() -> Worker {
         let gender = Self::random_gender();
 
-        // Convert worker Gender to name generator Gender
-        let name_gender = match gender {
-            Gender::Male => super::name_generator::Gender::Male,
-            Gender::Female => super::name_generator::Gender::Female,
-            Gender::Other => super::name_generator::Gender::Other,
-        };
-
-        let name = NameGenerator::generate_full_name(name_gender);
+        let name = NameGenerator::generate_full_name(gender);
         let hobbies = Self::random_hobbies();
         let (primary_trait, secondary_traits) = Self::random_traits();
         let skill = Self::random_skill();

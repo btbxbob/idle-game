@@ -105,7 +105,7 @@ pub enum TechnologyId {
     ProductionMultiplier, // 生产倍增
     CostReduction,        // 成本降低
     CriticalClick,        // 暴击点击
-    AutoClicker,          // 自动点击
+    AutoAssignment,       // 自动分配
     Prestige,             // 转世
     Legacy,               // 遗产
     Ascension,            // 飞升
@@ -168,7 +168,7 @@ impl TechnologyId {
             TechnologyId::ProductionMultiplier => "生产倍增",
             TechnologyId::CostReduction => "成本降低",
             TechnologyId::CriticalClick => "暴击点击",
-            TechnologyId::AutoClicker => "自动点击",
+            TechnologyId::AutoAssignment => "自动分配",
             TechnologyId::Prestige => "转世",
             TechnologyId::Legacy => "遗产",
             TechnologyId::Ascension => "飞升",
@@ -231,7 +231,7 @@ impl TechnologyId {
             TechnologyId::ProductionMultiplier => "永久提升所有生产倍增",
             TechnologyId::CostReduction => "降低所有购买成本",
             TechnologyId::CriticalClick => "解锁点击暴击机制",
-            TechnologyId::AutoClicker => "解锁自动点击功能",
+            TechnologyId::AutoAssignment => "解锁工人自动分配功能",
             TechnologyId::Prestige => "解锁转生系统",
             TechnologyId::Legacy => "解锁遗产加成系统",
             TechnologyId::Ascension => "解锁飞升系统",
@@ -290,7 +290,7 @@ impl TechnologyId {
             | TechnologyId::ProductionMultiplier
             | TechnologyId::CostReduction
             | TechnologyId::CriticalClick
-            | TechnologyId::AutoClicker
+            | TechnologyId::AutoAssignment
             | TechnologyId::Prestige
             | TechnologyId::Legacy
             | TechnologyId::Ascension
@@ -579,7 +579,7 @@ mod tests {
             TechnologyId::ProductionMultiplier,
             TechnologyId::CostReduction,
             TechnologyId::CriticalClick,
-            TechnologyId::AutoClicker,
+            TechnologyId::AutoAssignment,
             TechnologyId::Prestige,
             TechnologyId::Legacy,
             TechnologyId::Ascension,

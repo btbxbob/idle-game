@@ -146,12 +146,13 @@ impl TechnologyTree {
     pub fn validate_all_reachable(&self) -> Result<(), String> {
         let mut visited = HashSet::new();
         // Collect all techs with no dependencies as starting points
-        let mut queue: Vec<_> = self.technologies
+        let mut queue: Vec<_> = self
+            .technologies
             .iter()
             .filter(|(_, tech)| tech.dependencies.is_empty())
             .map(|(id, _)| *id)
             .collect();
-        
+
         for start in &queue {
             visited.insert(*start);
         }
@@ -912,16 +913,16 @@ impl TechnologyTree {
         );
 
         map.insert(
-            TechnologyId::AutoClicker,
+            TechnologyId::AutoAssignment,
             Technology::new(
-                TechnologyId::AutoClicker,
+                TechnologyId::AutoAssignment,
                 costs(&[
                     (ResourceType::Gold, 15000.0),
                     (ResourceType::Robot, 50.0),
                     (ResourceType::CircuitBoard, 200.0),
                 ]),
                 vec![TechnologyId::Robotics, TechnologyId::CriticalClick],
-                TechnologyEffect::MechanicChange("auto_clicker".to_string()),
+                TechnologyEffect::MechanicChange("auto_assignment".to_string()),
                 1.0,
             ),
         );

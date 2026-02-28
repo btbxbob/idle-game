@@ -14,7 +14,6 @@ pub struct GameState {
     pub coins_per_second: f64,
     pub wood_per_second: f64,
     pub stone_per_second: f64,
-    pub autoclick_count: u32,
     pub total_clicks: u32,
     pub last_update_time: f64,
     #[serde(default)]
@@ -36,7 +35,6 @@ pub struct OldGameState {
     coins_per_second: f64,
     wood_per_second: f64,
     stone_per_second: f64,
-    autoclick_count: u32,
     total_clicks: u32,
     last_update_time: f64,
 }
@@ -54,7 +52,6 @@ impl<'de> Deserialize<'de> for GameState {
             coins_per_second: f64,
             wood_per_second: f64,
             stone_per_second: f64,
-            autoclick_count: u32,
             total_clicks: u32,
             last_update_time: f64,
             prestige_points: Option<f64>,
@@ -76,16 +73,20 @@ impl<'de> Deserialize<'de> for GameState {
                         if parts.len() >= 3 {
                             let major = parts[0].parse().ok()?;
                             let minor = parts[1].parse().ok()?;
-                            let patch = parts[2].split(|c: char| !c.is_ascii_digit()).next()?.parse().ok()?;
+                            let patch = parts[2]
+                                .split(|c: char| !c.is_ascii_digit())
+                                .next()?
+                                .parse()
+                                .ok()?;
                             Some((major, minor, patch))
                         } else {
                             None
                         }
                     }
-                    
+
                     let current = parse_version(version_str);
                     let target = parse_version("0.3.0");
-                    
+
                     if let (Some(cur), Some(tgt)) = (current, target) {
                         if cur < tgt {
                             // Breaking update: reset to default
@@ -115,7 +116,6 @@ impl<'de> Deserialize<'de> for GameState {
                 coins_per_second: new.coins_per_second,
                 wood_per_second: new.wood_per_second,
                 stone_per_second: new.stone_per_second,
-                autoclick_count: new.autoclick_count,
                 total_clicks: new.total_clicks,
                 last_update_time: new.last_update_time,
                 prestige_points: new.prestige_points.unwrap_or(0.0),
@@ -139,7 +139,6 @@ impl GameState {
             coins_per_second: old.coins_per_second,
             wood_per_second: old.wood_per_second,
             stone_per_second: old.stone_per_second,
-            autoclick_count: old.autoclick_count,
             total_clicks: old.total_clicks,
             last_update_time: old.last_update_time,
             prestige_points: 0.0,
@@ -239,7 +238,6 @@ impl Default for GameState {
             coins_per_second: 0.0,
             wood_per_second: 0.0,
             stone_per_second: 0.0,
-            autoclick_count: 0,
             total_clicks: 0,
             last_update_time: 0.0,
             version: SAVE_VERSION.to_string(),
@@ -264,7 +262,6 @@ mod tests {
             coins_per_second: 5.0,
             wood_per_second: 3.0,
             stone_per_second: 1.0,
-            autoclick_count: 10,
             total_clicks: 100,
             last_update_time: 1234567890.0,
         };
@@ -282,10 +279,10 @@ mod tests {
     #[test]
     fn test_old_version_save_resets() {
         // Simulate a 0.2.6 version save that should be reset
-        let old_save = r#"{"version":"0.2.6","resources":{"Gold":1000.0,"Wood":500.0,"Stone":200.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"autoclick_count":5,"total_clicks":1000,"last_update_time":1234567890.0}"#;
-        
+        let old_save = r#"{"version":"0.2.6","resources":{"Gold":1000.0,"Wood":500.0,"Stone":200.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"total_clicks":1000,"last_update_time":1234567890.0}"#;
+
         let state: GameState = serde_json::from_str(old_save).unwrap();
-        
+
         // Should be reset to default values
         assert_eq!(state.get_coins(), 0.0);
         assert_eq!(state.get_wood(), 0.0);
@@ -296,10 +293,10 @@ mod tests {
     #[test]
     fn test_current_version_save_loads() {
         // Simulate a 0.3.0 version save that should load normally
-        let current_save = r#"{"version":"0.3.0","resources":{"Gold":1000.0,"Wood":500.0,"Stone":200.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"autoclick_count":5,"total_clicks":1000,"last_update_time":1234567890.0}"#;
-        
+        let current_save = r#"{"version":"0.3.0","resources":{"Gold":1000.0,"Wood":500.0,"Stone":200.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"total_clicks":1000,"last_update_time":1234567890.0}"#;
+
         let state: GameState = serde_json::from_str(current_save).unwrap();
-        
+
         // Should load with preserved values
         assert_eq!(state.get_coins(), 1000.0);
         assert_eq!(state.get_wood(), 500.0);
@@ -310,10 +307,10 @@ mod tests {
     #[test]
     fn test_newer_version_save_loads() {
         // Simulate a future version that should also load normally
-        let future_save = r#"{"version":"0.4.0","resources":{"Gold":999.0,"Wood":888.0,"Stone":777.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"autoclick_count":5,"total_clicks":1000,"last_update_time":1234567890.0}"#;
-        
+        let future_save = r#"{"version":"0.4.0","resources":{"Gold":999.0,"Wood":888.0,"Stone":777.0},"coins_per_click":5.0,"coins_per_second":10.0,"wood_per_second":5.0,"stone_per_second":2.0,"total_clicks":1000,"last_update_time":1234567890.0}"#;
+
         let state: GameState = serde_json::from_str(future_save).unwrap();
-        
+
         // Should load with preserved values
         assert_eq!(state.get_coins(), 999.0);
         assert_eq!(state.get_wood(), 888.0);
@@ -335,7 +332,6 @@ mod tests {
             coins_per_second: 10.0,
             wood_per_second: 5.0,
             stone_per_second: 2.0,
-            autoclick_count: 20,
             total_clicks: 200,
             last_update_time: 9876543210.0,
             prestige_points: 0.0,
