@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('iPhone 15 Pro layout (393px) - no overlap', async ({ page }) => {
   await page.setViewportSize({ width: 393, height: 852 });

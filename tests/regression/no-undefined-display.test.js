@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('building and upgrade displays should not show undefined', async ({ page }) => {
   // Navigate to the game

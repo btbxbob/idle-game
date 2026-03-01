@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('诊断：升级列表初始化问题', async ({ page }) => {
   // 捕获所有控制台消息

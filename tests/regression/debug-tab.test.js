@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('debug tab switching issue', async ({ page }) => {
   // Navigate to the game

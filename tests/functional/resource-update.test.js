@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('resource updates should be real-time', async ({ page, browserName }) => {
   // Navigate to the game

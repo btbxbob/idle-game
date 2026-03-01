@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test.describe('Performance Quick Test - 性能快速测试', () => {
     test.setTimeout(180000); 

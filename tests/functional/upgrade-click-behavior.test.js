@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('better click upgrade increases click value', async ({ page }) => {
   await page.goto('http://localhost:8080');

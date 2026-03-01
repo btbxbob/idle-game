@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('DEBUG: 检查升级花费更新 - 购买第二项', async ({ page }) => {
   await page.goto('http://localhost:8080');

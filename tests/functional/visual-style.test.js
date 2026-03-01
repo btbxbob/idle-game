@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('visual style should be white background with black text and ASCII art', async ({ page }) => {
   // Navigate to the game

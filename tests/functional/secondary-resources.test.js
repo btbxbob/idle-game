@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test.describe('Secondary Resources (Tier 2)', () => {
     test.beforeEach(async ({ page }) => {

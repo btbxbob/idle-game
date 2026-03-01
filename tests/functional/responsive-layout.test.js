@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('responsive layout mobile', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });

@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('click should work after failed purchase', async ({ page }) => {
   // Navigate to the game

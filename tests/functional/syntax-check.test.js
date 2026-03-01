@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 const { execSync } = require('child_process');
 
 test('all JavaScript files should have valid syntax', () => {

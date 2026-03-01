@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('get_statistics is callable from JavaScript and returns correct data', async ({ page }) => {
   await page.goto('http://localhost:8080');

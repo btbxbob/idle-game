@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('multi-tab interface should work correctly', async ({ page }) => {
   // Navigate to the game

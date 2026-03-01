@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test.describe('Life-Death Cycle System', () => {
   test('lifecycle status and decay pipeline are accessible', async ({ page }) => {

@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('unlock_feature and get_unlocks are callable', async ({ page }) => {
   await page.goto('http://localhost:8080');

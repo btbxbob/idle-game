@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 async function setupStatistics(page) {
   await page.goto('http://localhost:8080');

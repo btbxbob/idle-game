@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('buy buttons should have real-time response', async ({ page }) => {
   // Navigate to the game

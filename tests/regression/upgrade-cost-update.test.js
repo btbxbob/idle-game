@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('升级花费应该实时更新', async ({ page }) => {
   await page.goto('http://localhost:8080');

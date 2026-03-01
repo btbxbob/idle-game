@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test.describe('Worker Simulation Flow', () => {
     test.beforeEach(async ({ page }) => {

@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test('workers panel UI renders correctly', async ({ page }) => {
   await page.goto('http://localhost:8080');

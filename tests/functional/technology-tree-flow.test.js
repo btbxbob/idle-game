@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 test.describe('科技树完整流程测试 (Technology Tree Flow)', () => {
     test.beforeEach(async ({ page }) => {

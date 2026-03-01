@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 // ============================================================================
 // Optimized Monkey Test - 游戏健壮性测试套件 (优化版)

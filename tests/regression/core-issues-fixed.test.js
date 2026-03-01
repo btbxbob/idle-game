@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures/coverage');
 
 // Bug: 金币显示区不更新且列表出现 undefined，修复后用于回归验证。
 
