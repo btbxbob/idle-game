@@ -2289,6 +2289,6 @@ impl IdleGame {
     /// Get the game version
     #[wasm_bindgen]
     pub fn get_version(&self) -> String {
-        crate::state::game_state::SAVE_VERSION.to_string()
+        env!("CARGO_PKG_VERSION").to_string()
     }
 }

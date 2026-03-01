@@ -490,17 +490,29 @@
                 });
             }
             
-            // Update version from WASM
-            if (typeof window.game !== 'undefined' && window.game && typeof window.game.get_version === 'function') {
-                try {
-                    const version = window.game.get_version();
-                    const versionEl = document.getElementById('version-number');
-                    if (versionEl) {
-                        versionEl.textContent = 'v' + version;
+            // Update version from WASM after bootstrap init
+            const updateVersion = () => {
+                if (window.rustGame && typeof window.rustGame.get_version === 'function') {
+                    try {
+                        const version = window.rustGame.get_version();
+                        const versionEl = document.getElementById('version-number');
+                        if (versionEl) {
+                            versionEl.textContent = 'v' + version;
+                        }
+                        return true;
+                    } catch (e) {
+                        console.warn('Failed to get version:', e);
                     }
-                } catch (e) {
-                    console.warn('Failed to get version:', e);
                 }
+                return false;
+            };
+
+            if (!updateVersion()) {
+                const timer = setInterval(() => {
+                    if (updateVersion()) {
+                        clearInterval(timer);
+                    }
+                }, 200);
             }
         });
     </script>

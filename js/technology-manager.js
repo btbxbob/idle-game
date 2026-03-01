@@ -622,7 +622,8 @@ class TechnologyManager {
                     const isResearched = tech.researched || tech.purchased || false;
                     const canResearch = this.canResearch(tech);
                     const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
-                    return `<div class="tech-item ${statusClass}" data-tech-id="${tech.id}" style="cursor:pointer;padding:8px;margin:2px 0;border:1px solid #ccc;${isResearched?'background:#cfc':(canResearch?'background:#ffc':'background:#f0f0f0')}">
+                    const isSelected = this.selectedTechnology && this.selectedTechnology.id === tech.id;
+                    return `<div class="tech-item ${statusClass}" data-tech-id="${tech.id}" style="cursor:pointer;padding:8px;margin:2px 0;border:${isSelected ? '2px solid #007bff' : '1px solid #ccc'};${isResearched ? 'background:#cfc' : (canResearch ? 'background:#ffc' : 'background:#f0f0f0')}">
                         <span class="tech-status">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
                         <span class="tech-name">${this.escapeHtml(tech.name || tech.id)}</span>
                         <span class="tech-tier">[T${tech.tier || 1}]</span>
@@ -631,43 +632,20 @@ class TechnologyManager {
             </div>
         `;
         
-        // Add click handlers with debugging
         const self = this;
         this.treeContainer.querySelectorAll('.tech-item').forEach(item => {
-            item.addEventListener('click', function(e) {
+            item.addEventListener('click', function (e) {
                 e.stopPropagation();
                 const techId = this.getAttribute('data-tech-id');
-                console.log('Clicked tech:', techId, 'Detail panel:', self.detailPanel ? 'exists' : 'null');
                 self.selectTechnology(techId);
-                
+
                 // Update visual selection
-                self.treeContainer.querySelectorAll('.tech-item').forEach(i => i.style.border = '1px solid #ccc');
+                self.treeContainer.querySelectorAll('.tech-item').forEach(i => {
+                    if (i.classList.contains('researched') || i.classList.contains('available') || i.classList.contains('locked')) {
+                        i.style.border = '1px solid #ccc';
+                    }
+                });
                 this.style.border = '2px solid #007bff';
-            });
-        });
-            <div class="tech-tree-text">
-                <pre>${ascii}</pre>
-            </div>
-            <div class="tech-tree-list">
-                <h4>科技列表</h4>
-                ${this.technologies.map(tech => {
-                    const isResearched = tech.researched || tech.purchased || false;
-                    const canResearch = this.canResearch(tech);
-                    const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
-                    return `<div class="tech-item ${statusClass}" data-tech-id="${tech.id}">
-                        <span class="tech-status">${isResearched ? '●' : (canResearch ? '○' : '×')}</span>
-                        <span class="tech-name">${this.escapeHtml(tech.name || tech.id)}</span>
-                        <span class="tech-tier">T${tech.tier || 1}</span>
-                    </div>`;
-                }).join('')}
-            </div>
-        `;
-        
-        // Add click handlers
-        this.treeContainer.querySelectorAll('.tech-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const techId = item.getAttribute('data-tech-id');
-                this.selectTechnology(techId);
             });
         });
     }
@@ -687,42 +665,37 @@ class TechnologyManager {
         }
 
         this.selectedTechnology = tech;
+        const isResearched = tech.researched || tech.purchased || false;
+        const canResearch = this.canResearch(tech);
+        const hasResources = this.hasResources(tech.costs);
 
-        this.selectedTechnology = tech;
-
-        // If no detail panel exists, show inline
         if (!this.detailPanel) {
-            console.log('Detail panel not found, showing inline');
-            // Create inline detail in the tree container
             const container = this.treeContainer;
-            const isResearched = tech.researched || tech.purchased || false;
-            const canResearch = this.canResearch(tech);
-            const hasResources = this.hasResources(tech.costs);
-            
-            // Build costs string
+            if (!container) return;
+
             let costsStr = '';
             if (tech.costs && Object.keys(tech.costs).length > 0) {
                 costsStr = Object.entries(tech.costs)
                     .map(([k, v]) => `${k}: ${Math.floor(v)}`)
                     .join(', ');
             }
-            
-            // Build dependencies string
+
             let depsStr = '';
             if (tech.dependencies && tech.dependencies.length > 0) {
-                depsStr = tech.dependencies.map(d => {
-                    const depTech = this.technologies.find(t => t.id === d);
-                    return depTech ? depTech.name || d : d;
-                }).join(', ');
+                depsStr = tech.dependencies
+                    .map(d => {
+                        const depTech = this.technologies.find(t => t.id === d);
+                        return depTech ? depTech.name || d : d;
+                    })
+                    .join(', ');
             }
-            
-            const status = isResearched ? '已研究' : (canResearch ? '可研究' : '未解锁');
+
+            const status = isResearched ? '已研究' : canResearch ? '可研究' : '未解锁';
             const canUnlock = canResearch && hasResources;
-            
-            // Remove any existing inline detail
+
             const existing = container.querySelector('.tech-inline-detail');
             if (existing) existing.remove();
-            
+
             const detailHtml = `<div class="tech-inline-detail" style="padding:15px;background:#fff;border:2px solid #007bff;margin:10px 0;">
                     <h3>${tech.name || tech.id}</h3>
                     <p><strong>等级:</strong> T${tech.tier || 1}</p>
@@ -730,38 +703,26 @@ class TechnologyManager {
                     ${costsStr ? `<p><strong>花费:</strong> ${costsStr}</p>` : ''}
                     ${depsStr ? `<p><strong>依赖:</strong> ${depsStr}</p>` : ''}
                     ${!isResearched ? `
-                        <button id="btn-research-inline" style="padding:10px 20px;background:${canUnlock?'#28a745':'#ccc'};color:#fff;border:none;cursor:${canUnlock?'pointer':'not-allowed'};font-size:14px;">
-                            ${canUnlock ? '【研究此科技】' : (hasResources ? '资源不足' : '前置未完成')}
+                        <button id="btn-research-inline" style="padding:10px 20px;background:${canUnlock ? '#28a745' : '#ccc'};color:#fff;border:none;cursor:${canUnlock ? 'pointer' : 'not-allowed'};font-size:14px;">
+                            ${canUnlock ? '【研究此科技】' : hasResources ? '资源不足' : '前置未完成'}
                         </button>
                     ` : '<p><em>✓ 已研究</em></p>'}
                 </div>`;
-            
-            // Insert after the tech-tree-list
+
             const listEl = container.querySelector('.tech-tree-list');
             if (listEl) {
                 listEl.insertAdjacentHTML('afterend', detailHtml);
-                
-                // Add research button handler
                 const btn = document.getElementById('btn-research-inline');
                 if (btn && canUnlock) {
                     btn.addEventListener('click', () => {
-                        console.log('Researching:', tech.id);
                         this.researchTechnology(tech.id);
-                        // Refresh the view
-                        this.renderTree();
                     });
                 }
             }
             return;
         }
-            console.warn('TechnologyManager: #technology-detail element not found');
-            return;
-        }
 
-        const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
-        const isResearched = tech.researched || tech.purchased || false;
-        const canResearch = this.canResearch(tech);
-        const hasResources = this.hasResources(tech.costs);
+        const t = this.i18n ? this.i18n.t.bind(this.i18n) : key => key;
 
         let costsHtml = '';
         if (tech.costs && Object.keys(tech.costs).length > 0) {
@@ -788,7 +749,6 @@ class TechnologyManager {
         }
 
         const effectDesc = this.getEffectDescription(tech);
-
         this.detailPanel.innerHTML = `
             <div class="technology-detail-content">
                 <h3 class="tech-detail-name">${tech.name}</h3>
@@ -807,15 +767,11 @@ class TechnologyManager {
                     </span>
                 </div>
                 ${!isResearched ? `
-                    <button type="button" id="research-button" 
-                            class="research-btn ${canResearch && hasResources ? 'can-research' : 'cannot-research'}"
-                            ${!canResearch || !hasResources ? 'disabled' : ''}>
+                    <button type="button" id="research-button" class="research-btn ${canResearch && hasResources ? 'can-research' : 'cannot-research'}" ${!canResearch || !hasResources ? 'disabled' : ''}>
                         ${hasResources ? (t('research') || '研究') : (t('insufficientResources') || '资源不足')}
                     </button>
                 ` : `
-                    <button type="button" disabled class="research-btn researched">
-                        ${t('researched') || '已研究'}
-                    </button>
+                    <button type="button" disabled class="research-btn researched">${t('researched') || '已研究'}</button>
                 `}
             </div>
         `;
@@ -824,12 +780,7 @@ class TechnologyManager {
         if (researchBtn) {
             researchBtn.addEventListener('click', () => {
                 this.researchTechnology(techId);
-            });
-        }
-
-        if (this.canvas) {
-            this.nodes.forEach(n => {
-                n.selected = (n.id === techId);
+                this.selectTechnology(techId);
             });
         }
     }
