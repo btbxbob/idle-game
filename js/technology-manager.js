@@ -552,103 +552,185 @@ class TechnologyManager {
             tiers[tier].push(tech);
         });
         
-        // Build ASCII tree
-        let ascii = '';
-        const maxTier = Math.max(...Object.keys(tiers).map(Number));
+        // Build compact two-column layout
+        // Left: tech list by tier tabs (compact)
+        // Right: detail panel
+        const tierTabs = [1, 2, 3, 4].filter(t => tiers[t] && tiers[t].length > 0);
+        const activeTier = tierTabs[0] || 1;
         
-        // Header
-        ascii += '╔══════════════════════════════════════════════════════════════════╗\n';
-        ascii += '║                        科 技 树                                   ║\n';
-        ascii += '╚══════════════════════════════════════════════════════════════════╝\n\n';
-        
-        // Render each tier
-        for (let tier = 1; tier <= maxTier; tier++) {
-            if (!tiers[tier]) continue;
-            
-            ascii += `┌─ 第 ${tier} 层 ──────────────────────────────────────────────\n`;
-            
-            // Render tech boxes for this tier
-            tiers[tier].forEach((tech, idx) => {
-                const isResearched = tech.researched || tech.purchased || false;
-                const canResearch = this.canResearch(tech);
-                const status = isResearched ? '✓ 已研究' : (canResearch ? '○ 可研究' : '✗ 锁定');
-                const statusIcon = isResearched ? '●' : (canResearch ? '○' : '×');
-                
-                // Tech box
-                const name = this.escapeHtml(tech.name || tech.id);
-                const desc = this.escapeHtml(tech.description || '').substring(0, 20);
-                
-                ascii += `│ ${statusIcon} [${name}]\n`;
-                ascii += `│    ${desc}\n`;
-                ascii += `│    状态: ${status}\n`;
-                
-                // Show dependencies
-                if (tech.dependencies && tech.dependencies.length > 0) {
-                    const deps = tech.dependencies.map(d => {
-                        const depTech = this.technologies.find(t => t.id === d);
-                        return depTech ? depTech.name || d : d;
-                    }).join(', ');
-                    ascii += `│    依赖: ${deps}\n`;
-                }
-                
-                // Show costs
-                if (tech.costs && Object.keys(tech.costs).length > 0) {
-                    const costs = Object.entries(tech.costs)
-                        .map(([res, amt]) => `${res}: ${Math.floor(amt)}`)
-                        .join(', ');
-                    ascii += `│    花费: ${costs}\n`;
-                }
-                
-                ascii += '│\n';
-            });
-            
-            ascii += '│\n';
-        }
-        
-        // Legend
-        ascii += '└────────────────────────────────────────────────────────────────\n';
-        ascii += '图例: ● 已研究  ○ 可研究  × 锁定\n';
-        ascii += '      点击科技查看详情或进行研究\n';
-        
-        // Render as pre-formatted text
-        // Render as two-column layout
         this.treeContainer.innerHTML = `
-            <div class="tech-tree-text">
-                <pre>${ascii}</pre>
-            </div>
-            <div class="tech-tree-list">
-                <h4>科技列表 (点击选择)</h4>
-                ${this.technologies.map(tech => {
-                    const isResearched = tech.researched || tech.purchased || false;
-                    const canResearch = this.canResearch(tech);
-                    const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
-                    const isSelected = this.selectedTechnology && this.selectedTechnology.id === tech.id;
-                    return `<div class="tech-item ${statusClass}" data-tech-id="${tech.id}" style="cursor:pointer;padding:8px;margin:2px 0;border:${isSelected ? '2px solid #007bff' : '1px solid #ccc'};${isResearched ? 'background:#cfc' : (canResearch ? 'background:#ffc' : 'background:#f0f0f0')}">
-                        <span class="tech-status">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
-                        <span class="tech-name">${this.escapeHtml(tech.name || tech.id)}</span>
-                        <span class="tech-tier">[T${tech.tier || 1}]</span>
-                    </div>`;
-                }).join('')}
+            <div class="tech-container" style="display:flex;gap:10px;height:100%;">
+                <div class="tech-list-panel" style="flex:1;min-width:0;display:flex;flex-direction:column;">
+                    <div class="tech-tier-tabs" style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+                        ${tierTabs.map(tier => `
+                            <button class="tech-tier-tab ${tier === activeTier ? 'active' : ''}" 
+                                    data-tier="${tier}"
+                                    style="padding:4px 12px;border:1px solid #ccc;background:${tier === activeTier ? '#007bff' : '#f5f5f5'};color:${tier === activeTier ? '#fff' : '#333'};cursor:pointer;border-radius:4px;font-size:12px;">
+                                T${tier} (${tiers[tier]?.length || 0})
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="tech-compact-list" style="flex:1;overflow-y:auto;padding:4px;background:#fafafa;border-radius:4px;">
+                        ${(tiers[activeTier] || []).map(tech => {
+                            const isResearched = tech.researched || tech.purchased || false;
+                            const canResearch = this.canResearch(tech);
+                            const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
+                            const isSelected = this.selectedTechnology && this.selectedTechnology.id === tech.id;
+                            const effectDesc = this.getEffectDescription(tech);
+                            const shortEffect = effectDesc.length > 18 ? effectDesc.substring(0, 18) + '...' : effectDesc;
+                            return `<div class="tech-item-compact ${statusClass}" data-tech-id="${tech.id}" 
+                                style="cursor:pointer;padding:5px 8px;margin:2px 0;border-radius:4px;border:2px solid ${isSelected ? '#007bff' : 'transparent'};
+                                       ${isResearched ? 'background:#e8f5e9' : (canResearch ? 'background:#fffde7' : 'background:#f5f5f5')};"
+                                title="${effectDesc}">
+                                <span style="font-weight:bold;width:18px;display:inline-block;">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
+                                <span style="font-weight:500;font-size:13px;">${this.escapeHtml(tech.name || tech.id)}</span>
+                                <span style="color:#888;font-size:11px;margin-left:auto;">${shortEffect}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+                <div class="tech-detail-panel" id="tech-detail-inline" style="width:280px;min-width:200px;background:#fff;border:1px solid #ddd;border-radius:4px;padding:10px;overflow-y:auto;">
+                    ${this.selectedTechnology ? this.renderTechDetail(this.selectedTechnology) : '<p style="color:#888;text-align:center;margin-top:50px;">点击科技查看详情</p>'}
+                </div>
             </div>
         `;
         
+        // Bind tier tab clicks
         const self = this;
-        this.treeContainer.querySelectorAll('.tech-item').forEach(item => {
-            item.addEventListener('click', function (e) {
+        this.treeContainer.querySelectorAll('.tech-tier-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tier = parseInt(this.getAttribute('data-tier'));
+                self.treeContainer.querySelectorAll('.tech-tier-tab').forEach(t => {
+                    t.classList.remove('active');
+                    t.style.background = '#f5f5f5';
+                    t.style.color = '#333';
+                });
+                this.classList.add('active');
+                this.style.background = '#007bff';
+                this.style.color = '#fff';
+                
+                // Re-render list for selected tier
+                const listPanel = self.treeContainer.querySelector('.tech-compact-list');
+                listPanel.innerHTML = (tiers[tier] || []).map(tech => {
+                    const isResearched = tech.researched || tech.purchased || false;
+                    const canResearch = self.canResearch(tech);
+                    const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
+                    const isSelected = self.selectedTechnology && self.selectedTechnology.id === tech.id;
+                    const effectDesc = self.getEffectDescription(tech);
+                    const shortEffect = effectDesc.length > 18 ? effectDesc.substring(0, 18) + '...' : effectDesc;
+                    return `<div class="tech-item-compact ${statusClass}" data-tech-id="${tech.id}" 
+                        style="cursor:pointer;padding:5px 8px;margin:2px 0;border-radius:4px;border:2px solid ${isSelected ? '#007bff' : 'transparent'};
+                               ${isResearched ? 'background:#e8f5e9' : (canResearch ? 'background:#fffde7' : 'background:#f5f5f5')};"
+                        title="${effectDesc}">
+                        <span style="font-weight:bold;width:18px;display:inline-block;">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
+                        <span style="font-weight:500;font-size:13px;">${self.escapeHtml(tech.name || tech.id)}</span>
+                        <span style="color:#888;font-size:11px;margin-left:auto;">${shortEffect}</span>
+                    </div>`;
+                }).join('');
+                
+                // Rebind item clicks
+                self.treeContainer.querySelectorAll('.tech-item-compact').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const techId = this.getAttribute('data-tech-id');
+                        self.selectTechnology(techId);
+                        self.updateDetailPanel();
+                    });
+                });
+            });
+        });
+        
+        // Bind item clicks
+        this.treeContainer.querySelectorAll('.tech-item-compact').forEach(item => {
+            item.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const techId = this.getAttribute('data-tech-id');
                 self.selectTechnology(techId);
-
-                // Update visual selection
-                self.treeContainer.querySelectorAll('.tech-item').forEach(i => {
-                    if (i.classList.contains('researched') || i.classList.contains('available') || i.classList.contains('locked')) {
-                        i.style.border = '1px solid #ccc';
-                    }
-                });
-                this.style.border = '2px solid #007bff';
+                self.updateDetailPanel();
             });
         });
     }
+    
+    renderTechDetail(tech) {
+        if (!tech) return '<p style="color:#888;text-align:center;">未选择科技</p>';
+        
+        const isResearched = tech.researched || tech.purchased || false;
+        const canResearch = this.canResearch(tech);
+        const hasResources = this.hasResources(tech.costs);
+        const canUnlock = canResearch && hasResources;
+        const effectDesc = this.getEffectDescription(tech);
+        
+        let costsStr = '';
+        if (tech.costs && Object.keys(tech.costs).length > 0) {
+            costsStr = Object.entries(tech.costs)
+                .map(([k, v]) => `<span style="background:#f0f0f0;padding:2px 6px;border-radius:3px;margin:2px;font-size:11px;">${this.getResourceName(k)}: ${Math.floor(v)}</span>`)
+                .join('');
+        } else {
+            costsStr = '<span style="color:#28a745;">免费</span>';
+        }
+        
+        let depsStr = '';
+        if (tech.dependencies && tech.dependencies.length > 0) {
+            depsStr = tech.dependencies.map(depId => {
+                const depTech = this.technologies.find(t => t.id === depId);
+                const depName = depTech ? depTech.name : depId;
+                const depResearched = depTech && (depTech.researched || depTech.purchased);
+                return `<span style="${depResearched ? 'color:#28a745;' : 'color:#dc3545;'}">${depResearched ? '✓' : '○'} ${depName}</span>`;
+            }).join('<br>');
+        } else {
+            depsStr = '<span style="color:#888;">无前置需求</span>';
+        }
+        
+        const status = isResearched ? '已研究' : canResearch ? '可研究' : '未解锁';
+        const statusColor = isResearched ? '#28a745' : canResearch ? '#ffc107' : '#dc3545';
+        
+        return `
+            <div style="padding:5px;">
+                <h3 style="margin:0 0 8px 0;font-size:16px;color:#333;">${this.escapeHtml(tech.name || tech.id)}</h3>
+                <div style="margin-bottom:8px;">
+                    <span style="background:#e3f2fd;padding:2px 8px;border-radius:3px;font-size:11px;">T${tech.tier || 1}</span>
+                    <span style="color:${statusColor};font-weight:bold;font-size:12px;margin-left:8px;">${status}</span>
+                </div>
+                <p style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">${this.escapeHtml(tech.description || '')}</p>
+                <div style="background:#f9f9f9;padding:8px;border-radius:4px;margin:8px 0;">
+                    <div style="font-size:11px;font-weight:bold;color:#555;margin-bottom:4px;">效果:</div>
+                    <div style="font-size:12px;color:#007bff;">${effectDesc}</div>
+                </div>
+                <div style="margin:8px 0;">
+                    <div style="font-size:11px;font-weight:bold;color:#555;margin-bottom:4px;">花费:</div>
+                    <div>${costsStr}</div>
+                </div>
+                <div style="margin:8px 0;">
+                    <div style="font-size:11px;font-weight:bold;color:#555;margin-bottom:4px;">前置:</div>
+                    <div style="font-size:11px;">${depsStr}</div>
+                </div>
+                ${!isResearched ? `
+                    <button id="btn-research-inline" style="width:100%;padding:10px;margin-top:10px;
+                           background:${canUnlock ? '#28a745' : '#ccc'};color:#fff;border:none;
+                           cursor:${canUnlock ? 'pointer' : 'not-allowed'};font-size:14px;border-radius:4px;">
+                        ${canUnlock ? '【研究】' : hasResources ? '资源不足' : '前置未完成'}
+                    </button>
+                ` : `<div style="text-align:center;padding:10px;background:#e8f5e9;color:#28a745;font-weight:bold;border-radius:4px;margin-top:10px;">✓ 已研究</div>`}
+            </div>
+        `;
+    }
+    
+    updateDetailPanel() {
+        const detailPanel = document.getElementById('tech-detail-inline');
+        if (detailPanel && this.selectedTechnology) {
+            detailPanel.innerHTML = this.renderTechDetail(this.selectedTechnology);
+            
+            // Bind research button
+            const btn = document.getElementById('btn-research-inline');
+            if (btn && !btn.disabled) {
+                btn.addEventListener('click', () => {
+                    this.researchTechnology(this.selectedTechnology.id);
+                    this.updateDetailPanel();
+                });
+            }
+        }
+    }
+
 
     escapeHtml(text) {
         if (!text) return '';
@@ -888,21 +970,79 @@ class TechnologyManager {
 
     getEffectDescription(tech) {
         const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
-        if (tech.effect) {
-            switch (tech.effect.type) {
-                case 'ProductionBonus':
-                    return `提升 ${this.getResourceName(tech.effect.resource)} 产量 ${Math.floor(tech.effect_value * 100)}%`;
-                case 'UnlockBuilding':
-                    return `解锁建筑：${tech.effect.building_type}`;
-                case 'UnlockUI':
-                    return '解锁新的游戏界面';
-                case 'MechanicChange':
-                    return tech.effect.description || tech.effect_value.toString();
-                default:
-                    return tech.description || t('unknownEffect') || '未知效果';
-            }
+        
+        // Handle null/undefined effect
+        if (!tech.effect) {
+            return tech.description || t('unknownEffect') || '未知效果';
         }
-        return tech.description || t('unknownEffect') || '未知效果';
+        
+        // Rust serializes enum variants as {"VariantName": data}
+        // e.g., {"ProductionBonus": ["Gold", 0.5]}, {"UnlockBuilding": "Mine"}, "UnlockUI"
+        const effectKeys = Object.keys(tech.effect);
+        
+        if (effectKeys.length === 0) {
+            return tech.description || t('unknownEffect') || '未知效果';
+        }
+        
+        const effectType = effectKeys[0];
+        const effectData = tech.effect[effectType];
+        
+        switch (effectType) {
+            case 'ProductionBonus':
+                // Data is [resourceType, value] array
+                if (Array.isArray(effectData) && effectData.length >= 2) {
+                    const resource = effectData[0];
+                    const value = effectData[1];
+                    return `+${Math.floor(value * 100)}% ${this.getResourceName(resource)} 产量`;
+                }
+                return `+${Math.floor(tech.effect_value * 100)}% 产量`;
+            
+            case 'UnlockBuilding':
+                // Data is building type string
+                return `🏗️ 解锁建筑: ${effectData || '未知建筑'}`;
+            
+            case 'UnlockUI':
+                return '🔓 解锁新功能界面';
+            
+            case 'MechanicChange':
+                // Data is description string
+                if (typeof effectData === 'string') {
+                    return this.getMechanicDescription(effectData, tech.effect_value);
+                }
+                return tech.description || '游戏机制改变';
+            
+            default:
+                return tech.description || t('unknownEffect') || '未知效果';
+        }
+    }
+    
+    getMechanicDescription(mechanic, value) {
+        const descriptions = {
+            'auto_production': '🤖 自动化生产减少人工需求',
+            'full_automation': '⚙️ 全自动化生产系统',
+            'ai_assistance': '🤖 AI 助手辅助管理',
+            'ai_optimization': '🧠 AI 优化生产效率',
+            'molecular_assembly': '🔬 分子级组装技术',
+            'genetic_optimization': '🧬 基因优化提升产出',
+            'nuclear_power': '⚡ 核能提供超级能量',
+            'fusion_power': '☀️ 聚变能源无限供应',
+            'terraforming': '🌍 行星改造能力',
+            'time_manipulation': '⏰ 时间操控加速发展',
+            'dimensional_travel': '🌌 维度旅行探索平行宇宙',
+            'consciousness_upload': '🧠 意识上传数字永生',
+            'immortality': '✨ 永生技术',
+            'godhood': '🌟 神级能力',
+            'click_efficiency': '👆 点击效率提升',
+            'resource_boost': '💎 资源增益效果',
+            'production_multiplier': '📈 生产倍增器',
+            'cost_reduction': '💰 成本降低',
+            'critical_click': '💥 暴击点击机制',
+            'auto_assignment': '👥 工人自动分配',
+            'legacy_bonus': '👑 遗产加成系统',
+            'ascension': '🚀 飞升系统',
+            'omniscience': '👁️ 全知全能' 
+        };
+        return descriptions[mechanic] || `⚙️ ${mechanic}`;
     }
 
     bindEvents() {
