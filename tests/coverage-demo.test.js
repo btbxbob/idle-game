@@ -3,6 +3,49 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Convert character offset to line number (1-indexed)
+ */
+function offsetToLine(source, offset) {
+  return source.substring(0, offset).split('\n').length;
+}
+
+/**
+ * Calculate line-level coverage from V8 coverage data
+ */
+function calculateLineCoverage(cov) {
+  const source = cov.source || '';
+  const totalLines = source.split('\n').length;
+  
+  // Track covered lines
+  const coveredLines = new Set();
+  
+  for (const func of cov.functions || []) {
+    for (const range of func.ranges || []) {
+      if (range && range.count > 0) {
+        const startOffset = Number(range.startOffset) || 0;
+        const endOffset = Number(range.endOffset) || 0;
+        
+        // Mark all lines in this range as covered
+        const startLine = offsetToLine(source, startOffset);
+        const endLine = offsetToLine(source, Math.min(endOffset, source.length - 1));
+        
+        for (let line = startLine; line <= endLine; line++) {
+          if (line > 0 && line <= totalLines) {
+            coveredLines.add(line);
+          }
+        }
+      }
+    }
+  }
+  
+  return {
+    totalLines,
+    coveredLines: coveredLines.size,
+    percentage: totalLines > 0 ? ((coveredLines.size / totalLines) * 100).toFixed(1) : '0.0'
+  };
+}
+
 test('collect and save coverage report', async ({ page }) => {
   // Start coverage collection
   await page.coverage.startJSCoverage();
@@ -19,38 +62,32 @@ test('collect and save coverage report', async ({ page }) => {
   // Stop coverage and get results
   const coverage = await page.coverage.stopJSCoverage();
   
-  // Calculate coverage per file
+  // Calculate line-level coverage per file
   const report = [];
-  let totalStatements = 0;
-  let coveredStatements = 0;
+  let grandTotalLines = 0;
+  let grandCoveredLines = 0;
   
   for (const cov of coverage) {
     try {
       const url = new URL(cov.url);
       const filename = url.pathname.split('/').pop() || url.href;
       
-      // Count total lines
-      const lines = cov.source ? cov.source.split('\n').length : 0;
-      
-      // Count covered lines using ranges (use startOffset/endOffset)
-      let executedLines = 0;
-      for (const func of cov.functions || []) {
-        for (const range of func.ranges || []) {
-          if (range && range.count > 0) {
-            const start = Number(range.startOffset) || 0;
-            const end = Number(range.endOffset) || 0;
-            executedLines += (end - start);
-          }
-        }
+      // Skip non-JS files and WASM generated code
+      if (!filename.includes('.js') || filename.includes('idle_game_bg')) {
+        continue;
       }
       
-      const pct = (lines > 0 && executedLines > 0) ? ((executedLines / lines) * 100).toFixed(1) : '0.0';
+      const result = calculateLineCoverage(cov);
       
-      if (filename.includes('.js') && !filename.includes('idle_game_bg')) {
-        report.push({ file: filename, lines, executedLines, pct: parseFloat(pct) });
-        totalStatements += lines;
-        coveredStatements += executedLines;
-      }
+      report.push({
+        file: filename,
+        lines: result.totalLines,
+        covered: result.coveredLines,
+        pct: parseFloat(result.percentage)
+      });
+      
+      grandTotalLines += result.totalLines;
+      grandCoveredLines += result.coveredLines;
     } catch (e) {
       // Skip invalid URLs
     }
@@ -59,15 +96,15 @@ test('collect and save coverage report', async ({ page }) => {
   // Sort by coverage percentage
   report.sort((a, b) => b.pct - a.pct);
   
-  const overallPct = (totalStatements > 0 && coveredStatements > 0) 
-    ? ((coveredStatements / totalStatements) * 100).toFixed(1) 
+  const overallPct = grandTotalLines > 0 
+    ? ((grandCoveredLines / grandTotalLines) * 100).toFixed(1) 
     : '0.0';
   
-  console.log('\n=== Coverage Report ===');
-  console.log(`Overall JS Coverage: ${overallPct}%`);
+  console.log('\n=== Line-Level Coverage Report ===');
+  console.log(`Overall JS Coverage: ${overallPct}% (${grandCoveredLines}/${grandTotalLines} lines)`);
   console.log('\nPer-file coverage:');
   for (const r of report) {
-    console.log(`  ${r.file}: ${r.pct}% (${r.executedLines}/${r.lines})`);
+    console.log(`  ${r.file}: ${r.pct}% (${r.covered}/${r.lines})`);
   }
   
   // Save JSON report
