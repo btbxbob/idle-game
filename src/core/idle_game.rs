@@ -14,6 +14,19 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
+#[derive(Serialize)]
+struct TechnologyView {
+    id: String,
+    name: String,
+    tier: u8,
+    dependencies: Vec<String>,
+    purchased: bool,
+    researched: bool,
+    can_research: bool,
+    effect_value: f64,
+    effect: serde_json::Value,
+}
+
 #[wasm_bindgen]
 pub struct IdleGame {
     state: Rc<RefCell<GameState>>,
@@ -89,28 +102,12 @@ impl IdleGame {
     pub fn load_game(&mut self, saved: SavedGame) {
         {
             let mut state = self.state.borrow_mut();
-            state.set_coins(saved.state.get_coins());
-            state.set_wood(saved.state.get_wood());
-            state.set_stone(saved.state.get_stone());
-            state.coins_per_click = saved.state.coins_per_click;
-            state.coins_per_second = saved.state.coins_per_second;
-            state.wood_per_second = saved.state.wood_per_second;
-            state.stone_per_second = saved.state.stone_per_second;
-            state.total_clicks = saved.state.total_clicks;
-            state.last_update_time = saved.state.last_update_time;
+            *state = saved.state;
         }
 
         {
             let mut stats = self.statistics.borrow_mut();
-            stats.total_clicks = saved.statistics.total_clicks;
-            stats.total_coins_earned = saved.statistics.total_coins_earned;
-            stats.total_wood_earned = saved.statistics.total_wood_earned;
-            stats.total_stone_earned = saved.statistics.total_stone_earned;
-            stats.total_resources_crafted = saved.statistics.total_resources_crafted;
-            stats.achievements_unlocked_count = saved.statistics.achievements_unlocked_count;
-            stats.play_time_seconds = saved.statistics.play_time_seconds;
-            stats.buildings_purchased = saved.statistics.buildings_purchased;
-            stats.upgrades_purchased = saved.statistics.upgrades_purchased;
+            *stats = saved.statistics;
         }
 
         self.upgrades = saved.upgrades;
@@ -124,6 +121,27 @@ impl IdleGame {
         self.technology_tree = saved.technology_tree;
         self.last_food_consumption_time = saved.last_food_consumption_time;
         self.last_worker_spawn_time = saved.last_worker_spawn_time;
+        self.last_food_consumption_time = saved.last_food_consumption_time;
+        self.last_worker_spawn_time = saved.last_worker_spawn_time;
+        
+        // Ensure default workers exist if save is empty (backwards compatibility)
+        if self.workers.is_empty() {
+            self.workers = vec![
+                Worker::new("矿工", "mining", "擅长挖矿的工人", "Coin Mine"),
+                Worker::new("伐木工", "logging", "擅长伐木的工人", "Woodcutter"),
+                Worker::new("石匠", "masonry", "擅长采石的工人", "Stone Quarry"),
+                Worker::new("工厂工人", "factory", "擅长工厂生产的工人", "Coin Factory"),
+                Worker::new("高级工匠", "crafting", "擅长高级制作的工匠", "Mason Workshop"),
+            ];
+        }
+        
+        // Ensure default housing exists if save is empty (backwards compatibility)
+        if self.housing_buildings.is_empty() {
+            use crate::entities::building::Housing;
+            self.housing_buildings = vec![
+                Housing::new("住房", std::collections::HashMap::from([("coins".to_string(), 100.0)]), 4),
+            ];
+        }
     }
 }
 
@@ -382,12 +400,12 @@ impl IdleGame {
                     production_rate: 0.2,
                     count: 0,
                 },
-                Building {
-                    name: "农场".to_string(),
-                    cost: 30.0,
-                    production_rate: 0.8,
-                    count: 0,
-                },
+            Building {
+                name: "农场".to_string(),
+                cost: 30.0,
+                production_rate: 2.0,
+                count: 0,
+            },
                 Building {
                     name: "蛆虫工厂".to_string(),
                     cost: 200.0,
@@ -395,7 +413,13 @@ impl IdleGame {
                     count: 0,
                 },
             ],
-            housing_buildings: vec![],
+            housing_buildings: vec![
+                Housing::new(
+                    "住房",
+                    std::collections::HashMap::from([("coins".to_string(), 100.0)]),
+                    4,
+                ),
+            ],
             workers: vec![
                 Worker::new("矿工", "mining", "擅长挖矿的工人", "Coin Mine"),
                 Worker::new("伐木工", "logging", "擅长伐木的工人", "Woodcutter"),
@@ -784,6 +808,11 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn get_total_clicks(&self) -> u32 {
+        self.state.borrow().total_clicks
+    }
+
+    #[wasm_bindgen]
     pub fn get_resources(&self) -> JsValue {
         let state = self.state.borrow();
         let mut resources = serde_wasm_bindgen::to_value(&HashMap::<String, f64>::new()).unwrap();
@@ -992,6 +1021,91 @@ impl IdleGame {
         }
 
         workers_array
+    }
+
+    #[wasm_bindgen]
+    pub fn get_buildings(&self) -> JsValue {
+        serde_wasm_bindgen::to_value(&self.buildings).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen]
+    pub fn get_housing(&self) -> JsValue {
+        let housing = js_sys::Array::new();
+        for h in &self.housing_buildings {
+            let obj = js_sys::Object::new();
+            let level = h.count.max(1);
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("name"), &JsValue::from_str(&h.name));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("capacity"),
+                &JsValue::from_f64((h.capacity * level) as f64),
+            );
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("level"), &JsValue::from_f64(level as f64));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("upgradeCost"),
+                &serde_wasm_bindgen::to_value(&h.get_upgrade_cost()).unwrap_or(JsValue::NULL),
+            );
+            housing.push(&obj);
+        }
+        housing.into()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_population_overview(&self) -> JsValue {
+        let list = js_sys::Array::new();
+        for (idx, worker) in self.workers.iter().enumerate() {
+            let obj = js_sys::Object::new();
+            let assigned = worker
+                .assigned_building
+                .clone()
+                .unwrap_or_else(|| "未分配".to_string());
+            let status = if worker.is_hungry {
+                "饥饿"
+            } else if worker.assigned_building.is_some() {
+                "工作中"
+            } else {
+                "空闲"
+            };
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("id"), &JsValue::from_f64(idx as f64));
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("name"), &JsValue::from_str(&worker.name));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("gender"),
+                &JsValue::from_str(&format!("{:?}", worker.gender)),
+            );
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("age"), &JsValue::from_f64(0.0));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("skill_level"),
+                &JsValue::from_str(&worker.skills),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("assigned_building"),
+                &JsValue::from_str(&assigned),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("efficiency"),
+                &JsValue::from_f64(worker.efficiency_multiplier),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("mood"),
+                &JsValue::from_f64(worker.happiness),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("health"),
+                &JsValue::from_f64((100.0 - worker.hunger).max(0.0)),
+            );
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("level"), &JsValue::from_f64(worker.level as f64));
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("status"), &JsValue::from_str(status));
+            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("is_hungry"), &JsValue::from_bool(worker.is_hungry));
+            list.push(&obj);
+        }
+        list.into()
     }
 
     #[wasm_bindgen]
@@ -1216,10 +1330,6 @@ impl IdleGame {
                 }
                 // Crystal - 水晶矿 (produces coins for now)
                 "水晶矿" => {
-                    total_cps += boosted_production;
-                }
-                // Food - 农场 (produces coins for now)
-                "农场" => {
                     total_cps += boosted_production;
                 }
                 _ => {}
@@ -1761,6 +1871,24 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn get_statistics(&self) -> JsValue {
+        self.get_statistics_js()
+    }
+
+    #[wasm_bindgen]
+    pub fn do_prestige(&mut self, pp_gain: f64) -> bool {
+        if !pp_gain.is_finite() || pp_gain <= 0.0 {
+            return false;
+        }
+
+        self.reset_game();
+        let mut state = self.state.borrow_mut();
+        state.prestige_points += pp_gain;
+        state.prestige_multiplier = 1.0 + state.prestige_points * 0.01;
+        true
+    }
+
+    #[wasm_bindgen]
     pub fn check_achievement(&mut self, achievement_id: &str) -> bool {
         // First, read state and stats (release borrows immediately)
         let (
@@ -2033,6 +2161,35 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn get_technologies(&self) -> Result<JsValue, JsValue> {
+        let mut technologies = Vec::new();
+        for (tech_id, tech) in &self.technology_tree.technologies {
+            let dependencies = tech
+                .dependencies
+                .iter()
+                .map(|dep| format!("{:?}", dep))
+                .collect::<Vec<_>>();
+            let effect = serde_json::to_value(&tech.effect)
+                .unwrap_or_else(|_| serde_json::json!({ "type": "unknown" }));
+
+            technologies.push(TechnologyView {
+                id: format!("{:?}", tech_id),
+                name: tech.name.clone(),
+                tier: tech.tier(),
+                dependencies,
+                purchased: tech.purchased,
+                researched: tech.purchased,
+                can_research: self.technology_tree.can_research(*tech_id),
+                effect_value: tech.effect_value,
+                effect,
+            });
+        }
+
+        serde_wasm_bindgen::to_value(&technologies)
+            .map_err(|e| JsValue::from_str(&format!("Failed to serialize technologies: {}", e)))
+    }
+
+    #[wasm_bindgen]
     pub fn get_available_technologies_json(&self) -> String {
         let available = self.technology_tree.get_available_research();
         serde_json::to_string(&available).unwrap_or_else(|_| "[]".to_string())
@@ -2127,5 +2284,11 @@ impl IdleGame {
         }
 
         serde_json::to_string(&workers).unwrap_or_else(|_| "[]".to_string())
+    }
+    
+    /// Get the game version
+    #[wasm_bindgen]
+    pub fn get_version(&self) -> String {
+        crate::state::game_state::SAVE_VERSION.to_string()
     }
 }

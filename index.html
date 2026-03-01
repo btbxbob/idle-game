@@ -333,7 +333,7 @@
         
         <footer>
             <span id="footer-text">使用 Rust 和 WebAssembly 构建的闲置游戏框架</span>
-            <span id="version-info">Version: <span id="version-number">v0.4.0</span></span>
+            <span id="version-info">Version: <span id="version-number">...</span></span>
         </footer>
     </div>
     
@@ -488,6 +488,19 @@
                         location.reload();
                     }
                 });
+            }
+            
+            // Update version from WASM
+            if (typeof window.game !== 'undefined' && window.game && typeof window.game.get_version === 'function') {
+                try {
+                    const version = window.game.get_version();
+                    const versionEl = document.getElementById('version-number');
+                    if (versionEl) {
+                        versionEl.textContent = 'v' + version;
+                    }
+                } catch (e) {
+                    console.warn('Failed to get version:', e);
+                }
             }
         });
     </script>
