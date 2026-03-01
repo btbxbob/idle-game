@@ -346,4 +346,88 @@ mod tests {
         assert_eq!(deserialized.get_stone(), 30.0);
         assert_eq!(deserialized.version, SAVE_VERSION);
     }
+
+    #[test]
+    fn test_get_resource_default() {
+        let state = GameState::default();
+        assert_eq!(state.get_resource(ResourceType::Gold), 0.0);
+        assert_eq!(state.get_resource(ResourceType::Wood), 0.0);
+        assert_eq!(state.get_resource(ResourceType::Stone), 0.0);
+    }
+
+    #[test]
+    fn test_set_and_get_resource() {
+        let mut state = GameState::default();
+        state.set_resource(ResourceType::Gold, 100.0);
+        assert_eq!(state.get_resource(ResourceType::Gold), 100.0);
+    }
+
+    #[test]
+    fn test_add_resource() {
+        let mut state = GameState::default();
+        state.set_resource(ResourceType::Gold, 100.0);
+        state.add_resource(ResourceType::Gold, 50.0);
+        assert_eq!(state.get_resource(ResourceType::Gold), 150.0);
+    }
+
+    #[test]
+    fn test_set_coins_wood_stone() {
+        let mut state = GameState::default();
+        state.set_coins(100.0);
+        state.set_wood(200.0);
+        state.set_stone(300.0);
+        assert_eq!(state.get_coins(), 100.0);
+        assert_eq!(state.get_wood(), 200.0);
+        assert_eq!(state.get_stone(), 300.0);
+    }
+
+    #[test]
+    fn test_add_coins_wood_stone() {
+        let mut state = GameState::default();
+        state.set_coins(100.0);
+        state.set_wood(100.0);
+        state.set_stone(100.0);
+        state.add_coins(50.0);
+        state.add_wood(75.0);
+        state.add_stone(125.0);
+        assert_eq!(state.get_coins(), 150.0);
+        assert_eq!(state.get_wood(), 175.0);
+        assert_eq!(state.get_stone(), 225.0);
+    }
+
+    #[test]
+    fn test_spend_coins_success() {
+        let mut state = GameState::default();
+        state.set_coins(100.0);
+        let result = state.spend_coins(50.0);
+        assert!(result);
+        assert_eq!(state.get_coins(), 50.0);
+    }
+
+    #[test]
+    fn test_spend_coins_failure() {
+        let mut state = GameState::default();
+        state.set_coins(30.0);
+        let result = state.spend_coins(50.0);
+        assert!(!result);
+        assert_eq!(state.get_coins(), 30.0);
+    }
+
+    #[test]
+    fn test_spend_wood() {
+        let mut state = GameState::default();
+        state.set_wood(100.0);
+        let result = state.spend_wood(50.0);
+        assert!(result);
+        assert_eq!(state.get_wood(), 50.0);
+    }
+
+    #[test]
+    fn test_spend_stone() {
+        let mut state = GameState::default();
+        state.set_stone(100.0);
+        let result = state.spend_stone(50.0);
+        assert!(result);
+        assert_eq!(state.get_stone(), 50.0);
+    }
 }

@@ -455,4 +455,108 @@ mod tests {
         assert_eq!(ResourceType::IronIngot.chinese_name(), "铁锭");
         assert_eq!(ResourceType::Microchip.chinese_name(), "芯片");
     }
+
+    #[test]
+    fn test_all_resources_have_valid_tier() {
+        // Test that all resource variants return a valid tier
+        let resources = [
+            ResourceType::Gold, ResourceType::Wood, ResourceType::Stone,
+            ResourceType::IronOre, ResourceType::CopperOre, ResourceType::AluminumOre,
+            ResourceType::Coal, ResourceType::Oil, ResourceType::Crystal, ResourceType::Food,
+            ResourceType::IronIngot, ResourceType::CopperIngot, ResourceType::AluminumIngot,
+            ResourceType::SteelPlate, ResourceType::CopperPlate, ResourceType::AluminumPlate,
+            ResourceType::Glass, ResourceType::Plastic, ResourceType::Chemicals, ResourceType::Fuel,
+            ResourceType::Paper, ResourceType::Ink, ResourceType::Cloth, ResourceType::Leather,
+            ResourceType::Ceramic, ResourceType::Cement, ResourceType::Brick, ResourceType::Rebar,
+            ResourceType::Wire, ResourceType::Pipe, ResourceType::Valve, ResourceType::Gear,
+            ResourceType::Bearing, ResourceType::Spring, ResourceType::Screw, ResourceType::Nut,
+            ResourceType::Washer, ResourceType::Pump, ResourceType::Motor, ResourceType::Sensor,
+            ResourceType::CircuitBoard, ResourceType::Capacitor, ResourceType::Resistor,
+            ResourceType::Diode, ResourceType::Transistor, ResourceType::Transformer,
+            ResourceType::Generator, ResourceType::Compressor, ResourceType::Battery,
+            ResourceType::Microchip, ResourceType::Engine, ResourceType::Robot,
+            ResourceType::Satellite, ResourceType::Spaceship, ResourceType::QuantumComputer,
+            ResourceType::Antimatter, ResourceType::DarkMatter, ResourceType::TimeCrystal,
+            ResourceType::Nanobot, ResourceType::Corpse, ResourceType::Maggot,
+        ];
+        
+        for r in resources {
+            let tier = r.tier();
+            assert!(tier >= 1 && tier <= 3, "Resource {:?} has invalid tier {}", r, tier);
+            
+            let tier_enum = r.tier_enum();
+            assert!(matches!(tier_enum, ResourceTier::Primary | ResourceTier::Secondary | ResourceTier::Advanced));
+            
+            // All resources should have non-empty name
+            assert!(!r.name().is_empty());
+            
+            // All resources should have valid color (starts with #)
+            let color = r.color();
+            assert!(color.starts_with('#'), "Resource {:?} has invalid color {}", r, color);
+            assert_eq!(color.len(), 7, "Resource {:?} color should be 7 chars", r);
+            
+            // All resources should have base_value > 0
+            assert!(r.base_value() > 0, "Resource {:?} has invalid base_value", r);
+        }
+    }
+
+    #[test]
+    fn test_tier_distribution() {
+        // Count resources per tier
+        let mut tier1_count = 0u32;
+        let mut tier2_count = 0u32;
+        let mut tier3_count = 0u32;
+        
+        // Test all variants
+        let all_tier1 = [ResourceType::Gold, ResourceType::Wood, ResourceType::Stone,
+            ResourceType::IronOre, ResourceType::CopperOre, ResourceType::AluminumOre,
+            ResourceType::Coal, ResourceType::Oil, ResourceType::Crystal, ResourceType::Food];
+        let all_tier3 = [ResourceType::Microchip, ResourceType::Engine, ResourceType::Robot,
+            ResourceType::Satellite, ResourceType::Spaceship, ResourceType::QuantumComputer,
+            ResourceType::Antimatter, ResourceType::DarkMatter, ResourceType::TimeCrystal,
+            ResourceType::Nanobot];
+        
+        for r in all_tier1.iter() {
+            assert_eq!(r.tier(), 1);
+            tier1_count += 1;
+        }
+        
+        // Tier 2 is everything else
+        let all_variants = vec![
+            ResourceType::IronIngot, ResourceType::CopperIngot, ResourceType::AluminumIngot,
+            ResourceType::SteelPlate, ResourceType::CopperPlate, ResourceType::AluminumPlate,
+            ResourceType::Glass, ResourceType::Plastic, ResourceType::Chemicals, ResourceType::Fuel,
+            ResourceType::Paper, ResourceType::Ink, ResourceType::Cloth, ResourceType::Leather,
+            ResourceType::Ceramic, ResourceType::Cement, ResourceType::Brick, ResourceType::Rebar,
+            ResourceType::Wire, ResourceType::Pipe, ResourceType::Valve, ResourceType::Gear,
+            ResourceType::Bearing, ResourceType::Spring, ResourceType::Screw, ResourceType::Nut,
+            ResourceType::Washer, ResourceType::Pump, ResourceType::Motor, ResourceType::Sensor,
+            ResourceType::CircuitBoard, ResourceType::Capacitor, ResourceType::Resistor,
+            ResourceType::Diode, ResourceType::Transistor, ResourceType::Transformer,
+            ResourceType::Generator, ResourceType::Compressor, ResourceType::Battery,
+        ];
+        
+        for r in all_variants.iter() {
+            assert_eq!(r.tier(), 2);
+            tier2_count += 1;
+        }
+        
+        for r in all_tier3.iter() {
+            assert_eq!(r.tier(), 3);
+            tier3_count += 1;
+        }
+        
+        assert_eq!(tier1_count, 10);
+        assert_eq!(tier2_count, 39); // 39 tier 2 resources listed (special: Corpse, Maggot not counted)
+        assert_eq!(tier3_count, 10);
+    }
+
+    #[test]
+    fn test_special_resources() {
+        // Corpse and Maggot are special resources
+        assert_eq!(ResourceType::Corpse.tier(), 1); // Defaults to Primary
+        assert_eq!(ResourceType::Maggot.tier(), 1); // Defaults to Primary
+        assert_eq!(ResourceType::Corpse.name(), "尸体");
+        assert_eq!(ResourceType::Maggot.name(), "蛆虫");
+    }
 }

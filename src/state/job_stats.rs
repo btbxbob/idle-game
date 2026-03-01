@@ -26,3 +26,25 @@ impl Default for WorkOverview {
         }
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_job_stats_default() {
+        let stats = JobStats::default();
+        assert_eq!(stats.job_type, String::new());
+        assert_eq!(stats.worker_count, 0);
+        assert_eq!(stats.avg_efficiency, 0.0);
+        assert_eq!(stats.total_output, 0.0);
+    }
+
+    #[test]
+    fn test_work_overview_default() {
+        let overview = WorkOverview::default();
+        assert!(overview.jobs.is_empty());
+        assert_eq!(overview.unassigned_workers, 0);
+        assert_eq!(overview.total_workers, 0);
+        assert_eq!(overview.total_efficiency, 0.0);
+    }
+}

@@ -646,3 +646,117 @@ impl CraftingRecipe {
         ]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::state::resource::ResourceType;
+
+    #[test]
+    fn test_get_default_recipes_count() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        assert!(recipes.len() >= 60, "Expected at least 60 recipes, got {}", recipes.len());
+        assert!(recipes.len() <= 70, "Expected at most 70 recipes, got {}", recipes.len());
+    }
+
+    #[test]
+    fn test_recipe_fields_present() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        assert!(!recipes.is_empty());
+        let recipe = &recipes[0];
+        assert!(!recipe.id.is_empty());
+        assert!(!recipe.name.is_empty());
+        assert!(recipe.input_amount > 0.0);
+        assert!(recipe.output_amount > 0.0);
+    }
+
+    #[test]
+    fn test_basic_trade_recipes_unlocked() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        let coins_to_wood = recipes.iter().find(|r| r.id == "coins_to_wood").unwrap();
+        assert!(coins_to_wood.unlocked);
+        let wood_to_coins = recipes.iter().find(|r| r.id == "wood_to_coins").unwrap();
+        assert!(wood_to_coins.unlocked);
+        let coins_to_stone = recipes.iter().find(|r| r.id == "coins_to_stone").unwrap();
+        assert!(coins_to_stone.unlocked);
+        let stone_to_coins = recipes.iter().find(|r| r.id == "stone_to_coins").unwrap();
+        assert!(stone_to_coins.unlocked);
+        let wood_to_stone = recipes.iter().find(|r| r.id == "wood_to_stone").unwrap();
+        assert!(wood_to_stone.unlocked);
+        let stone_to_wood = recipes.iter().find(|r| r.id == "stone_to_wood").unwrap();
+        assert!(stone_to_wood.unlocked);
+    }
+
+    #[test]
+    fn test_advanced_recipes_locked() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        let iron_ore_to_iron_ingot = recipes.iter().find(|r| r.id == "iron_ore_to_iron_ingot").unwrap();
+        assert!(!iron_ore_to_iron_ingot.unlocked);
+        let copper_ore_to_copper_ingot = recipes.iter().find(|r| r.id == "copper_ore_to_copper_ingot").unwrap();
+        assert!(!copper_ore_to_copper_ingot.unlocked);
+        let aluminum_ore_to_aluminum_ingot = recipes.iter().find(|r| r.id == "aluminum_ore_to_aluminum_ingot").unwrap();
+        assert!(!aluminum_ore_to_aluminum_ingot.unlocked);
+        let iron_ingot_to_steel_plate = recipes.iter().find(|r| r.id == "iron_ingot_to_steel_plate").unwrap();
+        assert!(!iron_ingot_to_steel_plate.unlocked);
+    }
+
+    #[test]
+    fn test_serialization_deserialization_roundtrip() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        let recipe = &recipes[0];
+        let serialized = serde_json::to_string(recipe).unwrap();
+        assert!(!serialized.is_empty());
+        let deserialized: CraftingRecipe = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized.id, recipe.id);
+        assert_eq!(deserialized.name, recipe.name);
+        assert_eq!(deserialized.input_resource, recipe.input_resource);
+        assert_eq!(deserialized.input_amount, recipe.input_amount);
+        assert_eq!(deserialized.output_resource, recipe.output_resource);
+        assert_eq!(deserialized.output_amount, recipe.output_amount);
+        assert_eq!(deserialized.unlocked, recipe.unlocked);
+    }
+
+    #[test]
+    fn test_recipe_ids_unique() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        let mut ids: Vec<&String> = recipes.iter().map(|r| &r.id).collect();
+        ids.sort();
+        ids.dedup();
+        assert_eq!(ids.len(), recipes.len(), "Recipe IDs should be unique");
+    }
+
+    #[test]
+    fn test_recipe_name_localization_chinese() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        for recipe in &recipes {
+            assert!(!recipe.name.is_empty(), "Recipe {} should have a name", recipe.id);
+            let has_chinese = recipe.name.chars().any(|c| {
+                let code = c as u32;
+                (0x4E00..=0x9FFF).contains(&code) || (0x3400..=0x4DBF).contains(&code)
+            });
+            assert!(has_chinese, "Recipe '{}' should have Chinese localization", recipe.name);
+        }
+    }
+
+    #[test]
+    fn test_maggot_factory_recipe() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        let maggots_to_food = recipes.iter().find(|r| r.id == "maggots_to_food").unwrap();
+        assert!(maggots_to_food.unlocked);
+        assert_eq!(maggots_to_food.input_resource, ResourceType::Maggot);
+        assert_eq!(maggots_to_food.input_amount, 10.0);
+        assert_eq!(maggots_to_food.output_resource, ResourceType::Food);
+        assert_eq!(maggots_to_food.output_amount, 5.0);
+    }
+
+    #[test]
+    fn test_100_to_10_ratio_preserved() {
+        let recipes = CraftingRecipe::get_default_recipes();
+        let coins_to_wood = recipes.iter().find(|r| r.id == "coins_to_wood").unwrap();
+        assert_eq!(coins_to_wood.input_amount, 100.0);
+        assert_eq!(coins_to_wood.output_amount, 10.0);
+        let wood_to_coins = recipes.iter().find(|r| r.id == "wood_to_coins").unwrap();
+        assert_eq!(wood_to_coins.input_amount, 10.0);
+        assert_eq!(wood_to_coins.output_amount, 100.0);
+    }
+}
