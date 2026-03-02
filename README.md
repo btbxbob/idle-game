@@ -151,7 +151,7 @@ Rust WASM 模块导出以下方法：
 
 ## 版本
 
-当前版本: **v0.2.6** - 修复住房升级"Unknown resource: coins"错误
+当前版本: **v0.5.5** - 修复住房升级"Unknown resource: coins"错误
 
 ## 贡献
 
