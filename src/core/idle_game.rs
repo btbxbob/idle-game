@@ -141,7 +141,7 @@ impl IdleGame {
         if self.housing_buildings.is_empty() {
             use crate::entities::building::Housing;
             self.housing_buildings = vec![
-                Housing::new("住房", std::collections::HashMap::from([("coins".to_string(), 100.0)]), 4),
+                Housing::new("住房", std::collections::HashMap::from([("Gold".to_string(), 100.0)]), 4),
             ];
         }
     }
@@ -418,7 +418,7 @@ impl IdleGame {
             housing_buildings: vec![
                 Housing::new(
                     "住房",
-                    std::collections::HashMap::from([("coins".to_string(), 100.0)]),
+                    std::collections::HashMap::from([("Gold".to_string(), 100.0)]),
                     4,
                 ),
             ],
