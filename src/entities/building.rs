@@ -1,11 +1,19 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::state::resource::ResourceType;
+
+fn default_output_resource() -> ResourceType {
+    ResourceType::Gold
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Building {
     pub name: String,
     pub cost: f64,
     pub production_rate: f64,
+    #[serde(default = "default_output_resource")]
+    pub output_resource: ResourceType,
     pub count: u32,
 }
 
@@ -54,6 +62,7 @@ mod tests {
             name: "Test Building".to_string(),
             cost: 100.0,
             production_rate: 1.5,
+            output_resource: ResourceType::Gold,
             count: 5,
         };
 
@@ -69,6 +78,7 @@ mod tests {
         assert_eq!(deserialized.name, "Test Building");
         assert_eq!(deserialized.cost, 100.0);
         assert_eq!(deserialized.production_rate, 1.5);
+        assert_eq!(deserialized.output_resource, ResourceType::Gold);
         assert_eq!(deserialized.count, 5);
     }
 
@@ -78,6 +88,7 @@ mod tests {
             name: "Clone Test".to_string(),
             cost: 50.0,
             production_rate: 0.5,
+            output_resource: ResourceType::Gold,
             count: 3,
         };
 

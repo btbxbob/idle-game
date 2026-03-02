@@ -253,15 +253,25 @@ window.updateBuildingDisplay = function(buildings) {
 function getResourceNameForBuilding(buildingName) {
     const buildingResourceMap = {
         '金币矿山': 'coins',
+        'Coin Mine': 'coins',
+        'Coin Factory': 'coins',
+        'Coin Corporation': 'coins',
         '伐木场': 'wood',
+        'Woodcutter': 'wood',
+        'Lumber Mill': 'wood',
+        'Forest Workshop': 'wood',
         '采石场': 'stone',
-        '铁矿场': 'coins',
-        '铜矿场': 'coins',
-        '铝矿场': 'coins',
-        '煤矿场': 'coins',
-        '石油井': 'coins',
-        '水晶矿': 'coins',
-        '农场': 'coins'
+        'Stone Quarry': 'stone',
+        'Rock Crusher': 'stone',
+        'Mason Workshop': 'stone',
+        '铁矿场': 'ironOre',
+        '铜矿场': 'copperOre',
+        '铝矿场': 'aluminumOre',
+        '煤矿场': 'coal',
+        '石油井': 'oil',
+        '水晶矿': 'crystal',
+        '农场': 'food',
+        '蛆虫工厂': 'maggot'
     };
     
     const resourceKey = buildingResourceMap[buildingName] || 'coins';

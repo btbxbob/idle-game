@@ -18,86 +18,96 @@ pub fn get_worker_bonus_for_building(workers: &[Worker], building_name: &str) ->
 }
 
 /// Calculate production for a specific resource type based on buildings
+fn legacy_building_aliases(resource: ResourceType) -> &'static [&'static str] {
+    match resource {
+        // Tier 1: Basic Resources
+        ResourceType::Gold => &["金币矿山", "Coin Mine", "Coin Factory", "Coin Corporation"],
+        ResourceType::Wood => &["伐木场", "Woodcutter", "Lumber Mill", "Forest Workshop"],
+        ResourceType::Stone => &["采石场", "Stone Quarry", "Rock Crusher", "Mason Workshop"],
+        ResourceType::IronOre => &["铁矿场"],
+        ResourceType::CopperOre => &["铜矿场"],
+        ResourceType::AluminumOre => &["铝矿场"],
+        ResourceType::Coal => &["煤矿场"],
+        ResourceType::Oil => &["石油井"],
+        ResourceType::Crystal => &["水晶矿"],
+        ResourceType::Food => &["农场"],
+        ResourceType::Corpse => &["停尸房"],
+        ResourceType::Maggot => &["蛆虫工厂"],
+        // Tier 2: Processed Resources (40)
+        ResourceType::IronIngot => &["铁锭冶炼厂"],
+        ResourceType::CopperIngot => &["铜锭冶炼厂"],
+        ResourceType::AluminumIngot => &["铝锭冶炼厂"],
+        ResourceType::SteelPlate => &["钢铁厂"],
+        ResourceType::CopperPlate => &["铜板厂"],
+        ResourceType::AluminumPlate => &["铝板厂"],
+        ResourceType::Glass => &["玻璃厂"],
+        ResourceType::Plastic => &["塑料厂"],
+        ResourceType::Chemicals => &["化学品厂"],
+        ResourceType::Fuel => &["燃料精炼厂"],
+        ResourceType::Paper => &["造纸厂"],
+        ResourceType::Ink => &["墨水厂"],
+        ResourceType::Cloth => &["纺织厂"],
+        ResourceType::Leather => &["皮革厂"],
+        ResourceType::Ceramic => &["陶瓷厂"],
+        ResourceType::Cement => &["水泥厂"],
+        ResourceType::Brick => &["砖厂"],
+        ResourceType::Rebar => &["钢筋厂"],
+        ResourceType::Wire => &["电线厂"],
+        ResourceType::Pipe => &["管道厂"],
+        ResourceType::Valve => &["阀门厂"],
+        ResourceType::Gear => &["齿轮厂"],
+        ResourceType::Bearing => &["轴承厂"],
+        ResourceType::Spring => &["弹簧厂"],
+        ResourceType::Screw => &["螺丝厂"],
+        ResourceType::Nut => &["螺母厂"],
+        ResourceType::Washer => &["垫片厂"],
+        ResourceType::Pump => &["泵厂"],
+        ResourceType::Motor => &["马达厂"],
+        ResourceType::Sensor => &["传感器厂"],
+        ResourceType::CircuitBoard => &["电路板厂"],
+        ResourceType::Capacitor => &["电容器厂"],
+        ResourceType::Resistor => &["电阻厂"],
+        ResourceType::Diode => &["二极管厂"],
+        ResourceType::Transistor => &["晶体管厂"],
+        ResourceType::Transformer => &["变压器厂"],
+        ResourceType::Generator => &["发电机厂"],
+        ResourceType::Compressor => &["压缩机厂"],
+        ResourceType::Battery => &["电池厂"],
+        // Tier 3: High-Tech Resources (10)
+        ResourceType::Microchip => &["芯片制造厂"],
+        ResourceType::Engine => &["引擎装配厂"],
+        ResourceType::Robot => &["机器人工厂"],
+        ResourceType::Satellite => &["卫星装配中心"],
+        ResourceType::Spaceship => &["太空船坞"],
+        ResourceType::QuantumComputer => &["量子计算中心"],
+        ResourceType::Antimatter => &["反物质反应堆"],
+        ResourceType::DarkMatter => &["暗物质提取器"],
+        ResourceType::TimeCrystal => &["时间水晶合成器"],
+        ResourceType::Nanobot => &["纳米机器人工厂"],
+    }
+}
+
 pub fn calculate_production(
     buildings: &[Building],
     workers: &[Worker],
     resource: ResourceType,
     tech_bonuses: &TechnologyBonuses,
 ) -> f64 {
-    let building_name = match resource {
-        // Tier 1: Basic Resources
-        ResourceType::Gold => "金币矿山",
-        ResourceType::Wood => "伐木场",
-        ResourceType::Stone => "采石场",
-        ResourceType::IronOre => "铁矿场",
-        ResourceType::CopperOre => "铜矿场",
-        ResourceType::AluminumOre => "铝矿场",
-        ResourceType::Coal => "煤矿场",
-        ResourceType::Oil => "石油井",
-        ResourceType::Crystal => "水晶矿",
-        ResourceType::Food => "农场",
-        ResourceType::Corpse => "停尸房",
-        ResourceType::Maggot => "蛆虫工厂",
-        // Tier 2: Processed Resources (40)
-        ResourceType::IronIngot => "铁锭冶炼厂",
-        ResourceType::CopperIngot => "铜锭冶炼厂",
-        ResourceType::AluminumIngot => "铝锭冶炼厂",
-        ResourceType::SteelPlate => "钢铁厂",
-        ResourceType::CopperPlate => "铜板厂",
-        ResourceType::AluminumPlate => "铝板厂",
-        ResourceType::Glass => "玻璃厂",
-        ResourceType::Plastic => "塑料厂",
-        ResourceType::Chemicals => "化学品厂",
-        ResourceType::Fuel => "燃料精炼厂",
-        ResourceType::Paper => "造纸厂",
-        ResourceType::Ink => "墨水厂",
-        ResourceType::Cloth => "纺织厂",
-        ResourceType::Leather => "皮革厂",
-        ResourceType::Ceramic => "陶瓷厂",
-        ResourceType::Cement => "水泥厂",
-        ResourceType::Brick => "砖厂",
-        ResourceType::Rebar => "钢筋厂",
-        ResourceType::Wire => "电线厂",
-        ResourceType::Pipe => "管道厂",
-        ResourceType::Valve => "阀门厂",
-        ResourceType::Gear => "齿轮厂",
-        ResourceType::Bearing => "轴承厂",
-        ResourceType::Spring => "弹簧厂",
-        ResourceType::Screw => "螺丝厂",
-        ResourceType::Nut => "螺母厂",
-        ResourceType::Washer => "垫片厂",
-        ResourceType::Pump => "泵厂",
-        ResourceType::Motor => "马达厂",
-        ResourceType::Sensor => "传感器厂",
-        ResourceType::CircuitBoard => "电路板厂",
-        ResourceType::Capacitor => "电容器厂",
-        ResourceType::Resistor => "电阻厂",
-        ResourceType::Diode => "二极管厂",
-        ResourceType::Transistor => "晶体管厂",
-        ResourceType::Transformer => "变压器厂",
-        ResourceType::Generator => "发电机厂",
-        ResourceType::Compressor => "压缩机厂",
-        ResourceType::Battery => "电池厂",
-        // Tier 3: High-Tech Resources (10)
-        ResourceType::Microchip => "芯片制造厂",
-        ResourceType::Engine => "引擎装配厂",
-        ResourceType::Robot => "机器人工厂",
-        ResourceType::Satellite => "卫星装配中心",
-        ResourceType::Spaceship => "太空船坞",
-        ResourceType::QuantumComputer => "量子计算中心",
-        ResourceType::Antimatter => "反物质反应堆",
-        ResourceType::DarkMatter => "暗物质提取器",
-        ResourceType::TimeCrystal => "时间水晶合成器",
-        ResourceType::Nanobot => "纳米机器人工厂",
-    };
-
-    let building = match buildings.iter().find(|b| b.name == building_name) {
+    let building = match buildings
+        .iter()
+        .find(|b| b.output_resource == resource)
+        .or_else(|| {
+            let aliases = legacy_building_aliases(resource);
+            buildings
+                .iter()
+                .find(|b| aliases.iter().any(|alias| b.name.as_str() == *alias))
+        }) {
         Some(b) => b,
         None => return 0.0,
     };
 
     let base_production = building.production_rate * building.count as f64;
-    let worker_bonus = get_worker_bonus_for_building(workers, building_name);
+    let worker_bonus = get_worker_bonus_for_building(workers, &building.name);
     
     // Apply technology bonuses
     let tech_bonus = tech_bonuses.production_bonus.get(&resource).copied().unwrap_or(1.0);
@@ -126,60 +136,70 @@ mod tests {
                 name: "金币矿山".to_string(),
                 cost: 15.0,
                 production_rate: 1.0,
+                output_resource: ResourceType::Gold,
                 count: 0,
             },
             Building {
                 name: "伐木场".to_string(),
                 cost: 20.0,
                 production_rate: 1.0,
+                output_resource: ResourceType::Wood,
                 count: 0,
             },
             Building {
                 name: "采石场".to_string(),
                 cost: 25.0,
                 production_rate: 0.5,
+                output_resource: ResourceType::Stone,
                 count: 0,
             },
             Building {
                 name: "铁矿场".to_string(),
                 cost: 50.0,
                 production_rate: 0.5,
+                output_resource: ResourceType::IronOre,
                 count: 0,
             },
             Building {
                 name: "铜矿场".to_string(),
                 cost: 40.0,
                 production_rate: 0.6,
+                output_resource: ResourceType::CopperOre,
                 count: 0,
             },
             Building {
                 name: "铝矿场".to_string(),
                 cost: 60.0,
                 production_rate: 0.4,
+                output_resource: ResourceType::AluminumOre,
                 count: 0,
             },
             Building {
                 name: "煤矿场".to_string(),
                 cost: 70.0,
                 production_rate: 0.5,
+                output_resource: ResourceType::Coal,
                 count: 0,
             },
             Building {
                 name: "石油井".to_string(),
                 cost: 100.0,
                 production_rate: 0.3,
+                output_resource: ResourceType::Oil,
                 count: 0,
             },
             Building {
                 name: "水晶矿".to_string(),
                 cost: 150.0,
                 production_rate: 0.2,
+                output_resource: ResourceType::Crystal,
                 count: 0,
             },
             Building {
                 name: "农场".to_string(),
                 cost: 30.0,
                 production_rate: 2.0,
+                output_resource: ResourceType::Food,
                 count: 0,
             },
         ]
@@ -383,6 +403,42 @@ mod tests {
         assert_eq!(
             calculate_production(&buildings, &workers, ResourceType::Microchip, &bonuses),
             0.0
+        );
+    }
+
+    #[test]
+    fn test_production_uses_output_resource_field() {
+        let buildings = vec![Building {
+            name: "自定义木材站".to_string(),
+            cost: 10.0,
+            production_rate: 1.5,
+            output_resource: ResourceType::Wood,
+            count: 2,
+        }];
+        let workers = vec![];
+        let bonuses = default_bonuses();
+
+        assert_eq!(
+            calculate_production(&buildings, &workers, ResourceType::Wood, &bonuses),
+            3.0
+        );
+    }
+
+    #[test]
+    fn test_production_supports_legacy_english_building_names() {
+        let buildings = vec![Building {
+            name: "Woodcutter".to_string(),
+            cost: 20.0,
+            production_rate: 2.0,
+            output_resource: ResourceType::Gold,
+            count: 1,
+        }];
+        let workers = vec![];
+        let bonuses = default_bonuses();
+
+        assert_eq!(
+            calculate_production(&buildings, &workers, ResourceType::Wood, &bonuses),
+            2.0
         );
     }
 }

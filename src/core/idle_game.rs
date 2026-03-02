@@ -78,6 +78,82 @@ pub struct SavedGame {
     pub version: String,
 }
 
+fn infer_output_resource_from_building_name(building_name: &str) -> ResourceType {
+    match normalize_building_name(building_name).as_str() {
+        "金币矿山" => ResourceType::Gold,
+        "伐木场" => ResourceType::Wood,
+        "采石场" => ResourceType::Stone,
+        "铁矿场" => ResourceType::IronOre,
+        "铜矿场" => ResourceType::CopperOre,
+        "铝矿场" => ResourceType::AluminumOre,
+        "煤矿场" => ResourceType::Coal,
+        "石油井" => ResourceType::Oil,
+        "水晶矿" => ResourceType::Crystal,
+        "农场" => ResourceType::Food,
+        "蛆虫工厂" => ResourceType::Maggot,
+        _ => ResourceType::Gold,
+    }
+}
+
+fn normalize_building_name(building_name: &str) -> String {
+    match building_name {
+        "Coin Mine" | "Coin Factory" | "Coin Corporation" => "金币矿山".to_string(),
+        "Woodcutter" | "Lumber Mill" | "Forest Workshop" => "伐木场".to_string(),
+        "Stone Quarry" | "Rock Crusher" | "Mason Workshop" => "采石场".to_string(),
+        _ => building_name.to_string(),
+    }
+}
+
+fn normalize_worker_building_references(workers: &mut [Worker]) {
+    for worker in workers {
+        worker.preferences = normalize_building_name(&worker.preferences);
+        if let Some(assigned) = &worker.assigned_building {
+            worker.assigned_building = Some(normalize_building_name(assigned));
+        }
+    }
+}
+
+fn normalize_housing_resource_key(resource: &str) -> Option<&'static str> {
+    match resource.to_ascii_lowercase().as_str() {
+        "gold" | "coins" | "coin" => Some("Gold"),
+        "wood" => Some("Wood"),
+        "stone" => Some("Stone"),
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod normalization_tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_building_name_from_legacy_english() {
+        assert_eq!(normalize_building_name("Coin Factory"), "金币矿山");
+        assert_eq!(normalize_building_name("Woodcutter"), "伐木场");
+        assert_eq!(normalize_building_name("Mason Workshop"), "采石场");
+    }
+
+    #[test]
+    fn test_normalize_worker_building_references() {
+        let mut workers = vec![Worker::new("测试", "mining", "测试背景", "Coin Mine")];
+        workers[0].assigned_building = Some("Stone Quarry".to_string());
+
+        normalize_worker_building_references(&mut workers);
+
+        assert_eq!(workers[0].preferences, "金币矿山");
+        assert_eq!(workers[0].assigned_building.as_deref(), Some("采石场"));
+    }
+
+    #[test]
+    fn test_normalize_housing_resource_key() {
+        assert_eq!(normalize_housing_resource_key("coins"), Some("Gold"));
+        assert_eq!(normalize_housing_resource_key("Gold"), Some("Gold"));
+        assert_eq!(normalize_housing_resource_key("WOOD"), Some("Wood"));
+        assert_eq!(normalize_housing_resource_key("stone"), Some("Stone"));
+        assert_eq!(normalize_housing_resource_key("crystal"), None);
+    }
+}
+
 impl IdleGame {
     /// Serialize entire game state to SavedGame structure
     pub fn save_game(&self) -> SavedGame {
@@ -114,8 +190,16 @@ impl IdleGame {
 
         self.upgrades = saved.upgrades;
         self.buildings = saved.buildings;
+        for building in &mut self.buildings {
+            building.name = normalize_building_name(&building.name);
+            let inferred = infer_output_resource_from_building_name(&building.name);
+            if building.output_resource == ResourceType::Gold && inferred != ResourceType::Gold {
+                building.output_resource = inferred;
+            }
+        }
         self.housing_buildings = saved.housing_buildings;
         self.workers = saved.workers;
+        normalize_worker_building_references(&mut self.workers);
         self.population_queue = saved.population_queue;
         self.achievements = saved.achievements;
         self.crafting_recipes = saved.crafting_recipes;
@@ -129,11 +213,11 @@ impl IdleGame {
         // Ensure default workers exist if save is empty (backwards compatibility)
         if self.workers.is_empty() {
             self.workers = vec![
-                Worker::new("矿工", "mining", "擅长挖矿的工人", "Coin Mine"),
-                Worker::new("伐木工", "logging", "擅长伐木的工人", "Woodcutter"),
-                Worker::new("石匠", "masonry", "擅长采石的工人", "Stone Quarry"),
-                Worker::new("工厂工人", "factory", "擅长工厂生产的工人", "Coin Factory"),
-                Worker::new("高级工匠", "crafting", "擅长高级制作的工匠", "Mason Workshop"),
+                Worker::new("矿工", "mining", "擅长挖矿的工人", "金币矿山"),
+                Worker::new("伐木工", "logging", "擅长伐木的工人", "伐木场"),
+                Worker::new("石匠", "masonry", "擅长采石的工人", "采石场"),
+                Worker::new("工厂工人", "factory", "擅长工厂生产的工人", "金币矿山"),
+                Worker::new("高级工匠", "crafting", "擅长高级制作的工匠", "采石场"),
             ];
         }
         
@@ -352,66 +436,77 @@ impl IdleGame {
                     name: "金币矿山".to_string(),
                     cost: 15.0,
                     production_rate: 1.0,
+                    output_resource: ResourceType::Gold,
                     count: 0,
                 },
                 Building {
                     name: "伐木场".to_string(),
                     cost: 20.0,
                     production_rate: 1.0,
+                    output_resource: ResourceType::Wood,
                     count: 0,
                 },
                 Building {
                     name: "采石场".to_string(),
                     cost: 25.0,
                     production_rate: 0.5,
+                    output_resource: ResourceType::Stone,
                     count: 0,
                 },
                 Building {
                     name: "铁矿场".to_string(),
                     cost: 50.0,
                     production_rate: 0.5,
+                    output_resource: ResourceType::IronOre,
                     count: 0,
                 },
                 Building {
                     name: "铜矿场".to_string(),
                     cost: 40.0,
                     production_rate: 0.6,
+                    output_resource: ResourceType::CopperOre,
                     count: 0,
                 },
                 Building {
                     name: "铝矿场".to_string(),
                     cost: 60.0,
                     production_rate: 0.4,
+                    output_resource: ResourceType::AluminumOre,
                     count: 0,
                 },
                 Building {
                     name: "煤矿场".to_string(),
                     cost: 70.0,
                     production_rate: 0.5,
+                    output_resource: ResourceType::Coal,
                     count: 0,
                 },
                 Building {
                     name: "石油井".to_string(),
                     cost: 100.0,
                     production_rate: 0.3,
+                    output_resource: ResourceType::Oil,
                     count: 0,
                 },
                 Building {
                     name: "水晶矿".to_string(),
                     cost: 150.0,
                     production_rate: 0.2,
+                    output_resource: ResourceType::Crystal,
                     count: 0,
                 },
             Building {
                 name: "农场".to_string(),
                 cost: 30.0,
                 production_rate: 2.0,
+                output_resource: ResourceType::Food,
                 count: 0,
             },
                 Building {
                     name: "蛆虫工厂".to_string(),
                     cost: 200.0,
                     production_rate: 1.0,
+                    output_resource: ResourceType::Maggot,
                     count: 0,
                 },
             ],
@@ -423,15 +518,15 @@ impl IdleGame {
                 ),
             ],
             workers: vec![
-                Worker::new("矿工", "mining", "擅长挖矿的工人", "Coin Mine"),
-                Worker::new("伐木工", "logging", "擅长伐木的工人", "Woodcutter"),
-                Worker::new("石匠", "masonry", "擅长采石的工人", "Stone Quarry"),
-                Worker::new("工厂工人", "factory", "擅长工厂生产的工人", "Coin Factory"),
+                Worker::new("矿工", "mining", "擅长挖矿的工人", "金币矿山"),
+                Worker::new("伐木工", "logging", "擅长伐木的工人", "伐木场"),
+                Worker::new("石匠", "masonry", "擅长采石的工人", "采石场"),
+                Worker::new("工厂工人", "factory", "擅长工厂生产的工人", "金币矿山"),
                 Worker::new(
                     "高级工匠",
                     "crafting",
                     "擅长高级制作的工匠",
-                    "Mason Workshop",
+                    "采石场",
                 ),
             ],
             population_queue: PopulationQueue::new(),
@@ -605,10 +700,10 @@ impl IdleGame {
         let can_afford = {
             let state = self.state.borrow();
             for (resource, amount) in cost_map.iter() {
-                let current = match resource.as_str() {
-                    "Gold" => state.get_coins(),
-                    "Wood" => state.get_wood(),
-                    "Stone" => state.get_stone(),
+                let current = match normalize_housing_resource_key(resource.as_str()) {
+                    Some("Gold") => state.get_coins(),
+                    Some("Wood") => state.get_wood(),
+                    Some("Stone") => state.get_stone(),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
                 if current + 1e-10 < *amount {
@@ -630,10 +725,10 @@ impl IdleGame {
         {
             let mut state = self.state.borrow_mut();
             for (resource, amount) in cost_map.iter() {
-                match resource.as_str() {
-                    "Gold" => state.spend_coins(*amount),
-                    "Wood" => state.spend_wood(*amount),
-                    "Stone" => state.spend_stone(*amount),
+                match normalize_housing_resource_key(resource.as_str()) {
+                    Some("Gold") => state.spend_coins(*amount),
+                    Some("Wood") => state.spend_wood(*amount),
+                    Some("Stone") => state.spend_stone(*amount),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
             }
@@ -672,10 +767,10 @@ impl IdleGame {
         let can_afford = {
             let state = self.state.borrow();
             for (resource, amount) in upgrade_cost.iter() {
-                let current = match resource.as_str() {
-                    "Gold" => state.get_coins(),
-                    "Wood" => state.get_wood(),
-                    "Stone" => state.get_stone(),
+                let current = match normalize_housing_resource_key(resource.as_str()) {
+                    Some("Gold") => state.get_coins(),
+                    Some("Wood") => state.get_wood(),
+                    Some("Stone") => state.get_stone(),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
                 if current + 1e-10 < *amount {
@@ -697,10 +792,10 @@ impl IdleGame {
         {
             let mut state = self.state.borrow_mut();
             for (resource, amount) in upgrade_cost.iter() {
-                match resource.as_str() {
-                    "Gold" => state.spend_coins(*amount),
-                    "Wood" => state.spend_wood(*amount),
-                    "Stone" => state.spend_stone(*amount),
+                match normalize_housing_resource_key(resource.as_str()) {
+                    Some("Gold") => state.spend_coins(*amount),
+                    Some("Wood") => state.spend_wood(*amount),
+                    Some("Stone") => state.spend_stone(*amount),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
             }
@@ -1297,42 +1392,15 @@ impl IdleGame {
             let worker_bonus = self.get_worker_bonus_for_building(&building.name);
             let boosted_production = base_production * worker_bonus;
 
-            match building.name.as_str() {
-                // Coins - 金币矿山
-                "金币矿山" => {
+            match building.output_resource {
+                ResourceType::Gold => {
                     total_cps += boosted_production;
                 }
-                // Wood - 伐木场
-                "伐木场" => {
+                ResourceType::Wood => {
                     total_wps += boosted_production;
                 }
-                // Stone - 采石场
-                "采石场" => {
+                ResourceType::Stone => {
                     total_sps += boosted_production;
-                }
-                // Iron Ore - 铁矿场 (produces coins for now)
-                "铁矿场" => {
-                    total_cps += boosted_production;
-                }
-                // Copper Ore - 铜矿场 (produces coins for now)
-                "铜矿场" => {
-                    total_cps += boosted_production;
-                }
-                // Aluminum Ore - 铝矿场 (produces coins for now)
-                "铝矿场" => {
-                    total_cps += boosted_production;
-                }
-                // Coal - 煤矿场 (produces coins for now)
-                "煤矿场" => {
-                    total_cps += boosted_production;
-                }
-                // Oil - 石油井 (produces coins for now)
-                "石油井" => {
-                    total_cps += boosted_production;
-                }
-                // Crystal - 水晶矿 (produces coins for now)
-                "水晶矿" => {
-                    total_cps += boosted_production;
                 }
                 _ => {}
             }
@@ -1487,6 +1555,22 @@ impl IdleGame {
             } else {
                 current_stone
             });
+
+            for (resource, index) in [
+                (ResourceType::IronOre, 3usize),
+                (ResourceType::CopperOre, 4usize),
+                (ResourceType::AluminumOre, 5usize),
+                (ResourceType::Coal, 6usize),
+                (ResourceType::Oil, 7usize),
+                (ResourceType::Crystal, 8usize),
+                (ResourceType::Food, 9usize),
+            ] {
+                let gain = production[index] * elapsed;
+                if gain.is_finite() && gain > 0.0 {
+                    state.add_resource(resource, gain);
+                }
+            }
+
             state.last_update_time = new_last_update_time;
         }
 

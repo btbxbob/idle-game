@@ -89,9 +89,18 @@ class HousingManager {
         
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
         const parts = [];
+
+        const labelMap = {
+            gold: 'coins',
+            coin: 'coins',
+            coins: 'coins',
+            wood: 'wood',
+            stone: 'stone'
+        };
         
         for (const [resource, amount] of Object.entries(cost)) {
-            const resourceName = t(resource.toLowerCase()) || resource;
+            const key = resource.toLowerCase();
+            const resourceName = t(labelMap[key] || key) || resource;
             parts.push(`${Math.floor(amount)} ${resourceName}`);
         }
         
@@ -159,8 +168,18 @@ class HousingManager {
 
         try {
             const resources = this.rustGame.get_resources();
+            const keyMap = {
+                gold: 'Gold',
+                coin: 'Gold',
+                coins: 'Gold',
+                wood: 'Wood',
+                stone: 'Stone'
+            };
             for (const [resource, amount] of Object.entries(cost)) {
-                const resourceKey = resource.charAt(0).toUpperCase() + resource.slice(1).toLowerCase();
+                const resourceKey = keyMap[resource.toLowerCase()];
+                if (!resourceKey) {
+                    return false;
+                }
                 const current = resources[resourceKey] || 0;
                 if (current < amount) {
                     return false;
