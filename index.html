@@ -291,9 +291,8 @@
                         <div class="setting-item">
                             <label for="theme-select-setting">主题 / Theme:</label>
                             <select id="theme-select-setting">
-                                <option value="light">琥珀终端 (Amber)</option>
-                                <option value="dark">绿色终端 (Green)</option>
-                                <option value="cyan">青色终端 (Cyan)</option>
+                                <option value="light">浅色 (Light)</option>
+                                <option value="dark">深色 (Dark)</option>
                             </select>
                         </div>
                         <div class="setting-item">
@@ -405,20 +404,16 @@
             
             function applyTheme(theme) {
                 // Remove all theme classes first
-                document.body.classList.remove('dark-theme', 'cyan-theme');
+                document.body.classList.remove('dark-theme');
                 
                 // Apply selected theme
                 if (theme === 'dark') {
                     document.body.classList.add('dark-theme');
-                } else if (theme === 'cyan') {
-                    document.body.classList.add('cyan-theme');
                 }
                 // light theme is default (no class needed)
                 
-                // Update both theme selectors
-                const themeSelect = document.getElementById('theme-select');
+                // Update theme selector in settings
                 const themeSelectSetting = document.getElementById('theme-select-setting');
-                if (themeSelect) themeSelect.value = theme;
                 if (themeSelectSetting) themeSelectSetting.value = theme;
             }
             
@@ -484,7 +479,10 @@
             if (resetButton) {
                 resetButton.addEventListener('click', function() {
                     if (confirm('确定要重置游戏吗？所有进度将丢失！')) {
-                        // Reload the page to reset the game
+                        // Clear localStorage to reset game progress
+                        localStorage.removeItem('idle_game_save');
+                        localStorage.removeItem('gameTheme');
+                        // Reload the page to start fresh
                         location.reload();
                     }
                 });

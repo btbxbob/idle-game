@@ -5,6 +5,27 @@ use crate::state::GameState;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+/// Technology bonuses calculated from all purchased technologies
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct TechnologyBonuses {
+    /// Production bonus multiplier for each resource (1.0 = no bonus)
+    pub production_bonus: HashMap<ResourceType, f64>,
+    /// Click efficiency multiplier (1.0 = no bonus)
+    pub click_bonus: f64,
+    /// Cost reduction multiplier (1.0 = no reduction, 0.9 = 10% off)
+    pub cost_reduction: f64,
+    /// Production multiplier (global, 1.0 = no bonus)
+    pub production_multiplier: f64,
+    /// Critical click chance (0.0 = none, 1.0 = 100%)
+    pub critical_click_chance: f64,
+    /// Critical click multiplier
+    pub critical_click_multiplier: f64,
+    /// Unlocked building types
+    pub unlocked_buildings: HashSet<BuildingType>,
+    /// Enabled mechanics
+    pub enabled_mechanics: HashSet<String>,
+}
+
 /// Technology tree system managing research and dependencies
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TechnologyTree {
@@ -81,7 +102,151 @@ impl TechnologyTree {
             .collect()
     }
 
-    /// Apply technology effect to game state
+    /// Calculate all bonuses from purchased technologies
+    pub fn calculate_bonuses(&self) -> TechnologyBonuses {
+        let mut bonuses = TechnologyBonuses::default();
+
+        // Initialize defaults
+        bonuses.click_bonus = 1.0;
+        bonuses.cost_reduction = 1.0;
+        bonuses.production_multiplier = 1.0;
+        bonuses.critical_click_chance = 0.0;
+        bonuses.critical_click_multiplier = 2.0;
+
+        // Iterate through all purchased technologies
+        for (tech_id, tech) in &self.technologies {
+            if !tech.purchased {
+                continue;
+            }
+
+            match &tech.effect {
+                TechnologyEffect::ProductionBonus(resource, bonus) => {
+                    // Add to production bonus (compounding)
+                    let current = bonuses.production_bonus.get(resource).copied().unwrap_or(1.0);
+                    bonuses.production_bonus.insert(*resource, current + bonus);
+                }
+                TechnologyEffect::UnlockBuilding(building_type) => {
+                    bonuses.unlocked_buildings.insert(*building_type);
+                }
+                TechnologyEffect::UnlockUI => {
+                    // UI unlocking is handled separately in the UI layer
+                }
+                TechnologyEffect::MechanicChange(mechanic) => {
+                    bonuses.enabled_mechanics.insert(mechanic.clone());
+                    // Handle specific mechanics
+                    match mechanic.as_str() {
+                        "auto_production" | "full_automation" => {
+                            // Automation is handled separately
+                        }
+                        "ai_assistance" | "ai_optimization" => {
+                            // AI optimization adds production bonus
+                            bonuses.production_multiplier += tech.effect_value * 0.1;
+                        }
+                        "nuclear_power" | "fusion_power" => {
+                            // Energy techs add global production
+                            bonuses.production_multiplier += tech.effect_value * 0.1;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
+            // Apply tier 4 bonuses based on tech ID
+            match tech_id {
+                TechnologyId::ClickEfficiency => {
+                    bonuses.click_bonus += tech.effect_value;
+                }
+                TechnologyId::ResourceBoost => {
+                    // Temporary boost - handled in UI
+                }
+                TechnologyId::ProductionMultiplier => {
+                    bonuses.production_multiplier += tech.effect_value;
+                }
+                TechnologyId::CostReduction => {
+                    bonuses.cost_reduction -= tech.effect_value * 0.1; // 10% per level
+                    bonuses.cost_reduction = bonuses.cost_reduction.max(0.1); // Min 10% cost
+                }
+                TechnologyId::CriticalClick => {
+                    bonuses.critical_click_chance = tech.effect_value;
+                }
+                TechnologyId::AutoAssignment => {
+                    // Auto assignment is handled separately
+                }
+                TechnologyId::Prestige | TechnologyId::Legacy | TechnologyId::Ascension => {
+                    // Prestige mechanics handled separately
+                }
+                TechnologyId::Omniscience => {
+                    // Omniscience provides all bonuses
+                    bonuses.click_bonus += 1.0;
+                    bonuses.production_multiplier += 0.5;
+                    bonuses.critical_click_chance = 0.1;
+                }
+                _ => {}
+            }
+        }
+
+        // Ensure all production bonuses are at least 1.0
+        for resource in self.technologies.values() {
+            if let TechnologyEffect::ProductionBonus(resource_type, _) = &resource.effect {
+                if !bonuses.production_bonus.contains_key(resource_type) {
+                    bonuses.production_bonus.insert(*resource_type, 1.0);
+                }
+            }
+        }
+
+        bonuses
+    }
+
+    /// Get production bonus for a specific resource
+    pub fn get_production_bonus(&self, resource: ResourceType) -> f64 {
+        self.calculate_bonuses()
+            .production_bonus
+            .get(&resource)
+            .copied()
+            .unwrap_or(1.0)
+    }
+
+    /// Get click bonus multiplier
+    pub fn get_click_bonus(&self) -> f64 {
+        self.calculate_bonuses().click_bonus
+    }
+
+    /// Get cost reduction multiplier
+    pub fn get_cost_reduction(&self) -> f64 {
+        self.calculate_bonuses().cost_reduction
+    }
+
+    /// Get global production multiplier
+    pub fn get_production_multiplier(&self) -> f64 {
+        self.calculate_bonuses().production_multiplier
+    }
+
+    /// Get critical click chance
+    pub fn get_critical_click_chance(&self) -> f64 {
+        self.calculate_bonuses().critical_click_chance
+    }
+
+    /// Get critical click multiplier
+    pub fn get_critical_click_multiplier(&self) -> f64 {
+        self.calculate_bonuses().critical_click_multiplier
+    }
+
+    /// Check if a building type is unlocked
+    pub fn is_building_unlocked(&self, building: BuildingType) -> bool {
+        self.calculate_bonuses().unlocked_buildings.contains(&building)
+    }
+
+    /// Check if a mechanic is enabled
+    pub fn is_mechanic_enabled(&self, mechanic: &str) -> bool {
+        self.calculate_bonuses().enabled_mechanics.contains(mechanic)
+    }
+
+    /// Get all unlocked buildings
+    pub fn get_unlocked_buildings(&self) -> HashSet<BuildingType> {
+        self.calculate_bonuses().unlocked_buildings
+    }
+
+    /// Apply technology effect to game state (legacy compatibility)
     pub fn apply_effect(&self, tech_id: TechnologyId, _game_state: &mut GameState) {
         if let Some(tech) = self.technologies.get(&tech_id) {
             match &tech.effect {

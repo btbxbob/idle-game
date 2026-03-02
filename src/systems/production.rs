@@ -1,5 +1,6 @@
 use crate::entities::{Building, Upgrade, Worker};
 use crate::state::resource::ResourceType;
+use crate::systems::technology::TechnologyBonuses;
 
 /// Calculate worker bonus for a specific building
 pub fn get_worker_bonus_for_building(workers: &[Worker], building_name: &str) -> f64 {
@@ -21,6 +22,7 @@ pub fn calculate_production(
     buildings: &[Building],
     workers: &[Worker],
     resource: ResourceType,
+    tech_bonuses: &TechnologyBonuses,
 ) -> f64 {
     let building_name = match resource {
         // Tier 1: Basic Resources
@@ -96,7 +98,16 @@ pub fn calculate_production(
 
     let base_production = building.production_rate * building.count as f64;
     let worker_bonus = get_worker_bonus_for_building(workers, building_name);
-    let boosted_production = base_production * worker_bonus;
+    
+    // Apply technology bonuses
+    let tech_bonus = tech_bonuses.production_bonus.get(&resource).copied().unwrap_or(1.0);
+    let global_multiplier = if tech_bonuses.production_multiplier > 0.0 {
+        tech_bonuses.production_multiplier
+    } else {
+        1.0 // Default to no multiplier if not set
+    };
+    
+    let boosted_production = base_production * worker_bonus * tech_bonus * global_multiplier;
 
     if boosted_production.is_finite() && boosted_production >= 0.0 {
         boosted_production
@@ -168,7 +179,7 @@ mod tests {
             Building {
                 name: "农场".to_string(),
                 cost: 30.0,
-                production_rate: 0.8,
+                production_rate: 2.0,
                 count: 0,
             },
         ]
@@ -178,12 +189,17 @@ mod tests {
         vec![Worker::new("矿工", "mining", "擅长挖矿的工人", "金币矿山")]
     }
 
+    fn default_bonuses() -> TechnologyBonuses {
+        TechnologyBonuses::default()
+    }
+
     #[test]
     fn test_gold_production_no_buildings() {
         let buildings = create_test_buildings();
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Gold),
+            calculate_production(&buildings, &workers, ResourceType::Gold, &bonuses),
             0.0
         );
     }
@@ -193,8 +209,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[0].count = 10;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Gold),
+            calculate_production(&buildings, &workers, ResourceType::Gold, &bonuses),
             10.0
         );
     }
@@ -204,8 +221,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[1].count = 5;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Wood),
+            calculate_production(&buildings, &workers, ResourceType::Wood, &bonuses),
             5.0
         );
     }
@@ -215,8 +233,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[2].count = 4;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Stone),
+            calculate_production(&buildings, &workers, ResourceType::Stone, &bonuses),
             2.0
         );
     }
@@ -226,8 +245,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[3].count = 2;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::IronOre),
+            calculate_production(&buildings, &workers, ResourceType::IronOre, &bonuses),
             1.0
         );
     }
@@ -237,8 +257,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[4].count = 5;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::CopperOre),
+            calculate_production(&buildings, &workers, ResourceType::CopperOre, &bonuses),
             3.0
         );
     }
@@ -248,8 +269,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[5].count = 10;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::AluminumOre),
+            calculate_production(&buildings, &workers, ResourceType::AluminumOre, &bonuses),
             4.0
         );
     }
@@ -259,8 +281,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[6].count = 6;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Coal),
+            calculate_production(&buildings, &workers, ResourceType::Coal, &bonuses),
             3.0
         );
     }
@@ -270,8 +293,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[7].count = 10;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Oil),
+            calculate_production(&buildings, &workers, ResourceType::Oil, &bonuses),
             3.0
         );
     }
@@ -281,8 +305,9 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[8].count = 5;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Crystal),
+            calculate_production(&buildings, &workers, ResourceType::Crystal, &bonuses),
             1.0
         );
     }
@@ -292,9 +317,25 @@ mod tests {
         let mut buildings = create_test_buildings();
         buildings[9].count = 10;
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Food),
-            8.0
+            calculate_production(&buildings, &workers, ResourceType::Food, &bonuses),
+            20.0
+        );
+    }
+
+    #[test]
+    fn test_food_production_supports_ten_workers_target_balance() {
+        let mut buildings = create_test_buildings();
+        buildings[9].count = 1;
+        let workers = create_test_workers();
+        let bonuses = default_bonuses();
+
+        let food_per_second = calculate_production(&buildings, &workers, ResourceType::Food, &bonuses);
+        assert!(
+            food_per_second >= 2.0,
+            "food production should support 10 workers baseline, got {}",
+            food_per_second
         );
     }
 
@@ -306,8 +347,9 @@ mod tests {
         let mut workers = create_test_workers();
         workers[0].assigned_building = Some("金币矿山".to_string());
         workers[0].efficiency_multiplier = 1.2;
+        let bonuses = default_bonuses();
 
-        let production = calculate_production(&buildings, &workers, ResourceType::Gold);
+        let production = calculate_production(&buildings, &workers, ResourceType::Gold, &bonuses);
         assert!(production > 10.0);
         assert!((production - 12.0).abs() < 0.01);
     }
@@ -320,8 +362,9 @@ mod tests {
         buildings[2].count = 1;
         let workers = create_test_workers();
         let upgrades = vec![];
+        let bonuses = default_bonuses();
 
-        let production = update_production(&buildings, &upgrades, &workers);
+        let production = update_production(&buildings, &upgrades, &workers, &bonuses);
         assert_eq!(production.len(), 60);
         assert!(production[0] > 0.0);
         assert!(production[1] > 0.0);
@@ -332,15 +375,21 @@ mod tests {
     fn test_non_primary_resource() {
         let buildings = create_test_buildings();
         let workers = create_test_workers();
+        let bonuses = default_bonuses();
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::IronIngot),
+            calculate_production(&buildings, &workers, ResourceType::IronIngot, &bonuses),
             0.0
         );
         assert_eq!(
-            calculate_production(&buildings, &workers, ResourceType::Microchip),
+            calculate_production(&buildings, &workers, ResourceType::Microchip, &bonuses),
             0.0
         );
     }
+}
+
+/// Get default technology bonuses (no bonuses)
+pub fn default_tech_bonuses() -> TechnologyBonuses {
+    TechnologyBonuses::default()
 }
 
 /// Update production rates based on buildings and worker bonuses
@@ -348,73 +397,74 @@ pub fn update_production(
     buildings: &[Building],
     upgrades: &[Upgrade],
     workers: &[Worker],
+    tech_bonuses: &TechnologyBonuses,
 ) -> [f64; 60] {
     let mut production = [0.0; 60];
 
     // Tier 1: Basic Resources (0-9)
-    production[0] = calculate_production(buildings, workers, ResourceType::Gold);
-    production[1] = calculate_production(buildings, workers, ResourceType::Wood);
-    production[2] = calculate_production(buildings, workers, ResourceType::Stone);
-    production[3] = calculate_production(buildings, workers, ResourceType::IronOre);
-    production[4] = calculate_production(buildings, workers, ResourceType::CopperOre);
-    production[5] = calculate_production(buildings, workers, ResourceType::AluminumOre);
-    production[6] = calculate_production(buildings, workers, ResourceType::Coal);
-    production[7] = calculate_production(buildings, workers, ResourceType::Oil);
-    production[8] = calculate_production(buildings, workers, ResourceType::Crystal);
-    production[9] = calculate_production(buildings, workers, ResourceType::Food);
+    production[0] = calculate_production(buildings, workers, ResourceType::Gold, tech_bonuses);
+    production[1] = calculate_production(buildings, workers, ResourceType::Wood, tech_bonuses);
+    production[2] = calculate_production(buildings, workers, ResourceType::Stone, tech_bonuses);
+    production[3] = calculate_production(buildings, workers, ResourceType::IronOre, tech_bonuses);
+    production[4] = calculate_production(buildings, workers, ResourceType::CopperOre, tech_bonuses);
+    production[5] = calculate_production(buildings, workers, ResourceType::AluminumOre, tech_bonuses);
+    production[6] = calculate_production(buildings, workers, ResourceType::Coal, tech_bonuses);
+    production[7] = calculate_production(buildings, workers, ResourceType::Oil, tech_bonuses);
+    production[8] = calculate_production(buildings, workers, ResourceType::Crystal, tech_bonuses);
+    production[9] = calculate_production(buildings, workers, ResourceType::Food, tech_bonuses);
 
     // Tier 2: Processed Resources (10-49)
-    production[10] = calculate_production(buildings, workers, ResourceType::IronIngot);
-    production[11] = calculate_production(buildings, workers, ResourceType::CopperIngot);
-    production[12] = calculate_production(buildings, workers, ResourceType::AluminumIngot);
-    production[13] = calculate_production(buildings, workers, ResourceType::SteelPlate);
-    production[14] = calculate_production(buildings, workers, ResourceType::CopperPlate);
-    production[15] = calculate_production(buildings, workers, ResourceType::AluminumPlate);
-    production[16] = calculate_production(buildings, workers, ResourceType::Glass);
-    production[17] = calculate_production(buildings, workers, ResourceType::Plastic);
-    production[18] = calculate_production(buildings, workers, ResourceType::Chemicals);
-    production[19] = calculate_production(buildings, workers, ResourceType::Fuel);
-    production[20] = calculate_production(buildings, workers, ResourceType::Paper);
-    production[21] = calculate_production(buildings, workers, ResourceType::Ink);
-    production[22] = calculate_production(buildings, workers, ResourceType::Cloth);
-    production[23] = calculate_production(buildings, workers, ResourceType::Leather);
-    production[24] = calculate_production(buildings, workers, ResourceType::Ceramic);
-    production[25] = calculate_production(buildings, workers, ResourceType::Cement);
-    production[26] = calculate_production(buildings, workers, ResourceType::Brick);
-    production[27] = calculate_production(buildings, workers, ResourceType::Rebar);
-    production[28] = calculate_production(buildings, workers, ResourceType::Wire);
-    production[29] = calculate_production(buildings, workers, ResourceType::Pipe);
-    production[30] = calculate_production(buildings, workers, ResourceType::Valve);
-    production[31] = calculate_production(buildings, workers, ResourceType::Gear);
-    production[32] = calculate_production(buildings, workers, ResourceType::Bearing);
-    production[33] = calculate_production(buildings, workers, ResourceType::Spring);
-    production[34] = calculate_production(buildings, workers, ResourceType::Screw);
-    production[35] = calculate_production(buildings, workers, ResourceType::Nut);
-    production[36] = calculate_production(buildings, workers, ResourceType::Washer);
-    production[37] = calculate_production(buildings, workers, ResourceType::Pump);
-    production[38] = calculate_production(buildings, workers, ResourceType::Motor);
-    production[39] = calculate_production(buildings, workers, ResourceType::Sensor);
-    production[40] = calculate_production(buildings, workers, ResourceType::CircuitBoard);
-    production[41] = calculate_production(buildings, workers, ResourceType::Capacitor);
-    production[42] = calculate_production(buildings, workers, ResourceType::Resistor);
-    production[43] = calculate_production(buildings, workers, ResourceType::Diode);
-    production[44] = calculate_production(buildings, workers, ResourceType::Transistor);
-    production[45] = calculate_production(buildings, workers, ResourceType::Transformer);
-    production[46] = calculate_production(buildings, workers, ResourceType::Generator);
-    production[47] = calculate_production(buildings, workers, ResourceType::Compressor);
-    production[48] = calculate_production(buildings, workers, ResourceType::Battery);
+    production[10] = calculate_production(buildings, workers, ResourceType::IronIngot, tech_bonuses);
+    production[11] = calculate_production(buildings, workers, ResourceType::CopperIngot, tech_bonuses);
+    production[12] = calculate_production(buildings, workers, ResourceType::AluminumIngot, tech_bonuses);
+    production[13] = calculate_production(buildings, workers, ResourceType::SteelPlate, tech_bonuses);
+    production[14] = calculate_production(buildings, workers, ResourceType::CopperPlate, tech_bonuses);
+    production[15] = calculate_production(buildings, workers, ResourceType::AluminumPlate, tech_bonuses);
+    production[16] = calculate_production(buildings, workers, ResourceType::Glass, tech_bonuses);
+    production[17] = calculate_production(buildings, workers, ResourceType::Plastic, tech_bonuses);
+    production[18] = calculate_production(buildings, workers, ResourceType::Chemicals, tech_bonuses);
+    production[19] = calculate_production(buildings, workers, ResourceType::Fuel, tech_bonuses);
+    production[20] = calculate_production(buildings, workers, ResourceType::Paper, tech_bonuses);
+    production[21] = calculate_production(buildings, workers, ResourceType::Ink, tech_bonuses);
+    production[22] = calculate_production(buildings, workers, ResourceType::Cloth, tech_bonuses);
+    production[23] = calculate_production(buildings, workers, ResourceType::Leather, tech_bonuses);
+    production[24] = calculate_production(buildings, workers, ResourceType::Ceramic, tech_bonuses);
+    production[25] = calculate_production(buildings, workers, ResourceType::Cement, tech_bonuses);
+    production[26] = calculate_production(buildings, workers, ResourceType::Brick, tech_bonuses);
+    production[27] = calculate_production(buildings, workers, ResourceType::Rebar, tech_bonuses);
+    production[28] = calculate_production(buildings, workers, ResourceType::Wire, tech_bonuses);
+    production[29] = calculate_production(buildings, workers, ResourceType::Pipe, tech_bonuses);
+    production[30] = calculate_production(buildings, workers, ResourceType::Valve, tech_bonuses);
+    production[31] = calculate_production(buildings, workers, ResourceType::Gear, tech_bonuses);
+    production[32] = calculate_production(buildings, workers, ResourceType::Bearing, tech_bonuses);
+    production[33] = calculate_production(buildings, workers, ResourceType::Spring, tech_bonuses);
+    production[34] = calculate_production(buildings, workers, ResourceType::Screw, tech_bonuses);
+    production[35] = calculate_production(buildings, workers, ResourceType::Nut, tech_bonuses);
+    production[36] = calculate_production(buildings, workers, ResourceType::Washer, tech_bonuses);
+    production[37] = calculate_production(buildings, workers, ResourceType::Pump, tech_bonuses);
+    production[38] = calculate_production(buildings, workers, ResourceType::Motor, tech_bonuses);
+    production[39] = calculate_production(buildings, workers, ResourceType::Sensor, tech_bonuses);
+    production[40] = calculate_production(buildings, workers, ResourceType::CircuitBoard, tech_bonuses);
+    production[41] = calculate_production(buildings, workers, ResourceType::Capacitor, tech_bonuses);
+    production[42] = calculate_production(buildings, workers, ResourceType::Resistor, tech_bonuses);
+    production[43] = calculate_production(buildings, workers, ResourceType::Diode, tech_bonuses);
+    production[44] = calculate_production(buildings, workers, ResourceType::Transistor, tech_bonuses);
+    production[45] = calculate_production(buildings, workers, ResourceType::Transformer, tech_bonuses);
+    production[46] = calculate_production(buildings, workers, ResourceType::Generator, tech_bonuses);
+    production[47] = calculate_production(buildings, workers, ResourceType::Compressor, tech_bonuses);
+    production[48] = calculate_production(buildings, workers, ResourceType::Battery, tech_bonuses);
 
     // Tier 3: High-Tech Resources (49-58)
-    production[49] = calculate_production(buildings, workers, ResourceType::Microchip);
-    production[50] = calculate_production(buildings, workers, ResourceType::Engine);
-    production[51] = calculate_production(buildings, workers, ResourceType::Robot);
-    production[52] = calculate_production(buildings, workers, ResourceType::Satellite);
-    production[53] = calculate_production(buildings, workers, ResourceType::Spaceship);
-    production[54] = calculate_production(buildings, workers, ResourceType::QuantumComputer);
-    production[55] = calculate_production(buildings, workers, ResourceType::Antimatter);
-    production[56] = calculate_production(buildings, workers, ResourceType::DarkMatter);
-    production[57] = calculate_production(buildings, workers, ResourceType::TimeCrystal);
-    production[58] = calculate_production(buildings, workers, ResourceType::Nanobot);
+    production[49] = calculate_production(buildings, workers, ResourceType::Microchip, tech_bonuses);
+    production[50] = calculate_production(buildings, workers, ResourceType::Engine, tech_bonuses);
+    production[51] = calculate_production(buildings, workers, ResourceType::Robot, tech_bonuses);
+    production[52] = calculate_production(buildings, workers, ResourceType::Satellite, tech_bonuses);
+    production[53] = calculate_production(buildings, workers, ResourceType::Spaceship, tech_bonuses);
+    production[54] = calculate_production(buildings, workers, ResourceType::QuantumComputer, tech_bonuses);
+    production[55] = calculate_production(buildings, workers, ResourceType::Antimatter, tech_bonuses);
+    production[56] = calculate_production(buildings, workers, ResourceType::DarkMatter, tech_bonuses);
+    production[57] = calculate_production(buildings, workers, ResourceType::TimeCrystal, tech_bonuses);
+    production[58] = calculate_production(buildings, workers, ResourceType::Nanobot, tech_bonuses);
 
     // Special Resources (59-60) - no production
     production[59] = 0.0; // Corpse
@@ -437,7 +487,8 @@ pub fn update_production_legacy(
     upgrades: &[Upgrade],
     workers: &[Worker],
 ) -> (f64, f64, f64) {
-    let production = update_production(buildings, upgrades, workers);
+    let tech_bonuses = default_tech_bonuses();
+    let production = update_production(buildings, upgrades, workers, &tech_bonuses);
     (production[0], production[1], production[2])
 }
 

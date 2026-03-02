@@ -2,7 +2,8 @@ use crate::entities::{Building, Housing, PopulationQueue, Upgrade, Worker};
 use crate::state::resource::ResourceType;
 use crate::state::{GameState, Statistics};
 use crate::systems::{
-    achievement::Achievement, crafting::CraftingRecipe, production, technology::TechnologyTree,
+    achievement::Achievement, crafting::CraftingRecipe, production,
+    technology::TechnologyTree,
     unlock::UnlockedFeature,
 };
 use crate::utils::WorkerGenerator;
@@ -18,6 +19,7 @@ use wasm_bindgen::prelude::*;
 struct TechnologyView {
     id: String,
     name: String,
+    description: String,
     tier: u8,
     dependencies: Vec<String>,
     purchased: bool,
@@ -1433,9 +1435,12 @@ impl IdleGame {
     pub fn game_loop(&mut self) {
         let now = Date::now();
 
+        // Get technology bonuses
+        let tech_bonuses = self.technology_tree.calculate_bonuses();
+
         // Get production rates from production system BEFORE borrowing state mutably
         let production =
-            production::update_production(&self.buildings, &self.upgrades, &self.workers);
+            production::update_production(&self.buildings, &self.upgrades, &self.workers, &tech_bonuses);
 
         let (new_coins, new_wood, new_stone, new_last_update_time, elapsed) = {
             let state = self.state.borrow();
@@ -2175,6 +2180,7 @@ impl IdleGame {
             technologies.push(TechnologyView {
                 id: format!("{:?}", tech_id),
                 name: tech.name.clone(),
+                description: tech.description.clone(),
                 tier: tech.tier(),
                 dependencies,
                 purchased: tech.purchased,
