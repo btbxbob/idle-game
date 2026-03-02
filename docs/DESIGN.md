@@ -289,12 +289,6 @@ struct Worker {
 pub enum TechnologyEffect {
     /// 生产加成：针对特定资源的产量加成 (如 +50% Gold)
     ProductionBonus(ResourceType, f64),
-    /// 建筑解锁：解锁特定建筑类型
-    UnlockBuilding(BuildingType),
-    /// UI解锁：解锁新的UI面板或功能
-    UnlockUI,
-    /// 机制变更：描述游戏机制变化 (字符串)
-    MechanicChange(String),
 }
 ```
 
@@ -306,20 +300,8 @@ pub enum TechnologyEffect {
 pub struct TechnologyBonuses {
     /// 各类资源的生产加成倍率 (1.0 = 无加成)
     pub production_bonus: HashMap<ResourceType, f64>,
-    /// 点击效率加成倍率 (1.0 = 无加成)
-    pub click_bonus: f64,
-    /// 成本降低倍率 (1.0 = 无降低, 0.9 = 9折)
-    pub cost_reduction: f64,
     /// 全局生产倍率 (1.0 = 无加成)
     pub production_multiplier: f64,
-    /// 暴击点击概率 (0.0 = 无, 1.0 = 100%)
-    pub critical_click_chance: f64,
-    /// 暴击点击倍率
-    pub critical_click_multiplier: f64,
-    /// 已解锁建筑类型
-    pub unlocked_buildings: HashSet<BuildingType>,
-    /// 已启用的游戏机制
-    pub enabled_mechanics: HashSet<String>,
 }
 ```
 
@@ -370,7 +352,6 @@ pub struct TechnologyTree {
 - 矿井 (Mine)
 - 锯木厂 (LumberMill)
 - 采石场 (Quarry)
-- 石油钻井 (OilRig)
 - 农场 (Farm)
 - 冶炼厂 (Smelter)
 - 精炼厂 (Refinery)
