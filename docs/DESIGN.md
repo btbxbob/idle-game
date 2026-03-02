@@ -227,6 +227,162 @@ struct Worker {
 - 游戏循环仅保留建筑/升级提供的资源自动生产
 - 相关测试与文档同步更新
 
+## 9.1 科技系统设计
+
+### 9.1.1 概述
+科技系统是游戏的核心进度系统之一，玩家通过研究科技获得各种加成和能力。科技树分为4个层级，共50种科技。
+
+### 9.1.2 科技分类
+
+**Tier 1: 基础技术 (15种)**
+- 基础/高级采矿 (BasicMining, AdvancedMining)
+- 基础/高级伐木 (BasicLogging, AdvancedLogging)
+- 基础/高级采石 (BasicQuarrying, AdvancedQuarrying)
+- 基础/高级冶炼 (BasicSmelting, AdvancedSmelting)
+- 基础/高级农业 (BasicAgriculture, AdvancedAgriculture)
+- 基础/高级精炼 (BasicRefining, AdvancedRefining)
+- 基础/高级化学 (BasicChemistry, AdvancedChemistry)
+- 基础工程 (BasicEngineering)
+
+**Tier 2: 工业技术 (15种)**
+- 大规模生产 (MassProduction)
+- 自动化 (Automation)
+- 机器人技术 (Robotics, AdvancedRobotics)
+- 电子技术 (Electronics, AdvancedElectronics)
+- 计算机技术 (ComputerTechnology)
+- 人工智能 (AITechnology, AdvancedAI)
+- 纳米技术 (Nanotechnology, AdvancedNanotech)
+- 生物技术 (Biotechnology)
+- 基因工程 (GeneticEngineering)
+- 可再生能源 (RenewableEnergy)
+- 核能 (NuclearEnergy)
+
+**Tier 3: 先进技术 (10种)**
+- 量子计算 (QuantumComputing)
+- 聚变能源 (FusionEnergy)
+- 反物质能源 (AntimatterEnergy)
+- 太空探索 (SpaceExploration)
+- 地球化改造 (Terraforming)
+- 时间操控 (TimeManipulation)
+- 维度旅行 (DimensionalTravel)
+- 意识上传 (ConsciousnessUpload)
+- 永生技术 (Immortality)
+- 神级技术 (Godhood)
+
+**Tier 4: 特殊/UI技术 (10种)**
+- 点击效率 (ClickEfficiency)
+- 资源增益 (ResourceBoost)
+- 生产倍增 (ProductionMultiplier)
+- 成本降低 (CostReduction)
+- 暴击点击 (CriticalClick)
+- 自动分配 (AutoAssignment)
+- 转世 (Prestige)
+- 遗产 (Legacy)
+- 飞升 (Ascension)
+- 全知 (Omniscience)
+
+### 9.1.3 科技效果类型
+
+科技效果通过 `TechnologyEffect` 枚举定义：
+
+```rust
+pub enum TechnologyEffect {
+    /// 生产加成：针对特定资源的产量加成 (如 +50% Gold)
+    ProductionBonus(ResourceType, f64),
+    /// 建筑解锁：解锁特定建筑类型
+    UnlockBuilding(BuildingType),
+    /// UI解锁：解锁新的UI面板或功能
+    UnlockUI,
+    /// 机制变更：描述游戏机制变化 (字符串)
+    MechanicChange(String),
+}
+```
+
+### 9.1.4 科技加成系统
+
+`TechnologyBonuses` 结构体汇总所有已购买科技的效果：
+
+```rust
+pub struct TechnologyBonuses {
+    /// 各类资源的生产加成倍率 (1.0 = 无加成)
+    pub production_bonus: HashMap<ResourceType, f64>,
+    /// 点击效率加成倍率 (1.0 = 无加成)
+    pub click_bonus: f64,
+    /// 成本降低倍率 (1.0 = 无降低, 0.9 = 9折)
+    pub cost_reduction: f64,
+    /// 全局生产倍率 (1.0 = 无加成)
+    pub production_multiplier: f64,
+    /// 暴击点击概率 (0.0 = 无, 1.0 = 100%)
+    pub critical_click_chance: f64,
+    /// 暴击点击倍率
+    pub critical_click_multiplier: f64,
+    /// 已解锁建筑类型
+    pub unlocked_buildings: HashSet<BuildingType>,
+    /// 已启用的游戏机制
+    pub enabled_mechanics: HashSet<String>,
+}
+```
+
+### 9.1.5 科技效果应用
+
+科技加成在生产系统中自动应用。游戏主循环会计算科技加成，并将其传递给生产系统：
+
+```rust
+// idle_game.rs - game_loop
+let tech_bonuses = self.technology_tree.calculate_bonuses();
+let production = production::update_production(
+    &self.buildings, 
+    &self.upgrades, 
+    &self.workers, 
+    &tech_bonuses
+);
+```
+
+### 9.1.6 数据结构
+
+**TechnologyId** - 科技唯一标识符 (50个枚举变体)
+
+**Technology** - 科技定义
+```rust
+pub struct Technology {
+    pub id: TechnologyId,
+    pub name: String,           // 中文名称
+    pub description: String,   // 科技描述
+    pub costs: HashMap<ResourceType, f64>,  // 购买成本
+    pub dependencies: Vec<TechnologyId>,     // 前置科技
+    pub effect: TechnologyEffect,
+    pub effect_value: f64,     // 效果数值
+    pub purchased: bool,        // 是否已购买
+}
+```
+
+**TechnologyTree** - 科技树管理系统
+```rust
+pub struct TechnologyTree {
+    pub technologies: HashMap<TechnologyId, Technology>,
+    pub unlocked: HashSet<TechnologyId>,
+}
+```
+
+### 9.1.7 建筑类型
+
+可解锁的建筑类型 (BuildingType 枚举)：
+- 矿井 (Mine)
+- 锯木厂 (LumberMill)
+- 采石场 (Quarry)
+- 石油钻井 (OilRig)
+- 农场 (Farm)
+- 冶炼厂 (Smelter)
+- 精炼厂 (Refinery)
+- 工厂 (Factory)
+- 化工厂 (ChemicalPlant)
+- 发电厂 (PowerPlant)
+- 芯片工厂 (ChipFab)
+- 研究实验室 (ResearchLab)
+- 太空港 (SpacePort)
+- 量子实验室 (QuantumLab)
+- 纳米工厂 (NaniteFactory)
+
 ## 10. 未来规划
 
 ### 10.1 短期计划
@@ -266,6 +422,6 @@ struct Worker {
 
 ---
 
-**最后更新**: 2026-02-27  
-**版本**: v0.5.0  
+**最后更新**: 2026-03-02  
+**版本**: v0.5.4  
 **状态**: 稳定可用
