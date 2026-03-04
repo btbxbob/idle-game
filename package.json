@@ -1,9 +1,11 @@
 {
   "name": "idle-game-tests",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Playwright tests for idle game",
   "scripts": {
     "test": "playwright test",
+    "test:quiet": "playwright test --reporter=dot",
+    "test:all-browsers": "PW_ALL_BROWSERS=1 playwright test",
     "test:e2e:coverage": "playwright test --project=chromium && node scripts/merge-e2e-coverage.js",
     "test:ui": "playwright test --ui",
     "lint:syntax": "node scripts/lint-syntax.js",
