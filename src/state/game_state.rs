@@ -18,12 +18,19 @@ pub struct GameState {
     pub last_update_time: f64,
     #[serde(default)]
     pub prestige_points: f64,
-    #[serde(default = "default_prestige_multiplier")]
     pub prestige_multiplier: f64,
-}
-
-fn default_prestige_multiplier() -> f64 {
-    1.0
+    #[serde(skip)]
+    pub(crate) gold_units: u64,
+    #[serde(skip)]
+    pub(crate) wood_units: u64,
+    #[serde(skip)]
+    pub(crate) stone_units: u64,
+    #[serde(skip)]
+    pub(crate) gold_carry: f64,
+    #[serde(skip)]
+    pub(crate) wood_carry: f64,
+    #[serde(skip)]
+    pub(crate) stone_carry: f64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -120,12 +127,115 @@ impl<'de> Deserialize<'de> for GameState {
                 last_update_time: new.last_update_time,
                 prestige_points: new.prestige_points.unwrap_or(0.0),
                 prestige_multiplier: new.prestige_multiplier.unwrap_or(1.0),
-            })
+                gold_units: 0,
+                wood_units: 0,
+                stone_units: 0,
+                gold_carry: 0.0,
+                wood_carry: 0.0,
+                stone_carry: 0.0,
+            }
+            .with_synced_primary_resources())
         }
     }
 }
 
 impl GameState {
+    fn split_primary_amount(amount: f64) -> (u64, f64) {
+        if !amount.is_finite() || amount <= 0.0 {
+            return (0, 0.0);
+        }
+
+        let floor = amount.floor();
+        let units = floor.min(u64::MAX as f64) as u64;
+        let carry = (amount - units as f64).clamp(0.0, 0.999_999_999_999);
+        (units, carry)
+    }
+
+    fn with_synced_primary_resources(mut self) -> Self {
+        self.sync_primary_from_resources();
+        self
+    }
+
+    fn sync_primary_from_resources(&mut self) {
+        let (gold, gold_carry) = Self::split_primary_amount(
+            *self.resources.get(&ResourceType::Gold).unwrap_or(&0.0),
+        );
+        let (wood, wood_carry) = Self::split_primary_amount(
+            *self.resources.get(&ResourceType::Wood).unwrap_or(&0.0),
+        );
+        let (stone, stone_carry) = Self::split_primary_amount(
+            *self.resources.get(&ResourceType::Stone).unwrap_or(&0.0),
+        );
+
+        self.gold_units = gold;
+        self.wood_units = wood;
+        self.stone_units = stone;
+        self.gold_carry = gold_carry;
+        self.wood_carry = wood_carry;
+        self.stone_carry = stone_carry;
+
+        self.resources.insert(ResourceType::Gold, self.gold_units as f64);
+        self.resources.insert(ResourceType::Wood, self.wood_units as f64);
+        self.resources.insert(ResourceType::Stone, self.stone_units as f64);
+    }
+
+    fn set_primary_resource(&mut self, resource: ResourceType, amount: f64) {
+        let (units, carry) = Self::split_primary_amount(amount);
+        match resource {
+            ResourceType::Gold => {
+                self.gold_units = units;
+                self.gold_carry = carry;
+            }
+            ResourceType::Wood => {
+                self.wood_units = units;
+                self.wood_carry = carry;
+            }
+            ResourceType::Stone => {
+                self.stone_units = units;
+                self.stone_carry = carry;
+            }
+            _ => return,
+        }
+
+        self.resources.insert(resource, units as f64);
+    }
+
+    fn add_primary_resource(&mut self, resource: ResourceType, amount: f64) {
+        if amount < 0.0 {
+            let current = self.get_resource(resource);
+            self.set_primary_resource(resource, current + amount);
+            return;
+        }
+
+        match resource {
+            ResourceType::Gold => {
+                let total = self.gold_carry + amount;
+                let gained = total.floor() as u64;
+                self.gold_units = self.gold_units.saturating_add(gained);
+                self.gold_carry = total - gained as f64;
+                self.resources
+                    .insert(ResourceType::Gold, self.gold_units as f64);
+            }
+            ResourceType::Wood => {
+                let total = self.wood_carry + amount;
+                let gained = total.floor() as u64;
+                self.wood_units = self.wood_units.saturating_add(gained);
+                self.wood_carry = total - gained as f64;
+                self.resources
+                    .insert(ResourceType::Wood, self.wood_units as f64);
+            }
+            ResourceType::Stone => {
+                let total = self.stone_carry + amount;
+                let gained = total.floor() as u64;
+                self.stone_units = self.stone_units.saturating_add(gained);
+                self.stone_carry = total - gained as f64;
+                self.resources
+                    .insert(ResourceType::Stone, self.stone_units as f64);
+            }
+            _ => {}
+        }
+    }
+
     pub fn migrate_from_old(old: OldGameState) -> Self {
         let mut resources = HashMap::new();
         resources.insert(ResourceType::Gold, old.coins);
@@ -143,19 +253,45 @@ impl GameState {
             last_update_time: old.last_update_time,
             prestige_points: 0.0,
             prestige_multiplier: 1.0,
+            gold_units: 0,
+            wood_units: 0,
+            stone_units: 0,
+            gold_carry: 0.0,
+            wood_carry: 0.0,
+            stone_carry: 0.0,
         }
+        .with_synced_primary_resources()
     }
     pub fn get_resource(&self, resource: ResourceType) -> f64 {
-        *self.resources.get(&resource).unwrap_or(&0.0)
+        match resource {
+            ResourceType::Gold => self.gold_units as f64,
+            ResourceType::Wood => self.wood_units as f64,
+            ResourceType::Stone => self.stone_units as f64,
+            _ => *self.resources.get(&resource).unwrap_or(&0.0),
+        }
     }
 
     pub fn set_resource(&mut self, resource: ResourceType, amount: f64) {
-        self.resources.insert(resource, amount);
+        match resource {
+            ResourceType::Gold | ResourceType::Wood | ResourceType::Stone => {
+                self.set_primary_resource(resource, amount)
+            }
+            _ => {
+                self.resources.insert(resource, amount.max(0.0));
+            }
+        }
     }
 
     pub fn add_resource(&mut self, resource: ResourceType, amount: f64) {
-        let current = self.get_resource(resource);
-        self.set_resource(resource, current + amount);
+        match resource {
+            ResourceType::Gold | ResourceType::Wood | ResourceType::Stone => {
+                self.add_primary_resource(resource, amount)
+            }
+            _ => {
+                let current = self.get_resource(resource);
+                self.set_resource(resource, current + amount);
+            }
+        }
     }
 
     pub fn get_coins(&self) -> f64 {
@@ -195,9 +331,11 @@ impl GameState {
     }
 
     pub fn spend_coins(&mut self, amount: f64) -> bool {
-        let current = self.get_coins();
-        if current >= amount {
-            self.set_coins(current - amount);
+        let required = amount.ceil().max(0.0) as u64;
+        if self.gold_units >= required {
+            self.gold_units -= required;
+            self.resources
+                .insert(ResourceType::Gold, self.gold_units as f64);
             true
         } else {
             false
@@ -205,9 +343,11 @@ impl GameState {
     }
 
     pub fn spend_wood(&mut self, amount: f64) -> bool {
-        let current = self.get_wood();
-        if current >= amount {
-            self.set_wood(current - amount);
+        let required = amount.ceil().max(0.0) as u64;
+        if self.wood_units >= required {
+            self.wood_units -= required;
+            self.resources
+                .insert(ResourceType::Wood, self.wood_units as f64);
             true
         } else {
             false
@@ -215,9 +355,11 @@ impl GameState {
     }
 
     pub fn spend_stone(&mut self, amount: f64) -> bool {
-        let current = self.get_stone();
-        if current >= amount {
-            self.set_stone(current - amount);
+        let required = amount.ceil().max(0.0) as u64;
+        if self.stone_units >= required {
+            self.stone_units -= required;
+            self.resources
+                .insert(ResourceType::Stone, self.stone_units as f64);
             true
         } else {
             false
@@ -243,7 +385,14 @@ impl Default for GameState {
             version: SAVE_VERSION.to_string(),
             prestige_points: 0.0,
             prestige_multiplier: 1.0,
+            gold_units: 0,
+            wood_units: 0,
+            stone_units: 0,
+            gold_carry: 0.0,
+            wood_carry: 0.0,
+            stone_carry: 0.0,
         }
+        .with_synced_primary_resources()
     }
 }
 
@@ -336,6 +485,7 @@ mod tests {
             last_update_time: 9876543210.0,
             prestige_points: 0.0,
             prestige_multiplier: 1.0,
+            ..GameState::default()
         };
 
         let new_json = serde_json::to_string(&new_format).unwrap();

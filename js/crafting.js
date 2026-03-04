@@ -119,7 +119,11 @@ class CraftingManager {
      * @param {string} recipeId - Recipe ID to craft
      */
     async handleCraftClick(recipeId) {
-        const recipe = this.currentRecipes.find(r => r.id === recipeId);
+        let recipe = this.currentRecipes.find(r => r.id === recipeId);
+        if (!recipe) {
+            this.currentRecipes = this.update() || [];
+            recipe = this.currentRecipes.find(r => r.id === recipeId);
+        }
         if (!recipe) {
             console.warn(`Recipe ${recipeId} not found`);
             return;
@@ -174,8 +178,8 @@ class CraftingManager {
      * @param {string} containerId - DOM element ID for the crafting list
      */
     renderRecipes(containerId = 'crafting-list') {
-        const container = document.getElementById(containerId);
-        if (!container) {
+        const containers = Array.from(document.querySelectorAll(`#${containerId}`));
+        if (containers.length === 0) {
             console.warn(`Crafting container "${containerId}" not found`);
             return;
         }
@@ -184,7 +188,10 @@ class CraftingManager {
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
 
         if (!recipes || recipes.length === 0) {
-            container.innerHTML = `<p id="crafting-placeholder">${t('craftingPlaceholder') || '合成系统将在未来版本中实现'}</p>`;
+            const placeholderHtml = `<p id="crafting-placeholder">${t('craftingPlaceholder') || '合成系统将在未来版本中实现'}</p>`;
+            containers.forEach((container) => {
+                container.innerHTML = placeholderHtml;
+            });
             return;
         }
 
@@ -230,7 +237,9 @@ class CraftingManager {
             `;
         }).join('');
 
-        container.innerHTML = recipeElements;
+        containers.forEach((container) => {
+            container.innerHTML = recipeElements;
+        });
     }
 }
 

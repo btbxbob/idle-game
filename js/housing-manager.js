@@ -45,7 +45,7 @@ class HousingManager {
             try {
                 const success = this.rustGame.upgrade_housing(index);
                 if (success) {
-                    this.renderHousingList();
+                    this.renderToPanel('housing-panel');
                     if (window.updateResourceDisplay) {
                         window.updateResourceDisplay();
                     }
@@ -77,7 +77,7 @@ class HousingManager {
 
     setOccupancyRate(rate) {
         this.occupancyRate = Math.max(0, Math.min(100, rate));
-        this.renderHousingList();
+        this.renderToPanel('housing-panel');
     }
 
     calculateOccupants(capacity) {
@@ -110,7 +110,7 @@ class HousingManager {
     renderHousingList() {
         const container = document.getElementById('housing-list');
         if (!container) {
-            console.warn('Housing container "housing-list" not found');
+            this.renderToPanel('housing-panel');
             return;
         }
 

@@ -1,4 +1,4 @@
-use crate::entities::{Building, Housing, PopulationQueue, Upgrade, Worker};
+use crate::entities::{Building, Housing, PopulationQueue, Worker};
 use crate::state::resource::ResourceType;
 use crate::state::{GameState, Statistics};
 use crate::systems::{
@@ -32,7 +32,6 @@ struct TechnologyView {
 #[wasm_bindgen]
 pub struct IdleGame {
     state: Rc<RefCell<GameState>>,
-    upgrades: Vec<Upgrade>,
     buildings: Vec<Building>,
     housing_buildings: Vec<Housing>,
     workers: Vec<Worker>,
@@ -59,7 +58,6 @@ pub struct IdleGame {
 pub struct SavedGame {
     pub state: GameState,
     pub statistics: Statistics,
-    pub upgrades: Vec<Upgrade>,
     pub buildings: Vec<Building>,
     pub housing_buildings: Vec<Housing>,
     pub workers: Vec<Worker>,
@@ -113,8 +111,17 @@ fn normalize_worker_building_references(workers: &mut [Worker]) {
     }
 }
 
+fn calculate_click_power_from_buildings(buildings: &[Building]) -> f64 {
+    let coin_mine_count = buildings
+        .iter()
+        .find(|b| b.name == "金币矿山")
+        .map(|b| b.count as f64)
+        .unwrap_or(0.0);
+    1.0 + coin_mine_count
+}
+
 fn normalize_housing_resource_key(resource: &str) -> Option<&'static str> {
-    match resource.to_ascii_lowercase().as_str() {
+    match resource.trim().to_ascii_lowercase().as_str() {
         "gold" | "coins" | "coin" => Some("Gold"),
         "wood" => Some("Wood"),
         "stone" => Some("Stone"),
@@ -148,10 +155,12 @@ mod normalization_tests {
     fn test_normalize_housing_resource_key() {
         assert_eq!(normalize_housing_resource_key("coins"), Some("Gold"));
         assert_eq!(normalize_housing_resource_key("Gold"), Some("Gold"));
+        assert_eq!(normalize_housing_resource_key(" coins "), Some("Gold"));
         assert_eq!(normalize_housing_resource_key("WOOD"), Some("Wood"));
         assert_eq!(normalize_housing_resource_key("stone"), Some("Stone"));
         assert_eq!(normalize_housing_resource_key("crystal"), None);
     }
+
 }
 
 impl IdleGame {
@@ -160,7 +169,6 @@ impl IdleGame {
         SavedGame {
             state: self.state.borrow().clone(),
             statistics: self.statistics.borrow().clone(),
-            upgrades: self.upgrades.clone(),
             buildings: self.buildings.clone(),
             housing_buildings: self.housing_buildings.clone(),
             workers: self.workers.clone(),
@@ -188,7 +196,6 @@ impl IdleGame {
             *stats = saved.statistics;
         }
 
-        self.upgrades = saved.upgrades;
         self.buildings = saved.buildings;
         for building in &mut self.buildings {
             building.name = normalize_building_name(&building.name);
@@ -209,6 +216,11 @@ impl IdleGame {
         self.last_worker_spawn_time = saved.last_worker_spawn_time;
         self.last_food_consumption_time = saved.last_food_consumption_time;
         self.last_worker_spawn_time = saved.last_worker_spawn_time;
+
+        {
+            let mut state = self.state.borrow_mut();
+            state.coins_per_click = calculate_click_power_from_buildings(&self.buildings);
+        }
         
         // Ensure default workers exist if save is empty (backwards compatibility)
         if self.workers.is_empty() {
@@ -393,6 +405,7 @@ impl IdleGame {
                 version: crate::state::game_state::SAVE_VERSION.to_string(),
                 prestige_points: 0.0,
                 prestige_multiplier: 1.0,
+                ..GameState::default()
             })),
             statistics: Rc::new(RefCell::new(Statistics {
                 total_clicks: 0,
@@ -407,29 +420,6 @@ impl IdleGame {
             })),
             achievements: achievements,
             crafting_recipes: CraftingRecipe::get_default_recipes(),
-            upgrades: vec![
-                Upgrade {
-                    name: "Better Click".to_string(),
-                    cost: 10.0,
-                    production_increase: 1.0,
-                    owned: 0,
-                    unlocked: true,
-                },
-                Upgrade {
-                    name: "Lumberjack Efficiency".to_string(),
-                    cost: 20.0,
-                    production_increase: 0.2,
-                    owned: 0,
-                    unlocked: true,
-                },
-                Upgrade {
-                    name: "Stone Mason Skill".to_string(),
-                    cost: 25.0,
-                    production_increase: 0.3,
-                    owned: 0,
-                    unlocked: true,
-                },
-            ],
             buildings: vec![
                 // 10 primary resource buildings
                 Building {
@@ -609,45 +599,6 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
-    pub fn buy_upgrade(&mut self, index: usize) -> bool {
-        if index >= self.upgrades.len() {
-            return false;
-        }
-
-        let upgrade_cost = self.upgrades[index].cost;
-        let can_afford = {
-            let state = self.state.borrow();
-            state.get_coins() + 1e-10 >= upgrade_cost
-        };
-
-        if can_afford {
-            {
-                let mut state = self.state.borrow_mut();
-                state.spend_coins(upgrade_cost);
-
-                if self.upgrades[index].name == "Better Click" {
-                    state.coins_per_click += self.upgrades[index].production_increase;
-                }
-
-                self.upgrades[index].owned += 1;
-                self.upgrades[index].cost = self.upgrades[index].cost * 1.5;
-            }
-
-            let mut stats = self.statistics.borrow_mut();
-            stats.upgrades_purchased += 1;
-            drop(stats);
-
-            self.update_production();
-            self.update_resources_only();
-            self.update_upgrades_only();
-            true
-        } else {
-            self.update_resources_only();
-            false
-        }
-    }
-
-    #[wasm_bindgen]
     pub fn buy_building(&mut self, index: usize) -> bool {
         if index >= self.buildings.len() {
             return false;
@@ -665,6 +616,7 @@ impl IdleGame {
                 state.spend_coins(building_cost);
                 self.buildings[index].count += 1;
                 self.buildings[index].cost *= 1.15;
+                state.coins_per_click = calculate_click_power_from_buildings(&self.buildings);
             }
 
             let mut stats = self.statistics.borrow_mut();
@@ -1406,15 +1358,6 @@ impl IdleGame {
             }
         }
 
-        for upgrade in &self.upgrades {
-            if upgrade.name == "Lumberjack Efficiency" {
-                total_wps += upgrade.production_increase * upgrade.owned as f64;
-            }
-            if upgrade.name == "Stone Mason Skill" {
-                total_sps += upgrade.production_increase * upgrade.owned as f64;
-            }
-        }
-
         total_cps = if total_cps.is_finite() && total_cps >= 0.0 {
             total_cps
         } else {
@@ -1507,8 +1450,7 @@ impl IdleGame {
         let tech_bonuses = self.technology_tree.calculate_bonuses();
 
         // Get production rates from production system BEFORE borrowing state mutably
-        let production =
-            production::update_production(&self.buildings, &self.upgrades, &self.workers, &tech_bonuses);
+        let production = production::update_production(&self.buildings, &self.workers, &tech_bonuses);
 
         let (new_coins, new_wood, new_stone, new_last_update_time, elapsed) = {
             let state = self.state.borrow();
@@ -1674,71 +1616,6 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
-    pub fn update_upgrades_only(&self) {
-        let window = match web_sys::window() {
-            Some(win) => win,
-            None => {
-                web_sys::console::log_1(&"update_upgrades_only: window is None".into());
-                return;
-            }
-        };
-        let global_obj = window.as_ref();
-
-        web_sys::console::log_1(
-            &format!(
-                "update_upgrades_only: upgrades count={}",
-                self.upgrades.len()
-            )
-            .into(),
-        );
-        for (i, upgrade) in self.upgrades.iter().enumerate() {
-            web_sys::console::log_1(
-                &format!(
-                    "  upgrade[{}]: name={}, cost={}",
-                    i, upgrade.name, upgrade.cost
-                )
-                .into(),
-            );
-        }
-
-        let upgrades_serialized = match serde_wasm_bindgen::to_value(&self.upgrades) {
-            Ok(val) => {
-                web_sys::console::log_1(&"update_upgrades_only: serialization OK".into());
-                val
-            }
-            Err(e) => {
-                web_sys::console::log_1(
-                    &format!("update_upgrades_only: serialization ERROR: {:?}", e).into(),
-                );
-                return;
-            }
-        };
-
-        let update_upgrades_result =
-            js_sys::Reflect::get(global_obj, &"updateUpgradeButtons".into());
-        match update_upgrades_result {
-            Ok(update_func_val) => {
-                web_sys::console::log_1(
-                    &"update_upgrades_only: got updateUpgradeButtons function".into(),
-                );
-                let update_func: js_sys::Function = update_func_val.into();
-                let call_result = update_func.call1(&JsValue::NULL, &upgrades_serialized);
-                match call_result {
-                    Ok(_) => web_sys::console::log_1(&"update_upgrades_only: call SUCCESS".into()),
-                    Err(e) => web_sys::console::log_1(
-                        &format!("update_upgrades_only: call ERROR: {:?}", e).into(),
-                    ),
-                }
-            }
-            Err(e) => {
-                web_sys::console::log_1(
-                    &format!("update_upgrades_only: get function ERROR: {:?}", e).into(),
-                );
-            }
-        }
-    }
-
-    #[wasm_bindgen]
     pub fn update_buildings_only(&self) {
         let window = match web_sys::window() {
             Some(win) => win,
@@ -1788,17 +1665,6 @@ impl IdleGame {
                 &stone_per_sec.into(),
                 &coins_per_click.into(),
             );
-        }
-
-        let upgrades_serialized = match serde_wasm_bindgen::to_value(&self.upgrades) {
-            Ok(val) => val,
-            Err(_) => return,
-        };
-        let update_upgrades_result =
-            js_sys::Reflect::get(global_obj, &"updateUpgradeButtons".into());
-        if let Ok(update_func) = update_upgrades_result {
-            let update_upgrades: js_sys::Function = update_func.into();
-            let _ = update_upgrades.call1(&JsValue::NULL, &upgrades_serialized);
         }
 
         let buildings_serialized = match serde_wasm_bindgen::to_value(&self.buildings) {
@@ -1910,35 +1776,29 @@ impl IdleGame {
             state.last_update_time = Date::now();
         }
 
-        // Reset Upgrades (owned=0, cost=initial, unlocked=true)
-        for (i, upgrade) in self.upgrades.iter_mut().enumerate() {
-            upgrade.owned = 0;
-            upgrade.unlocked = true;
-            // Reset costs to initial values
-            match i {
-                0 => upgrade.cost = 10.0, // Better Click
-                1 => upgrade.cost = 20.0, // Lumberjack Efficiency
-                2 => upgrade.cost = 25.0, // Stone Mason Skill
-                _ => {}
-            }
-        }
-
         // Reset Buildings (count=0, cost=initial)
         for (i, building) in self.buildings.iter_mut().enumerate() {
             building.count = 0;
             // Reset costs to initial values
             match i {
-                0 => building.cost = 15.0,  // Coin Mine
-                1 => building.cost = 100.0, // Coin Factory
-                2 => building.cost = 500.0, // Coin Corporation
-                3 => building.cost = 20.0,  // Woodcutter
-                4 => building.cost = 80.0,  // Lumber Mill
-                5 => building.cost = 400.0, // Forest Workshop
-                6 => building.cost = 25.0,  // Stone Quarry
-                7 => building.cost = 90.0,  // Rock Crusher
-                8 => building.cost = 450.0, // Mason Workshop
+                0 => building.cost = 15.0,
+                1 => building.cost = 20.0,
+                2 => building.cost = 25.0,
+                3 => building.cost = 50.0,
+                4 => building.cost = 40.0,
+                5 => building.cost = 60.0,
+                6 => building.cost = 70.0,
+                7 => building.cost = 100.0,
+                8 => building.cost = 150.0,
+                9 => building.cost = 30.0,
+                10 => building.cost = 200.0,
                 _ => {}
             }
+        }
+
+        {
+            let mut state = self.state.borrow_mut();
+            state.coins_per_click = calculate_click_power_from_buildings(&self.buildings);
         }
     }
 

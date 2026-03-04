@@ -94,10 +94,6 @@ class StatisticsManager {
                     <span class="stat-label">${t('buildingsPurchased')}</span>
                     <span class="stat-value">${formatNumber(stats.buildings_purchased)}</span>
                 </div>
-                <div class="statistic-item">
-                    <span class="stat-label">${t('upgradesPurchased')}</span>
-                    <span class="stat-value">${formatNumber(stats.upgrades_purchased)}</span>
-                </div>
             </div>
         `;
     }

@@ -6,7 +6,7 @@ class I18n {
             'en': {
                 // Game title and headers
                 'gameTitle': 'Rust WASM Idle Game',
-                'clickToEarn': 'Click to earn coins and buy upgrades!',
+                'clickToEarn': 'Click to earn coins and buy buildings!',
                 'upgrades': 'Upgrades',
                 'buildings': 'Buildings',
                 'workers': 'Workers',
@@ -24,6 +24,8 @@ class I18n {
                 'oil': 'Oil',
                 'crystal': 'Crystal',
                 'food': 'Food',
+                'maggot': 'Maggot',
+                'corpse': 'Corpse',
                 
                 // Resource labels - Secondary (Tier 2)
                 'ironIngot': 'Iron Ingot',
@@ -178,7 +180,7 @@ class I18n {
             'zh-CN': {
                 // Game title and headers
                 'gameTitle': 'Rust WASM 闲置游戏',
-                'clickToEarn': '点击赚取金币并购买升级！',
+                'clickToEarn': '点击赚取金币并购买建筑！',
                 'upgrades': '升级',
                 'buildings': '建筑',
                 'workers': '工人',
@@ -196,6 +198,8 @@ class I18n {
                 'oil': '石油',
                 'crystal': '水晶',
                 'food': '食物',
+                'maggot': '蛆虫',
+                'corpse': '尸体',
                 
                 // Resource labels - Secondary (Tier 2)
                 'ironIngot': '铁锭',
@@ -378,7 +382,6 @@ class I18n {
         // Update static text elements
         this.updateElement('game-title', 'gameTitle');
         this.updateElement('click-to-earn', 'clickToEarn');
-        this.updateElement('upgrades-header', 'upgrades');
         this.updateElement('buildings-header', 'buildings');
         this.updateElement('workers-header', 'workers');
         this.updateElement('settings-header', 'settings');

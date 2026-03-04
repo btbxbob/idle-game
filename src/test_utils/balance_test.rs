@@ -99,8 +99,8 @@ impl BalanceSimulator {
 
     fn produce_resources(&mut self, delta_time: f64) {
         let workers = vec![];
-        let upgrades = vec![];
-        let production = production::update_production(&self.buildings, &upgrades, &workers);
+        let tech_bonuses = production::default_tech_bonuses();
+        let production = production::update_production(&self.buildings, &workers, &tech_bonuses);
 
         *self.resources.entry(ResourceType::Gold).or_insert(0.0) += production[0] * delta_time;
         *self.resources.entry(ResourceType::Wood).or_insert(0.0) += production[1] * delta_time;

@@ -1,8 +1,18 @@
-use crate::entities::{Building, Gender, Trait, Upgrade, Worker};
+use crate::entities::{Building, Gender, Trait, Worker};
 
 use crate::state::resource::ResourceType;
 use crate::state::Statistics;
 use crate::systems::{Achievement, CraftingRecipe, UnlockedFeature};
+
+#[cfg(test)]
+#[derive(Clone)]
+struct Upgrade {
+    name: String,
+    cost: f64,
+    production_increase: f64,
+    owned: u32,
+    unlocked: bool,
+}
 
 #[cfg(test)]
 pub struct TestGameState {

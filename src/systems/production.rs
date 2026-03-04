@@ -1,4 +1,4 @@
-use crate::entities::{Building, Upgrade, Worker};
+use crate::entities::{Building, Worker};
 use crate::state::resource::ResourceType;
 use crate::systems::technology::TechnologyBonuses;
 
@@ -381,10 +381,9 @@ mod tests {
         buildings[1].count = 1;
         buildings[2].count = 1;
         let workers = create_test_workers();
-        let upgrades = vec![];
         let bonuses = default_bonuses();
 
-        let production = update_production(&buildings, &upgrades, &workers, &bonuses);
+        let production = update_production(&buildings, &workers, &bonuses);
         assert_eq!(production.len(), 60);
         assert!(production[0] > 0.0);
         assert!(production[1] > 0.0);
@@ -451,7 +450,6 @@ pub fn default_tech_bonuses() -> TechnologyBonuses {
 /// Update production rates based on buildings and worker bonuses
 pub fn update_production(
     buildings: &[Building],
-    upgrades: &[Upgrade],
     workers: &[Worker],
     tech_bonuses: &TechnologyBonuses,
 ) -> [f64; 60] {
@@ -525,26 +523,16 @@ pub fn update_production(
     // Special Resources (59-60) - no production
     production[59] = 0.0; // Corpse
 
-    for upgrade in upgrades {
-        if upgrade.name == "Lumberjack Efficiency" {
-            production[1] += upgrade.production_increase * upgrade.owned as f64;
-        }
-        if upgrade.name == "Stone Mason Skill" {
-            production[2] += upgrade.production_increase * upgrade.owned as f64;
-        }
-    }
-
     production
 }
 
 /// Legacy function - returns (coins, wood, stone) for backward compatibility
 pub fn update_production_legacy(
     buildings: &[Building],
-    upgrades: &[Upgrade],
     workers: &[Worker],
 ) -> (f64, f64, f64) {
     let tech_bonuses = default_tech_bonuses();
-    let production = update_production(buildings, upgrades, workers, &tech_bonuses);
+    let production = update_production(buildings, workers, &tech_bonuses);
     (production[0], production[1], production[2])
 }
 

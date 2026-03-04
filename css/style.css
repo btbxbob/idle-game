@@ -260,40 +260,34 @@ header {
 /* Banner Area - Resource Display */
 #banner {
     background-color: var(--panel-bg);
-    padding: 1px 2px;
+    padding: 4px;
     border-bottom: 2px solid var(--border-color);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
     line-height: 1.1;
-    font-size: 0.9em;
+    font-size: 0.85em;
 }
 
 #banner #resources {
-    display: inline-flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 1px;
-    flex-wrap: nowrap;
-    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 4px;
+    width: 100%;
 }
 
 #banner .resource-item {
     background-color: var(--panel-bg);
-    padding: 6px 12px;
+    padding: 4px 6px;
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: 0;
     font-family: 'Courier New', monospace;
-    font-size: 11px;
-    white-space: nowrap;
+    font-size: 10px;
     text-align: left;
-    min-width: 30px;
-    flex: 0 0 auto;
     margin: 0;
-    display: inline-flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
+    gap: 5px;
+    transition: all 0.15s ease;
 }
 
 #banner .resource-item:hover {
@@ -302,15 +296,32 @@ header {
 }
 
 #banner .resource-icon {
-    font-size: 1.3em;
+    font-size: 1.1em;
     line-height: 1;
     flex-shrink: 0;
 }
 
-/* Resource rate separator - visual grouping */
-#banner .resource-rate {
-    border-left: 2px solid var(--border-color);
-    margin-left: 4px;
+#banner .header-resource-text {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+}
+
+#banner .header-resource-amount {
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#banner .header-resource-rate {
+    font-size: 9px;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+#banner .header-click-card {
+    background-color: var(--main-bg);
 }
 
 /* Banner resource colors - thematic and distinct */
@@ -621,17 +632,25 @@ footer {
 
     #banner {
         padding: 2px 4px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 
     #banner #resources {
         gap: 2px;
+        display: flex;
+        flex-wrap: nowrap;
+        width: max-content;
+        min-width: 420px;
     }
 
     #banner .resource-item {
         font-size: 8px;
-        min-width: 25px;
-        padding: 4px 6px;
+        padding: 3px 5px;
         gap: 4px;
+        min-width: 112px;
+        flex: 0 0 auto;
     }
 
     #banner .resource-icon {
@@ -694,22 +713,17 @@ footer {
     
     #banner #resources {
         gap: 3px;
+        grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
     }
     
     #banner .resource-item {
         font-size: 9px;
-        min-width: 26px;
-        padding: 5px 7px;
+        padding: 4px 6px;
         gap: 4px;
     }
     
     #banner .resource-icon {
         font-size: 1.15em;
-    }
-    
-    #banner .resource-rate {
-        border-left: 1px solid var(--border-color);
-        margin-left: 2px;
     }
     
     .tab-button {
@@ -764,8 +778,7 @@ footer {
 
     #banner .resource-item {
         font-size: 9px;
-        min-width: 28px;
-        padding: 5px 8px;
+        padding: 4px 7px;
         gap: 5px;
     }
 
@@ -2033,6 +2046,31 @@ footer {
     gap: 10px;
 }
 
+#banner-top-monitor {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--panel-bg);
+}
+
+.lifecycle-resource-widget.compact {
+    margin-top: 0;
+    border: 0;
+    box-shadow: none;
+    padding: 4px 8px;
+    gap: 4px;
+}
+
+.widget-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-size: 11px;
+}
+
+.widget-inline > span {
+    white-space: nowrap;
+}
+
 .lifecycle-resource-widget.warning {
     border-color: #ec7063;
 }
@@ -2076,6 +2114,10 @@ footer {
 
 .widget-item.danger {
     border-color: #ec7063;
+}
+
+.danger {
+    color: #ec7063;
 }
 
 .widget-item strong {

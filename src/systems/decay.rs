@@ -66,6 +66,7 @@ mod tests {
             last_update_time: 0.0,
             prestige_points: 0.0,
             prestige_multiplier: 1.0,
+            ..GameState::default()
         }
     }
 

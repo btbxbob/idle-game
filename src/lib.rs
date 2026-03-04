@@ -10,7 +10,7 @@ pub mod ui;
 pub mod utils;
 
 pub use core::IdleGame;
-pub use entities::{Building, Upgrade, Worker};
+pub use entities::{Building, Worker};
 pub use state::{GameState, Statistics};
 pub use systems::{Achievement, CraftingRecipe, UnlockedFeature};
 pub use utils::{Gender, NameGenerator};

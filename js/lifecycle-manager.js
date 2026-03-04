@@ -39,7 +39,7 @@ class LifecycleManager {
         `;
     }
 
-    renderResourceWidget(panelId = 'lifecycle-resource-widget') {
+    renderResourceWidget(panelId = 'banner-top-monitor') {
         const panel = document.getElementById(panelId);
         if (!panel) return;
 
@@ -59,59 +59,22 @@ class LifecycleManager {
         const foodWarning = hungry > 0 || food < workers;
 
         const maggotFactoryCount = this.getMaggotFactoryCount();
-        const maggotToFoodRate = maggotFactoryCount;
 
         panel.innerHTML = `
-            <div class="lifecycle-resource-widget ${foodWarning ? 'warning' : ''}">
-                <div class="widget-header">
-                    <h4>生命周期资源监控</h4>
+            <div class="lifecycle-resource-widget compact ${foodWarning ? 'warning' : ''}">
+                <div class="widget-inline">
                     <span class="widget-badge ${foodWarning ? 'danger' : 'ok'}">${foodWarning ? '补给紧张' : '稳定'}</span>
-                </div>
-                <div class="widget-grid">
-                    <div class="widget-item">
-                        <span>食物</span>
-                        <strong>${food.toFixed(1)}</strong>
-                        <small>消耗速率 ${foodConsumeRate.toFixed(1)}/秒</small>
-                    </div>
-                    <div class="widget-item">
-                        <span>尸体</span>
-                        <strong>${corpses.toFixed(1)}</strong>
-                    </div>
-                    <div class="widget-item">
-                        <span>蛆虫</span>
-                        <strong>${maggots.toFixed(1)}</strong>
-                        <small>可转化食物 ${Math.floor(maggots / 10)}</small>
-                    </div>
-                    <div class="widget-item ${hungry > 0 ? 'danger' : ''}">
-                        <span>饥饿工人</span>
-                        <strong>${hungry}</strong>
-                        <small>等待队列 ${queue}</small>
-                    </div>
-                </div>
-                <div class="maggot-factory-panel">
-                    <div class="maggot-factory-info">
-                        <span>蛆虫工厂</span>
-                        <strong>x${maggotFactoryCount}</strong>
-                        <small>理论转化 ${maggotToFoodRate.toFixed(1)} 食物/秒</small>
-                    </div>
-                    <button type="button" id="process-maggot-now" ${maggotFactoryCount === 0 ? 'disabled' : ''}>立即处理蛆虫</button>
+                    <span>工人 ${workers}</span>
+                    <span class="${hungry > 0 ? 'danger' : ''}">饥饿 ${hungry}</span>
+                    <span>队列 ${queue}</span>
+                    <span>食物 ${food.toFixed(1)} (${foodConsumeRate.toFixed(1)}/秒)</span>
+                    <span>尸体 ${corpses.toFixed(1)}</span>
+                    <span>蛆虫 ${maggots.toFixed(1)} (转化 ${Math.floor(maggots / 10)})</span>
+                    <span>蛆虫工厂 x${maggotFactoryCount}</span>
                 </div>
             </div>
         `;
 
-        const processBtn = document.getElementById('process-maggot-now');
-        if (processBtn) {
-            processBtn.addEventListener('click', () => {
-                if (this.rustGame && typeof this.rustGame.game_loop === 'function') {
-                    this.rustGame.game_loop();
-                    this.renderResourceWidget(panelId);
-                    this.renderToPanel('lifecycle-panel');
-                    if (window.updateResourcePanel) {
-                        window.updateResourcePanel();
-                    }
-                }
-            });
-        }
     }
 
     getMaggotFactoryCount() {
@@ -138,8 +101,5 @@ window.updateLifecyclePanel = function() {
         window.lifecycleManager.renderToPanel('lifecycle-panel');
     }
 
-    const resourcesTab = document.getElementById('tab-resources');
-    if (resourcesTab && resourcesTab.classList.contains('active')) {
-        window.lifecycleManager.renderResourceWidget('lifecycle-resource-widget');
-    }
+    window.lifecycleManager.renderResourceWidget('banner-top-monitor');
 };

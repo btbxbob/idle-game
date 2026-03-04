@@ -6,7 +6,8 @@ class TechnologyManager {
         this.detailPanel = document.getElementById('technology-detail');
         this.researchBtn = document.getElementById('research-button');
         this.selectedTechnology = null;
-        this.technologies = [];
+this.technologies = [];
+        this.activeTier = 1;
         
         // Canvas visualization state
         this.canvas = null;
@@ -552,95 +553,44 @@ class TechnologyManager {
             tiers[tier].push(tech);
         });
         
-        // Build compact two-column layout
-        // Left: tech list by tier tabs (compact)
-        // Right: detail panel
-        const tierTabs = [1, 2, 3, 4].filter(t => tiers[t] && tiers[t].length > 0);
-        const activeTier = tierTabs[0] || 1;
+        // Get available tiers sorted
+        const tierKeys = Object.keys(tiers).map(Number).sort((a, b) => a - b);
         
-        this.treeContainer.innerHTML = `
-            <div class="tech-container" style="display:flex;gap:10px;height:100%;">
-                <div class="tech-list-panel" style="flex:1;min-width:0;display:flex;flex-direction:column;">
-                    <div class="tech-tier-tabs" style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
-                        ${tierTabs.map(tier => `
-                            <button class="tech-tier-tab ${tier === activeTier ? 'active' : ''}" 
-                                    data-tier="${tier}"
-                                    style="padding:4px 12px;border:1px solid #ccc;background:${tier === activeTier ? '#007bff' : '#f5f5f5'};color:${tier === activeTier ? '#fff' : '#333'};cursor:pointer;border-radius:4px;font-size:12px;">
-                                T${tier} (${tiers[tier]?.length || 0})
-                            </button>
-                        `).join('')}
-                    </div>
-                    <div class="tech-compact-list" style="flex:1;overflow-y:auto;padding:4px;background:#fafafa;border-radius:4px;">
-                        ${(tiers[activeTier] || []).map(tech => {
-                            const isResearched = tech.researched || tech.purchased || false;
-                            const canResearch = this.canResearch(tech);
-                            const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
-                            const isSelected = this.selectedTechnology && this.selectedTechnology.id === tech.id;
-                            const effectDesc = this.getEffectDescription(tech);
-                            const shortEffect = effectDesc.length > 18 ? effectDesc.substring(0, 18) + '...' : effectDesc;
-                            return `<div class="tech-item-compact ${statusClass}" data-tech-id="${tech.id}" 
-                                style="cursor:pointer;padding:5px 8px;margin:2px 0;border-radius:4px;border:2px solid ${isSelected ? '#007bff' : 'transparent'};
-                                       ${isResearched ? 'background:#e8f5e9' : (canResearch ? 'background:#fffde7' : 'background:#f5f5f5')};"
-                                title="${effectDesc}">
-                                <span style="font-weight:bold;width:18px;display:inline-block;">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
-                                <span style="font-weight:500;font-size:13px;">${this.escapeHtml(tech.name || tech.id)}</span>
-                                <span style="color:#888;font-size:11px;margin-left:auto;">${shortEffect}</span>
-                            </div>`;
-                        }).join('')}
-                    </div>
+        // Build collapsible tier groups
+        let techListHtml = tierKeys.map(tierNum => {
+            const techsInTier = tiers[tierNum];
+            const techItemsHtml = techsInTier.map(tech => {
+                const isResearched = tech.researched || tech.purchased || false;
+                const canResearch = this.canResearch(tech);
+                const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
+                const isSelected = this.selectedTechnology && this.selectedTechnology.id === tech.id;
+                const effectDesc = this.getEffectDescription(tech);
+                const shortEffect = effectDesc.length > 18 ? effectDesc.substring(0, 18) + '...' : effectDesc;
+                return `<div class="tech-item-compact ${statusClass}" data-tech-id="${tech.id}" 
+                    style="cursor:pointer;padding:5px 8px;margin:2px 0;border-radius:4px;border:2px solid ${isSelected ? '#007bff' : 'transparent'};
+                           ${isResearched ? 'background:#e8f5e9' : (canResearch ? 'background:#fffde7' : 'background:#f5f5f5')};"
+                    title="${effectDesc}">
+                    <span style="font-weight:bold;width:18px;display:inline-block;">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
+                    <span style="font-weight:500;font-size:13px;">${this.escapeHtml(tech.name || tech.id)}</span>
+                    <span style="color:#888;font-size:11px;margin-left:auto;">${shortEffect}</span>
+                </div>`;
+            }).join('');
+            
+            const tierLabels = {1: '基础', 2: '进阶', 3: '高级', 4: '终极'};
+            return `<details class="tech-tier-group" open>
+                <summary style="cursor:pointer;padding:8px 12px;margin:4px 0;background:#e9ecef;border-radius:4px;font-weight:bold;font-size:14px;">
+                    T${tierNum} - ${tierLabels[tierNum] || 'Tier ' + tierNum} (${techsInTier.length})
+                </summary>
+                <div class="tech-tier-items" style="padding:4px 8px;background:#fafafa;border-radius:4px;margin-bottom:8px;">
+                    ${techItemsHtml}
                 </div>
-                <div class="tech-detail-panel" id="tech-detail-inline" style="width:280px;min-width:200px;background:#fff;border:1px solid #ddd;border-radius:4px;padding:10px;overflow-y:auto;">
-                    ${this.selectedTechnology ? this.renderTechDetail(this.selectedTechnology) : '<p style="color:#888;text-align:center;margin-top:50px;">点击科技查看详情</p>'}
-                </div>
-            </div>
-        `;
+            </details>`;
+        }).join('');
         
-        // Bind tier tab clicks
-        const self = this;
-        this.treeContainer.querySelectorAll('.tech-tier-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tier = parseInt(this.getAttribute('data-tier'));
-                self.treeContainer.querySelectorAll('.tech-tier-tab').forEach(t => {
-                    t.classList.remove('active');
-                    t.style.background = '#f5f5f5';
-                    t.style.color = '#333';
-                });
-                this.classList.add('active');
-                this.style.background = '#007bff';
-                this.style.color = '#fff';
-                
-                // Re-render list for selected tier
-                const listPanel = self.treeContainer.querySelector('.tech-compact-list');
-                listPanel.innerHTML = (tiers[tier] || []).map(tech => {
-                    const isResearched = tech.researched || tech.purchased || false;
-                    const canResearch = self.canResearch(tech);
-                    const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
-                    const isSelected = self.selectedTechnology && self.selectedTechnology.id === tech.id;
-                    const effectDesc = self.getEffectDescription(tech);
-                    const shortEffect = effectDesc.length > 18 ? effectDesc.substring(0, 18) + '...' : effectDesc;
-                    return `<div class="tech-item-compact ${statusClass}" data-tech-id="${tech.id}" 
-                        style="cursor:pointer;padding:5px 8px;margin:2px 0;border-radius:4px;border:2px solid ${isSelected ? '#007bff' : 'transparent'};
-                               ${isResearched ? 'background:#e8f5e9' : (canResearch ? 'background:#fffde7' : 'background:#f5f5f5')};"
-                        title="${effectDesc}">
-                        <span style="font-weight:bold;width:18px;display:inline-block;">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
-                        <span style="font-weight:500;font-size:13px;">${self.escapeHtml(tech.name || tech.id)}</span>
-                        <span style="color:#888;font-size:11px;margin-left:auto;">${shortEffect}</span>
-                    </div>`;
-                }).join('');
-                
-                // Rebind item clicks
-                self.treeContainer.querySelectorAll('.tech-item-compact').forEach(item => {
-                    item.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const techId = this.getAttribute('data-tech-id');
-                        self.selectTechnology(techId);
-                        self.updateDetailPanel();
-                    });
-                });
-            });
-        });
+        this.treeContainer.innerHTML = techListHtml;
         
         // Bind item clicks
+        const self = this;
         this.treeContainer.querySelectorAll('.tech-item-compact').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -882,13 +832,59 @@ class TechnologyManager {
                 }
                 console.log('Technology researched successfully:', techId);
             } else {
-                console.warn('Failed to research technology:', techId);
+                const t = this.i18n ? this.i18n.t.bind(this.i18n) : key => key;
+                this.showMessageNotification(t('researchFailed') || '研究失败');
+                console.info('TechnologyManager: Failed to research technology:', techId);
             }
             return success;
         } catch (error) {
-            console.error('TechnologyManager: Error researching technology:', error);
+            const message = String(error && error.message ? error.message : error);
+            const lowerMessage = message.toLowerCase();
+            const insufficientResource =
+                lowerMessage.includes('cannot afford') ||
+                lowerMessage.includes('insufficient');
+            const t = this.i18n ? this.i18n.t.bind(this.i18n) : key => key;
+
+            if (insufficientResource) {
+                this.showMessageNotification(t('insufficientResources') || '资源不足');
+                console.info('TechnologyManager: Not enough resources to research technology:', message);
+            } else {
+                console.error('TechnologyManager: Error researching technology:', error);
+            }
             return false;
         }
+    }
+
+    showMessageNotification(message) {
+        const existing = document.getElementById('technology-message-notification');
+        if (existing) {
+            existing.remove();
+        }
+
+        const notification = document.createElement('div');
+        notification.id = 'technology-message-notification';
+        notification.className = 'achievement-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-icon">ℹ️</div>
+                <div class="notification-text">
+                    <div class="notification-title">${message}</div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+        requestAnimationFrame(() => {
+            notification.classList.add('show');
+        });
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 2000);
     }
 
     canResearch(tech) {
