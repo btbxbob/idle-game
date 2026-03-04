@@ -24,9 +24,10 @@ pub struct GameState {
     pub coins_per_second: f64,
     pub wood_per_second: f64,
     pub stone_per_second: f64,
-    pub autoclick_count: u32,
     pub total_clicks: u32,
     pub last_update_time: f64,
+    pub prestige_points: f64,
+    pub prestige_multiplier: f64,
 }
 ```
 
@@ -66,4 +67,4 @@ Worker job statistics:
 
 ## CRITICAL: #[serde(default)] on ALL new fields
 
-All new GameState fields MUST have `#[serde(default)]` for backward compatibility with old saves. Version check in deserializer resets saves on breaking changes (0.3.0+).
+All new GameState fields MUST have `#[serde(default)]` for backward compatibility with old saves. Version check in deserializer resets saves on breaking changes (0.5.0+).

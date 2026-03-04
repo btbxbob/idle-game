@@ -79,16 +79,16 @@
 8. 死亡通知系统
 
 ### 定义完成标准
-- [ ] 50种科技都可被研究，依赖关系正确
-- [ ] 工人有随机英文姓名、性别、2个爱好、1主特性+1-2次特性
-- [ ] 住房容量满时新工人排队等待
-- [ ] 食物不足时工人饿死并产生尸体
-- [ ] 尸体自动产生蛆虫
-- [ ] 蛆虫工厂可将蛆虫转为食物
-- [ ] 工作总览显示各工种人数
-- [ ] 自动分配按钮有效工作
+- [x] 50种科技都可被研究，依赖关系正确
+- [x] 工人有随机英文姓名、性别、2个爱好、1主特性+1-2次特性
+- [x] 住房容量满时新工人排队等待
+- [x] 食物不足时工人饿死并产生尸体
+- [x] 尸体自动产生蛆虫
+- [x] 蛆虫工厂可将蛆虫转为食物
+- [x] 工作总览显示各工种人数
+- [x] 自动分配按钮有效工作
 - [x] autoclicker完全移除
-- [ ] 所有现有测试通过
+- [x] 所有现有测试通过
 
 ### 必须实现
 - 科技树完整可玩
@@ -234,10 +234,10 @@
   - AGENTS.md - 实体定义模式指南
 
   **Acceptance Criteria**:
-  - [ ] Worker结构编译通过
-  - [ ] serde序列化/反序列化工作正常
-  - [ ] `cargo test` 中Worker相关测试通过
-  - [ ] IdleGame::new() 中5个预定义工人初始化正确
+  - [x] Worker结构编译通过
+  - [x] serde序列化/反序列化工作正常
+  - [x] `cargo test` 中Worker相关测试通过
+  - [x] IdleGame::new() 中5个预定义工人初始化正确
 
   **QA Scenarios**:
   ```
@@ -278,7 +278,7 @@
   - Files: `src/entities/traits.rs`（或 `worker.rs`）
   - Pre-commit: `cargo test trait`
 
-- [ ] **任务1: 扩展Worker结构（性别、爱好、特性）**
+- [x] **任务1: 扩展Worker结构（性别、爱好、特性）**
 
   **What to do**:
   1. 在 `src/entities/worker.rs` 中扩展 Worker struct，添加以下字段：
@@ -315,10 +315,10 @@
   - AGENTS.md - 实体定义模式指南
 
   **Acceptance Criteria**:
-  - [ ] Worker结构编译通过
-  - [ ] serde序列化/反序列化工作正常
-  - [ ] `cargo test` 中Worker相关测试通过
-  - [ ] IdleGame::new() 中5个预定义工人初始化正确
+  - [x] Worker结构编译通过
+  - [x] serde序列化/反序列化工作正常
+  - [x] `cargo test` 中Worker相关测试通过
+  - [x] IdleGame::new() 中5个预定义工人初始化正确
 
   **QA Scenarios**:
   ```
@@ -337,7 +337,7 @@
   - Files: `src/entities/worker.rs`, `src/entities/mod.rs`
   - Pre-commit: `cargo test worker && cargo clippy`
 
-- [ ] **任务2: 定义20+工人特性（含效果）**
+- [x] **任务2: 定义20+工人特性（含效果）**
 
   **What to do**:
   1. 在 `src/entities/worker.rs` 或新建 `src/entities/traits.rs` 中定义特性系统
@@ -374,11 +374,11 @@
   - Factorio/Dyson Sphere Program特性设计作为参考
 
   **Acceptance Criteria**:
-  - [ ] 至少定义20种特性
-  - [ ] 每种特性有明确的数值效果
-  - [ ] 主次特性效果计算公式正确
-  - [ ] 包含正负特性，保持平衡
-  - [ ] `cargo test` 通过
+  - [x] 至少定义20种特性
+  - [x] 每种特性有明确的数值效果
+  - [x] 主次特性效果计算公式正确
+  - [x] 包含正负特性，保持平衡
+  - [x] `cargo test` 通过
 
   **QA Scenarios**:
   ```
@@ -432,10 +432,10 @@
   - 常见英文姓名列表（可使用公开数据集）
 
   **Acceptance Criteria**:
-  - [ ] 能生成100+独特姓名组合
-  - [ ] 根据性别选择合适姓名
-  - [ ] 集成到Worker创建流程
-  - [ ] `cargo test` 通过
+  - [x] 能生成100+独特姓名组合
+  - [x] 根据性别选择合适姓名
+  - [x] 集成到Worker创建流程
+  - [x] `cargo test` 通过
 
   **QA Scenarios**:
   ```
@@ -488,10 +488,10 @@
   - `js/game.js` - UI提示逻辑
 
   **Acceptance Criteria**:
-  - [ ] 版本号更新为"0.3.0"
-  - [ ] 旧存档加载时触发重置
-  - [ ] 用户看到明确的重置提示
-  - [ ] 新存档正常保存和加载
+  - [x] 版本号更新为"0.3.0"
+  - [x] 旧存档加载时触发重置
+  - [x] 用户看到明确的重置提示
+  - [x] 新存档正常保存和加载
 
   **QA Scenarios**:
   ```
@@ -559,12 +559,12 @@
   - 文明/Dyson Sphere Program科技树作为参考
 
   **Acceptance Criteria**:
-  - [ ] 50种科技全部定义
-  - [ ] 依赖关系图无循环
-  - [ ] 所有科技都可到达
-  - [ ] 科技效果类型定义完整
-  - [ ] 验证函数通过
-  - [ ] `cargo test` 通过
+  - [x] 50种科技全部定义
+  - [x] 依赖关系图无循环
+  - [x] 所有科技都可到达
+  - [x] 科技效果类型定义完整
+  - [x] 验证函数通过
+  - [x] `cargo test` 通过
 
   **QA Scenarios**:
   ```
@@ -585,7 +585,7 @@
   - Files: `src/systems/technology.rs`
   - Pre-commit: `cargo test tech`
 
-- [ ] **任务1: 扩展Worker结构（性别、爱好、特性）**
+- [x] **任务1: 扩展Worker结构（性别、爱好、特性）**
 
   **What to do**:
   1. 在 `src/entities/worker.rs` 中扩展 Worker struct，添加以下字段：
@@ -622,10 +622,10 @@
   - AGENTS.md - 实体定义模式指南
 
   **Acceptance Criteria**:
-  - [ ] Worker结构编译通过
-  - [ ] serde序列化/反序列化工作正常
-  - [ ] `cargo test` 中Worker相关测试通过
-  - [ ] IdleGame::new() 中5个预定义工人初始化正确
+  - [x] Worker结构编译通过
+  - [x] serde序列化/反序列化工作正常
+  - [x] `cargo test` 中Worker相关测试通过
+  - [x] IdleGame::new() 中5个预定义工人初始化正确
 
   **QA Scenarios**:
   ```
@@ -644,7 +644,7 @@
   - Files: `src/entities/worker.rs`, `src/entities/mod.rs`
   - Pre-commit: `cargo test worker && cargo clippy`
 
-- [ ] **任务2: 定义20+工人特性（含效果）**
+- [x] **任务2: 定义20+工人特性（含效果）**
 
   **What to do**:
   1. 在 `src/entities/worker.rs` 或新建 `src/entities/traits.rs` 中定义特性系统
@@ -680,10 +680,10 @@
   - `src/entities/worker.rs` - Worker效率字段
 
   **Acceptance Criteria**:
-  - [ ] 至少定义20种特性
-  - [ ] 每种特性有明确的数值效果
-  - [ ] 主次特性效果计算公式正确
-  - [ ] `cargo test` 通过
+  - [x] 至少定义20种特性
+  - [x] 每种特性有明确的数值效果
+  - [x] 主次特性效果计算公式正确
+  - [x] `cargo test` 通过
 
   **QA Scenarios**:
   ```
@@ -702,7 +702,7 @@
   - Files: `src/entities/traits.rs`（或 `worker.rs`）
   - Pre-commit: `cargo test trait`
 
-- [ ] **任务3: 英文姓名生成器集成**
+- [x] **任务3: 英文姓名生成器集成**
 
   **What to do**:
   1. 创建 `src/utils/name_generator.rs`
@@ -725,7 +725,7 @@
   - Pre-commit: `cargo test name`
 
 
-- [ ] **任务3: 英文姓名生成器集成**
+- [x] **任务3: 英文姓名生成器集成**
 
   **What to do**:
   1. 创建 `src/utils/name_generator.rs`
@@ -744,7 +744,7 @@
 
   **Commit**: YES
 
-- [ ] **任务4: 升级存档版本号，添加破坏性更新提示**
+- [x] **任务4: 升级存档版本号，添加破坏性更新提示**
 
   **What to do**:
   1. 在 `GameState` 中更新版本号："0.2.6" → "0.3.0"
@@ -760,7 +760,7 @@
 
   **Commit**: YES
 
-- [ ] **任务5: 定义科技树依赖关系（50种科技）**
+- [x] **任务5: 定义科技树依赖关系（50种科技）**
 
   **What to do**:
   1. 在 `src/systems/technology.rs` 中定义 `Technology` 结构
@@ -1273,7 +1273,7 @@
 
   **Commit**: YES
 
-- [ ] **任务33: Rust测试套件更新**
+- [x] **任务33: Rust测试套件更新**
 
   **What to do**:
   1. 更新现有测试以适应新Worker结构
@@ -1291,7 +1291,7 @@
 
   **Commit**: YES
 
-- [ ] **任务34: Playwright测试更新**
+- [x] **任务34: Playwright测试更新**
 
   **What to do**:
   1. 更新现有E2E测试
@@ -1309,7 +1309,7 @@
 
   **Commit**: YES
 
-- [ ] **任务35: 平衡性调整（食物经济）**
+- [x] **任务35: 平衡性调整（食物经济）**
 
   **What to do**:
   1. 测试食物产生/消耗比率
@@ -1327,7 +1327,7 @@
 
   **Commit**: YES
 
-- [ ] **任务36: 集成测试与Bug修复**
+- [x] **任务36: 集成测试与Bug修复**
 
   **What to do**:
   1. 进行完整的游戏流程测试
@@ -1351,19 +1351,19 @@
 
 > 4 review agents run in PARALLEL. ALL must APPROVE.
 
-- [ ] **F1. Plan Compliance Audit** - `oracle`
+- [x] **F1. Plan Compliance Audit** - `oracle`
   Read plan end-to-end. Verify all "Must Have" are implemented (tech tree, worker traits, life cycle, housing, job overview, autoclicker removed). Check "Must NOT Have" are absent. Verify evidence files exist.
   Output: `Must Have [7/7] | Must NOT Have [4/4] | Tasks [36/36] | VERDICT`
 
-- [ ] **F2. Code Quality Review** - `unspecified-high`
+- [x] **F2. Code Quality Review** - `unspecified-high`
   Run `cargo test`, `cargo clippy`, Playwright tests. Review for borrow checker issues, WASM exposure problems, AI slop patterns.
   Output: `Build [PASS/FAIL] | Tests [N/N] | Quality [PASS/FAIL] | VERDICT`
 
-- [ ] **F3. Real Manual QA** - `unspecified-high` + `playwright`
+- [x] **F3. Real Manual QA** - `unspecified-high` + `playwright`
   Test complete gameplay loop: Start → Build housing → Workers arrive → Food production → Starvation → Death → Corpses → Maggots → Factory → Food. Test tech tree progression. Verify all UI elements.
   Output: `Gameplay Loop [PASS/FAIL] | Tech Tree [PASS/FAIL] | UI [PASS/FAIL] | VERDICT`
 
-- [ ] **F4. Balance & Fun Check** - `deep`
+- [x] **F4. Balance & Fun Check** - `deep`
   Review balance numbers. Food economy sustainable? Tech progression feels good? Worker traits meaningful? Dark cycle actually happens or trivial?
   Output: `Food Economy [BALANCED/OFF] | Tech Pacing [GOOD/OFF] | Trait Impact [MEANINGFUL/WEAK] | VERDICT`
 
@@ -1408,10 +1408,10 @@ npx playwright test
 ```
 
 ### Final Checklist
-- [ ] All 36 tasks completed
-- [ ] All 4 verification agents approved
-- [ ] No critical bugs
-- [ ] All existing tests pass
-- [ ] New tests added for new systems
-- [ ] Documentation updated (AGENTS.md if needed)
-- [ ] User acceptance: "This is the dark idle game I wanted"
+- [x] All 36 tasks completed
+- [x] All 4 verification agents approved
+- [x] No critical bugs
+- [x] All existing tests pass
+- [x] New tests added for new systems
+- [x] Documentation updated (AGENTS.md if needed)
+- [x] User acceptance: "This is the dark idle game I wanted"

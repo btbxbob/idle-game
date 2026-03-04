@@ -6,7 +6,7 @@
 Rust + WebAssembly 闲置游戏，具有以下核心特性：
 - **多资源系统**：金币、木头、石头三种资源
 - **点击收益**：手动点击获得金币
-- **自动生产**：建筑和升级提供自动资源生产
+- **自动生产**：建筑提供自动资源生产
 - **多语言支持**：简体中文（主语言）和英语
 - **跨浏览器兼容**：支持 Chromium、Firefox、Webkit
 
@@ -32,23 +32,7 @@ struct GameState {
 }
 ```
 
-### 2.2 Upgrade（升级系统）
-```rust
-struct Upgrade {
-    name: String,               // 升级名称
-    cost: f64,                  // 购买成本
-    production_increase: f64,   // 生产力提升值
-    owned: u32,                 // 已拥有数量
-    unlocked: bool,             // 是否已解锁
-}
-```
-
-**当前升级列表**：
-- `Better Click`：提升每次点击收益 (+1.0)
-- `Lumberjack Efficiency`：提升木头自动产量 (+0.2/sec)
-- `Stone Mason Skill`：提升石头自动产量 (+0.3/sec)
-
-### 2.3 Building（建筑系统）
+### 2.2 Building（建筑系统）
 ```rust
 struct Building {
     name: String,               // 建筑名称
@@ -75,7 +59,7 @@ struct Building {
 - `Rock Crusher`：1.2 stone/sec，成本 90
 - `Mason Workshop`：4.5 stone/sec，成本 450
 
-### 2.4 Worker（工人系统 - 预留）
+### 2.3 Worker（工人系统 - 预留）
 ```rust
 struct Worker {
     name: String,                       // 工人姓名
@@ -98,7 +82,7 @@ struct Worker {
 
 ### 3.2 购买流程
 1. 用户点击购买按钮
-2. JavaScript 调用 `buy_upgrade(index)` 或 `buy_building(index)`
+2. JavaScript 调用 `buy_building(index)`
 3. Rust 检查余额是否足够
 4. **成功**：扣除资源，更新拥有数量，调用UI更新
 5. **失败**：调用UI更新显示当前余额，提供视觉反馈
@@ -172,7 +156,7 @@ struct Worker {
 3. 在UI更新函数中添加显示逻辑
 4. 在i18n中添加翻译
 
-### 7.2 新建筑/升级添加
+### 7.2 新建筑添加
 1. 在初始化中添加新项目
 2. 在 `update_production` 中添加效果逻辑
 3. 确保成本和生产率平衡
@@ -204,12 +188,12 @@ struct Worker {
 
 ### v0.1.0 - 基础功能完成
 - 单一金币系统
-- 基础建筑和升级
+- 基础建筑
 - Playwright测试框架
 
 ### v0.2.0 - 多资源系统
 - 添加木头、石头资源
-- 相应的建筑和升级
+- 相应的建筑
 - 工人系统框架
 
 ### v0.2.1 - 多语言支持
@@ -223,8 +207,8 @@ struct Worker {
 - 修复字段名序列化问题
 
 ### v0.5.0 - 自动点击器移除
-- 移除 Autoclicker 升级及其相关状态字段
-- 游戏循环仅保留建筑/升级提供的资源自动生产
+- 移除 Autoclicker 相关状态字段
+- 游戏循环仅保留建筑提供的资源自动生产
 - 相关测试与文档同步更新
 
 ## 9.1 科技系统设计
@@ -314,7 +298,6 @@ pub struct TechnologyBonuses {
 let tech_bonuses = self.technology_tree.calculate_bonuses();
 let production = production::update_production(
     &self.buildings, 
-    &self.upgrades, 
     &self.workers, 
     &tech_bonuses
 );
@@ -368,7 +351,7 @@ pub struct TechnologyTree {
 
 ### 10.1 短期计划
 - 完善工人系统
-- 添加更多升级和建筑
+- 添加更多建筑与建筑分工玩法
 - 实现离线收益计算
 - 添加成就系统
 

@@ -6,11 +6,11 @@
 
 - 基于 Rust 和 WebAssembly 的高性能游戏引擎
 - **多资源系统**: 金币、木头、石头三种资源
-- **自动资源生成系统**: 建筑和升级提供自动生产
+- **自动资源生成系统**: 建筑提供自动生产
 - **点击获取资源机制**: 手动点击赚取金币
-- **升级系统**: 提升生产力和点击收益
+- **建筑驱动点击收益**: 金币矿山提升每次点击金币收益
 - **建筑系统**: 多种建筑类型，每种产生不同资源
-- **多标签页界面**: 资源、升级、建筑、工人、设置
+- **多标签页界面**: 资源、建筑、工人、设置等系统面板
 - **多语言支持**: 简体中文（主语言）、英语
 - **ASCII艺术风格**: 白底黑字，终端风格视觉效果
 - **跨浏览器兼容**: Chromium、Firefox、Webkit
@@ -63,6 +63,14 @@ GitHub Actions 工作流会自动：
 - 使用 wasm-pack 构建发布版本
 - 将构建产物部署到 GitHub Pages
 
+## Jenkins CI（已迁移）
+
+本项目的编译和测试 CI 现由 Jenkins 执行（发布仍由 GitHub Actions 负责）。
+
+- Jenkins pipeline: `Jenkinsfile`
+- Jenkins 本地安装（含 MCP Server 插件）: `docker-compose.jenkins.yml`
+- 配置与使用说明: `docs/ci/jenkins-migration.md`
+
 ## 项目结构
 
 ```
@@ -112,14 +120,6 @@ idle-game/
 - `stone_per_second`: 每秒石头产量
 - `total_clicks`: 总点击次数
 
-### Upgrade
-定义游戏中的升级项：
-- `name`: 升级名称
-- `cost`: 升级成本
-- `production_increase`: 生产力提升值
-- `owned`: 拥有数量
-- `unlocked`: 是否解锁
-
 ### Building
 定义游戏中的建筑物：
 - `name`: 建筑名称
@@ -138,7 +138,6 @@ idle-game/
 Rust WASM 模块导出以下方法：
 
 - `click_action()`: 处理点击事件
-- `buy_upgrade(index)`: 购买指定索引的升级
 - `buy_building(index)`: 购买指定索引的建筑
 - `get_coins()`: 获取当前金币数
 - `get_wood()`: 获取当前木头数
@@ -151,7 +150,7 @@ Rust WASM 模块导出以下方法：
 
 ## 版本
 
-当前版本: **v0.5.5** - 修复住房升级"Unknown resource: coins"错误
+当前版本: **v0.5.7** - 移除升级模块并将点击收益迁移到建筑体系
 
 ## 贡献
 

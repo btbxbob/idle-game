@@ -56,7 +56,7 @@
 ### 方法 1: 完整压力测试
 ```bash
 # 确保服务器在运行
-python server.py
+python3 server.py
 
 # 运行完整测试
 npx playwright test performance-stress-test.test.js --reporter=list
@@ -65,7 +65,7 @@ npx playwright test performance-stress-test.test.js --reporter=list
 ### 方法 2: 快速测试
 ```bash
 # 确保服务器在运行
-python server.py
+python3 server.py
 
 # 运行快速测试
 npx playwright test performance-quick-test.test.js --reporter=list

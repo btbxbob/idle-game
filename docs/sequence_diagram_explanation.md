@@ -9,7 +9,7 @@
 - **bootstrap.js加载**: 加载WASM初始化脚本
 - **WASM模块加载**: 动态导入并初始化Rust WASM模块
 - **游戏实例创建**: 调用`init_game()`创建`IdleGame`实例
-- **初始UI更新**: 调用`update_ui()`显示初始的升级和建筑列表
+- **初始UI更新**: 调用`update_ui()`显示初始的建筑和资源信息
 
 ### 2. 游戏主循环
 - **定时器启动**: 每100毫秒执行一次`game_loop()`
@@ -23,36 +23,28 @@
 - **状态更新**: Rust代码增加硬币数量
 - **UI更新**: 自动调用`update_ui()`刷新显示
 
-### 4. 用户交互 - 购买升级
-- **按钮点击**: 用户点击升级购买按钮
-- **事件处理**: `onclick="window.buyUpgrade(index)"`
-- **WASM调用**: 调用`rustGame.buy_upgrade(index)`
-- **状态验证**: 检查是否有足够硬币
-- **购买执行**: 扣除硬币，应用升级效果
-- **UI更新**: 自动调用`update_ui()`刷新显示
-
-### 5. 用户交互 - 购买建筑
+### 4. 用户交互 - 购买建筑
 - **按钮点击**: 用户点击建筑购买按钮  
 - **事件处理**: `onclick="window.buyBuilding(index)"`
 - **WASM调用**: 调用`rustGame.buy_building(index)`
 - **状态验证**: 检查是否有足够硬币
 - **购买执行**: 扣除硬币，增加建筑数量
-- **生产率更新**: 更新每秒硬币产量
+- **生产率更新**: 更新自动产量，并按建筑重算点击收益
 - **UI更新**: 自动调用`update_ui()`刷新显示
 
 ## 关键组件说明
 
 ### User (用户)
 - 触发所有交互事件
-- 点击游戏区域、升级按钮、建筑按钮
+- 点击游戏区域与建筑购买按钮
 
 ### HTML/CSS
 - 提供UI结构和样式
-- 包含所有DOM元素（click-area, upgrade-list, building-list等）
+- 包含所有DOM元素（coin-button, building-list, banner-top-monitor等）
 
 ### JavaScript (game.js)
-- 定义UI更新函数：`updateResourceDisplay`, `updateUpgradeButtons`, `updateBuildingDisplay`
-- 定义购买函数：`buyUpgrade`, `buyBuilding`
+- 定义UI更新函数：`updateResourceDisplay`, `updateBuildingDisplay`
+- 定义购买函数：`buyBuilding`
 - 处理点击事件
 - 与Rust WASM模块通信
 
@@ -64,7 +56,7 @@
 
 ### Rust WASM
 - 核心游戏逻辑实现
-- 状态管理（硬币、升级、建筑）
+- 状态管理（硬币、建筑、工人、科技）
 - 业务逻辑（点击、购买、自动收入）
 - UI更新触发（`update_ui`函数调用JavaScript）
 
