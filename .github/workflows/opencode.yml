@@ -1,4 +1,4 @@
-name: opencode
+name: opencode-orchestration-only
 
 on:
   issue_comment:
@@ -24,6 +24,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+
+      - name: CI ownership notice
+        run: echo "Build/test CI is delegated to Jenkins (Jenkinsfile). GitHub Pages deploy stays in .github/workflows/deploy.yml. This workflow is orchestration-only."
 
       - name: Run opencode
         uses: anomalyco/opencode/github@latest

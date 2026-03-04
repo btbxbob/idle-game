@@ -17,11 +17,17 @@ Thumbs.db
 
 # Environment
 .env
+.env.jenkins
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 .node_modules
+.npmrc
+
+# Dependency and cache directories
+node_modules/
+__pycache__/
 
 # Rust build files that we don't need to track
 **/target/
@@ -33,6 +39,7 @@ pkg/
 # Playwright test results and reports
 test-results/
 playwright-report/
+coverage-report/
 # Test reports
 playwright-report/
 test-results/
