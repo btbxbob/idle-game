@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-01
-**Commit:** 746d29f
+**Generated:** 2026-03-02
+**Commit:** 751c981
 **Branch:** master
 
 ## OVERVIEW
@@ -44,6 +44,9 @@ idle-game/
 - Using `unwrap()`/`expect()` in production-facing WASM paths.
 - Skipping `window.gameInitialized === true` wait in Playwright tests.
 - Adding Playwright tests without `*.test.js` suffix.
+- Backup files (e.g., `lib.rs.backup2`) in `src/` directory.
+- Build artifacts (e.g., `.pdb` files) in `src/utils/` — belongs in `target/`.
+- `building.rs` at `src/` root — should be in `src/entities/`.
 
 ## UNIQUE STYLES
 - UI is manager-driven vanilla JS (no framework), one module per system surface.
@@ -67,6 +70,22 @@ npx playwright test
 npx playwright test tests/functional/workers.test.js
 ```
 
+## CI OWNERSHIP
+- CI build/test execution is centralized in Jenkins pipeline (`Jenkinsfile`).
+- GitHub Pages deployment remains in GitHub Actions workflow (`.github/workflows/deploy.yml`).
+- Do not treat OpenCode automation as CI executor for build/test/deploy stages.
+- Agent rule: do not run test commands directly in local sessions; trigger Jenkins jobs for all test execution and report the Jenkins build number/results.
+
+### Jenkins Test Flow
+- Jenkins job: `idle-game-ci`.
+- Stage order: `Checkout` -> `Install JS Dependencies` -> `Lint` -> `Setup Rust Toolchain` -> `Rust Check` -> `Rust Tests` -> `Build WASM` -> optional `Playwright E2E` (`RUN_PLAYWRIGHT=true` or `RUN_COVERAGE=true`).
+- Trigger Playwright E2E with `RUN_PLAYWRIGHT=true`; trigger coverage gate with `RUN_COVERAGE=true`.
+- Coverage thresholds in Jenkins env: `E2E_COVERAGE_MIN_LINES=20`, `E2E_COVERAGE_MIN_STATEMENTS=20`, `E2E_COVERAGE_MIN_FUNCTIONS=15`, `E2E_COVERAGE_MIN_BRANCHES=10`.
+- Playwright in CI uses `python3 server.py --quiet` from `playwright.config.js`.
+- CI artifacts: `pkg/**`, `playwright-report/**`, `test-results/**`, `coverage-report/e2e-merged/**`; JUnit source: `test-results/**/*.xml`.
+- Timeout policy: pipeline `120 minutes`, Playwright stage `60 minutes`.
+
+
 ## SCOPED GUIDES
 - `src/AGENTS.md`
 - `src/core/AGENTS.md`
@@ -80,4 +99,4 @@ npx playwright test tests/functional/workers.test.js
 
 ## NOTES
 - LSP Rust analysis may be unavailable if `rust-analyzer` is not installed in environment.
-- `wasm-pack` release profile currently has `wasm-opt = false` in `Cargo.toml`.
+- `wasm-pack` release profile has `wasm-opt = false` in `Cargo.toml` (WASM not optimized in release builds).
