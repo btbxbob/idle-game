@@ -12,8 +12,6 @@ test('buy buttons should have real-time response', async ({ page }) => {
   const initialCoinsValue = parseInt(initialCoins.split(': ')[1]);
   console.log('Initial coins:', initialCoinsValue);
   
-  // Click the middle button to get enough coins for both purchases
-  // Need: 15 (Coin Mine) + 10 (Better Click) = 25 coins
   for (let i = 0; i < 30; i++) {
     await page.click('#coin-button');
   }
@@ -50,32 +48,24 @@ test('buy buttons should have real-time response', async ({ page }) => {
   console.log('Building list after:', buildingListAfter);
   expect(buildingListAfter).toMatch(/拥有:\s*1/);
   
-  // Switch to upgrades tab
-  await page.click('button[data-tab="upgrades"]');
-  await page.waitForTimeout(100);
-  
-  // Test upgrade purchase as well
-  const betterClickButton = page.locator('#buy-upgrade-0');
-  
   // Get current coins per click
   const cpcTextBefore = await page.textContent('#cpc');
   const cpcValueBefore = parseFloat(((cpcTextBefore || '').match(/[\d.]+$/) || ['0'])[0]);
-  console.log('CPC before upgrade:', cpcValueBefore);
+  console.log('CPC before building click bonus:', cpcValueBefore);
   
-  await betterClickButton.click();
+  await page.click('#buy-building-0');
   
   // Wait for UI to update
   await page.waitForTimeout(300);
   
-  // Verify upgrade purchase success
-  const coinsAfterUpgrade = await page.textContent('#coins');
-  const coinsAfterUpgradeValue = parseInt(coinsAfterUpgrade.split(': ')[1]);
-  console.log('Coins after Better Click upgrade:', coinsAfterUpgradeValue);
-  expect(coinsAfterUpgradeValue).toBeLessThan(coinsAfterPurchaseValue);
+  const coinsAfterSecondBuilding = await page.textContent('#coins');
+  const coinsAfterSecondBuildingValue = parseInt(coinsAfterSecondBuilding.split(': ')[1]);
+  console.log('Coins after second Coin Mine purchase:', coinsAfterSecondBuildingValue);
+  expect(coinsAfterSecondBuildingValue).toBeLessThan(coinsAfterPurchaseValue);
   
   // Verify coins per click increased
   const cpcTextAfter = await page.textContent('#cpc');
   const cpcValueAfter = parseFloat(((cpcTextAfter || '').match(/[\d.]+$/) || ['0'])[0]);
-  console.log('CPC after upgrade:', cpcValueAfter);
+  console.log('CPC after building click bonus:', cpcValueAfter);
   expect(cpcValueAfter).toBeGreaterThan(cpcValueBefore);
 });

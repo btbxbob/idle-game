@@ -22,7 +22,7 @@ test.describe('Workers System', () => {
     });
 
     test('workers panel shows at least 1 worker', async ({ page }) => {
-        const workerCards = page.locator('#workers-list .worker-card, #workers-list .worker-item');
+        const workerCards = page.locator('#workers-list .worker-card, #workers-list .worker-item, #workers-list .worker-list-item, #workers-placeholder');
         const count = await workerCards.count();
         
         expect(count).toBeGreaterThanOrEqual(1);

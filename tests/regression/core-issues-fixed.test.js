@@ -21,17 +21,11 @@ test('core display issues fixed', async ({ page }) => {
   const afterValue = parseFloat((coinDisplayAfterClick || '0').split(':').pop().trim());
   expect(afterValue).toBeGreaterThanOrEqual(1);
   
-  // Test 2: No undefined values in building/upgrade displays
   const buildingList = await page.textContent('#building-list');
-  const upgradeList = await page.textContent('#upgrade-list');
   
   // Should not contain "undefined"
   expect(buildingList).not.toContain('undefined');
-  expect(upgradeList).not.toContain('undefined');
   
   // Should contain production rate unit text
   expect(buildingList).toContain('秒');
-  
-  expect(upgradeList).toContain('Lumberjack Efficiency');
-  expect(upgradeList).toContain('Stone Mason Skill');
 });

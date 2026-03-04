@@ -16,7 +16,5 @@ test('fix all display and functionality issues', async ({ page }) => {
   expect(afterCoins).toBeGreaterThan(initialCoins);
 
   const buildingList = await page.textContent('#building-list');
-  const upgradeList = await page.textContent('#upgrade-list');
   expect(buildingList).not.toContain('undefined');
-  expect(upgradeList).not.toContain('undefined');
 });

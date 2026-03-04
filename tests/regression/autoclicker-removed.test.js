@@ -13,10 +13,6 @@ test('autoclicker completely removed from codebase', async ({ page }) => {
   const autoclickCountCount = await autoclickCountDisplay.count();
   expect(autoclickCountCount).toBe(0);
 
-  const upgradeList = await page.textContent('#upgrade-list');
-  expect(upgradeList.toLowerCase()).not.toContain('autoclicker');
-  expect(upgradeList).not.toContain('自动点击器');
-
   const autoclickElements = page.locator('[id*="autoclick"], [class*="autoclick"], [name*="autoclick"]');
   const autoclickElementsCount = await autoclickElements.count();
   expect(autoclickElementsCount).toBe(0);

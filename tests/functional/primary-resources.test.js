@@ -52,7 +52,16 @@ test.describe('Primary Resources', () => {
         const initialWood = await page.evaluate(() => window.rustGame.get_wood());
         const initialStone = await page.evaluate(() => window.rustGame.get_stone());
 
-        await page.waitForTimeout(3000);
+        await page.waitForFunction(
+            ({ initialCoins, initialWood, initialStone }) => {
+                if (!window.rustGame) return false;
+                return window.rustGame.get_coins() >= initialCoins
+                    && window.rustGame.get_wood() >= initialWood
+                    && window.rustGame.get_stone() >= initialStone;
+            },
+            { initialCoins, initialWood, initialStone },
+            { timeout: 5000 }
+        );
 
         const newCoins = await page.evaluate(() => window.rustGame.get_coins());
         const newWood = await page.evaluate(() => window.rustGame.get_wood());
@@ -85,7 +94,7 @@ test.describe('Primary Resources', () => {
             for (let i = 0; i < 150; i++) {
                 await page.click('#coin-button');
             }
-            await page.waitForTimeout(500);
+            await page.waitForFunction(() => window.rustGame.get_coins() >= 100, null, { timeout: 5000 });
         }
 
         const currentCoins = await page.evaluate(() => window.rustGame.get_coins());
@@ -100,12 +109,17 @@ test.describe('Primary Resources', () => {
                 if (!disabled) {
                     await firstBtn.click();
                 }
-                await page.waitForTimeout(500);
-
                 const confirmButton = page.locator('.craft-confirm-btn, button:has-text("确认"), button:has-text("Confirm")');
                 if (await confirmButton.isVisible()) {
                     await confirmButton.click();
-                    await page.waitForTimeout(500);
+                    await page.waitForFunction(
+                        ({ beforeCoins, beforeWood }) => {
+                            if (!window.rustGame) return false;
+                            return window.rustGame.get_coins() <= beforeCoins || window.rustGame.get_wood() >= beforeWood;
+                        },
+                        { beforeCoins: currentCoins, beforeWood: initialWood },
+                        { timeout: 5000 }
+                    );
 
                     const afterCoins = await page.evaluate(() => window.rustGame.get_coins());
                     const afterWood = await page.evaluate(() => window.rustGame.get_wood());
@@ -152,7 +166,7 @@ test.describe('Primary Resources', () => {
         for (let i = 0; i < 10; i++) {
             await page.click('#coin-button');
         }
-        await page.waitForTimeout(200);
+        await page.waitForFunction((before) => window.rustGame.get_coins() > before, initialCoins, { timeout: 3000 });
 
         const afterCoins = await page.evaluate(() => window.rustGame.get_coins());
 

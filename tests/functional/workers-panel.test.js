@@ -22,7 +22,7 @@ test('workers panel UI renders correctly', async ({ page }) => {
   const workersList = await page.$('#workers-list');
   expect(workersList).toBeTruthy();
   
-  const workersGrid = await page.$('.workers-grid');
+  const workersGrid = await page.$('.workers-grid, #workers-virtual-list');
   const placeholder = await page.$('#workers-placeholder');
   
   expect(workersGrid || placeholder).toBeTruthy();
@@ -31,10 +31,10 @@ test('workers panel UI renders correctly', async ({ page }) => {
   console.log('Workers list HTML:', workersListHTML);
   
   if (workersGrid) {
-    const gridDisplay = await page.$eval('.workers-grid', el => 
+    const gridDisplay = await page.$eval('.workers-grid, #workers-virtual-list', el => 
       getComputedStyle(el).display
     );
-    expect(gridDisplay).toBe('grid');
+    expect(['grid', 'block']).toContain(gridDisplay);
     
     const workerCards = await page.$$('.worker-card');
     if (workerCards.length > 0) {

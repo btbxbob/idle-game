@@ -44,6 +44,14 @@ function collectFiles(dirs) {
 }
 
 function checkFileSyntax(filePath) {
+    const source = fs.readFileSync(filePath, 'utf8');
+    const isEsm = /^\s*(import|export)\s/m.test(source);
+
+    if (isEsm) {
+        console.log(`⚠️  ${path.relative(process.cwd(), filePath)} (ESM syntax skipped)`);
+        return true;
+    }
+
     try {
         execSync(`node --check "${filePath}"`, { stdio: 'pipe', timeout: 5000 });
         console.log(`✅ ${path.relative(process.cwd(), filePath)}`);

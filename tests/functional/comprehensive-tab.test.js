@@ -1,93 +1,52 @@
 const { test, expect } = require('../fixtures/coverage');
 
 test('comprehensive tab switching and functionality test', async ({ page }) => {
-  // Navigate to the game
   await page.goto('http://localhost:8080');
-  
-  // Wait for the game to be initialized
   await page.waitForFunction(() => window.gameInitialized === true);
-  
-  // Test 1: Resources tab should be active by default
   await page.waitForTimeout(500);
-  const resourcesDisplay = await page.locator('#tab-resources').evaluate(el => 
-    window.getComputedStyle(el).display
-  );
-  expect(resourcesDisplay).toBe('grid');
-  
-  // Test 2: Switch to upgrades tab
-  await page.click('button[data-tab="upgrades"]');
-  await page.waitForTimeout(100);
-  
-  const upgradesDisplay = await page.locator('#tab-upgrades').evaluate(el => 
-    window.getComputedStyle(el).display
-  );
-  const resourcesDisplayAfterSwitch = await page.locator('#tab-resources').evaluate(el => 
-    window.getComputedStyle(el).display
-  );
-  
-  expect(upgradesDisplay).toBe('flex');
-  expect(resourcesDisplayAfterSwitch).toBe('none');
-  
-  // Test 3: Verify upgrade list is populated
-  const upgradeList = await page.locator('#upgrade-list');
-  const upgradeCount = await upgradeList.locator('.upgrade-item').count();
-  expect(upgradeCount).toBeGreaterThan(0);
-  
-  // Test 4: Switch to buildings tab
+
+  await expect(page.locator('button[data-tab="resources"]')).toHaveClass(/active/);
+  await expect(page.locator('#tab-resources')).toHaveClass(/active/);
+
   await page.click('button[data-tab="buildings"]');
   await page.waitForTimeout(100);
-  
-  const buildingsDisplay = await page.locator('#tab-buildings').evaluate(el => 
-    window.getComputedStyle(el).display
-  );
-  expect(buildingsDisplay).toBe('flex');
-  
-  // Test 5: Verify building list is populated
+
+  await expect(page.locator('button[data-tab="buildings"]')).toHaveClass(/active/);
+  await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
+
   const buildingList = await page.locator('#building-list');
   const buildingCount = await buildingList.locator('.building-item').count();
   expect(buildingCount).toBeGreaterThan(0);
-  
-  // Test 6: Switch to workers tab
+
   await page.click('button[data-tab="workers"]');
   await page.waitForTimeout(100);
-  
-  const workersDisplay = await page.locator('#tab-workers').evaluate(el => 
-    window.getComputedStyle(el).display
-  );
-  expect(workersDisplay).toBe('flex');
-  
-  // Test 7: Workers panel should render content
+
+  await expect(page.locator('button[data-tab="workers"]')).toHaveClass(/active/);
+  await expect(page.locator('#tab-workers')).toHaveClass(/active/);
+
   const workersPanel = await page.locator('#workers-list');
   expect(await workersPanel.isVisible()).toBe(true);
-  
-  // Test 8: Switch to settings tab
+
   await page.click('button[data-tab="settings"]');
   await page.waitForTimeout(100);
-  
-  const settingsDisplay = await page.locator('#tab-settings').evaluate(el => 
-    window.getComputedStyle(el).display
-  );
-  expect(settingsDisplay).toBe('flex');
-  
-  // Test 9: Settings elements should be visible
+
+  await expect(page.locator('button[data-tab="settings"]')).toHaveClass(/active/);
+  await expect(page.locator('#tab-settings')).toHaveClass(/active/);
+
   const resetButton = await page.locator('#reset-game');
   const languageSelect = await page.locator('#language-select-setting');
   expect(await resetButton.isVisible()).toBe(true);
   expect(await languageSelect.isVisible()).toBe(true);
-  
-  // Test 10: Switch back to resources and test core functionality
+
   await page.click('button[data-tab="resources"]');
   await page.waitForTimeout(100);
-  
-  const resourcesDisplayFinal = await page.locator('#tab-resources').evaluate(el => 
-    window.getComputedStyle(el).display
-  );
-  expect(resourcesDisplayFinal).toBe('grid');
-  
-  // Click to earn coins
+
+  await expect(page.locator('button[data-tab="resources"]')).toHaveClass(/active/);
+  await expect(page.locator('#tab-resources')).toHaveClass(/active/);
+
   await page.click('#coin-button');
   await page.waitForTimeout(300);
-  
+
   const coinDisplay = await page.textContent('#coins');
   const coinsVal = parseFloat((coinDisplay || '0').split(':').pop().trim());
   expect(coinsVal).toBeGreaterThanOrEqual(1);

@@ -1,6 +1,6 @@
 const { test, expect } = require('../fixtures/coverage');
 
-test('better click upgrade increases click value', async ({ page }) => {
+test('coin mine purchase increases click value', async ({ page }) => {
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
 
@@ -11,9 +11,9 @@ test('better click upgrade increases click value', async ({ page }) => {
     await page.click('#coin-button');
   }
 
-  await page.click('button[data-tab="upgrades"]');
+  await page.click('button[data-tab="buildings"]');
   await page.waitForTimeout(150);
-  await page.click('#buy-upgrade-0');
+  await page.click('#buy-building-0');
   await page.waitForTimeout(250);
 
   const cpcAfter = await page.textContent('#cpc');

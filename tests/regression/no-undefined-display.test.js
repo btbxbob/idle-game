@@ -1,6 +1,6 @@
 const { test, expect } = require('../fixtures/coverage');
 
-test('building and upgrade displays should not show undefined', async ({ page }) => {
+test('building display should not show undefined', async ({ page }) => {
   // Navigate to the game
   await page.goto('http://localhost:8080');
   
@@ -17,15 +17,6 @@ test('building and upgrade displays should not show undefined', async ({ page })
   // Should not contain "undefined"
   expect(buildingList).not.toContain('undefined');
   
-  // Check upgrade list for undefined values  
-  const upgradeList = await page.textContent('#upgrade-list');
-  console.log('Upgrade list content:', upgradeList);
-  
-  // Should not contain "undefined"
-  expect(upgradeList).not.toContain('undefined');
-  
   // Verify that production rates are displayed correctly
   expect(buildingList).toContain('秒');
-  
-  expect(upgradeList).toMatch(/Better Click|Lumberjack Efficiency|Stone Mason Skill/);
 });

@@ -12,8 +12,6 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(500);
-
         const notification = page.locator('#achievement-notification');
         await expect(notification).toBeVisible();
 
@@ -28,7 +26,6 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(500);
         const notification = page.locator('#achievement-notification');
         const exists = await notification.count();
         if (exists === 0) {
@@ -36,9 +33,12 @@ test.describe('Achievement Notification System', () => {
         }
         await expect(notification).toBeVisible();
 
-        await page.waitForTimeout(5500);
-
-        await expect(notification).not.toBeVisible();
+        await page.waitForFunction(() => {
+            const el = document.getElementById('achievement-notification');
+            if (!el) return true;
+            const style = getComputedStyle(el);
+            return el.classList.contains('hide') || style.display === 'none' || style.opacity === '0';
+        }, null, { timeout: 10000 });
     });
 
     test('notification uses i18n for title', async ({ page }) => {
@@ -47,22 +47,19 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(500);
-
         const title = page.locator('#achievement-notification .notification-title');
         await expect(title).toContainText('成就解锁');
 
         await page.click('button[data-tab="settings"]');
         const languageSelect = page.locator('#language-select-setting');
         await languageSelect.selectOption('en');
-        await page.waitForTimeout(200);
+        await expect(languageSelect).toHaveValue('en');
 
         for (let i = 0; i < 90; i++) {
             await clickArea.click();
         }
-        await page.waitForTimeout(500);
-
         const enTitle = page.locator('#achievement-notification .notification-title');
+        await expect(enTitle).toBeVisible();
         await expect(enTitle).toContainText('Achievement Unlocked');
     });
 
@@ -72,9 +69,8 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(100);
-
         const notification = page.locator('#achievement-notification');
+        await expect(notification).toBeVisible();
         const hasShowClass = await notification.evaluate(el => el.classList.contains('show'));
         expect(hasShowClass).toBe(true);
     });
@@ -85,9 +81,8 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(500);
-
         const notification = page.locator('#achievement-notification');
+        await expect(notification).toBeVisible();
         
         const position = await notification.evaluate(el => getComputedStyle(el).position);
         expect(position).toBe('fixed');
@@ -105,9 +100,8 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(500);
-
         const notification = page.locator('#achievement-notification');
+        await expect(notification).toBeVisible();
         const content = notification.locator('.notification-content');
         await expect(content).toBeVisible();
 
@@ -126,8 +120,6 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(500);
-
         const notifications = page.locator('#achievement-notification');
         await expect(notifications).toBeVisible();
 
@@ -141,11 +133,14 @@ test.describe('Achievement Notification System', () => {
             await clickArea.click();
         }
 
-        await page.waitForTimeout(500);
-
-        await page.waitForTimeout(5000);
-
         const notification = page.locator('#achievement-notification');
+        await expect(notification).toBeVisible();
+        await page.waitForFunction(() => {
+            const el = document.getElementById('achievement-notification');
+            if (!el) return true;
+            const style = getComputedStyle(el);
+            return el.classList.contains('hide') || style.display === 'none' || style.opacity === '0';
+        }, null, { timeout: 10000 });
         const exists = await notification.count();
         if (exists > 0) {
             const hiddenOrGone = await notification.evaluate(el =>

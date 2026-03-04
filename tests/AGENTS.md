@@ -54,7 +54,7 @@ module.exports = {
   testDir: 'tests/',
   testMatch: '*.test.js',
   webServer: {
-    command: 'python server.py',
+    command: 'python3 server.py',
     port: 8080,
     reuseExistingServer: !process.env.CI,
   },

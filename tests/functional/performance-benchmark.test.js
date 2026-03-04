@@ -35,7 +35,7 @@ test.describe('Performance Benchmark - 性能基准测试', () => {
         
         // 标签切换测试
         console.log('测试标签切换...');
-        const tabs = ['resources', 'upgrades', 'buildings', 'settings'];
+        const tabs = ['resources', 'buildings', 'settings'];
         for (const tab of tabs) {
             await page.click(`button[data-tab="${tab}"]`);
             await page.waitForTimeout(50);

@@ -15,7 +15,6 @@ test('multi-tab interface should work correctly', async ({ page }) => {
   // Check tab names
   const tabTexts = await page.locator('.tab-button').allTextContents();
   expect(tabTexts).toContain('资源');
-  expect(tabTexts).toContain('升级');
   expect(tabTexts).toContain('建筑');
   expect(tabTexts).toContain('工人');
   expect(tabTexts).toContain('设置');
@@ -25,13 +24,11 @@ test('multi-tab interface should work correctly', async ({ page }) => {
   const activeTabText = await activeTab.textContent();
   expect(activeTabText).toBe('资源');
   
-  // Switch to upgrades tab
-  await page.click('button[data-tab="upgrades"]');
+  await page.click('button[data-tab="buildings"]');
   
-  // Check that upgrades tab is now active
   const activeTabAfterSwitch = await page.locator('.tab-button.active');
   const activeTabAfterSwitchText = await activeTabAfterSwitch.textContent();
-  expect(activeTabAfterSwitchText).toBe('升级');
+  expect(activeTabAfterSwitchText).toBe('建筑');
   
   // Test settings tab
   await page.click('button[data-tab="settings"]');

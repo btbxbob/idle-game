@@ -81,7 +81,16 @@ test.describe('Resource Production Complete', () => {
         console.log(`Found ${buttonCount} building buy buttons`);
 
         // Wait for some production to happen
-        await page.waitForTimeout(3000);
+        await page.waitForFunction(
+            ({ initialCoins, initialWood, initialStone }) => {
+                if (!window.rustGame) return false;
+                return window.rustGame.get_coins() >= initialCoins
+                    && window.rustGame.get_wood() >= initialWood
+                    && window.rustGame.get_stone() >= initialStone;
+            },
+            { initialCoins, initialWood, initialStone },
+            { timeout: 5000 }
+        );
 
         const afterCoins = await page.evaluate(() => window.rustGame.get_coins());
         const afterWood = await page.evaluate(() => window.rustGame.get_wood());
@@ -176,7 +185,16 @@ test.describe('Resource Production Complete', () => {
         const initialStone = await page.evaluate(() => window.rustGame.get_stone());
 
         // Wait 3 seconds
-        await page.waitForTimeout(3000);
+        await page.waitForFunction(
+            ({ initialCoins, initialWood, initialStone }) => {
+                if (!window.rustGame) return false;
+                return window.rustGame.get_coins() >= initialCoins
+                    && window.rustGame.get_wood() >= initialWood
+                    && window.rustGame.get_stone() >= initialStone;
+            },
+            { initialCoins, initialWood, initialStone },
+            { timeout: 5000 }
+        );
 
         const afterCoins = await page.evaluate(() => window.rustGame.get_coins());
         const afterWood = await page.evaluate(() => window.rustGame.get_wood());
@@ -192,7 +210,16 @@ test.describe('Resource Production Complete', () => {
         expect(afterStone).toBeGreaterThanOrEqual(initialStone);
 
         // Wait another 2 seconds
-        await page.waitForTimeout(2000);
+        await page.waitForFunction(
+            ({ afterCoins, afterWood, afterStone }) => {
+                if (!window.rustGame) return false;
+                return window.rustGame.get_coins() >= afterCoins
+                    && window.rustGame.get_wood() >= afterWood
+                    && window.rustGame.get_stone() >= afterStone;
+            },
+            { afterCoins, afterWood, afterStone },
+            { timeout: 4000 }
+        );
 
         const finalCoins = await page.evaluate(() => window.rustGame.get_coins());
         const finalWood = await page.evaluate(() => window.rustGame.get_wood());
