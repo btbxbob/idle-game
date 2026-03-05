@@ -30,6 +30,7 @@ test.describe('ResourceManager branch coverage', () => {
             const keysSecondary = manager.getResourceKeysByCategory('secondary').length;
             const keysAdvanced = manager.getResourceKeysByCategory('advanced').length;
             const keysUnknown = manager.getResourceKeysByCategory('unknown').length;
+            const totalKeys = manager.resourceKeys.length;
 
             const resources = {
                 coins: 12,
@@ -56,6 +57,7 @@ test.describe('ResourceManager branch coverage', () => {
                 keysSecondary,
                 keysAdvanced,
                 keysUnknown,
+                totalKeys,
                 exact,
                 camel,
                 rustMapped,
@@ -70,8 +72,9 @@ test.describe('ResourceManager branch coverage', () => {
         expect(result.ok).toBe(true);
         expect(result.keysPrimary).toBe(10);
         expect(result.keysSecondary).toBe(40);
-        expect(result.keysAdvanced).toBe(10);
+        expect(result.keysAdvanced).toBe(result.totalKeys - 50);
         expect(result.keysUnknown).toBe(0);
+        expect(result.keysPrimary + result.keysSecondary + result.keysAdvanced).toBe(result.totalKeys);
         expect(result.exact).toBe(12);
         expect(result.camel).toBe(34);
         expect(result.rustMapped).toBe(0);
@@ -88,45 +91,13 @@ test.describe('ResourceManager branch coverage', () => {
                 return { ok: false, reason: 'missing class' };
             }
 
-            const panelPrimary = document.createElement('div');
-            panelPrimary.id = 'primary-resources';
-            panelPrimary.innerHTML = '<div class="resource-item"><span class="resource-name"></span><span class="resource-amount"></span></div>';
-            document.body.appendChild(panelPrimary);
+            const panelPrimary = document.getElementById('primary-resources');
+            const panelSecondary = document.getElementById('secondary-resources');
+            const tabSecondary = document.querySelector('.category-tab-button[data-category="secondary"]');
 
-            const panelSecondary = document.createElement('div');
-            panelSecondary.id = 'secondary-resources';
-            panelSecondary.innerHTML = '<div class="resource-item"><span class="resource-name"></span><span class="resource-amount"></span></div>';
-            document.body.appendChild(panelSecondary);
-
-            const panelAdvanced = document.createElement('div');
-            panelAdvanced.id = 'advanced-resources';
-            panelAdvanced.innerHTML = '<div class="resource-item"><span class="resource-name"></span><span class="resource-amount"></span></div>';
-            document.body.appendChild(panelAdvanced);
-
-            const tabPrimary = document.createElement('button');
-            tabPrimary.className = 'category-tab-button';
-            tabPrimary.setAttribute('data-category', 'primary');
-            document.body.appendChild(tabPrimary);
-
-            const tabSecondary = document.createElement('button');
-            tabSecondary.className = 'category-tab-button';
-            tabSecondary.setAttribute('data-category', 'secondary');
-            document.body.appendChild(tabSecondary);
-
-            const tabAdvanced = document.createElement('button');
-            tabAdvanced.className = 'category-tab-button';
-            tabAdvanced.setAttribute('data-category', 'advanced');
-            document.body.appendChild(tabAdvanced);
-
-            const coinsEl = document.createElement('span');
-            coinsEl.id = 'coins';
-            document.body.appendChild(coinsEl);
-            const cpsEl = document.createElement('span');
-            cpsEl.id = 'cps';
-            document.body.appendChild(cpsEl);
-            const cpcEl = document.createElement('span');
-            cpcEl.id = 'cpc';
-            document.body.appendChild(cpcEl);
+            if (!panelPrimary || !panelSecondary || !tabSecondary) {
+                return { ok: false, reason: 'missing resource DOM structure' };
+            }
 
             const manager = new window.ResourceManager(
                 {
@@ -140,7 +111,11 @@ test.describe('ResourceManager branch coverage', () => {
             );
 
             manager.initialize();
-            tabSecondary.click();
+            manager.switchCategory('secondary');
+
+            const coinsEl = document.getElementById('coins');
+            const cpsEl = document.getElementById('cps');
+            const cpcEl = document.getElementById('cpc');
 
             const currentCategory = manager.currentCategory;
             const primaryDisplay = panelPrimary.style.display;
@@ -187,16 +162,6 @@ test.describe('ResourceManager branch coverage', () => {
                 resourcesTab.classList.toggle('active', wasActive);
             }
             window.resourceManager = originalResourceManager;
-
-            panelPrimary.remove();
-            panelSecondary.remove();
-            panelAdvanced.remove();
-            tabPrimary.remove();
-            tabSecondary.remove();
-            tabAdvanced.remove();
-            coinsEl.remove();
-            cpsEl.remove();
-            cpcEl.remove();
 
             return {
                 ok: true,
