@@ -59,6 +59,7 @@ class LifecycleManager {
         const foodWarning = hungry > 0 || food < workers;
 
         const maggotFactoryCount = this.getMaggotFactoryCount();
+        const canProcessNow = maggotFactoryCount > 0 && maggots >= 10;
 
         panel.innerHTML = `
             <div class="lifecycle-resource-widget compact ${foodWarning ? 'warning' : ''}">
@@ -71,9 +72,25 @@ class LifecycleManager {
                     <span>尸体 ${corpses.toFixed(1)}</span>
                     <span>蛆虫 ${maggots.toFixed(1)} (转化 ${Math.floor(maggots / 10)})</span>
                     <span>蛆虫工厂 x${maggotFactoryCount}</span>
+                    ${maggotFactoryCount > 0 ? `<button type="button" id="process-maggot-now" ${canProcessNow ? '' : 'disabled'}>立即转化</button>` : ''}
                 </div>
             </div>
         `;
+
+        const processButton = document.getElementById('process-maggot-now');
+        if (processButton) {
+            processButton.addEventListener('click', () => {
+                if (!this.rustGame || typeof this.rustGame.game_loop !== 'function') {
+                    return;
+                }
+                try {
+                    this.rustGame.game_loop();
+                    this.renderResourceWidget(panelId);
+                } catch (error) {
+                    console.error('Failed to process maggot conversion:', error);
+                }
+            });
+        }
 
     }
 
