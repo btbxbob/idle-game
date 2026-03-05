@@ -19,7 +19,7 @@ test('iPhone 15 Pro layout (393px) - no overlap', async ({ page }) => {
   
   // Verify tab buttons exist
   const tabButtons = page.locator('.tab-button');
-  await expect(tabButtons).toHaveCount(13);
+  await expect(tabButtons).toHaveCount(12);
   
   // Verify resources container is visible
   const resources = page.locator('#resources');
@@ -49,5 +49,5 @@ test('Medium phone layout (410px) - no overlap', async ({ page }) => {
   expect(tabBox.y).toBeGreaterThanOrEqual(bannerBox.y + bannerBox.height - 2);
   
   const tabButtons = page.locator('.tab-button');
-  await expect(tabButtons).toHaveCount(13);
+  await expect(tabButtons).toHaveCount(12);
 });

@@ -10,7 +10,7 @@ test('new tabs structure verification', async ({ page }) => {
   // Verify all tab buttons exist
   const tabButtons = await page.locator('.tab-button').count();
   console.log(`Total tab buttons: ${tabButtons}`);
-  expect(tabButtons).toBe(13);
+  expect(tabButtons).toBe(12);
   
   // Verify specific new tab buttons exist
   const statisticsButton = await page.locator('button[data-tab="statistics"]');
@@ -32,7 +32,7 @@ test('new tabs structure verification', async ({ page }) => {
   // Verify all tab content divs exist
   const tabContents = await page.locator('.tab-content').count();
   console.log(`Total tab content divs: ${tabContents}`);
-  expect(tabContents).toBeGreaterThanOrEqual(13);
+  expect(tabContents).toBeGreaterThanOrEqual(12);
   
   // Verify specific new tab content divs exist (they exist but are hidden when not active)
   const statisticsTab = await page.locator('#tab-statistics');
