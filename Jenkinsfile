@@ -13,6 +13,8 @@ pipeline {
   environment {
     CI = 'true'
     PATH = "/var/jenkins_home/.cargo/bin:${env.PATH}"
+    PLAYWRIGHT_IMAGE_PRIMARY = 'mcr.microsoft.com/playwright:v1.58.2-jammy'
+    PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
     E2E_COVERAGE_MIN_LINES = '20'
     E2E_COVERAGE_MIN_STATEMENTS = '20'
     E2E_COVERAGE_MIN_FUNCTIONS = '15'
@@ -99,9 +101,34 @@ pipeline {
       when {
         expression { return params.RUN_PLAYWRIGHT || params.RUN_COVERAGE }
       }
+      options {
+        timeout(time: 15, unit: 'MINUTES')
+      }
       steps {
         sh '''
-          docker pull mcr.microsoft.com/playwright:v1.58.2-jammy
+          PLAYWRIGHT_IMAGE="$PLAYWRIGHT_IMAGE_PRIMARY"
+          MIRROR_IMAGE="$PLAYWRIGHT_IMAGE_MIRROR"
+
+          if docker image inspect "$PLAYWRIGHT_IMAGE" >/dev/null 2>&1; then
+            echo "Playwright image already present: $PLAYWRIGHT_IMAGE"
+          else
+            pulled=0
+            if [ -n "$MIRROR_IMAGE" ]; then
+              echo "Trying mirror first: $MIRROR_IMAGE"
+              if timeout 300 docker pull "$MIRROR_IMAGE"; then
+                docker tag "$MIRROR_IMAGE" "$PLAYWRIGHT_IMAGE"
+                pulled=1
+                echo "Mirror pull succeeded and tagged as: $PLAYWRIGHT_IMAGE"
+              else
+                echo "Mirror pull failed or timed out, falling back to primary registry"
+              fi
+            fi
+
+            if [ "$pulled" -ne 1 ]; then
+              echo "Pulling primary image with timeout: $PLAYWRIGHT_IMAGE"
+              timeout 900 docker pull "$PLAYWRIGHT_IMAGE"
+            fi
+          fi
         '''
       }
     }
@@ -117,6 +144,7 @@ pipeline {
         sh '''
           mkdir -p test-results
           docker run --rm \
+            --pull=never \
             -e CI=true \
             -e RUN_COVERAGE=${RUN_COVERAGE} \
             -e PW_TEST_PORT=8080 \
@@ -126,7 +154,7 @@ pipeline {
             -e E2E_COVERAGE_MIN_BRANCHES=${E2E_COVERAGE_MIN_BRANCHES} \
             -v "$PWD:/work" \
             -w /work \
-            mcr.microsoft.com/playwright:v1.58.2-jammy \
+            "$PLAYWRIGHT_IMAGE_PRIMARY" \
             bash -lc '
               set -e
               if [ "${RUN_COVERAGE}" = "true" ]; then

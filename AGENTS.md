@@ -85,6 +85,23 @@ npx playwright test tests/functional/workers.test.js
 - CI artifacts: `pkg/**`, `playwright-report/**`, `test-results/**`, `coverage-report/e2e-merged/**`; JUnit source: `test-results/**/*.xml`.
 - Timeout policy: pipeline `120 minutes`, Playwright stage `60 minutes`.
 
+### Jenkins Background Monitoring Policy
+- Default mode: never block OpenCode foreground while waiting for Jenkins completion; always monitor in background.
+- Trigger builds (including coverage) first, then start a background `task(...)` to poll Jenkins build status/logs until `building=false`.
+- Required parameter combo for full E2E + coverage: `RUN_PLAYWRIGHT=true` and `RUN_COVERAGE=true`.
+- Use `background_output(task_id="...")` to fetch progress/results on demand; summarize build number, final status, test result, and coverage percentages.
+- Coverage data source priority: `coverage-report/e2e-merged/coverage-summary.json` artifact first, fallback to build log extraction only after bounded attempts.
+- Keep the foreground free for other requests while background monitoring runs; do not idle-wait with long blocking sleeps.
+
+### Jenkins MCP Timeout Mitigation
+- Known issue: `jenkins_getBuildLog` and `jenkins_searchBuildLog` may timeout (`MCP error -32001`) on active builds.
+- Mandatory sequence: call `jenkins_getBuild` first; if `building=true`, do not use log APIs for status polling.
+- Running build polling should use metadata APIs only: `jenkins_getBuild`, `jenkins_getQueueItem`, and `jenkins_getTestResults`.
+- Only call log APIs after `building=false`; use bounded windows (`limit<=200`, prefer `skip=-200` for recent lines) instead of full log scans.
+- For `jenkins_searchBuildLog`, use narrow patterns and bounded matches (`maxMatches<=20`); avoid broad regex during long logs.
+- Retry policy for log APIs: max 3 attempts with backoff (2s, 5s, 10s), then fall back to artifacts/test APIs and report partial diagnostics.
+- Preferred result sources to avoid log timeouts: build result from `jenkins_getBuild`, tests from `jenkins_getTestResults`, coverage from archived `coverage-summary.json`.
+
 
 ## SCOPED GUIDES
 - `src/AGENTS.md`

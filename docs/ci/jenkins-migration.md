@@ -96,6 +96,42 @@ Compile/test CI runs should be triggered in Jenkins (UI, webhook, or MCP), not e
 
 Current OpenCode GitHub workflow can remain for AI orchestration, but build/test responsibility is Jenkins.
 
+### MCP log timeout handling (`-32001`)
+
+When monitoring Jenkins from MCP, use this sequence to avoid log-read timeouts:
+
+1. Poll build state with `jenkins_getBuild` first.
+2. While `building=true`, avoid `jenkins_getBuildLog` and `jenkins_searchBuildLog`.
+3. For running builds, use `jenkins_getQueueItem`/`jenkins_getTestResults` for progress signals.
+4. After `building=false`, read logs with bounded windows (example: `limit<=200`, `skip=-200`).
+5. Use bounded log search only (`maxMatches<=20`, narrow pattern) and avoid broad regex across full logs.
+6. Retry log APIs at most 3 times with backoff (2s, 5s, 10s), then fall back to artifacts and test APIs.
+
+Coverage retrieval priority:
+- First: archived `coverage-report/e2e-merged/coverage-summary.json`
+- Fallback: bounded log extraction only when artifact retrieval is unavailable
+
+### Reusable debug/rerun script
+
+Use `scripts/jenkins-debug-rerun.sh` to run a full Jenkins rerun + poll + summary flow in one command.
+
+```bash
+chmod +x scripts/jenkins-debug-rerun.sh
+scripts/jenkins-debug-rerun.sh
+```
+
+Optional environment overrides:
+
+```bash
+JENKINS_URL=http://localhost:8081 \
+JENKINS_USER=admin \
+JENKINS_TOKEN=admin123 \
+JOB_NAME=idle-game-ci \
+RUN_PLAYWRIGHT=true \
+RUN_COVERAGE=true \
+scripts/jenkins-debug-rerun.sh
+```
+
 ## 5) GitHub Pages deployment workflow
 
 GitHub Pages release remains in `.github/workflows/deploy.yml`.
