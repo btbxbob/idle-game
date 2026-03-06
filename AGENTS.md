@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-02
-**Commit:** 751c981
+**Generated:** 2026-03-06
+**Commit:** c384d99
 **Branch:** master
 
 ## OVERVIEW
@@ -32,12 +32,24 @@ idle-game/
 | E2E behavior validation | `tests/functional/` | Feature flows and multi-browser checks |
 | Bug regression coverage | `tests/regression/` | Past issue repro + fixed assertions |
 
+## CODE MAP
+| Symbol | Type | Location | Role |
+|--------|------|----------|------|
+| `initWasm` | JS function | `js/bootstrap.js` | Initializes WASM, restores save, wires managers |
+| `startGameLoop` | JS function | `js/bootstrap.js` | Drives 1000ms update/save loop |
+| `IdleGame` | Rust struct | `src/core/idle_game.rs` | Core orchestrator for systems and wasm exports |
+| `window.rustGame.*` | API boundary | `src/lib.rs` + `js/*.js` | JS->Rust interaction contract |
+
+Notes:
+- Rust LSP symbols are currently unavailable in this environment; use file-level map above plus scoped guides.
+
 ## CONVENTIONS
 - Use `python3` (not `python`) for local server and Playwright `webServer.command`.
 - Keep game loop cadence at 1000ms; timing changes affect balance and tests.
 - JS must call exported WASM methods (`window.rustGame.*`) instead of mutating Rust state directly.
 - New persisted Rust fields require `#[serde(default)]` for backward-compatible save loading.
 - Keep `zh-CN` and `en` translations aligned when adding UI text.
+- Normalized day-to-day test scope is functional tests only (`tests/functional/`); use `tests/regression/` only for bug reproduction/fix validation.
 
 ## ANTI-PATTERNS (THIS PROJECT)
 - Holding `RefCell` borrows across method calls in `IdleGame` (can panic at runtime).
@@ -66,8 +78,11 @@ npm run lint
 
 # Tests
 cargo test
-npx playwright test
+npx playwright test tests/functional
 npx playwright test tests/functional/workers.test.js
+
+# Regression (bugfix validation only)
+npx playwright test tests/regression/<bug-case>.test.js
 ```
 
 ## CI OWNERSHIP
@@ -110,6 +125,7 @@ npx playwright test tests/functional/workers.test.js
 - `src/state/AGENTS.md`
 - `src/systems/AGENTS.md`
 - `src/test_utils/AGENTS.md`
+- `src/ui/AGENTS.md`
 - `js/AGENTS.md`
 - `tests/AGENTS.md`
 - `docs/AGENTS.md`

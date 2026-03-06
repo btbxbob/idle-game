@@ -3,6 +3,11 @@
 **Location**: `tests/` directory (50 test files)
 **Framework**: Playwright (Chromium, Firefox, Webkit)
 
+## Execution Policy
+
+- Normalized day-to-day test scope is functional tests only (`tests/functional/`).
+- Use `tests/regression/` only for bug reproduction and fix validation.
+
 ## Test Categories (50 files)
 
 ### Core Mechanics
@@ -68,8 +73,9 @@ module.exports = {
 
 ## Commands
 ```bash
-npm run test                                    # All tests
-npx playwright test tests/specific.test.js      # Single file
+npx playwright test tests/functional            # Routine functional scope
+npx playwright test tests/functional/specific.test.js  # Single functional file
+npx playwright test tests/regression/<bug-case>.test.js  # Regression (bugfix validation only)
 npm run test:ui                                 # With UI debugger
 npx playwright test --project=chromium          # Single browser
 ```
