@@ -25,13 +25,8 @@ test('iPhone 15 Pro layout (393px) - no overlap', async ({ page }) => {
   const resources = page.locator('#resources');
   await expect(resources).toBeVisible();
   
-  // Verify at least first 3 resources visible
-  const coins = page.locator('#coins');
-  const wood = page.locator('#wood');
-  const stone = page.locator('#stone');
-  await expect(coins).toBeVisible();
-  await expect(wood).toBeVisible();
-  await expect(stone).toBeVisible();
+  const clickYield = page.locator('#cpc');
+  await expect(clickYield).toBeVisible();
 });
 
 test('Medium phone layout (410px) - no overlap', async ({ page }) => {

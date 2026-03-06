@@ -69,6 +69,7 @@ class ResourceManager {
         });
 
         this.setupCategoryTabs();
+        this.switchCategory('primary');
     }
 
     setupCategoryTabs() {

@@ -2,8 +2,6 @@ class WorkerManager {
     constructor(rustGame) {
         this.rustGame = rustGame;
         this.virtualState = {
-            rowHeight: 128,
-            buffer: 8,
             sortBy: 'name',
             filterBy: 'all',
             query: '',
@@ -117,21 +115,14 @@ class WorkerManager {
                 <button id="workers-auto-assign" class="workers-auto-assign" type="button">${t('autoAssign') || '自动分配'}</button>
                 <span class="workers-count">${t('totalWorkers') || '总工人'}: ${workers.length} / ${assignedCount}</span>
             </div>
-            <div id="workers-virtual-list" class="workers-virtual-list">
-                <div id="workers-virtual-spacer" class="workers-virtual-spacer"></div>
-                <div id="workers-virtual-content" class="workers-virtual-content"></div>
-            </div>
+            <div id="workers-grid" class="workers-grid"></div>
         `;
 
-        const list = document.getElementById('workers-virtual-list');
         const search = document.getElementById('workers-search');
         const filter = document.getElementById('workers-filter');
         const sort = document.getElementById('workers-sort');
         const autoAssign = document.getElementById('workers-auto-assign');
 
-        if (list) {
-            list.addEventListener('scroll', () => this.renderVirtualSlice());
-        }
         if (search) {
             search.addEventListener('input', (e) => {
                 this.virtualState.query = e.target.value || '';
@@ -156,7 +147,7 @@ class WorkerManager {
             });
         }
 
-        this.renderVirtualSlice();
+        this.renderWorkerCards();
     }
 
     handleAutoAssign() {
@@ -205,33 +196,24 @@ class WorkerManager {
         return filtered;
     }
 
-    renderVirtualSlice() {
-        const list = document.getElementById('workers-virtual-list');
-        const spacer = document.getElementById('workers-virtual-spacer');
-        const content = document.getElementById('workers-virtual-content');
+    renderWorkerCards() {
+        const content = document.getElementById('workers-grid');
         const workers = this.virtualState.workers;
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
 
-        if (!list || !spacer || !content) return;
-
-        const rowHeight = this.virtualState.rowHeight;
-        const buffer = this.virtualState.buffer;
-        const viewportHeight = list.clientHeight || 640;
-        const scrollTop = list.scrollTop || 0;
-        const start = Math.max(0, Math.floor(scrollTop / rowHeight) - buffer);
-        const visible = Math.ceil(viewportHeight / rowHeight) + buffer * 2;
-        const end = Math.min(workers.length, start + visible);
-
-        spacer.style.height = `${workers.length * rowHeight}px`;
-        content.style.transform = `translateY(${start * rowHeight}px)`;
+        if (!content) return;
 
         let html = '';
-        for (let i = start; i < end; i++) {
+        for (let i = 0; i < workers.length; i++) {
             const worker = workers[i];
             const isAssigned = worker.assignedBuilding !== null && worker.assignedBuilding !== undefined;
+            const xp = Number(worker.experience || worker.xp || 0);
+            const xpToNext = Number(worker.experienceToNext || worker.xpToNext || 100);
+            const xpProgress = xpToNext > 0 ? Math.max(0, Math.min(100, (xp / xpToNext) * 100)) : 0;
+            const assignmentName = this.escapeHtml(worker.assignedBuilding || (t('unassigned') || '未分配'));
             html += `
-                <div class="worker-list-item" style="height:${rowHeight - 8}px" onclick="window.workerManager.showAssignmentModal(${worker.__index})">
-                    <div class="worker-item-header">
+                <div class="worker-card worker-list-item" onclick="window.workerManager.showAssignmentModal(${worker.__index})">
+                    <div class="worker-header worker-item-header">
                         <div class="worker-item-name">
                             <span class="worker-avatar">👷</span>
                             <span class="worker-name-text">${this.escapeHtml(worker.name || '')}</span>
@@ -239,10 +221,16 @@ class WorkerManager {
                         </div>
                         <span class="status-text">${isAssigned ? (t('assigned') || '已分配') : (t('unassigned') || '未分配')}</span>
                     </div>
-                    <div class="worker-item-body">
-                        <span class="detail-value">${this.escapeHtml(worker.assignedBuilding || (t('unassigned') || '未分配'))}</span>
+                    <div class="worker-body worker-item-body">
+                        <span class="detail-value">${assignmentName}</span>
                         <span class="detail-value efficiency-value">${this.formatEfficiency(worker.efficiencyMultiplier || 1)}</span>
-                        <button class="btn-assign" onclick="window.workerManager.showAssignmentModal(${worker.__index})">${isAssigned ? (t('reassign') || '重新分配') : (t('assign') || '分配')}</button>
+                        <span class="detail-value">XP ${this.formatXP(xp, xpToNext)}</span>
+                    </div>
+                    <div class="xp-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${xpProgress.toFixed(0)}">
+                        <span class="xp-progress-fill" style="width:${xpProgress.toFixed(1)}%"></span>
+                    </div>
+                    <div class="worker-footer">
+                        <button class="btn-assign worker-assign-btn" onclick="event.stopPropagation(); window.workerManager.showAssignmentModal(${worker.__index})">${isAssigned ? (t('reassign') || '重新分配') : (t('assign') || '分配')}</button>
                     </div>
                 </div>
             `;

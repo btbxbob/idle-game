@@ -79,7 +79,7 @@ test.describe('Responsive Layout', () => {
             const clickArea = page.locator('#coin-button');
             await expect(clickArea).toBeVisible();
 
-            const resourceDisplay = page.locator('#coin-display, #coins');
+            const resourceDisplay = page.locator('#coin-display');
             await expect(resourceDisplay).toBeVisible();
 
             const tabNavigation = page.locator('#tab-navigation');

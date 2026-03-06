@@ -24,7 +24,7 @@ test.describe('Primary Resources', () => {
         console.log('Primary resources (Gold, Wood, Stone) verified in game state');
     });
 
-    test('primary resources display in UI with correct Chinese names', async ({ page }) => {
+    test('primary resources display in the resources panel with correct Chinese names', async ({ page }) => {
         const resourceMapping = [
             { id: 'coins', name: '金币' },
             { id: 'wood', name: '木头' },
@@ -32,7 +32,7 @@ test.describe('Primary Resources', () => {
         ];
 
         for (const resource of resourceMapping) {
-            const element = page.locator(`#${resource.id}`);
+            const element = page.locator(`#primary-resources .resource-item[data-resource="${resource.id}"] .resource-name`);
             await expect(element).toBeVisible();
             
             const text = await element.textContent();
