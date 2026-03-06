@@ -1,15 +1,14 @@
 # src/entities/ - Game Entity Definitions
 
-**Location**: `src/entities/` (7 files)
+**Location**: `src/entities/` (6 files)
 **Purpose**: Pure data structs with serde. NO game logic.
 
 ## Structure
 ```
 src/entities/
-├── mod.rs               # Exports: Building, Housing, Worker, Gender, Hobby, Trait, TraitEffect, Technology, TechnologyId, TechnologyEffect, BuildingType, Upgrade
+├── mod.rs               # Exports: Building, Housing, Worker, Gender, Hobby, Trait, TraitEffect, Technology, TechnologyId, TechnologyEffect, BuildingType
 ├── building.rs          # Building + Housing structs
 ├── worker.rs            # Worker (682 lines) — gender, hobbies, traits, happiness, hunger
-├── upgrade.rs           # Upgrade struct (unchanged)
 ├── technology.rs        # Technology tree entities (593 lines)
 ├── automation.rs        # Automation building definitions
 └── population_queue.rs  # Population queue system

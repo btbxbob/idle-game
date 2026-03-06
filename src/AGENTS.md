@@ -1,7 +1,7 @@
-# src/ - Rust Game Logic (Phase 2)
+# src/ - Rust Game Logic
 
-**Location**: `src/` directory (33 files, ~7000 lines, 109 tests)
-**Structure**: Phase 2 complete - technology, decay, prestige, housing, population systems
+**Location**: `src/` directory
+**Structure**: Core orchestrator + state/entities/systems modules with WASM exports in `lib.rs`
 
 ## WHERE TO LOOK
 
@@ -11,6 +11,7 @@
 | Add state field | `state/game_state.rs` | Add `#[serde(default)]` |
 | Add entity | `entities/` | Building/Worker/Technology/Population |
 | Add system logic | `systems/` | 10 system modules |
+| Add Rust UI callback | `ui/callbacks.rs` | Keep callback layer thin and JS-friendly |
 | Add test | `test_utils/` | TestGameState + balance tests |
 | Fix borrow error | `core/idle_game.rs` | Check `RefCell` scopes |
 
@@ -32,7 +33,6 @@ src/
 ├── entities/
 │   ├── building.rs           # Building definitions
 │   ├── worker.rs             # Worker (gender/hobbies/traits/XP)
-│   ├── upgrade.rs            # Upgrade definitions
 │   ├── technology.rs         # Technology tree nodes
 │   ├── automation.rs         # Automation buildings
 │   ├── population_queue.rs   # Housing queue system
@@ -55,7 +55,7 @@ src/
 │   ├── callbacks.rs          # update_* functions
 │   └── mod.rs
 └── test_utils/
-    ├── test_game_state.rs    # Core tests (109 total)
+    ├── test_game_state.rs    # Core tests
     ├── balance_test.rs       # Balance validation
     └── mod.rs
 ```
