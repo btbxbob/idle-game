@@ -711,6 +711,7 @@ footer {
 
     #banner {
         padding: 2px 4px;
+        min-height: 66px;
         overflow-x: auto;
         overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
@@ -722,14 +723,15 @@ footer {
         flex-direction: row;
         flex-wrap: nowrap;
         width: max-content;
-        min-width: 100%;
-        align-items: stretch;
+        min-width: 420px;
+        align-items: flex-start;
     }
 
     #banner .resource-item {
         font-size: 8px;
         padding: 3px 5px;
         gap: 4px;
+        min-height: 50px;
         min-width: 112px;
         flex: 0 0 auto;
     }
@@ -790,6 +792,7 @@ footer {
     #banner {
         padding: 3px 5px;
         max-width: 100%;
+        min-height: 66px;
     }
     
     #banner #resources {
@@ -798,14 +801,15 @@ footer {
         flex-direction: row;
         flex-wrap: nowrap;
         width: max-content;
-        min-width: 100%;
-        align-items: stretch;
+        min-width: 420px;
+        align-items: flex-start;
     }
-    
+
     #banner .resource-item {
         font-size: 9px;
         padding: 4px 6px;
         gap: 4px;
+        min-height: 50px;
         min-width: 116px;
         flex: 0 0 auto;
     }

@@ -14,6 +14,21 @@ test.describe('Responsive Layout', () => {
             const resourcesBar = page.locator('#banner #resources');
             await expect(resourcesBar).toBeVisible();
 
+            await page.evaluate(() => {
+                const cards = document.querySelectorAll('#banner .header-resource-card');
+                cards.forEach((card, index) => {
+                    card.style.display = 'grid';
+
+                    const amount = card.querySelector('.header-resource-amount');
+                    const rate = card.querySelector('.header-resource-rate');
+
+                    if (amount) amount.textContent = `资源${index + 1}: 9999999`;
+                    if (rate) rate.textContent = '+999.9/s';
+                });
+            });
+
+            await page.waitForTimeout(150);
+
             const resourcesOverflow = await page.evaluate(() => {
                 const el = document.querySelector('#banner #resources');
                 const banner = document.querySelector('#banner');
@@ -79,8 +94,11 @@ test.describe('Responsive Layout', () => {
             const clickArea = page.locator('#coin-button');
             await expect(clickArea).toBeVisible();
 
-            const resourceDisplay = page.locator('#coin-display');
+            const resourceDisplay = page.locator('#coin-count');
             await expect(resourceDisplay).toBeVisible();
+
+            const banner = page.locator('#banner');
+            await expect(banner).toBeVisible();
 
             const tabNavigation = page.locator('#tab-navigation');
             await expect(tabNavigation).toBeVisible();
