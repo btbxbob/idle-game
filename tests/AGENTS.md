@@ -1,81 +1,39 @@
-# tests/ - Playwright E2E Tests
+# tests/ - Playwright E2E Suite
 
-**Location**: `tests/` directory (50 test files)
-**Framework**: Playwright (Chromium, Firefox, Webkit)
+**Location**: `tests/` directory
+**Framework**: Playwright with a Chromium-only coverage fixture by default.
 
-## Execution Policy
-
-- Normalized day-to-day test scope is functional tests only (`tests/functional/`).
-- Use `tests/regression/` only for bug reproduction and fix validation.
-
-## Test Categories (50 files)
-
-### Core Mechanics
-- `statistics.test.js`, `achievements.test.js`, `crafting.test.js`
-- `unlocks.test.js`, `workers.test.js`, `workers-panel.test.js`
-
-### Resources (Phase 2)
-- `primary-resources.test.js`, `secondary-resources.test.js`, `advanced-resources.test.js`
-- `resource-production-complete.test.js`, `resource-crafting-complete.test.js`
-- `resource-update.test.js`
-
-### System Flows (Phase 2)
-- `technology-tree-flow.test.js`, `housing-system-flow.test.js`
-- `worker-simulation-flow.test.js`, `life-death-cycle.test.js`
-
-### UI & Visual
-- `responsive.test.js`, `responsive-iphone-15-pro.test.js`, `responsive-layout.test.js`
-- `visual-style.test.js`, `particle-effect.test.js`
-- `tab-structure.test.js`, `tab-evidence.test.js`, `comprehensive-tab.test.js`
-
-### Performance
-- `performance-benchmark.test.js`, `performance-stress-test.test.js`, `performance-quick-test.test.js`
-
-### QA & Regression
-- `monkey-test.test.js`, `manual-qa.test.js`, `autoclicker-removed.test.js`
-- `core-issues-fixed.test.js`, `fix-all-issues.test.js`, `no-undefined-display.test.js`
-
-## Test Pattern (MANDATORY)
-```javascript
-const { test, expect } = require('@playwright/test');
-
-test('description', async ({ page }) => {
-  await page.goto('http://localhost:8080');
-  await page.waitForFunction(() => window.gameInitialized === true);  // CRITICAL
-  // Use exact Chinese strings for text matching
-});
+## STRUCTURE
+```text
+tests/
+├── fixtures/        # Shared Playwright extensions (`coverage.js`)
+├── functional/      # Normal feature validation scope
+└── regression/      # Bug reproduction / fix-locking tests only
 ```
+
+## WHERE TO LOOK
+| Task | Location | Notes |
+|------|----------|-------|
+| Add shared test behavior | `fixtures/coverage.js` | Imported by almost every E2E file |
+| Add routine feature coverage | `functional/` | Preferred day-to-day scope |
+| Lock a bugfix | `regression/` | Keep assertions narrow and symptom-focused |
+| Viewport/layout validation | `functional/responsive*.test.js`, `regression/banner-tab-overlap.test.js` | Use explicit viewport sizes |
+
+## CONVENTIONS
+- Import from `../fixtures/coverage` instead of `@playwright/test` directly.
+- Wait for `window.gameInitialized === true` before any UI assertions or `page.evaluate()` calls.
+- Prefer `#id` selectors, then stable data attributes like `button[data-tab="workers"]`.
+- Use exact Chinese text when matching UI labels; zh-CN is the primary surface.
+- Coverage collection only records Chromium pages; multi-browser runs are opt-in via config/env.
 
 ## ANTI-PATTERNS
-- ❌ Skip `gameInitialized` wait → flaky tests
-- ❌ English text matching → game is zh-CN primary
-- ❌ Unstable selectors (`.class`) → use `#id` selectors
-- ❌ Missing `*.test.js` suffix → Playwright won't find it
+- Skipping the WASM init wait, especially in smoke or syntax-only tests.
+- Writing regression tests that assert broad UI snapshots instead of the specific broken contract.
+- Adding normal feature assertions under `tests/regression/` instead of `tests/functional/`.
+- Using raw `.class` selectors when an ID or tab data attribute already exists.
+- Checking in `test.only()`; CI forbids it.
 
-## Configuration
-```javascript
-// playwright.config.js
-module.exports = {
-  testDir: 'tests/',
-  testMatch: '*.test.js',
-  webServer: {
-    command: 'python3 server.py',
-    port: 8080,
-    reuseExistingServer: !process.env.CI,
-  },
-  projects: [
-    { name: 'chromium' },
-    { name: 'firefox' },
-    { name: 'webkit' },
-  ],
-};
-```
-
-## Commands
-```bash
-npx playwright test tests/functional            # Routine functional scope
-npx playwright test tests/functional/specific.test.js  # Single functional file
-npx playwright test tests/regression/<bug-case>.test.js  # Regression (bugfix validation only)
-npm run test:ui                                 # With UI debugger
-npx playwright test --project=chromium          # Single browser
-```
+## NOTES
+- `playwright.config.js` defaults to Chromium locally and expands to all browsers in CI or `PW_ALL_BROWSERS=1`.
+- The web server command is `python3 server.py --quiet --port ${PW_TEST_PORT}`; keep tests compatible with that server contract.
+- Formal repository test execution still belongs to Jenkins even though local Playwright structure lives here.

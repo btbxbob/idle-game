@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
 **Generated:** 2026-03-06
-**Commit:** c384d99
+**Commit:** 2bab852
 **Branch:** master
 
 ## OVERVIEW
@@ -15,6 +15,7 @@ idle-game/
 ├── js/                  # UI managers + bootstrap lifecycle
 ├── tests/               # Playwright functional/regression tests
 ├── docs/                # Design and development docs
+├── scripts/             # Jenkins rerun, coverage merge, debug helpers
 ├── index.html           # Main UI shell + script loading order
 ├── Cargo.toml           # Rust + wasm-pack config
 ├── package.json         # npm scripts + Playwright dependency
@@ -31,6 +32,7 @@ idle-game/
 | UI rendering/events | `js/` | Manager pattern; avoid direct state mutation |
 | E2E behavior validation | `tests/functional/` | Feature flows and multi-browser checks |
 | Bug regression coverage | `tests/regression/` | Past issue repro + fixed assertions |
+| CI/debug helper scripts | `scripts/` | Jenkins rerun and coverage utilities |
 
 ## CODE MAP
 | Symbol | Type | Location | Role |
@@ -116,6 +118,7 @@ npx playwright test tests/regression/<bug-case>.test.js
 - For `jenkins_searchBuildLog`, use narrow patterns and bounded matches (`maxMatches<=20`); avoid broad regex during long logs.
 - Retry policy for log APIs: max 3 attempts with backoff (2s, 5s, 10s), then fall back to artifacts/test APIs and report partial diagnostics.
 - Preferred result sources to avoid log timeouts: build result from `jenkins_getBuild`, tests from `jenkins_getTestResults`, coverage from archived `coverage-summary.json`.
+- Local Jenkins may use a workspace-source copy instead of Git checkout; verify the job config before assuming remote-only SCM state.
 
 
 ## SCOPED GUIDES
@@ -126,9 +129,12 @@ npx playwright test tests/regression/<bug-case>.test.js
 - `src/systems/AGENTS.md`
 - `src/test_utils/AGENTS.md`
 - `src/ui/AGENTS.md`
+- `src/utils/AGENTS.md`
+- `css/AGENTS.md`
 - `js/AGENTS.md`
 - `tests/AGENTS.md`
 - `docs/AGENTS.md`
+- `scripts/AGENTS.md`
 
 ## NOTES
 - LSP Rust analysis may be unavailable if `rust-analyzer` is not installed in environment.

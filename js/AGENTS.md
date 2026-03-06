@@ -1,75 +1,37 @@
-# js/ - JavaScript Frontend
+# js/ - JavaScript Frontend Managers
 
-**Location**: `js/` directory (15 modules)
-**Pattern**: Manager classes wrapping WASM calls. NO game logic in JS.
+**Location**: `js/` directory
+**Role**: Browser-side orchestration, DOM rendering, and WASM boundary glue.
 
-## Module Structure
-```
-js/
-├── bootstrap.js              # WASM init, game loop (1000ms), manager setup
-├── game.js (475 lines)       # UI update functions, event handlers
-├── i18n.js (498 lines)       # Translations (zh-CN primary, en secondary)
-├── statistics.js             # StatisticsManager (9 metrics)
-├── achievements.js           # AchievementManager + toast notifications
-├── crafting.js               # CraftingManager (6+ recipes)
-├── unlocks.js                # UnlockManager (5 features)
-├── workers.js (396 lines)    # WorkerManager (traits, gender, hobbies)
-├── resource-manager.js       # Resource state management
-├── resource-panel.js         # Resource display panel
-├── resource-classification.js (356 lines) # Resource categorization (60+ types)
-├── technology-manager.js (784 lines)      # Technology tree UI
-├── housing-manager.js        # Housing/population capacity UI
-├── population-manager.js     # Population growth/death UI
-└── prestige-manager.js       # Prestige reset UI
-```
+## WHERE TO LOOK
+| Task | Location | Notes |
+|------|----------|-------|
+| WASM init / save restore | `bootstrap.js` | `initWasm()` and `startGameLoop()` own startup order |
+| Shared click/UI updates | `game.js` | Window-scoped update hooks used by the main loop |
+| Header/resources tab UI | `resource-manager.js`, `resource-panel.js` | Header cards vs categorized panel are separate layers |
+| Worker cards / assignment UX | `workers.js` | Dense card grid and modal assignment flow |
+| Technology tree UI | `technology-manager.js` | Largest JS module; canvas/text hybrid rendering |
+| Localization | `i18n.js` | zh-CN primary; keep en in sync |
 
-## Manager Pattern (MANDATORY)
-```javascript
-class TechnologyManager {
-  constructor(rustGame) { this.rustGame = rustGame; }
-  update() { return this.rustGame.get_technology_tree(); }
-  renderToPanel(id) { /* DOM updates only */ }
-}
-window.technologyManager = new TechnologyManager(game);
-```
+## CONVENTIONS
+- JS stays manager-driven: fetch state through `window.rustGame.*`, then render DOM.
+- `bootstrap.js` owns manager construction order; do not instantiate managers ad hoc elsewhere.
+- Guard all WASM access with `window.gameInitialized` / `window.rustGame` checks.
+- Keep the 1000ms game loop cadence in `bootstrap.js`; balance and tests assume it.
+- Use `window.i18n.t(...)` for labels instead of hardcoded UI text.
 
-## ANTI-PATTERNS (CRITICAL)
-```javascript
-// ❌ FORBIDDEN — modify game state directly
-window.rustGame.state.coins = 1000;
-// ✅ REQUIRED — call Rust functions only
-window.rustGame.click_action();
+## ANTI-PATTERNS
+- Mutating imagined JS copies of Rust state instead of calling exported methods.
+- Embedding gameplay formulas in JS managers when the Rust systems already own them.
+- Touching DOM before `initWasm()` finishes wiring managers and restoring saves.
+- Splitting the same UI surface across multiple managers without a clear owner.
 
-// ❌ FORBIDDEN — assume WASM ready
-const coins = window.rustGame.get_coins();
-// ✅ REQUIRED — check initialization
-if (window.gameInitialized && window.rustGame) { ... }
+## HOT FILES
+- `bootstrap.js` — startup contract, save reset alert path, loop wiring.
+- `workers.js` — large UI surface with filtering, sorting, assignment modal, XP display.
+- `technology-manager.js` — highest JS complexity; check here before changing tree behavior.
+- `resource-manager.js` — header resource cards and categorized resource-panel synchronization.
 
-// ❌ FORBIDDEN — hardcode i18n strings
-element.textContent = "金币";
-// ✅ REQUIRED — use i18n system
-const t = window.i18n.t.bind(window.i18n);
-element.textContent = t('coins');
-```
-
-## Game Loop (1000ms — DO NOT CHANGE)
-```javascript
-setInterval(() => {
-    if (window.rustGame) {
-        window.rustGame.game_loop();
-        // All managers update here
-    }
-}, 1000);
-```
-
-## window.* Globals
-- `window.rustGame` — WASM game instance
-- `window.gameInitialized` — boolean, true when WASM ready
-- `window.i18n` — Translation system
-- `window.{name}Manager` — All manager instances
-
-## Commands
-```bash
-npm run test          # Playwright E2E tests
-npx playwright test tests/specific.test.js
-```
+## NOTES
+- `window.update*` hooks in `game.js` are part of the main-loop contract; preserve their names when refactoring.
+- Local browser checks are fine here, but repository-wide test execution policy still routes formal test runs through Jenkins.
