@@ -21,6 +21,7 @@ struct TechnologyView {
     name: String,
     description: String,
     tier: u8,
+    costs: HashMap<String, f64>,
     dependencies: Vec<String>,
     purchased: bool,
     researched: bool,
@@ -2138,6 +2139,11 @@ impl IdleGame {
                 .iter()
                 .map(|dep| format!("{:?}", dep))
                 .collect::<Vec<_>>();
+            let costs = tech
+                .costs
+                .iter()
+                .map(|(resource, amount)| (format!("{:?}", resource), *amount))
+                .collect::<HashMap<_, _>>();
             let effect = serde_json::to_value(&tech.effect)
                 .unwrap_or_else(|_| serde_json::json!({ "type": "unknown" }));
 
@@ -2146,6 +2152,7 @@ impl IdleGame {
                 name: tech.name.clone(),
                 description: tech.description.clone(),
                 tier: tech.tier(),
+                costs,
                 dependencies,
                 purchased: tech.purchased,
                 researched: tech.purchased,
@@ -2155,7 +2162,8 @@ impl IdleGame {
             });
         }
 
-        serde_wasm_bindgen::to_value(&technologies)
+        technologies
+            .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
             .map_err(|e| JsValue::from_str(&format!("Failed to serialize technologies: {}", e)))
     }
 
