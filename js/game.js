@@ -76,83 +76,66 @@ window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, wood
 };
 
 // Function that will be called from Rust/WASM to update buildings
-window.updateBuildingDisplay = function(buildings) {
+window.updateBuildingDisplay = function(buildings, currentCoins) {
+    let buildingEntries = Array.isArray(buildings) ? buildings : null;
+    if (!buildingEntries && window.rustGame && typeof window.rustGame.get_buildings === 'function') {
+        try {
+            const freshBuildings = window.rustGame.get_buildings();
+            if (Array.isArray(freshBuildings)) {
+                buildingEntries = freshBuildings;
+            }
+        } catch (error) {
+            console.error('Failed to refresh building list from WASM:', error);
+        }
+    }
+
+    if (!buildingEntries || buildingEntries.length === 0) {
+        console.warn('updateBuildingDisplay received invalid or empty building payload, keeping current DOM.');
+        return;
+    }
+
     const buildingLists = Array.from(document.querySelectorAll('#building-list'));
     buildingLists.forEach((buildingList) => {
-        if (buildingList.children.length !== buildings.length) {
-            buildingList.innerHTML = '';
-            buildings.forEach((building, index) => {
-                const buildingDiv = document.createElement('div');
-                buildingDiv.className = 'building-item';
-                buildingDiv.id = `building-item-${index}`;
+        buildingList.innerHTML = '';
+        buildingEntries.forEach((building, index) => {
+            const buildingDiv = document.createElement('div');
+            buildingDiv.className = 'building-item';
+            buildingDiv.id = `building-item-${index}`;
 
-                const ownedText = window.i18n ? window.i18n.t('owned') : 'Owned';
-                const costText = window.i18n ? window.i18n.t('cost') : 'Cost';
-                const buyText = window.i18n ? window.i18n.t('buy') : 'Buy';
-                const perSecondText = window.i18n ? window.i18n.t('perSecond') : '/sec';
-                const productionRate = building.production_rate || building.productionRate || 0;
-                const clickBonus = building.name === '金币矿山' ? Math.floor(building.count || 0) : 0;
-                const resourceName = getResourceNameForBuilding(building.name);
+            const ownedText = window.i18n ? window.i18n.t('owned') : 'Owned';
+            const costText = window.i18n ? window.i18n.t('cost') : 'Cost';
+            const buyText = window.i18n ? window.i18n.t('buy') : 'Buy';
+            const perSecondText = window.i18n ? window.i18n.t('perSecond') : '/sec';
+            const productionRate = building.production_rate || building.productionRate || 0;
+            const clickBonus = building.name === '金币矿山' ? Math.floor(building.count || 0) : 0;
+            const resourceName = getResourceNameForBuilding(building.name);
+            const realIndex = Number.isInteger(building.index) ? building.index : index;
 
-                buildingDiv.innerHTML = `
-                    <div>
-                        <strong>${building.name}</strong><br>
-                        <small>+${productionRate} ${resourceName}${perSecondText}</small>
-                        ${clickBonus > 0 ? `<br><small>+${clickBonus} ${window.i18n ? window.i18n.t('coinsPerClick') : '金币/点击'}</small>` : ''}
-                    </div>
-                    <div>
-                        ${ownedText}: ${building.count}<br>
-                        ${costText}: ${Math.floor(building.cost)}
-                        <button id="buy-building-${index}" 
-                                onclick="window.buyBuilding(${index})"
-                                ${!window.gameInitialized ? 'disabled' : ''}>
-                            ${buyText}
-                        </button>
-                    </div>
-                `;
-                buildingList.appendChild(buildingDiv);
-            });
-        } else {
-            for (let index = 0; index < buildings.length; index++) {
-                const building = buildings[index];
-                const buildingItem = buildingList.querySelector(`#building-item-${index}`);
-                if (!buildingItem) {
-                    continue;
-                }
-
-                const childElements = Array.from(buildingItem.children);
-                if (childElements.length >= 2) {
-                    const secondDiv = childElements[1];
-                    const ownedText = window.i18n ? window.i18n.t('owned') : 'Owned';
-                    const costText = window.i18n ? window.i18n.t('cost') : 'Cost';
-
-                    secondDiv.innerHTML = `
-                        ${ownedText}: ${building.count}<br>
-                        ${costText}: ${Math.floor(building.cost)}
-                        <button id="buy-building-${index}" 
-                                onclick="window.buyBuilding(${index})"
-                                ${!window.gameInitialized ? 'disabled' : ''}>
-                            ${window.i18n ? window.i18n.t('buy') : 'Buy'}
-                        </button>
-                    `;
-                }
+            let sufficientFunds = true;
+            if (typeof currentCoins === 'number' && Number.isFinite(currentCoins)) {
+                sufficientFunds = currentCoins >= building.cost;
+            } else if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
+                sufficientFunds = window.rustGame.get_coins() >= building.cost;
             }
 
-            for (let index = 0; index < buildings.length; index++) {
-                const building = buildings[index];
-                const buyButton = buildingList.querySelector(`#buy-building-${index}`);
-                if (!buyButton) {
-                    continue;
-                }
-
-                let sufficientFunds = true;
-                if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
-                    const currentCoins = window.rustGame.get_coins();
-                    sufficientFunds = currentCoins >= building.cost;
-                }
-                buyButton.disabled = !window.gameInitialized || !sufficientFunds;
-            }
-        }
+            buildingDiv.innerHTML = `
+                <div>
+                    <strong>${building.name}</strong><br>
+                    <small>+${productionRate} ${resourceName}${perSecondText}</small>
+                    ${clickBonus > 0 ? `<br><small>+${clickBonus} ${window.i18n ? window.i18n.t('coinsPerClick') : '金币/点击'}</small>` : ''}
+                </div>
+                <div>
+                    ${ownedText}: ${building.count}<br>
+                    ${costText}: ${Math.floor(building.cost)}
+                    <button id="buy-building-${realIndex}"
+                            onclick="window.buyBuilding(${realIndex})"
+                            ${!window.gameInitialized || !sufficientFunds ? 'disabled' : ''}>
+                        ${buyText}
+                    </button>
+                </div>
+            `;
+            buildingList.appendChild(buildingDiv);
+        });
     });
 };
 
@@ -178,7 +161,11 @@ function getResourceNameForBuilding(buildingName) {
         '石油井': 'oil',
         '水晶矿': 'crystal',
         '农场': 'food',
-        '蛆虫工厂': 'maggot'
+        '蛆虫工厂': 'maggot',
+        '腐肉育池': 'maggot',
+        '共生培育舱': 'food',
+        '神经尖塔': 'darkMatter',
+        '深空孵化港': 'spaceship'
     };
     
     const resourceKey = buildingResourceMap[buildingName] || 'coins';
@@ -358,10 +345,12 @@ window.updateStatisticsPanel = function() {
 };
 
 window.updateUnlocksPanel = function() {
+    if (window.unlockManager && typeof window.unlockManager.update === 'function') {
+        window.unlockManager.update();
+    }
     if (window.unlockManager && typeof window.unlockManager.renderUnlocks === 'function') {
         const unlocksTab = document.getElementById('tab-unlocks');
         if (unlocksTab && unlocksTab.classList.contains('active')) {
-            window.unlockManager.update();
             window.unlockManager.renderUnlocks();
         }
     }

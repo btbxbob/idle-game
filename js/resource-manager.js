@@ -131,6 +131,31 @@ class ResourceManager {
         this.updateHeaderDisplay(resources);
     }
 
+    getCurrentStageId() {
+        if (!this.rustGame || typeof this.rustGame.getProgressionStateJson !== 'function') {
+            return 'stage_genesis';
+        }
+        try {
+            const state = JSON.parse(this.rustGame.getProgressionStateJson());
+            return state.current_stage_id || 'stage_genesis';
+        } catch (error) {
+            return 'stage_genesis';
+        }
+    }
+
+    isResourceRevealed(resourceKey) {
+        const resourceStages = {
+            coins: 'stage_genesis', wood: 'stage_genesis', stone: 'stage_genesis',
+            ironOre: 'stage_workers', copperOre: 'stage_workers', aluminumOre: 'stage_workers', coal: 'stage_workers', oil: 'stage_workers', crystal: 'stage_workers', food: 'stage_workers',
+            maggot: 'stage_maggot', corpse: 'stage_maggot',
+            darkMatter: 'stage_collective', spaceship: 'stage_collective'
+        };
+        const stageOrder = ['stage_genesis', 'stage_workers', 'stage_maggot', 'stage_hybrid', 'stage_collective'];
+        const currentIndex = stageOrder.indexOf(this.getCurrentStageId());
+        const requiredIndex = stageOrder.indexOf(resourceStages[resourceKey] || 'stage_workers');
+        return requiredIndex <= currentIndex;
+    }
+
     getResourceAmount(resources, key) {
         if (resources[key] !== undefined) return resources[key];
 
@@ -168,7 +193,7 @@ class ResourceManager {
             }
 
             if (cardElement) {
-                cardElement.style.display = rate > 0 ? 'grid' : 'none';
+                cardElement.style.display = rate > 0 && this.isResourceRevealed(config.key) ? 'grid' : 'none';
             }
         });
 
