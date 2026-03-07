@@ -84,6 +84,11 @@ pub enum TechnologyId {
     AdvancedNanotech,    // 高级纳米技术
     Biotechnology,       // 生物技术
     GeneticEngineering,  // 基因工程
+    MaggotBreeding,      // 蛆虫育种
+    NecroticRecycling,   // 坏死回收
+    SymbioticHosts,      // 共生宿主
+    HiveMindProtocol,    // 蜂巢协议
+    CollectiveAwakening, // 集体觉醒
     RenewableEnergy,     // 可再生能源
     NuclearEnergy,       // 核能
 
@@ -147,6 +152,11 @@ impl TechnologyId {
             TechnologyId::AdvancedNanotech => "高级纳米技术",
             TechnologyId::Biotechnology => "生物技术",
             TechnologyId::GeneticEngineering => "基因工程",
+            TechnologyId::MaggotBreeding => "蛆虫育种",
+            TechnologyId::NecroticRecycling => "坏死回收",
+            TechnologyId::SymbioticHosts => "共生宿主",
+            TechnologyId::HiveMindProtocol => "蜂巢协议",
+            TechnologyId::CollectiveAwakening => "集体觉醒",
             TechnologyId::RenewableEnergy => "可再生能源",
             TechnologyId::NuclearEnergy => "核能",
 
@@ -210,6 +220,11 @@ impl TechnologyId {
             TechnologyId::AdvancedNanotech => "高级纳米技术，解锁分子组装",
             TechnologyId::Biotechnology => "生物技术，解锁生物工程",
             TechnologyId::GeneticEngineering => "基因工程，解锁基因编辑",
+            TechnologyId::MaggotBreeding => "以尸体和蛆虫为样本建立黑暗育种线",
+            TechnologyId::NecroticRecycling => "将坏死组织重新并入食物与化学循环",
+            TechnologyId::SymbioticHosts => "让人类宿主与蛆虫生态形成可控共生",
+            TechnologyId::HiveMindProtocol => "将混合个体连接进共享思维网络",
+            TechnologyId::CollectiveAwakening => "让整个共生体迈入统一意识与远征时代",
             TechnologyId::RenewableEnergy => "可再生能源，解锁清洁能源",
             TechnologyId::NuclearEnergy => "核能技术，解锁核反应堆",
 
@@ -271,6 +286,8 @@ impl TechnologyId {
             | TechnologyId::AdvancedNanotech
             | TechnologyId::Biotechnology
             | TechnologyId::GeneticEngineering
+            | TechnologyId::MaggotBreeding
+            | TechnologyId::NecroticRecycling
             | TechnologyId::RenewableEnergy
             | TechnologyId::NuclearEnergy => 2,
 
@@ -283,7 +300,9 @@ impl TechnologyId {
             | TechnologyId::DimensionalTravel
             | TechnologyId::ConsciousnessUpload
             | TechnologyId::Immortality
-            | TechnologyId::Godhood => 3,
+            | TechnologyId::Godhood
+            | TechnologyId::SymbioticHosts
+            | TechnologyId::HiveMindProtocol => 3,
 
             TechnologyId::ClickEfficiency
             | TechnologyId::ResourceBoost
@@ -294,7 +313,8 @@ impl TechnologyId {
             | TechnologyId::Prestige
             | TechnologyId::Legacy
             | TechnologyId::Ascension
-            | TechnologyId::Omniscience => 4,
+            | TechnologyId::Omniscience
+            | TechnologyId::CollectiveAwakening => 4,
         }
     }
 }

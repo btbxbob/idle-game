@@ -146,6 +146,13 @@ impl TechnologyTree {
                             // Energy techs add global production
                             bonuses.production_multiplier += tech.effect_value * 0.1;
                         }
+                        "symbiotic_hosts" => {
+                            bonuses.production_multiplier += tech.effect_value * 0.08;
+                        }
+                        "hive_mind" | "collective_awakening" => {
+                            bonuses.production_multiplier += tech.effect_value * 0.12;
+                            bonuses.click_bonus += tech.effect_value * 0.05;
+                        }
                         _ => {}
                     }
                 }
@@ -357,7 +364,7 @@ fn costs(resources: &[(ResourceType, f64)]) -> HashMap<ResourceType, f64> {
     resources.iter().cloned().collect()
 }
 
-/// Get all default technologies (50 total)
+/// Get all default technologies (55 total)
 impl TechnologyTree {
     fn initialize_technologies() -> HashMap<TechnologyId, Technology> {
         let mut map = HashMap::new();
@@ -806,6 +813,88 @@ impl TechnologyTree {
             ),
         );
 
+        map.insert(
+            TechnologyId::MaggotBreeding,
+            Technology::new(
+                TechnologyId::MaggotBreeding,
+                costs(&[
+                    (ResourceType::Gold, 75000.0),
+                    (ResourceType::Food, 2500.0),
+                    (ResourceType::Maggot, 120.0),
+                ]),
+                vec![TechnologyId::GeneticEngineering],
+                TechnologyEffect::ProductionBonus(ResourceType::Maggot, 0.75),
+                0.75,
+            ),
+        );
+
+        map.insert(
+            TechnologyId::NecroticRecycling,
+            Technology::new(
+                TechnologyId::NecroticRecycling,
+                costs(&[
+                    (ResourceType::Gold, 90000.0),
+                    (ResourceType::Chemicals, 2000.0),
+                    (ResourceType::Maggot, 240.0),
+                ]),
+                vec![TechnologyId::MaggotBreeding, TechnologyId::Biotechnology],
+                TechnologyEffect::MechanicChange("necrotic_recycling".to_string()),
+                1.0,
+            ),
+        );
+
+        map.insert(
+            TechnologyId::SymbioticHosts,
+            Technology::new(
+                TechnologyId::SymbioticHosts,
+                costs(&[
+                    (ResourceType::Gold, 130000.0),
+                    (ResourceType::Nanobot, 150.0),
+                    (ResourceType::Maggot, 400.0),
+                    (ResourceType::Food, 5000.0),
+                ]),
+                vec![TechnologyId::NecroticRecycling, TechnologyId::AdvancedNanotech],
+                TechnologyEffect::MechanicChange("symbiotic_hosts".to_string()),
+                1.5,
+            ),
+        );
+
+        map.insert(
+            TechnologyId::HiveMindProtocol,
+            Technology::new(
+                TechnologyId::HiveMindProtocol,
+                costs(&[
+                    (ResourceType::Gold, 240000.0),
+                    (ResourceType::QuantumComputer, 40.0),
+                    (ResourceType::Maggot, 600.0),
+                    (ResourceType::Nanobot, 400.0),
+                ]),
+                vec![TechnologyId::SymbioticHosts, TechnologyId::AdvancedAI],
+                TechnologyEffect::MechanicChange("hive_mind".to_string()),
+                2.0,
+            ),
+        );
+
+        map.insert(
+            TechnologyId::CollectiveAwakening,
+            Technology::new(
+                TechnologyId::CollectiveAwakening,
+                costs(&[
+                    (ResourceType::Gold, 500000.0),
+                    (ResourceType::DarkMatter, 120.0),
+                    (ResourceType::Nanobot, 900.0),
+                    (ResourceType::Spaceship, 20.0),
+                ]),
+                vec![
+                    TechnologyId::HiveMindProtocol,
+                    TechnologyId::ConsciousnessUpload,
+                    TechnologyId::SpaceExploration,
+                ],
+                TechnologyEffect::MechanicChange("collective_awakening".to_string()),
+                2.5,
+            ),
+        );
+
         // Energy branches
         map.insert(
             TechnologyId::RenewableEnergy,
@@ -1176,7 +1265,7 @@ mod tests {
     #[test]
     fn test_all_technologies_initialized() {
         let tree = TechnologyTree::new();
-        assert_eq!(tree.technologies.len(), 50);
+        assert_eq!(tree.technologies.len(), 55);
     }
 
     #[test]
