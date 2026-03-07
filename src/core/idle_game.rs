@@ -129,6 +129,19 @@ fn normalize_housing_resource_key(resource: &str) -> Option<&'static str> {
     }
 }
 
+fn clamp_loaded_timestamp(saved_time: f64, now: f64, max_age_ms: f64) -> f64 {
+    if !saved_time.is_finite() || saved_time <= 0.0 {
+        return now;
+    }
+
+    let age = now - saved_time;
+    if !age.is_finite() || age < 0.0 || age > max_age_ms {
+        now
+    } else {
+        saved_time
+    }
+}
+
 #[cfg(test)]
 mod normalization_tests {
     use super::*;
@@ -186,9 +199,14 @@ impl IdleGame {
 
     /// Load game state from SavedGame structure
     pub fn load_game(&mut self, saved: SavedGame) {
+        let now = Date::now();
+        const MAX_RESUME_AGE_MS: f64 = 3_600_000.0;
+
         {
             let mut state = self.state.borrow_mut();
             *state = saved.state;
+            state.last_update_time =
+                clamp_loaded_timestamp(state.last_update_time, now, MAX_RESUME_AGE_MS);
         }
 
         {
@@ -212,15 +230,17 @@ impl IdleGame {
         self.crafting_recipes = saved.crafting_recipes;
         self.unlocked_features = saved.unlocked_features;
         self.technology_tree = saved.technology_tree;
-        self.last_food_consumption_time = saved.last_food_consumption_time;
-        self.last_worker_spawn_time = saved.last_worker_spawn_time;
-        self.last_food_consumption_time = saved.last_food_consumption_time;
-        self.last_worker_spawn_time = saved.last_worker_spawn_time;
+        self.last_food_consumption_time =
+            clamp_loaded_timestamp(saved.last_food_consumption_time, now, MAX_RESUME_AGE_MS);
+        self.last_worker_spawn_time =
+            clamp_loaded_timestamp(saved.last_worker_spawn_time, now, MAX_RESUME_AGE_MS);
 
         {
             let mut state = self.state.borrow_mut();
             state.coins_per_click = calculate_click_power_from_buildings(&self.buildings);
         }
+
+        self.update_production();
         
         // Ensure default workers exist if save is empty (backwards compatibility)
         if self.workers.is_empty() {
