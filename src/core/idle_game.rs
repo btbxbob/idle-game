@@ -1,8 +1,8 @@
 use crate::entities::{Building, Housing, PopulationQueue, Worker};
 use crate::state::resource::ResourceType;
-use crate::state::{GameState, Statistics};
+use crate::state::{GameStage, GameState, Statistics};
 use crate::systems::{
-    achievement::Achievement, crafting::CraftingRecipe, production,
+    achievement::Achievement, crafting::CraftingRecipe, production, stage,
     technology::TechnologyTree,
     unlock::UnlockedFeature,
 };
@@ -28,6 +28,28 @@ struct TechnologyView {
     can_research: bool,
     effect_value: f64,
     effect: serde_json::Value,
+}
+
+#[derive(Serialize)]
+struct BuildingView {
+    index: usize,
+    name: String,
+    cost: f64,
+    production_rate: f64,
+    output_resource: ResourceType,
+    count: u32,
+}
+
+#[derive(Serialize)]
+struct ProgressionStateView {
+    current_stage_id: String,
+    current_stage_name: String,
+    current_stage_description: String,
+    human_pressure: f64,
+    maggot_influence: f64,
+    symbiosis_stability: f64,
+    hybrid_population: f64,
+    collective_consciousness: f64,
 }
 
 #[wasm_bindgen]
@@ -89,7 +111,10 @@ fn infer_output_resource_from_building_name(building_name: &str) -> ResourceType
         "石油井" => ResourceType::Oil,
         "水晶矿" => ResourceType::Crystal,
         "农场" => ResourceType::Food,
-        "蛆虫工厂" => ResourceType::Maggot,
+        "蛆虫工厂" | "腐肉育池" => ResourceType::Maggot,
+        "共生培育舱" => ResourceType::Food,
+        "神经尖塔" => ResourceType::DarkMatter,
+        "深空孵化港" => ResourceType::Spaceship,
         _ => ResourceType::Gold,
     }
 }
@@ -143,6 +168,77 @@ fn clamp_loaded_timestamp(saved_time: f64, now: f64, max_age_ms: f64) -> f64 {
     }
 }
 
+fn stage_from_unlock_id(feature_id: &str) -> Option<GameStage> {
+    match feature_id {
+        "stage_workers" => Some(GameStage::Workers),
+        "stage_maggot" => Some(GameStage::Maggot),
+        "stage_hybrid" => Some(GameStage::Hybrid),
+        "stage_collective" => Some(GameStage::Collective),
+        _ => None,
+    }
+}
+
+fn production_resource_slots() -> &'static [(ResourceType, usize)] {
+    &[
+        (ResourceType::IronOre, 3),
+        (ResourceType::CopperOre, 4),
+        (ResourceType::AluminumOre, 5),
+        (ResourceType::Coal, 6),
+        (ResourceType::Oil, 7),
+        (ResourceType::Crystal, 8),
+        (ResourceType::Food, 9),
+        (ResourceType::IronIngot, 10),
+        (ResourceType::CopperIngot, 11),
+        (ResourceType::AluminumIngot, 12),
+        (ResourceType::SteelPlate, 13),
+        (ResourceType::CopperPlate, 14),
+        (ResourceType::AluminumPlate, 15),
+        (ResourceType::Glass, 16),
+        (ResourceType::Plastic, 17),
+        (ResourceType::Chemicals, 18),
+        (ResourceType::Fuel, 19),
+        (ResourceType::Paper, 20),
+        (ResourceType::Ink, 21),
+        (ResourceType::Cloth, 22),
+        (ResourceType::Leather, 23),
+        (ResourceType::Ceramic, 24),
+        (ResourceType::Cement, 25),
+        (ResourceType::Brick, 26),
+        (ResourceType::Rebar, 27),
+        (ResourceType::Wire, 28),
+        (ResourceType::Pipe, 29),
+        (ResourceType::Valve, 30),
+        (ResourceType::Gear, 31),
+        (ResourceType::Bearing, 32),
+        (ResourceType::Spring, 33),
+        (ResourceType::Screw, 34),
+        (ResourceType::Nut, 35),
+        (ResourceType::Washer, 36),
+        (ResourceType::Pump, 37),
+        (ResourceType::Motor, 38),
+        (ResourceType::Sensor, 39),
+        (ResourceType::CircuitBoard, 40),
+        (ResourceType::Capacitor, 41),
+        (ResourceType::Resistor, 42),
+        (ResourceType::Diode, 43),
+        (ResourceType::Transistor, 44),
+        (ResourceType::Transformer, 45),
+        (ResourceType::Generator, 46),
+        (ResourceType::Compressor, 47),
+        (ResourceType::Battery, 48),
+        (ResourceType::Microchip, 49),
+        (ResourceType::Engine, 50),
+        (ResourceType::Robot, 51),
+        (ResourceType::Satellite, 52),
+        (ResourceType::Spaceship, 53),
+        (ResourceType::QuantumComputer, 54),
+        (ResourceType::Antimatter, 55),
+        (ResourceType::DarkMatter, 56),
+        (ResourceType::TimeCrystal, 57),
+        (ResourceType::Nanobot, 58),
+    ]
+}
+
 #[cfg(test)]
 mod normalization_tests {
     use super::*;
@@ -174,6 +270,7 @@ mod normalization_tests {
         assert_eq!(normalize_housing_resource_key("stone"), Some("Stone"));
         assert_eq!(normalize_housing_resource_key("crystal"), None);
     }
+
 
 }
 
@@ -231,6 +328,16 @@ impl IdleGame {
         self.crafting_recipes = saved.crafting_recipes;
         self.unlocked_features = saved.unlocked_features;
         self.technology_tree = saved.technology_tree;
+        {
+            let inferred_stage = {
+                let state = self.state.borrow();
+                stage::infer_stage_from_state(&state, &self.workers, &self.technology_tree)
+            };
+            let mut state = self.state.borrow_mut();
+            if state.current_stage < inferred_stage {
+                state.current_stage = inferred_stage;
+            }
+        }
         self.last_food_consumption_time =
             clamp_loaded_timestamp(saved.last_food_consumption_time, now, MAX_RESUME_AGE_MS);
         self.last_worker_spawn_time =
@@ -244,7 +351,7 @@ impl IdleGame {
         self.update_production();
         
         // Ensure default workers exist if save is empty (backwards compatibility)
-        if self.workers.is_empty() {
+        if self.workers.is_empty() && self.state.borrow().current_stage >= GameStage::Workers {
             self.workers = vec![
                 Worker::new("矿工", "mining", "擅长挖矿的工人", "金币矿山"),
                 Worker::new("伐木工", "logging", "擅长伐木的工人", "伐木场"),
@@ -520,6 +627,34 @@ impl IdleGame {
                     output_resource: ResourceType::Maggot,
                     count: 0,
                 },
+                Building {
+                    name: "腐肉育池".to_string(),
+                    cost: 420.0,
+                    production_rate: 3.0,
+                    output_resource: ResourceType::Maggot,
+                    count: 0,
+                },
+                Building {
+                    name: "共生培育舱".to_string(),
+                    cost: 1800.0,
+                    production_rate: 8.0,
+                    output_resource: ResourceType::Food,
+                    count: 0,
+                },
+                Building {
+                    name: "神经尖塔".to_string(),
+                    cost: 12000.0,
+                    production_rate: 0.2,
+                    output_resource: ResourceType::DarkMatter,
+                    count: 0,
+                },
+                Building {
+                    name: "深空孵化港".to_string(),
+                    cost: 35000.0,
+                    production_rate: 0.05,
+                    output_resource: ResourceType::Spaceship,
+                    count: 0,
+                },
             ],
             housing_buildings: vec![
                 Housing::new(
@@ -528,18 +663,7 @@ impl IdleGame {
                     4,
                 ),
             ],
-            workers: vec![
-                Worker::new("矿工", "mining", "擅长挖矿的工人", "金币矿山"),
-                Worker::new("伐木工", "logging", "擅长伐木的工人", "伐木场"),
-                Worker::new("石匠", "masonry", "擅长采石的工人", "采石场"),
-                Worker::new("工厂工人", "factory", "擅长工厂生产的工人", "金币矿山"),
-                Worker::new(
-                    "高级工匠",
-                    "crafting",
-                    "擅长高级制作的工匠",
-                    "采石场",
-                ),
-            ],
+            workers: vec![],
             population_queue: PopulationQueue::new(),
             last_food_consumption_time: now,
             last_worker_spawn_time: now,
@@ -617,11 +741,17 @@ impl IdleGame {
         self.check_achievement("click_legend_1000");
 
         self.update_resources_only();
+        self.update_buildings_only();
     }
 
     #[wasm_bindgen]
     pub fn buy_building(&mut self, index: usize) -> bool {
         if index >= self.buildings.len() {
+            return false;
+        }
+
+        let current_stage = self.state.borrow().current_stage;
+        if current_stage < stage::required_stage_for_building(&self.buildings[index].name) {
             return false;
         }
 
@@ -1095,7 +1225,22 @@ impl IdleGame {
 
     #[wasm_bindgen]
     pub fn get_buildings(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.buildings).unwrap_or(JsValue::NULL)
+        let current_stage = self.state.borrow().current_stage;
+        let buildings: Vec<BuildingView> = self
+            .buildings
+            .iter()
+            .enumerate()
+            .filter(|(_, building)| stage::is_building_revealed(building, current_stage))
+            .map(|(index, building)| BuildingView {
+                index,
+                name: building.name.clone(),
+                cost: building.cost,
+                production_rate: building.production_rate,
+                output_resource: building.output_resource,
+                count: building.count,
+            })
+            .collect();
+        serde_wasm_bindgen::to_value(&buildings).unwrap_or(JsValue::NULL)
     }
 
     #[wasm_bindgen]
@@ -1420,6 +1565,9 @@ impl IdleGame {
 
     fn try_spawn_worker(&mut self, now: f64) {
         const WORKER_SPAWN_INTERVAL_MS: f64 = 30_000.0;
+        if self.state.borrow().current_stage < GameStage::Workers {
+            return;
+        }
         if now - self.last_worker_spawn_time < WORKER_SPAWN_INTERVAL_MS {
             return;
         }
@@ -1519,18 +1667,10 @@ impl IdleGame {
                 current_stone
             });
 
-            for (resource, index) in [
-                (ResourceType::IronOre, 3usize),
-                (ResourceType::CopperOre, 4usize),
-                (ResourceType::AluminumOre, 5usize),
-                (ResourceType::Coal, 6usize),
-                (ResourceType::Oil, 7usize),
-                (ResourceType::Crystal, 8usize),
-                (ResourceType::Food, 9usize),
-            ] {
-                let gain = production[index] * elapsed;
+            for (resource, index) in production_resource_slots() {
+                let gain = production[*index] * elapsed;
                 if gain.is_finite() && gain > 0.0 {
-                    state.add_resource(resource, gain);
+                    state.add_resource(*resource, gain);
                 }
             }
 
@@ -1573,6 +1713,17 @@ impl IdleGame {
                 let mut state = self.state.borrow_mut();
                 crate::systems::decay::produce_maggots(&mut state, now);
 
+                let maggot_gain = self
+                    .buildings
+                    .iter()
+                    .filter(|building| matches!(building.name.as_str(), "蛆虫工厂" | "腐肉育池"))
+                    .map(|building| building.production_rate * building.count as f64)
+                    .sum::<f64>()
+                    * elapsed;
+                if maggot_gain.is_finite() && maggot_gain > 0.0 {
+                    state.add_resource(ResourceType::Maggot, maggot_gain);
+                }
+
                 // Maggot factory: convert maggots into food (10:1 ratio).
                 let maggot_factory_count = self
                     .buildings
@@ -1593,6 +1744,40 @@ impl IdleGame {
 
             self.process_housing_queue();
             self.try_spawn_worker(now);
+
+            let stage_snapshot = self.state.borrow().clone();
+            let coexistence = stage::update_coexistence(
+                &stage_snapshot.coexistence,
+                &stage_snapshot,
+                &self.workers,
+                &self.buildings,
+                &self.technology_tree,
+                elapsed,
+            );
+            {
+                let mut state = self.state.borrow_mut();
+                state.coexistence = coexistence.clone();
+
+                if state.current_stage >= GameStage::Hybrid {
+                    let food_bonus = (coexistence.hybrid_population * 0.08)
+                        + (coexistence.symbiosis_stability * 0.01);
+                    let gold_bonus = coexistence.hybrid_population * 0.03;
+                    if food_bonus > 0.0 {
+                        state.add_resource(ResourceType::Food, food_bonus * elapsed);
+                    }
+                    if gold_bonus > 0.0 {
+                        state.add_resource(ResourceType::Gold, gold_bonus * elapsed);
+                    }
+                }
+
+                if state.current_stage >= GameStage::Collective {
+                    let dark_bonus = (coexistence.collective_consciousness * 0.0025)
+                        + (coexistence.hybrid_population * 0.01);
+                    if dark_bonus > 0.0 {
+                        state.add_resource(ResourceType::DarkMatter, dark_bonus * elapsed);
+                    }
+                }
+            }
         }
 
         self.check_achievement("first_coins_100");
@@ -1644,15 +1829,16 @@ impl IdleGame {
         };
         let global_obj = window.as_ref();
 
-        let buildings_serialized = match serde_wasm_bindgen::to_value(&self.buildings) {
-            Ok(val) => val,
-            Err(_) => return,
-        };
+        let buildings_serialized = self.get_buildings();
+        if buildings_serialized.is_null() {
+            return;
+        }
         let update_buildings_result =
             js_sys::Reflect::get(global_obj, &"updateBuildingDisplay".into());
         if let Ok(update_func) = update_buildings_result {
             let update_buildings: js_sys::Function = update_func.into();
-            let _ = update_buildings.call1(&JsValue::NULL, &buildings_serialized);
+            let coins = self.get_coins();
+            let _ = update_buildings.call2(&JsValue::NULL, &buildings_serialized, &JsValue::from_f64(coins));
         }
     }
 
@@ -1688,15 +1874,16 @@ impl IdleGame {
             );
         }
 
-        let buildings_serialized = match serde_wasm_bindgen::to_value(&self.buildings) {
-            Ok(val) => val,
-            Err(_) => return,
-        };
+        let buildings_serialized = self.get_buildings();
+        if buildings_serialized.is_null() {
+            return;
+        }
         let update_buildings_result =
             js_sys::Reflect::get(global_obj, &"updateBuildingDisplay".into());
         if let Ok(update_func) = update_buildings_result {
             let update_buildings: js_sys::Function = update_func.into();
-            let _ = update_buildings.call1(&JsValue::NULL, &buildings_serialized);
+            let coins = self.get_coins();
+            let _ = update_buildings.call2(&JsValue::NULL, &buildings_serialized, &JsValue::from_f64(coins));
         }
     }
 
@@ -1714,113 +1901,164 @@ impl IdleGame {
             return false;
         }
 
-        let feature = match self
-            .unlocked_features
-            .iter_mut()
-            .find(|f| f.id == feature_id)
-        {
-            Some(f) => f,
+        let next_stage = match stage_from_unlock_id(feature_id) {
+            Some(stage) => stage,
             None => return false,
         };
 
-        if feature.unlocked {
+        let mut state = self.state.borrow_mut();
+        if state.current_stage >= next_stage {
             return true;
         }
+        state.current_stage = next_stage;
+        drop(state);
 
-        feature.unlocked = true;
-        feature.unlock_timestamp = Some(Date::now());
+        if next_stage == GameStage::Workers && self.workers.is_empty() {
+            self.workers.push(Worker::new("新工人", "survival", "刚刚加入聚落的幸存者", "农场"));
+        }
+
         true
     }
 
     #[wasm_bindgen]
     pub fn get_unlocks(&self) -> JsValue {
-        match serde_wasm_bindgen::to_value(&self.unlocked_features) {
-            Ok(val) => val,
-            Err(_) => JsValue::NULL,
-        }
+        let state = self.state.borrow().clone();
+        let statistics = self.statistics.borrow().clone();
+        let unlocks = stage::visible_unlocks(
+            &state,
+            &statistics,
+            &self.workers,
+            &self.buildings,
+            &self.technology_tree,
+        );
+        serde_wasm_bindgen::to_value(&unlocks).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen(js_name = getUnlockProgress)]
+    pub fn get_unlock_progress(&self, feature_id: &str) -> JsValue {
+        let state = self.state.borrow().clone();
+        let statistics = self.statistics.borrow().clone();
+        let current = match feature_id {
+            "stage_workers" => stage::requirement_progress(
+                "workers_stage",
+                &state,
+                &statistics,
+                &self.workers,
+                &self.technology_tree,
+            ),
+            "stage_maggot" => stage::requirement_progress(
+                "maggot_stage",
+                &state,
+                &statistics,
+                &self.workers,
+                &self.technology_tree,
+            ),
+            "stage_hybrid" => stage::requirement_progress(
+                "hybrid_stage",
+                &state,
+                &statistics,
+                &self.workers,
+                &self.technology_tree,
+            ),
+            "stage_collective" => stage::requirement_progress(
+                "collective_stage",
+                &state,
+                &statistics,
+                &self.workers,
+                &self.technology_tree,
+            ),
+            "coexistence_balance" => stage::requirement_progress(
+                "symbiosis_stability",
+                &state,
+                &statistics,
+                &self.workers,
+                &self.technology_tree,
+            ),
+            "statistics_panel" => (statistics.total_clicks as f64 / 10.0).min(1.0),
+            "achievements_panel" => (statistics.total_clicks as f64 / 25.0).min(1.0),
+            _ => 1.0,
+        };
+        serde_wasm_bindgen::to_value(&serde_json::json!({
+            "current": current,
+            "required": 1.0,
+            "percentage": current * 100.0,
+        }))
+        .unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen(js_name = getUnlockRequirementDetails)]
+    pub fn get_unlock_requirement_details(&self, feature_id: &str) -> JsValue {
+        let state = self.state.borrow().clone();
+        let statistics = self.statistics.borrow().clone();
+        let unlocks = stage::visible_unlocks(
+            &state,
+            &statistics,
+            &self.workers,
+            &self.buildings,
+            &self.technology_tree,
+        );
+
+        let Some(unlock) = unlocks.iter().find(|unlock| unlock.id == feature_id) else {
+            return JsValue::NULL;
+        };
+
+        let details = stage::requirement_details(
+            &unlock.requirement_type,
+            unlock.requirement_value,
+            &state,
+            &statistics,
+            &self.workers,
+            &self.technology_tree,
+        );
+
+        serde_wasm_bindgen::to_value(&details).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen(js_name = getProgressionStateJson)]
+    pub fn get_progression_state_json(&self) -> String {
+        let state = self.state.borrow();
+        let view = ProgressionStateView {
+            current_stage_id: state.current_stage.id().to_string(),
+            current_stage_name: state.current_stage.name().to_string(),
+            current_stage_description: state.current_stage.short_description().to_string(),
+            human_pressure: state.coexistence.human_pressure,
+            maggot_influence: state.coexistence.maggot_influence,
+            symbiosis_stability: state.coexistence.symbiosis_stability,
+            hybrid_population: state.coexistence.hybrid_population,
+            collective_consciousness: state.coexistence.collective_consciousness,
+        };
+        serde_json::to_string(&view).unwrap_or_else(|_| "{}".to_string())
     }
 
     #[wasm_bindgen]
     pub fn reset_game(&mut self) {
-        // Reset Statistics to zeros
+        let fresh_game = IdleGame::new();
+
         {
-            let mut stats = self.statistics.borrow_mut();
-            stats.total_clicks = 0;
-            stats.total_coins_earned = 0.0;
-            stats.total_wood_earned = 0.0;
-            stats.total_stone_earned = 0.0;
-            stats.total_resources_crafted = 0;
-            stats.achievements_unlocked_count = 0;
-            stats.play_time_seconds = 0.0;
-            stats.buildings_purchased = 0;
-            stats.upgrades_purchased = 0;
-        }
-
-        // Reset Achievements (unlocked=false, progress=0)
-        for achievement in self.achievements.iter_mut() {
-            achievement.unlocked = false;
-            achievement.unlock_timestamp = None;
-            achievement.progress = 0.0;
-        }
-
-        // Reset Crafting progress (all recipes unlocked=true as in new())
-        for recipe in self.crafting_recipes.iter_mut() {
-            recipe.unlocked = true;
-        }
-
-        // Reset Unlocks (unlocked=false)
-        for feature in self.unlocked_features.iter_mut() {
-            feature.unlocked = false;
-            feature.unlock_timestamp = None;
-        }
-
-        // Reset Workers (level=1, assigned_building=None, xp=0, etc.)
-        for worker in self.workers.iter_mut() {
-            worker.assigned_building = None;
-            worker.level = 1;
-            worker.efficiency_multiplier = 1.0;
-            worker.xp = 0.0;
-            worker.xp_to_next_level = 100.0;
-        }
-
-        // Reset game state (coins, wood, stone, etc.)
-        {
+            let fresh_state = fresh_game.state.borrow().clone();
             let mut state = self.state.borrow_mut();
-            state.set_coins(0.0);
-            state.set_wood(0.0);
-            state.set_stone(0.0);
-            state.coins_per_click = 1.0;
-            state.coins_per_second = 0.0;
-            state.wood_per_second = 0.0;
-            state.stone_per_second = 0.0;
-            state.total_clicks = 0;
-            state.last_update_time = Date::now();
-        }
-
-        // Reset Buildings (count=0, cost=initial)
-        for (i, building) in self.buildings.iter_mut().enumerate() {
-            building.count = 0;
-            // Reset costs to initial values
-            match i {
-                0 => building.cost = 15.0,
-                1 => building.cost = 20.0,
-                2 => building.cost = 25.0,
-                3 => building.cost = 50.0,
-                4 => building.cost = 40.0,
-                5 => building.cost = 60.0,
-                6 => building.cost = 70.0,
-                7 => building.cost = 100.0,
-                8 => building.cost = 150.0,
-                9 => building.cost = 30.0,
-                10 => building.cost = 200.0,
-                _ => {}
-            }
+            *state = fresh_state;
         }
 
         {
-            let mut state = self.state.borrow_mut();
-            state.coins_per_click = calculate_click_power_from_buildings(&self.buildings);
+            let fresh_statistics = fresh_game.statistics.borrow().clone();
+            let mut statistics = self.statistics.borrow_mut();
+            *statistics = fresh_statistics;
         }
+
+        self.buildings = fresh_game.buildings;
+        self.housing_buildings = fresh_game.housing_buildings;
+        self.workers = fresh_game.workers;
+        self.population_queue = fresh_game.population_queue;
+        self.last_food_consumption_time = fresh_game.last_food_consumption_time;
+        self.last_worker_spawn_time = fresh_game.last_worker_spawn_time;
+        self.achievements = fresh_game.achievements;
+        self.crafting_recipes = fresh_game.crafting_recipes;
+        self.unlocked_features = fresh_game.unlocked_features;
+        self.technology_tree = fresh_game.technology_tree;
+
+        self.update_production();
+        self.update_ui();
     }
 
     #[wasm_bindgen(js_name = get_achievements)]
@@ -1952,33 +2190,15 @@ impl IdleGame {
     }
 
     pub fn check_unlock(&mut self, feature_id: &str) -> bool {
-        let state = self.state.borrow();
-        let stats = self.statistics.borrow();
-
-        let feature = match self
-            .unlocked_features
-            .iter_mut()
-            .find(|f| f.id == feature_id)
-        {
-            Some(f) => f,
-            None => return false,
-        };
-
-        if feature.unlocked {
-            return true;
-        }
-
-        let current_value = match feature.requirement_type.as_str() {
-            "total_clicks" => state.total_clicks as f64,
-            "total_coins" => state.get_coins(),
-            "buildings_owned" => stats.buildings_purchased as f64,
-            _ => 0.0,
-        };
-
-        drop(stats);
-        drop(state);
-
-        current_value >= feature.requirement_value
+        let state = self.state.borrow().clone();
+        let stats = self.statistics.borrow().clone();
+        stage::can_unlock_stage(
+            feature_id,
+            &state,
+            &stats,
+            &self.workers,
+            &self.technology_tree,
+        )
     }
 }
 
@@ -2086,6 +2306,11 @@ impl IdleGame {
             }
         };
 
+        let current_stage = self.state.borrow().current_stage;
+        if !stage::is_technology_revealed(tech_id, current_stage) {
+            return Err(JsValue::from_str("Technology is still hidden"));
+        }
+
         if !self.technology_tree.can_research(tech_id) {
             return Err(JsValue::from_str(
                 "Cannot research: dependencies not met or already purchased",
@@ -2132,8 +2357,12 @@ impl IdleGame {
 
     #[wasm_bindgen]
     pub fn get_technologies(&self) -> Result<JsValue, JsValue> {
+        let current_stage = self.state.borrow().current_stage;
         let mut technologies = Vec::new();
         for (tech_id, tech) in &self.technology_tree.technologies {
+            if !stage::is_technology_revealed(*tech_id, current_stage) {
+                continue;
+            }
             let dependencies = tech
                 .dependencies
                 .iter()
@@ -2231,14 +2460,23 @@ impl IdleGame {
     #[wasm_bindgen]
     pub fn get_lifecycle_status_json(&self) -> String {
         let hungry_workers = self.workers.iter().filter(|w| w.is_hungry).count() as u32;
+        let state = self.state.borrow();
+        let dark_cycle_revealed = state.current_stage >= GameStage::Maggot;
+        let coexistence_revealed = state.current_stage >= GameStage::Hybrid;
         let status = serde_json::json!({
             "workers": self.workers.len() as u32,
             "hungry_workers": hungry_workers,
             "queue_workers": self.population_queue.len() as u32,
             "housing_capacity": self.get_housing_capacity_internal(),
-            "corpses": self.state.borrow().get_resource(ResourceType::Corpse),
-            "maggots": self.state.borrow().get_resource(ResourceType::Maggot),
-            "food": self.state.borrow().get_resource(ResourceType::Food)
+            "food": state.get_resource(ResourceType::Food),
+            "dark_cycle_revealed": dark_cycle_revealed,
+            "coexistence_revealed": coexistence_revealed,
+            "corpses": if dark_cycle_revealed { serde_json::Value::from(state.get_resource(ResourceType::Corpse)) } else { serde_json::Value::Null },
+            "maggots": if dark_cycle_revealed { serde_json::Value::from(state.get_resource(ResourceType::Maggot)) } else { serde_json::Value::Null },
+            "human_pressure": if coexistence_revealed { serde_json::Value::from(state.coexistence.human_pressure) } else { serde_json::Value::Null },
+            "maggot_influence": if coexistence_revealed { serde_json::Value::from(state.coexistence.maggot_influence) } else { serde_json::Value::Null },
+            "symbiosis_stability": if coexistence_revealed { serde_json::Value::from(state.coexistence.symbiosis_stability) } else { serde_json::Value::Null },
+            "hybrid_population": if coexistence_revealed { serde_json::Value::from(state.coexistence.hybrid_population) } else { serde_json::Value::Null }
         });
         serde_json::to_string(&status).unwrap_or_else(|_| "{}".to_string())
     }
