@@ -93,6 +93,7 @@ pipeline {
         sh '''
           export PATH="$HOME/.cargo/bin:$PATH"
           wasm-pack build --target web --out-dir pkg --release
+          python3 scripts/version-wasm-assets.py
         '''
       }
     }

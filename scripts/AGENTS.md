@@ -9,12 +9,14 @@
 | Re-run Jenkins locally | `jenkins-debug-rerun.sh` | Triggers `idle-game-ci`, waits, prints failures and coverage |
 | Merge E2E coverage | `merge-e2e-coverage.js` | Consumes `coverage-report/raw/*.json` and enforces thresholds |
 | Syntax-check JS files | `lint-syntax.js` | Repo-specific lint entry behind `npm run lint` |
+| Version WASM assets | `version-wasm-assets.py` | Creates versioned `pkg` wrapper/wasm files so deploys bypass stale browser caches |
 | Inspect upgrade DOM manually | `debug-upgrade-dom.js` | Console-paste debug aid, not part of CI |
 
 ## CONVENTIONS
 - `jenkins-debug-rerun.sh` assumes local Jenkins defaults (`http://localhost:8081`, `admin/admin123`) unless env overrides are supplied.
 - Coverage thresholds come from environment variables and default to the same values documented in Jenkins.
 - `lint-syntax.js` intentionally scans `js`, `tests`, and `scripts`; keep new JS utility code inside those paths if you want lint coverage.
+- `version-wasm-assets.py` should run immediately after `wasm-pack build`; `bootstrap.js` prefers the versioned bundle and falls back to the plain `pkg` entry for local/dev runs.
 
 ## ANTI-PATTERNS
 - Treating debug helpers like `debug-upgrade-dom.js` as production runtime code.

@@ -1,9 +1,22 @@
 // 异步加载WASM模块
+async function loadWasmBindings() {
+    const appVersion = document.querySelector('meta[name="app-version"]')?.content;
+
+    if (appVersion) {
+        try {
+            return await import(`/pkg/idle_game.v${appVersion}.js`);
+        } catch (versionedError) {
+            console.warn('Falling back to unversioned WASM bundle:', versionedError);
+        }
+    }
+
+    return await import('../pkg/idle_game.js');
+}
+
 async function initWasm() {
     try {
         // 动态导入生成的WASM绑定
-        const appVersion = document.querySelector('meta[name="app-version"]')?.content || 'dev';
-        const init = await import(`../pkg/idle_game.js?v=${appVersion}`);
+        const init = await loadWasmBindings();
         const wasm = await init.default();
         
         // 初始化游戏
