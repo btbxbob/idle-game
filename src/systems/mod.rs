@@ -2,6 +2,7 @@ pub mod achievement;
 pub mod crafting;
 pub mod decay;
 pub mod production;
+pub mod stage;
 pub mod unlock;
 pub mod technology;
 pub mod population;

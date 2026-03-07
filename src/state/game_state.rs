@@ -1,4 +1,5 @@
 use crate::state::resource::ResourceType;
+use crate::state::stage::{CoexistenceState, GameStage};
 use serde::de;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
@@ -19,6 +20,10 @@ pub struct GameState {
     #[serde(default)]
     pub prestige_points: f64,
     pub prestige_multiplier: f64,
+    #[serde(default)]
+    pub current_stage: GameStage,
+    #[serde(default)]
+    pub coexistence: CoexistenceState,
     #[serde(skip)]
     pub(crate) gold_units: u64,
     #[serde(skip)]
@@ -63,6 +68,8 @@ impl<'de> Deserialize<'de> for GameState {
             last_update_time: f64,
             prestige_points: Option<f64>,
             prestige_multiplier: Option<f64>,
+            current_stage: Option<GameStage>,
+            coexistence: Option<CoexistenceState>,
         }
 
         let map = HashMap::<String, serde_json::Value>::deserialize(deserializer)?;
@@ -127,6 +134,8 @@ impl<'de> Deserialize<'de> for GameState {
                 last_update_time: new.last_update_time,
                 prestige_points: new.prestige_points.unwrap_or(0.0),
                 prestige_multiplier: new.prestige_multiplier.unwrap_or(1.0),
+                current_stage: new.current_stage.unwrap_or_default(),
+                coexistence: new.coexistence.unwrap_or_default(),
                 gold_units: 0,
                 wood_units: 0,
                 stone_units: 0,
@@ -253,6 +262,8 @@ impl GameState {
             last_update_time: old.last_update_time,
             prestige_points: 0.0,
             prestige_multiplier: 1.0,
+            current_stage: GameStage::default(),
+            coexistence: CoexistenceState::default(),
             gold_units: 0,
             wood_units: 0,
             stone_units: 0,
@@ -385,6 +396,8 @@ impl Default for GameState {
             version: SAVE_VERSION.to_string(),
             prestige_points: 0.0,
             prestige_multiplier: 1.0,
+            current_stage: GameStage::default(),
+            coexistence: CoexistenceState::default(),
             gold_units: 0,
             wood_units: 0,
             stone_units: 0,
