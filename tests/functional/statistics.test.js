@@ -1,8 +1,10 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 async function setupStatistics(page) {
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
+  await unlockWorkersStage(page);
   await page.click('[data-tab="statistics"]');
   await page.waitForSelector('#tab-statistics.active');
   await page.waitForFunction(() => typeof window.statisticsManager !== 'undefined');

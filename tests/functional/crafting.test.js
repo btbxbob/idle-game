@@ -1,9 +1,11 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Crafting System', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080');
         await page.waitForFunction(() => window.gameInitialized === true);
+        await unlockWorkersStage(page);
         await page.click('[data-tab="crafting"]');
         await page.waitForSelector('#tab-crafting.active');
     });

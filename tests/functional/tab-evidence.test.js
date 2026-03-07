@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test('tab structure evidence capture', async ({ page }) => {
   await page.goto('http://localhost:8080');
@@ -11,7 +12,8 @@ test('tab structure evidence capture', async ({ page }) => {
     fullPage: true 
   });
   
-  // Click through each new tab and capture
+  await unlockWorkersStage(page);
+
   const tabs = [
     { button: 'button[data-tab="statistics"]', name: 'statistics' },
     { button: 'button[data-tab="achievements"]', name: 'achievements' },

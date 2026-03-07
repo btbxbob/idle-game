@@ -1,9 +1,11 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Advanced Resources (Tier 3)', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080', { timeout: 60000 });
         await page.waitForFunction(() => window.gameInitialized === true, { timeout: 60000 });
+        await unlockWorkersStage(page);
     });
 
     test('tier 3 resources accessible via get_resources WASM API', async ({ page }) => {

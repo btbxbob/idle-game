@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test('comprehensive tab switching and functionality test', async ({ page }) => {
   await page.goto('http://localhost:8080');
@@ -17,6 +18,8 @@ test('comprehensive tab switching and functionality test', async ({ page }) => {
   const buildingList = await page.locator('#building-list');
   const buildingCount = await buildingList.locator('.building-item').count();
   expect(buildingCount).toBeGreaterThan(0);
+
+  await unlockWorkersStage(page);
 
   await page.click('button[data-tab="workers"]');
   await page.waitForTimeout(100);

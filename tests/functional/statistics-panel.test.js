@@ -1,6 +1,8 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 async function openAndRenderStatistics(page) {
+  await unlockWorkersStage(page);
   await page.click('[data-tab="statistics"]');
   await page.waitForSelector('#tab-statistics.active');
   await page.waitForFunction(() => typeof window.statisticsManager !== 'undefined');

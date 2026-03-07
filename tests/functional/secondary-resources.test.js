@@ -1,9 +1,11 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Secondary Resources (Tier 2)', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080', { timeout: 60000 });
         await page.waitForFunction(() => window.gameInitialized === true, { timeout: 60000 });
+        await unlockWorkersStage(page);
     });
 
     test('can craft metal ingots from ores', async ({ page }) => {

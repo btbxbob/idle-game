@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test('new tabs structure verification', async ({ page }) => {
   await page.goto('http://localhost:8080');
@@ -7,12 +8,13 @@ test('new tabs structure verification', async ({ page }) => {
   await page.waitForFunction(() => window.gameInitialized === true);
   await page.waitForTimeout(1000);
   
-  // Verify all tab buttons exist
-  const tabButtons = await page.locator('.tab-button').count();
-  console.log(`Total tab buttons: ${tabButtons}`);
-  expect(tabButtons).toBe(12);
+  const initialVisibleTabs = await page.locator('.tab-button:visible').allTextContents();
+  console.log(`Initial visible tabs: ${initialVisibleTabs.join(', ')}`);
+  expect(initialVisibleTabs).toEqual(expect.arrayContaining(['资源', '建筑', '解锁', '设置']));
+  expect(initialVisibleTabs).not.toContain('统计');
   
-  // Verify specific new tab buttons exist
+  await unlockWorkersStage(page);
+
   const statisticsButton = await page.locator('button[data-tab="statistics"]');
   await expect(statisticsButton).toBeVisible();
   expect(await statisticsButton.textContent()).toBe('统计');

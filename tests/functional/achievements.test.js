@@ -1,9 +1,11 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Achievement System', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);
+    await unlockWorkersStage(page);
     await page.click('[data-tab="achievements"]');
     await page.waitForSelector('#tab-achievements.active');
     await page.waitForTimeout(300);
