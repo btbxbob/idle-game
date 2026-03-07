@@ -210,7 +210,6 @@ class ResourceManager {
             const card = document.createElement('div');
             card.className = 'resource-item header-resource-card';
             card.innerHTML = `
-                <span class="resource-icon">${config.icon}</span>
                 <div class="header-resource-text">
                     <span id="${config.amountId}" class="header-resource-amount">0</span>
                     <span id="${config.rateId || `${config.amountId}-rate`}" class="header-resource-rate">+0.0/s</span>
@@ -223,7 +222,6 @@ class ResourceManager {
         const clickCard = document.createElement('div');
         clickCard.className = 'resource-item header-resource-card header-click-card';
         clickCard.innerHTML = `
-            <span class="resource-icon">⚡</span>
             <div class="header-resource-text">
                 <span class="header-resource-amount">点击收益</span>
                 <span id="cpc" class="header-resource-rate">+1.0/click</span>

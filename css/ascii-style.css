@@ -101,6 +101,10 @@ header::after {
     color: var(--text-color);
 }
 
+#banner .resource-item::before {
+    content: none;
+}
+
 /* 5. 标签页导航 - 主题化配色 */
 #tab-navigation {
     background-color: var(--panel-bg) !important;
