@@ -321,7 +321,6 @@ this.technologies = [];
                 arrowX - arrowLength * Math.cos(angle + Math.PI / 6),
                 arrowY - arrowLength * Math.sin(angle + Math.PI / 6)
             );
-            ctx.strokeStyle = ctx.strokeStyle;
             ctx.stroke();
         });
         
@@ -512,7 +511,9 @@ this.technologies = [];
     }
 
     selectNode(node) {
-        this.nodes.forEach(n => n.selected = false);
+        this.nodes.forEach(n => {
+            n.selected = false;
+        });
         node.selected = true;
         this.selectedNode = node;
         
@@ -1051,9 +1052,8 @@ this.technologies = [];
             return;
         }
 
-        this.update();
-        
         if (this.treeContainer && this.treeContainer.parentNode === container) {
+            this.update();
             return;
         }
 
@@ -1064,7 +1064,7 @@ this.technologies = [];
 
         this.treeContainer = document.getElementById('technology-tree-container');
         this.detailPanel = document.getElementById('technology-detail');
-        this.renderTree();
+        this.update();
     }
 }
 

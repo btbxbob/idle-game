@@ -41,7 +41,16 @@ class StatisticsManager {
      * @param {string} panelId - DOM element ID for the statistics panel
      */
     renderToPanel(panelId) {
-        const panel = document.getElementById(panelId);
+        const panelRoot = document.getElementById(panelId);
+        let panel = panelRoot;
+
+        if (panelRoot && panelRoot.id === 'tab-statistics') {
+            const statisticsList = panelRoot.querySelector('#statistics-list');
+            if (statisticsList) {
+                panel = statisticsList;
+            }
+        }
+
         if (!panel) {
             console.warn(`Statistics panel "${panelId}" not found`);
             return;
