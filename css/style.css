@@ -2268,6 +2268,273 @@ footer {
     cursor: not-allowed;
 }
 
+#unlock-list {
+    display: grid;
+    gap: 14px;
+}
+
+.unlock-section-label {
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    opacity: 0.75;
+    padding: 2px 0;
+}
+
+.progression-summary {
+    display: grid;
+    gap: 12px;
+    border: 2px solid var(--border-color);
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.07)),
+        var(--panel-bg);
+    box-shadow: 4px 4px 0 var(--shadow-color);
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progression-summary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(125deg, transparent 0%, rgba(255, 255, 255, 0.08) 48%, transparent 100%);
+    pointer-events: none;
+}
+
+.progression-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.progression-kicker,
+.unlock-type-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.72;
+}
+
+.stage-chip {
+    border: 1px solid var(--border-color);
+    padding: 4px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.progression-lead {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.progression-narrative {
+    border-left: 3px solid var(--border-color);
+    padding-left: 10px;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.progression-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.progression-metric-card {
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.42);
+    padding: 10px;
+    display: grid;
+    gap: 4px;
+}
+
+.progression-metric-card strong {
+    font-size: 20px;
+}
+
+.progression-metric-card small {
+    opacity: 0.75;
+    line-height: 1.4;
+}
+
+.progression-summary.theme-genesis {
+    background:
+        radial-gradient(circle at top right, rgba(212, 167, 44, 0.18), transparent 36%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.07)),
+        var(--panel-bg);
+}
+
+.progression-summary.theme-workers {
+    background:
+        radial-gradient(circle at top right, rgba(88, 214, 141, 0.16), transparent 38%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.07)),
+        var(--panel-bg);
+}
+
+.progression-summary.theme-maggot {
+    background:
+        radial-gradient(circle at top right, rgba(164, 93, 141, 0.2), transparent 40%),
+        linear-gradient(180deg, rgba(25, 12, 18, 0.08), rgba(0, 0, 0, 0.12)),
+        var(--panel-bg);
+}
+
+.progression-summary.theme-hybrid {
+    background:
+        radial-gradient(circle at top right, rgba(90, 131, 171, 0.2), transparent 40%),
+        linear-gradient(180deg, rgba(15, 20, 28, 0.08), rgba(0, 0, 0, 0.12)),
+        var(--panel-bg);
+}
+
+.progression-summary.theme-collective {
+    background:
+        radial-gradient(circle at top right, rgba(74, 111, 196, 0.22), transparent 42%),
+        linear-gradient(180deg, rgba(10, 18, 30, 0.08), rgba(0, 0, 0, 0.14)),
+        var(--panel-bg);
+}
+
+.unlock-feature {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    padding: 12px;
+    box-shadow: 3px 3px 0 var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.unlock-feature::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--border-color);
+    opacity: 0.22;
+}
+
+.unlock-feature.feature-stage::after {
+    opacity: 0.9;
+}
+
+.unlock-feature.feature-system::after {
+    background: #8e5a83;
+    opacity: 0.7;
+}
+
+.unlock-feature.feature-area::after {
+    background: #4f7f8b;
+    opacity: 0.6;
+}
+
+.unlock-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.unlock-icon {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex: 0 0 auto;
+}
+
+.unlock-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.unlock-description {
+    line-height: 1.55;
+}
+
+.unlock-requirement {
+    font-size: 13px;
+    opacity: 0.82;
+}
+
+.unlock-progress {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.progress-bar {
+    position: relative;
+    height: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--main-bg);
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--text-color), rgba(127, 127, 127, 0.85));
+}
+
+.progress-text {
+    font-size: 12px;
+    min-width: 40px;
+    text-align: right;
+}
+
+.unlock-action {
+    margin-top: 2px;
+}
+
+.unlocked-badge {
+    color: #d4a72c;
+    font-weight: bold;
+}
+
+.no-unlocks {
+    border: 1px dashed var(--border-color);
+    padding: 12px;
+    line-height: 1.6;
+    opacity: 0.8;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+@media (max-width: 980px) {
+    .progression-summary-header {
+        flex-direction: column;
+    }
+
+    .progression-metrics {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .progression-summary,
+    .unlock-feature {
+        padding: 10px;
+    }
+
+    .progression-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .unlock-progress {
+        grid-template-columns: 1fr;
+    }
+
+    .progress-text {
+        text-align: left;
+    }
+}
+
 @media (max-width: 980px) {
     .widget-grid {
         grid-template-columns: repeat(2, minmax(120px, 1fr));

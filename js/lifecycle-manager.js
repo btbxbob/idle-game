@@ -25,6 +25,16 @@ class LifecycleManager {
             return;
         }
 
+        const darkRows = s.dark_cycle_revealed ? `
+                <div>尸体: ${Number(s.corpses || 0).toFixed(1)}</div>
+                <div>蛆虫: ${Number(s.maggots || 0).toFixed(1)}</div>
+            ` : '';
+        const coexistenceRows = s.coexistence_revealed ? `
+                <div>人类压力: ${Number(s.human_pressure || 0).toFixed(1)}</div>
+                <div>蛆虫影响: ${Number(s.maggot_influence || 0).toFixed(1)}</div>
+                <div>共生稳定度: ${Number(s.symbiosis_stability || 0).toFixed(1)}</div>
+                <div>混合人口: ${Number(s.hybrid_population || 0).toFixed(1)}</div>
+            ` : '';
         panel.innerHTML = `
             <div class="lifecycle-overview">
                 <h3>生命周期资源</h3>
@@ -33,8 +43,8 @@ class LifecycleManager {
                 <div>等待队列: ${s.queue_workers}</div>
                 <div>住房容量: ${s.housing_capacity}</div>
                 <div>食物: ${Number(s.food || 0).toFixed(1)}</div>
-                <div>尸体: ${Number(s.corpses || 0).toFixed(1)}</div>
-                <div>蛆虫: ${Number(s.maggots || 0).toFixed(1)}</div>
+                ${darkRows}
+                ${coexistenceRows}
             </div>
         `;
     }
@@ -49,6 +59,18 @@ class LifecycleManager {
             return;
         }
 
+        if (this.rustGame && typeof this.rustGame.getProgressionStateJson === 'function') {
+            try {
+                const progression = JSON.parse(this.rustGame.getProgressionStateJson());
+                if (progression.current_stage_id === 'stage_genesis') {
+                    panel.innerHTML = '';
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to read progression state for lifecycle widget:', error);
+            }
+        }
+
         const workers = Number(s.workers || 0);
         const food = Number(s.food || 0);
         const corpses = Number(s.corpses || 0);
@@ -60,6 +82,16 @@ class LifecycleManager {
 
         const maggotFactoryCount = this.getMaggotFactoryCount();
         const canProcessNow = maggotFactoryCount > 0 && maggots >= 10;
+        const darkCycleInline = s.dark_cycle_revealed ? `
+                    <span>尸体 ${corpses.toFixed(1)}</span>
+                    <span>蛆虫 ${maggots.toFixed(1)} (转化 ${Math.floor(maggots / 10)})</span>
+                    <span>蛆虫工厂 x${maggotFactoryCount}</span>
+                    ${maggotFactoryCount > 0 ? `<button type="button" id="process-maggot-now" ${canProcessNow ? '' : 'disabled'}>立即转化</button>` : ''}
+                ` : '';
+        const coexistenceInline = s.coexistence_revealed ? `
+                    <span>稳态 ${Number(s.symbiosis_stability || 0).toFixed(1)}</span>
+                    <span>混合人口 ${Number(s.hybrid_population || 0).toFixed(1)}</span>
+                ` : '';
 
         panel.innerHTML = `
             <div class="lifecycle-resource-widget compact ${foodWarning ? 'warning' : ''}">
@@ -69,10 +101,8 @@ class LifecycleManager {
                     <span class="${hungry > 0 ? 'danger' : ''}">饥饿 ${hungry}</span>
                     <span>队列 ${queue}</span>
                     <span>食物 ${food.toFixed(1)} (${foodConsumeRate.toFixed(1)}/秒)</span>
-                    <span>尸体 ${corpses.toFixed(1)}</span>
-                    <span>蛆虫 ${maggots.toFixed(1)} (转化 ${Math.floor(maggots / 10)})</span>
-                    <span>蛆虫工厂 x${maggotFactoryCount}</span>
-                    ${maggotFactoryCount > 0 ? `<button type="button" id="process-maggot-now" ${canProcessNow ? '' : 'disabled'}>立即转化</button>` : ''}
+                    ${darkCycleInline}
+                    ${coexistenceInline}
                 </div>
             </div>
         `;
