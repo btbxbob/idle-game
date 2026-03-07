@@ -115,6 +115,8 @@ Coverage retrieval priority:
 
 Use `scripts/jenkins-debug-rerun.sh` to run a full Jenkins rerun + poll + summary flow in one command.
 
+Important: Jenkins reruns only reflect committed repository state. If you change Playwright tests or runtime code and want Jenkins to execute the updated sources, commit those changes before triggering the rerun.
+
 ```bash
 chmod +x scripts/jenkins-debug-rerun.sh
 scripts/jenkins-debug-rerun.sh
