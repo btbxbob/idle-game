@@ -154,6 +154,7 @@ test.describe('LifecycleManager Coverage Tests', () => {
             let gameLoopCalled = 0;
 
             window.lifecycleManager.rustGame = {
+                getProgressionStateJson: () => JSON.stringify({ current_stage_id: 'stage_maggot' }),
                 get_lifecycle_status_json: () => JSON.stringify({
                     workers: 5,
                     hungry_workers: 0,
@@ -161,7 +162,9 @@ test.describe('LifecycleManager Coverage Tests', () => {
                     housing_capacity: 10,
                     food: 100,
                     corpses: 0,
-                    maggot_factory_count: 0,
+                    maggots: 30,
+                    dark_cycle_revealed: true,
+                    coexistence_revealed: false,
                 }),
                 get_buildings: () => [{ name: '蛆虫工厂', count: 3 }],
                 game_loop: () => { gameLoopCalled++; },
@@ -195,6 +198,8 @@ test.describe('LifecycleManager Coverage Tests', () => {
 
         expect(result.ok).toBe(true);
         expect(result.btnExists).toBe(true);
+        expect(result.btnDisabled).toBe(false);
+        expect(result.gameLoopCalled).toBe(1);
     });
 
     test('update function error handling', async ({ page }) => {
