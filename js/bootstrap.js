@@ -1,16 +1,34 @@
 // 异步加载WASM模块
+async function canLoadVersionedBundle(url) {
+    try {
+        const response = await fetch(url, {
+            method: 'HEAD',
+            cache: 'no-store'
+        });
+        if (!response.ok) {
+            return false;
+        }
+        const contentType = response.headers.get('content-type') || '';
+        return !contentType.includes('text/html');
+    } catch (error) {
+        return false;
+    }
+}
+
 async function loadWasmBindings() {
     const appVersion = document.querySelector('meta[name="app-version"]')?.content;
+    const baseUrl = document.baseURI || window.location.href;
 
     if (appVersion) {
-        try {
-            return await import(`/pkg/idle_game.v${appVersion}.js`);
-        } catch (versionedError) {
-            console.warn('Falling back to unversioned WASM bundle:', versionedError);
+        const versionedUrl = new URL(`pkg/idle_game.v${appVersion}.js`, baseUrl);
+        if (await canLoadVersionedBundle(versionedUrl.href)) {
+            return await import(versionedUrl.href);
         }
+        console.info(`Versioned WASM bundle not available for v${appVersion}, using unversioned bundle.`);
     }
 
-    return await import('../pkg/idle_game.js');
+    const fallbackUrl = new URL('pkg/idle_game.js', baseUrl);
+    return await import(fallbackUrl.href);
 }
 
 async function initWasm() {
@@ -90,6 +108,7 @@ async function initWasm() {
         
         if (window.UnlockManager) {
             window.unlockManager = new window.UnlockManager(game);
+            window.unlockManager.update();
         }
         
         if (window.WorkerManager) {

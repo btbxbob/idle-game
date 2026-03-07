@@ -10,6 +10,7 @@ if %ERRORLEVEL% neq 0 (
 
 REM 构建项目（debug模式）
 wasm-pack build --target web --out-dir pkg --dev
+python3 scripts\version-wasm-assets.py
 
 if %ERRORLEVEL% equ 0 (
     echo Build successful!
