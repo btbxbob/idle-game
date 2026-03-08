@@ -52,8 +52,30 @@ test.describe('Life-Death Cycle System', () => {
       json.state.resources.Corpse = 0;
       json.state.resources.Maggot = 0;
 
-      if (!Array.isArray(json.workers) || json.workers.length === 0) {
-        return { ok: false, reason: 'no workers in save' };
+      if (!Array.isArray(json.workers)) {
+        json.workers = [];
+      }
+
+      if (json.workers.length === 0) {
+        json.workers = [{
+          name: 'Seed Worker',
+          skills: 'survival',
+          background: 'Seeded for lifecycle test',
+          preferences: '农场',
+          assigned_building: null,
+          level: 1,
+          efficiency_multiplier: 1.0,
+          xp: 0.0,
+          xp_to_next_level: 100.0,
+          gender: 'Other',
+          hobbies: [],
+          primary_trait: 'Hardworking',
+          secondary_traits: [],
+          happiness: 50.0,
+          hunger: 0.0,
+          is_hungry: false,
+          starvation_start_time: 0.0,
+        }];
       }
 
       json.workers = [json.workers[0]];
