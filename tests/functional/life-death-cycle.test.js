@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Life-Death Cycle System', () => {
   test('lifecycle status and decay pipeline are accessible', async ({ page }) => {
@@ -35,6 +36,7 @@ test.describe('Life-Death Cycle System', () => {
   test('food shortage triggers death, corpse->maggot decay, then maggot factory restores food', async ({ page }) => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);
+    await unlockWorkersStage(page);
 
     const seeded = await page.evaluate(() => {
       if (!window.rustGame || !window.rustGame.exportToBase64 || !window.rustGame.importFromBase64) {

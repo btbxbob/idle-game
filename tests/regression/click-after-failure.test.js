@@ -27,7 +27,7 @@ test('click should work after failed purchase', async ({ page }) => {
   await page.click('button[data-tab="buildings"]');
   await page.waitForTimeout(100);
   
-  const failedPurchase = await page.evaluate(() => window.buyBuilding(0));
+  const failedPurchase = await page.evaluate(() => window.rustGame.buy_building(0));
   
   await page.waitForTimeout(300);
   
