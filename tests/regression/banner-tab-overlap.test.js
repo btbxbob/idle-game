@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 async function assertBannerNotCoveredByTabs(page) {
   const layout = await page.evaluate(() => {
@@ -110,6 +111,7 @@ test.describe('banner-tab overlap regression', () => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);
     await page.waitForTimeout(600);
+    await unlockWorkersStage(page);
 
     await expect(page.locator('#banner')).toBeVisible();
     await expect(page.locator('#tab-navigation')).toBeVisible();

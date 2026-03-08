@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
+const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test('resources tab defaults to primary and removes duplicate title block', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -31,6 +32,7 @@ test('resources density and workers 3-column layout are compact', async ({ page 
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
   await page.waitForTimeout(500);
+  await unlockWorkersStage(page);
 
   const resourceDensity = await page.evaluate(() => {
     const grid = document.querySelector('#primary-resources .resource-grid');
