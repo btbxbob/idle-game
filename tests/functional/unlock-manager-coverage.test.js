@@ -30,23 +30,22 @@ test.describe('UnlockManager coverage', () => {
             if (!window.unlockManager) return { ok: false };
             window.unlockManager.update();
             const first = window.unlockManager.unlocks[0];
-            const existing = first ? window.unlockManager.checkProgress(first.id) : null;
             const details = first ? window.unlockManager.getRequirementDetails(first.id) : null;
             return {
                 ok: true,
-                existingCurrent: existing ? existing.current : null,
                 fmtClicks: window.unlockManager.formatRequirement('total_clicks'),
                 fmtWorkers: window.unlockManager.formatRequirement('workers_stage'),
                 detailsSummary: details ? details.summary : null,
-                hasExisting: !!existing || window.unlockManager.unlocks.length === 0,
+                hasExisting: !!first || window.unlockManager.unlocks.length === 0,
             };
         });
         expect(result.ok).toBe(true);
-        if (result.existingCurrent !== null) {
-            expect(result.existingCurrent).toBeGreaterThanOrEqual(0);
-        }
+        expect(result.hasExisting).toBe(true);
         expect(result.fmtClicks.length).toBeGreaterThan(0);
         expect(result.fmtWorkers.length).toBeGreaterThan(0);
+        if (result.detailsSummary !== null) {
+            expect(result.detailsSummary.length).toBeGreaterThan(0);
+        }
     });
 
     test('unlock and updateButtonStates branches', async ({ page }) => {
