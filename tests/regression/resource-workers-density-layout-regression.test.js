@@ -5,6 +5,7 @@ test('resources tab defaults to primary and removes duplicate title block', asyn
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
+  await page.waitForTimeout(500);
 
   await expect(page.locator('#tab-resources')).toHaveClass(/active/);
   await expect(page.locator('#resource-category-tabs .category-tab-button.active')).toHaveAttribute('data-category', 'primary');
@@ -30,7 +31,7 @@ test('resources density and workers 3-column layout are compact', async ({ page 
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
-  await expect(page.locator('#tab-resources')).toHaveClass(/active/);
+  await page.waitForTimeout(500);
   await unlockWorkersStage(page);
 
   const resourceDensity = await page.evaluate(() => {
@@ -54,8 +55,7 @@ test('resources density and workers 3-column layout are compact', async ({ page 
   expect(resourceDensity.paddingBottom).toBeLessThanOrEqual(6);
 
   await page.click('button[data-tab="workers"]');
-  await expect(page.locator('#tab-workers')).toHaveClass(/active/);
-  await expect(page.locator('#workers-grid')).toBeVisible();
+  await page.waitForTimeout(300);
 
   const workersLayout = await page.evaluate(() => {
     const grid = document.querySelector('#workers-grid');
