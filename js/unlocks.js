@@ -438,7 +438,7 @@ class UnlockManager {
     formatRequirement(type) {
         switch (type) {
             case 'workers_stage':
-                return '达成工人阶段入口';
+                return '累计购买 3 座建筑';
             case 'maggot_stage':
                 return '揭示蛆虫阶段';
             case 'hybrid_stage':

@@ -52,6 +52,13 @@ struct ProgressionStateView {
     collective_consciousness: f64,
 }
 
+#[derive(Serialize)]
+struct UnlockProgressView {
+    current: f64,
+    required: f64,
+    percentage: f64,
+}
+
 #[wasm_bindgen]
 pub struct IdleGame {
     state: Rc<RefCell<GameState>>,
@@ -1978,12 +1985,15 @@ impl IdleGame {
             "achievements_panel" => (statistics.total_clicks as f64 / 25.0).min(1.0),
             _ => 1.0,
         };
-        serde_wasm_bindgen::to_value(&serde_json::json!({
-            "current": current,
-            "required": 1.0,
-            "percentage": current * 100.0,
-        }))
-        .unwrap_or(JsValue::NULL)
+        let progress = UnlockProgressView {
+            current,
+            required: 1.0,
+            percentage: current * 100.0,
+        };
+
+        progress
+            .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+            .unwrap_or(JsValue::NULL)
     }
 
     #[wasm_bindgen(js_name = getUnlockRequirementDetails)]
@@ -2011,7 +2021,9 @@ impl IdleGame {
             &self.technology_tree,
         );
 
-        serde_wasm_bindgen::to_value(&details).unwrap_or(JsValue::NULL)
+        details
+            .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+            .unwrap_or(JsValue::NULL)
     }
 
     #[wasm_bindgen(js_name = getProgressionStateJson)]

@@ -345,15 +345,12 @@ pub fn requirement_progress(
     requirement_type: &str,
     state: &GameState,
     statistics: &Statistics,
-    workers: &[Worker],
+    _workers: &[Worker],
     tech_tree: &TechnologyTree,
 ) -> f64 {
     match requirement_type {
         "workers_stage" => {
-            let building_progress = (statistics.buildings_purchased as f64 / 3.0).min(1.0);
-            let food_progress = (state.get_resource(ResourceType::Food) / 12.0).min(1.0);
-            let worker_progress = (workers.len() as f64 / 2.0).min(1.0);
-            building_progress.max((food_progress + worker_progress) * 0.5)
+            (statistics.buildings_purchased as f64 / 3.0).min(1.0)
         }
         "maggot_stage" => (state.get_resource(ResourceType::Maggot) / 10.0).min(1.0),
         "hybrid_stage" => {
@@ -412,29 +409,17 @@ pub fn requirement_details(
     requirement_value: f64,
     state: &GameState,
     statistics: &Statistics,
-    workers: &[Worker],
+    _workers: &[Worker],
     tech_tree: &TechnologyTree,
 ) -> RequirementDetails {
     match requirement_type {
         "workers_stage" => RequirementDetails {
-            summary: "工人阶段满足任意一条即可：路线 A 直接买到 3 座建筑；路线 B 同时推进食物与工人基础。".to_string(),
-            lines: vec![
-                RequirementLine {
-                    label: "路线 A - 已购买建筑".to_string(),
-                    current: statistics.buildings_purchased as f64,
-                    required: 3.0,
-                },
-                RequirementLine {
-                    label: "路线 B - 食物储备".to_string(),
-                    current: state.get_resource(ResourceType::Food),
-                    required: 12.0,
-                },
-                RequirementLine {
-                    label: "路线 B - 工人数".to_string(),
-                    current: workers.len() as f64,
-                    required: 2.0,
-                },
-            ],
+            summary: "工人阶段现在只看一条条件：累计购买 3 座建筑。".to_string(),
+            lines: vec![RequirementLine {
+                label: "已购买建筑".to_string(),
+                current: statistics.buildings_purchased as f64,
+                required: 3.0,
+            }],
         },
         "maggot_stage" => RequirementDetails {
             summary: "让黑暗分支显形：需要至少积累 10 点蛆虫资源。".to_string(),
