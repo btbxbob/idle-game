@@ -79,7 +79,7 @@ test.describe('Life-Death Cycle System', () => {
       }
 
       json.workers = [json.workers[0]];
-      json.population_queue = [];
+      json.population_queue = { waiting_workers: [] };
       json.workers[0].is_hungry = true;
       json.workers[0].starvation_start_time = now - 31_000;
       json.workers[0].hunger = 100;
