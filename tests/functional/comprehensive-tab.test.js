@@ -12,6 +12,7 @@ test('comprehensive tab switching and functionality test', async ({ page }) => {
 
   await expect(page.locator('button[data-tab="buildings"]')).toHaveClass(/active/);
   await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
+  await expect(page.locator('#building-list')).toBeVisible();
 
   const buildingList = await page.locator('#building-list');
   const buildingCount = await buildingList.locator('.building-item').count();
@@ -43,8 +44,9 @@ test('comprehensive tab switching and functionality test', async ({ page }) => {
   await expect(page.locator('button[data-tab="resources"]')).toHaveClass(/active/);
   await expect(page.locator('#tab-resources')).toHaveClass(/active/);
 
+  const coinsBeforeClick = await page.locator('#coins').textContent();
   await page.click('#coin-button');
-  await expect.poll(() => page.evaluate(() => window.rustGame.get_coins())).toBeGreaterThanOrEqual(1);
+  await expect(page.locator('#coins')).not.toHaveText(coinsBeforeClick || '');
 
   const coinDisplay = await page.textContent('#coins');
   const coinsVal = parseFloat((coinDisplay || '0').split(':').pop().trim());
