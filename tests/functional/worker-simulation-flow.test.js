@@ -8,7 +8,8 @@ test.describe('Worker Simulation Flow', () => {
         await unlockWorkersStage(page);
         
         await page.click('[data-tab="workers"]');
-        await page.waitForTimeout(1000);
+        await expect(page.locator('#tab-workers')).toHaveClass(/active/);
+        await expect(page.locator('#workers-list')).toBeVisible();
     });
 
     test('workers panel displays', async ({ page }) => {
@@ -209,6 +210,73 @@ test.describe('Worker Simulation Flow', () => {
         console.log('WorkerManager.autoAssign() available');
     });
 
+    test('auto-assign button respects cancel and success confirmation flow', async ({ page }) => {
+        await expect(page.locator('#workers-auto-assign')).toBeVisible();
+
+        const initialState = await page.evaluate(() => {
+            window.__autoAssignFlow = {
+                alerts: [],
+                confirms: [],
+                calls: 0,
+            };
+
+            window.alert = (message) => {
+                window.__autoAssignFlow.alerts.push(String(message));
+            };
+
+            window.confirm = (message) => {
+                window.__autoAssignFlow.confirms.push(String(message));
+                return false;
+            };
+
+            if (window.workerManager && window.workerManager.rustGame) {
+                window.workerManager.rustGame.assign_worker_auto = () => {
+                    window.__autoAssignFlow.calls += 1;
+                    return 2;
+                };
+            }
+
+            return {
+                hasWorkerManager: !!window.workerManager,
+                hasButton: !!document.getElementById('workers-auto-assign'),
+            };
+        });
+
+        expect(initialState.hasWorkerManager).toBe(true);
+        expect(initialState.hasButton).toBe(true);
+
+        await page.click('#workers-auto-assign');
+
+        const cancelState = await page.evaluate(() => ({
+            alerts: window.__autoAssignFlow.alerts.slice(),
+            confirms: window.__autoAssignFlow.confirms.slice(),
+            calls: window.__autoAssignFlow.calls,
+        }));
+
+        expect(cancelState.confirms).toContain('将为未分配工人执行自动分配，是否继续？');
+        expect(cancelState.calls).toBe(0);
+        expect(cancelState.alerts).toHaveLength(0);
+
+        await page.evaluate(() => {
+            window.confirm = (message) => {
+                window.__autoAssignFlow.confirms.push(String(message));
+                return true;
+            };
+        });
+
+        await page.click('#workers-auto-assign');
+
+        const successState = await page.evaluate(() => ({
+            alerts: window.__autoAssignFlow.alerts.slice(),
+            confirms: window.__autoAssignFlow.confirms.slice(),
+            calls: window.__autoAssignFlow.calls,
+        }));
+
+        expect(successState.calls).toBe(1);
+        expect(successState.alerts).toContain('自动分配完成：成功分配 2 名工人');
+        expect(successState.confirms.filter((message) => message === '将为未分配工人执行自动分配，是否继续？')).toHaveLength(2);
+    });
+
     test('worker data persists after page reload', async ({ page }) => {
         const workersBefore = await page.evaluate(() => {
             if (window.rustGame && window.rustGame.get_workers) {
@@ -222,7 +290,7 @@ test.describe('Worker Simulation Flow', () => {
 
         await page.reload();
         await page.waitForFunction(() => window.gameInitialized === true);
-        await page.waitForTimeout(1000);
+        await page.waitForFunction(() => !!window.workerManager);
         await unlockWorkersStage(page);
 
         const workersAfter = await page.evaluate(() => {

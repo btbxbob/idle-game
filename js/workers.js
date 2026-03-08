@@ -211,6 +211,15 @@ class WorkerManager {
             const xpToNext = Number(worker.experienceToNext || worker.xpToNext || 100);
             const xpProgress = xpToNext > 0 ? Math.max(0, Math.min(100, (xp / xpToNext) * 100)) : 0;
             const assignmentName = this.escapeHtml(worker.assignedBuilding || (t('unassigned') || '未分配'));
+            const skillsText = this.escapeHtml(worker.skills || '');
+            const backgroundText = this.escapeHtml(worker.background || '');
+            const preferenceText = this.escapeHtml(worker.preferences || '');
+            const genderText = this.getGenderLabel(worker.gender);
+            const hobbiesText = this.escapeHtml(this.getHobbiesLabel(worker.hobbies));
+            const happiness = Number(worker.happiness || 0).toFixed(0);
+            const hunger = Number(worker.hunger || 0).toFixed(0);
+            const hungryText = worker.isHungry || worker.is_hungry ? '饥饿中' : '状态稳定';
+            const traitInfo = this.getTraitInfo(worker);
             html += `
                 <div class="worker-card worker-list-item" onclick="window.workerManager.showAssignmentModal(${worker.__index})">
                     <div class="worker-header worker-item-header">
@@ -225,6 +234,24 @@ class WorkerManager {
                         <span class="detail-value">${assignmentName}</span>
                         <span class="detail-value efficiency-value">${this.formatEfficiency(worker.efficiencyMultiplier || 1)}</span>
                         <span class="detail-value">XP ${this.formatXP(xp, xpToNext)}</span>
+                    </div>
+                    <div class="worker-card-traits">
+                        <div class="worker-card-meta">
+                            <span><strong>${t('gender') || '性别'}:</strong> ${genderText}</span>
+                            <span><strong>${t('skills') || '技能'}:</strong> ${skillsText || '—'}</span>
+                            <span><strong>${t('background') || '背景'}:</strong> ${backgroundText || '—'}</span>
+                            <span><strong>${t('preference') || '偏好'}:</strong> ${preferenceText || '—'}</span>
+                            <span><strong>${t('hobby') || '爱好'}:</strong> ${hobbiesText}</span>
+                        </div>
+                        <div class="worker-card-chip-line">
+                            <span class="trait-chip">${traitInfo.primary.icon} ${traitInfo.primary.label}</span>
+                            ${traitInfo.secondaryHtml}
+                        </div>
+                        <div class="worker-card-status-line">
+                            <span><strong>${t('happiness') || '心情'}:</strong> ${happiness}</span>
+                            <span><strong>${t('hunger') || '饥饿'}:</strong> ${hunger}</span>
+                            <span><strong>${t('status') || '状态'}:</strong> ${hungryText}</span>
+                        </div>
                     </div>
                     <div class="xp-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${xpProgress.toFixed(0)}">
                         <span class="xp-progress-fill" style="width:${xpProgress.toFixed(1)}%"></span>
@@ -550,6 +577,15 @@ class WorkerManager {
             const isAssigned = worker.assignedBuilding !== null && worker.assignedBuilding !== undefined;
             const assignedBuildingName = isAssigned ? worker.assignedBuilding : (t('unassigned') || '未分配');
             const efficiencyBonus = this.formatEfficiency(worker.efficiencyMultiplier);
+            const genderText = this.getGenderLabel(worker.gender);
+            const hobbiesText = this.escapeHtml(this.getHobbiesLabel(worker.hobbies));
+            const backgroundText = this.escapeHtml(worker.background || '');
+            const preferenceText = this.escapeHtml(worker.preferences || '');
+            const skillsText = this.escapeHtml(worker.skills || '');
+            const traitInfo = this.getTraitInfo(worker);
+            const happiness = Number(worker.happiness || 0).toFixed(0);
+            const hunger = Number(worker.hunger || 0).toFixed(0);
+            const hungryText = worker.isHungry || worker.is_hungry ? '饥饿中' : '状态稳定';
 
             html += `
                 <div class="worker-list-item" id="worker-item-${index}">
@@ -579,6 +615,26 @@ class WorkerManager {
                             <div class="xp-progress-small">
                                 <div class="xp-progress-fill-small" style="width: ${Math.min(100, (worker.xp / worker.xpToNextLevel) * 100)}%"></div>
                             </div>
+                        </div>
+                        <div class="worker-detail-row worker-detail-row-stacked">
+                            <span class="detail-label">${t('gender') || '性别'} / ${t('skills') || '技能'}:</span>
+                            <span class="detail-value">${genderText} / ${skillsText || '—'}</span>
+                        </div>
+                        <div class="worker-detail-row worker-detail-row-stacked">
+                            <span class="detail-label">${t('background') || '背景'}:</span>
+                            <span class="detail-value">${backgroundText || '—'}</span>
+                        </div>
+                        <div class="worker-detail-row worker-detail-row-stacked">
+                            <span class="detail-label">${t('preference') || '偏好'} / ${t('hobby') || '爱好'}:</span>
+                            <span class="detail-value">${preferenceText || '—'} / ${hobbiesText}</span>
+                        </div>
+                        <div class="worker-detail-row worker-detail-row-stacked">
+                            <span class="detail-label">${t('traits') || '特性'}:</span>
+                            <span class="detail-value worker-inline-traits"><span class="trait-chip">${traitInfo.primary.icon} ${traitInfo.primary.label}</span>${traitInfo.secondaryHtml}</span>
+                        </div>
+                        <div class="worker-detail-row worker-detail-row-stacked">
+                            <span class="detail-label">${t('status') || '状态'}:</span>
+                            <span class="detail-value">${hungryText} / ${t('happiness') || '心情'} ${happiness} / ${t('hunger') || '饥饿'} ${hunger}</span>
                         </div>
                     </div>
                     <div class="worker-item-actions">

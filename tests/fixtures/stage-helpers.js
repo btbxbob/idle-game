@@ -50,7 +50,20 @@ async function unlockWorkersStage(page) {
     throw new Error(`Failed to unlock workers stage: ${JSON.stringify(result)}`);
   }
 
-  await page.waitForTimeout(300);
+  await page.waitForFunction(() => {
+    if (!window.rustGame || typeof window.rustGame.getProgressionStateJson !== 'function') {
+      return false;
+    }
+
+    const progressionRaw = window.rustGame.getProgressionStateJson();
+    if (!progressionRaw) {
+      return false;
+    }
+
+    const progression = JSON.parse(progressionRaw);
+    return Boolean(progression.current_stage_id && progression.current_stage_id !== 'stage_genesis');
+  }, null, { timeout: 2000 });
+
   return result;
 }
 

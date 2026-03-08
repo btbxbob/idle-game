@@ -1904,6 +1904,44 @@ footer {
     opacity: 0.9;
 }
 
+.worker-card-traits {
+    display: grid;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px dashed var(--border-color);
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.worker-card-meta {
+    display: grid;
+    gap: 4px;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.worker-card-chip-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.worker-card-status-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+}
+
+.worker-detail-row-stacked {
+    align-items: flex-start;
+}
+
+.worker-inline-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 @media (max-width: 760px) {
     .worker-detail-grid {
         grid-template-columns: 1fr;
