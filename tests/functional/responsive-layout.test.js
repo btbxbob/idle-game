@@ -5,7 +5,6 @@ test('responsive layout mobile', async ({ page }) => {
   
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
-  await page.waitForTimeout(1000);
   
   const resourcesBar = page.locator('#banner #resources');
   await expect(resourcesBar).toBeVisible();
@@ -35,7 +34,6 @@ test('responsive layout desktop', async ({ page }) => {
   
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
-  await page.waitForTimeout(1000);
   
   const tabNavigation = page.locator('#tab-navigation');
   await expect(tabNavigation).toBeVisible();
