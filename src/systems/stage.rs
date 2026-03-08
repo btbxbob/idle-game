@@ -417,20 +417,20 @@ pub fn requirement_details(
 ) -> RequirementDetails {
     match requirement_type {
         "workers_stage" => RequirementDetails {
-            summary: "满足任意一条工人阶段启动路径：购买 3 座建筑，或建立足够食物与工人基础。".to_string(),
+            summary: "工人阶段满足任意一条即可：路线 A 直接买到 3 座建筑；路线 B 同时推进食物与工人基础。".to_string(),
             lines: vec![
                 RequirementLine {
-                    label: "已购买建筑".to_string(),
+                    label: "路线 A - 已购买建筑".to_string(),
                     current: statistics.buildings_purchased as f64,
                     required: 3.0,
                 },
                 RequirementLine {
-                    label: "食物储备".to_string(),
+                    label: "路线 B - 食物储备".to_string(),
                     current: state.get_resource(ResourceType::Food),
                     required: 12.0,
                 },
                 RequirementLine {
-                    label: "工人数".to_string(),
+                    label: "路线 B - 工人数".to_string(),
                     current: workers.len() as f64,
                     required: 2.0,
                 },
@@ -445,7 +445,7 @@ pub fn requirement_details(
             }],
         },
         "hybrid_stage" => RequirementDetails {
-            summary: "混合阶段依赖三件事：黑暗科技起步、蛆虫影响上升、共生稳定度成形。".to_string(),
+            summary: "蛆虫人阶段看三项共同推进：黑暗科技准备度、蛆虫影响、共生稳定度。总进度是三项平均值。".to_string(),
             lines: vec![
                 RequirementLine {
                     label: "黑暗科技准备度".to_string(),
@@ -475,7 +475,7 @@ pub fn requirement_details(
             ],
         },
         "collective_stage" => RequirementDetails {
-            summary: "集体意识阶段需要意识积累、足够混合人口，以及蜂巢/觉醒科技完成。".to_string(),
+            summary: "集体意识阶段同样按三项平均推进：集体意识、混合人口、关键科技。".to_string(),
             lines: vec![
                 RequirementLine {
                     label: "集体意识".to_string(),
@@ -501,7 +501,7 @@ pub fn requirement_details(
             ],
         },
         "symbiosis_stability" => RequirementDetails {
-            summary: "将共生稳定度维持到安全阈值以上。".to_string(),
+            summary: "把共生稳定度维持在安全线以上，系统才会承认当前平衡可持续。".to_string(),
             lines: vec![RequirementLine {
                 label: "共生稳定度".to_string(),
                 current: state.coexistence.symbiosis_stability,

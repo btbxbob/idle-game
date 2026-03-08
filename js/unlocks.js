@@ -355,10 +355,16 @@ class UnlockManager {
             .map((line) => {
                 const current = Number(line.current || 0);
                 const required = Number(line.required || 0);
+                const ratio = required > 0 ? Math.max(0, Math.min(1, current / required)) : 0;
                 return `
                     <div class="unlock-requirement-line">
-                        <span>${line.label}</span>
-                        <strong>${this.formatRequirementValue(current)} / ${this.formatRequirementValue(required)}</strong>
+                        <div class="unlock-requirement-line-header">
+                            <span>${line.label}</span>
+                            <strong>${this.formatRequirementValue(current)} / ${this.formatRequirementValue(required)}</strong>
+                        </div>
+                        <div class="unlock-requirement-line-bar">
+                            <i style="width: ${(ratio * 100).toFixed(0)}%"></i>
+                        </div>
                     </div>
                 `;
             })
@@ -432,17 +438,17 @@ class UnlockManager {
     formatRequirement(type) {
         switch (type) {
             case 'workers_stage':
-                return '建立足够的基础建筑，开始工人与供养循环';
+                return '达成工人阶段入口';
             case 'maggot_stage':
-                return '亲眼见证尸体转化为蛆虫';
+                return '揭示蛆虫阶段';
             case 'hybrid_stage':
-                return '掌握共生宿主技术并稳定黑暗分支';
+                return '推进蛆虫人阶段';
             case 'collective_stage':
-                return '让混合个体汇入集体意识网络';
+                return '推进集体意识阶段';
             case 'symbiosis_stability':
-                return '将共生稳定度推升到安全阈值';
+                return '维持共生平衡';
             case 'total_clicks':
-                return '达到基础探索阈值';
+                return '完成基础点击阈值';
             default:
                 return '满足当前阶段条件';
         }

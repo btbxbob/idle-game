@@ -2462,6 +2462,48 @@ footer {
     opacity: 0.82;
 }
 
+.unlock-requirement-lines {
+    display: grid;
+    gap: 8px;
+}
+
+.unlock-requirement-line {
+    display: grid;
+    gap: 5px;
+    padding: 8px 10px;
+    border: 1px dashed var(--border-color);
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.unlock-requirement-line-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: baseline;
+}
+
+.unlock-requirement-line-header span {
+    font-size: 12px;
+    opacity: 0.85;
+}
+
+.unlock-requirement-line-header strong {
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.unlock-requirement-line-bar {
+    height: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--main-bg);
+}
+
+.unlock-requirement-line-bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #d4a72c, #5dade2);
+}
+
 .unlock-progress {
     display: grid;
     grid-template-columns: 1fr auto;
