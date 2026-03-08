@@ -613,7 +613,7 @@ this.technologies = [];
         
         let costsStr = '';
         if (tech.costs && Object.keys(tech.costs).length > 0) {
-            costsStr = Object.entries(tech.costs)
+            costsStr = this.sortCosts(tech.costs)
                 .map(([k, v]) => `<span style="background:#f0f0f0;padding:2px 6px;border-radius:3px;margin:2px;font-size:11px;">${this.getResourceName(k)}: ${Math.floor(v)}</span>`)
                 .join('');
         } else {
@@ -708,7 +708,7 @@ this.technologies = [];
 
             let costsStr = '';
             if (tech.costs && Object.keys(tech.costs).length > 0) {
-                costsStr = Object.entries(tech.costs)
+                costsStr = this.sortCosts(tech.costs)
                     .map(([k, v]) => `${k}: ${Math.floor(v)}`)
                     .join(', ');
             }
@@ -760,7 +760,7 @@ this.technologies = [];
         let costsHtml = '';
         if (tech.costs && Object.keys(tech.costs).length > 0) {
             costsHtml = '<div class="tech-costs">';
-            for (const [resource, amount] of Object.entries(tech.costs)) {
+            for (const [resource, amount] of this.sortCosts(tech.costs)) {
                 const resourceName = this.getResourceName(resource);
                 costsHtml += `<span class="cost-item">${resourceName}: ${Math.floor(amount)}</span>`;
             }
@@ -1001,6 +1001,43 @@ this.technologies = [];
             return enNames[resourceType] || resourceType;
         }
         return resourceNames[resourceType] || resourceType;
+    }
+
+    /**
+     * Sort technology costs into a deterministic order for consistent UI rendering.
+     * Uses a canonical resource priority list to ensure stable ordering across renders.
+     * @param {Object} costs - Object mapping resource type to amount
+     * @returns {Array} Array of [resourceType, amount] tuples sorted deterministically
+     */
+
+    sortCosts(costs) {
+        if (!costs || typeof costs !== 'object') return [];
+        
+        // Canonical resource ordering for deterministic rendering
+        const resourcePriority = [
+            'Gold', 'Wood', 'Stone', 'IronOre', 'CopperOre', 'AluminumOre',
+            'Coal', 'Oil', 'Crystal', 'Food'
+        ];
+        
+        const entries = Object.entries(costs);
+        
+        // Sort by priority index, then by resource name for unknown resources
+        entries.sort((a, b) => {
+            const indexA = resourcePriority.indexOf(a[0]);
+            const indexB = resourcePriority.indexOf(b[0]);
+            
+            // Known resources sort by priority index
+            if (indexA !== -1 && indexB !== -1) {
+                return indexA - indexB;
+            }
+            // Known resources come before unknown
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            // Unknown resources sort alphabetically
+            return a[0].localeCompare(b[0]);
+        });
+        
+        return entries;
     }
 
     getEffectDescription(tech) {

@@ -222,6 +222,22 @@ pub struct Technology {
     pub effect_value: f64,          // 效果值
     pub purchased: bool,            // 是否已购买
 }
+
+#### 技术成本渲染规范
+
+技术成本在 UI 中渲染时必须保持稳定的排序顺序，以避免每次面板刷新时资源顺序抖动。
+
+##### 渲染一致性要求
+
+1. **成本排序策略**：使用预定义的资源优先级列表对成本进行排序，确保相同的科技成本始终以相同顺序渲染。
+
+2. **所有渲染路径一致**：技术成本排序逻辑必须在以下三个渲染位置统一应用：
+   - 科技详情面板 (`renderTechDetail`)
+   - 内联详情视图 (`selectTechnology` 备用路径)
+   - 主详情面板 (`selectTechnology`)
+
+3. **辅助方法**：在 `TechnologyManager` 中实现 `sortCosts` 辅助方法，接收成本对象并返回排序后的条目数组。
+
 ```
 
 ---
@@ -932,9 +948,10 @@ final_production = base_rate
 | 金币→木材 | 100 Gold | 10 Wood | 10:1 |
 | 木材→金币 | 10 Wood | 100 Gold | 1:10 |
 | 金币→石材 | 100 Gold | 1 Stone | 100:1 |
-| 石材→金币 | 1 Stone | 100 Gold | 1:100 |
 | 木材→石材 | 10 Wood | 1 Stone | 10:1 |
-| 石材→木材 | 1 Stone | 10 Wood | 1:10 |
+WQ|| 石材→木材 | 1 Stone | 10 Wood | 1:10 |
+XZ|| 石材→金币 | 1 Stone | 100 Gold | 1:100 |
+| 铁矿炼铁锭 | 10 IronOre | 1 IronIngot | 10:1 |
 
 ### 5.8 升级成本公式
 

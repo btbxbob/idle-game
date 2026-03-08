@@ -421,8 +421,22 @@ pub struct TechnologyTree {
     pub unlocked: HashSet<TechnologyId>,
 }
 ```
+### 9.1.7 技术成本渲染规范
 
-### 9.1.7 建筑类型
+技术成本在 UI 中渲染时必须保持稳定的排序顺序，以避免每次面板刷新时资源顺序抖动。
+
+#### 渲染一致性要求
+
+1. **成本排序策略**：使用预定义的资源优先级列表对成本进行排序，确保相同的科技成本始终以相同顺序渲染。
+
+2. **所有渲染路径一致**：技术成本排序逻辑必须在以下三个渲染位置统一应用：
+   - 科技详情面板 (`renderTechDetail`)
+   - 内联详情视图 (`selectTechnology` 备用路径)
+
+3. **辅助方法**：在 `TechnologyManager` 中实现 `sortCosts` 辅助方法，接收成本对象并返回排序后的条目数组。
+
+### 9.1.8 建筑类型
+
 
 可解锁的建筑类型 (BuildingType 枚举)：
 - 矿井 (Mine)
@@ -458,7 +472,21 @@ pub struct TechnologyTree {
 - Mod支持
 - 多玩家互动
 - 更丰富的游戏内容
-- 性能进一步优化
+TZ|- 性能进一步优化
+
+## 10.4 制造系统
+
+制造系统允许玩家将基础资源转化为高级资源。
+
+### 10.4.1 基础制造配方
+
+| 配方 ID | 名称 | 输入 | 输出 | 初始状态 |
+|---------|------|------|------|----------|
+| iron_ore_to_iron_ingot | 铁矿炼铁锭 | 10 IronOre | 1 IronIngot | 已解锁 |
+| copper_ore_to_copper_ingot | 铜矿炼铜锭 | 10 CopperOre | 1 CopperIngot | 未解锁 |
+| aluminum_ore_to_aluminum_ingot | 铝矿炼铝锭 | 10 AluminumOre | 1 AluminumIngot | 未解锁 |
+
+注：铁矿炼铁锭是玩家获取铁锭的主要途径，在制造系统可用后即可使用。
 
 ## 11. 开发规范
 

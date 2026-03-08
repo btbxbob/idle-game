@@ -80,7 +80,7 @@ impl CraftingRecipe {
                 input_amount: 10.0,
                 output_resource: ResourceType::IronIngot,
                 output_amount: 1.0,
-                unlocked: false,
+                unlocked: true,
             },
             CraftingRecipe {
                 id: "copper_ore_to_copper_ingot".to_string(),
@@ -691,7 +691,7 @@ mod tests {
     fn test_advanced_recipes_locked() {
         let recipes = CraftingRecipe::get_default_recipes();
         let iron_ore_to_iron_ingot = recipes.iter().find(|r| r.id == "iron_ore_to_iron_ingot").unwrap();
-        assert!(!iron_ore_to_iron_ingot.unlocked);
+        assert!(iron_ore_to_iron_ingot.unlocked);
         let copper_ore_to_copper_ingot = recipes.iter().find(|r| r.id == "copper_ore_to_copper_ingot").unwrap();
         assert!(!copper_ore_to_copper_ingot.unlocked);
         let aluminum_ore_to_aluminum_ingot = recipes.iter().find(|r| r.id == "aluminum_ore_to_aluminum_ingot").unwrap();
