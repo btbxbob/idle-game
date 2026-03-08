@@ -194,7 +194,7 @@ class I18n {
                 'ironOre': '铁矿',
                 'copperOre': '铜矿',
                 'aluminumOre': '铝矿',
-                'coal': '煤矿',
+                'coal': '煤炭',
                 'oil': '石油',
                 'crystal': '水晶',
                 'food': '食物',

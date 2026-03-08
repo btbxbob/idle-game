@@ -890,6 +890,12 @@ this.technologies = [];
 
     canResearch(tech) {
         if (!tech) return false;
+        if (typeof tech.can_research === 'boolean') {
+            return tech.can_research;
+        }
+        if (typeof tech.canResearch === 'boolean') {
+            return tech.canResearch;
+        }
         if (tech.researched || tech.purchased) return false;
         if (tech.dependencies && tech.dependencies.length > 0) {
             for (const depId of tech.dependencies) {
@@ -915,6 +921,38 @@ this.technologies = [];
 
     getResourceValue(resourceType) {
         if (!this.rustGame) return 0;
+
+        if (typeof this.rustGame.get_resources === 'function') {
+            try {
+                const resources = this.rustGame.get_resources();
+                if (resources && typeof resources === 'object') {
+                    const direct = resources[resourceType];
+                    if (typeof direct === 'number') {
+                        return direct;
+                    }
+
+                    const camelMap = {
+                        Gold: 'coins',
+                        Wood: 'wood',
+                        Stone: 'stone',
+                        IronOre: 'ironOre',
+                        CopperOre: 'copperOre',
+                        AluminumOre: 'aluminumOre',
+                        Coal: 'coal',
+                        Oil: 'oil',
+                        Crystal: 'crystal',
+                        Food: 'food'
+                    };
+                    const camelKey = camelMap[resourceType];
+                    if (camelKey && typeof resources[camelKey] === 'number') {
+                        return resources[camelKey];
+                    }
+                }
+            } catch (error) {
+                console.warn('TechnologyManager: Failed to read resource snapshot for costs:', error);
+            }
+        }
+
         const resourceMap = {
             'Gold': 'get_coins',
             'Wood': 'get_wood',

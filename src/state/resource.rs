@@ -21,7 +21,7 @@ pub enum ResourceType {
     IronOre,     // 铁矿
     CopperOre,   // 铜矿
     AluminumOre, // 铝矿
-    Coal,        // 煤矿
+    Coal,        // 煤炭
     Oil,         // 石油
     Crystal,     // 水晶
     Food,        // 食物
@@ -95,7 +95,7 @@ impl ResourceType {
             ResourceType::IronOre => "铁矿",
             ResourceType::CopperOre => "铜矿",
             ResourceType::AluminumOre => "铝矿",
-            ResourceType::Coal => "煤矿",
+            ResourceType::Coal => "煤炭",
             ResourceType::Oil => "石油",
             ResourceType::Crystal => "水晶",
             ResourceType::Food => "食物",
