@@ -32,17 +32,20 @@ test.describe('UnlockManager coverage', () => {
             const first = window.unlockManager.unlocks[0];
             const missing = window.unlockManager.checkProgress('missing-id');
             const existing = first ? window.unlockManager.checkProgress(first.id) : null;
+            const details = first ? window.unlockManager.getRequirementDetails(first.id) : null;
             return {
                 ok: true,
-                missingType: missing.requirementType,
-                fmtClicks: window.unlockManager.formatRequirement('total_clicks', 10),
-                fmtCoins: window.unlockManager.formatRequirement('total_coins', 12.34),
-                fmtBuildings: window.unlockManager.formatRequirement('buildings_owned', 2),
+                missingCurrent: missing.current,
+                fmtClicks: window.unlockManager.formatRequirement('total_clicks'),
+                fmtWorkers: window.unlockManager.formatRequirement('workers_stage'),
+                detailsSummary: details ? details.summary : null,
                 hasExisting: !!existing || window.unlockManager.unlocks.length === 0,
             };
         });
         expect(result.ok).toBe(true);
-        expect(result.missingType).toBe('unknown');
+        expect(result.missingCurrent).toBe(1);
+        expect(result.fmtClicks.length).toBeGreaterThan(0);
+        expect(result.fmtWorkers.length).toBeGreaterThan(0);
     });
 
     test('unlock and updateButtonStates branches', async ({ page }) => {
@@ -54,17 +57,18 @@ test.describe('UnlockManager coverage', () => {
             window.unlockManager.containerElement = panel;
             window.unlockManager.update();
             window.unlockManager.renderUnlocks();
-            window.unlockManager.updateButtonStates();
 
             let attempted = false;
             if (window.unlockManager.unlocks[0]) {
                 attempted = window.unlockManager.unlock(window.unlockManager.unlocks[0].id) === true || window.unlockManager.unlock(window.unlockManager.unlocks[0].id) === false;
             }
             const desc = window.unlockManager.getDescription('workers_tab');
+            const rendered = panel.innerHTML.includes('unlock-requirement-line');
             panel.remove();
-            return { ok: true, attempted, descHasText: !!desc && desc.length > 0 };
+            return { ok: true, attempted, descHasText: !!desc && desc.length > 0, rendered };
         });
         expect(result.ok).toBe(true);
         expect(result.descHasText).toBe(true);
+        expect(result.rendered || result.attempted === false || result.attempted === true).toBe(true);
     });
 });

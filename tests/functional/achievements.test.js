@@ -30,12 +30,25 @@ test.describe('Achievement System', () => {
   });
 
   test('clicking updates at least one achievement progress signal', async ({ page }) => {
-    const before = await page.locator('.achievement-item').first().textContent();
+    const before = await page.evaluate(() =>
+      window.rustGame && window.rustGame.get_achievements ? window.rustGame.get_achievements() : []
+    );
     for (let i = 0; i < 12; i++) {
       await page.click('#coin-button');
     }
     await page.waitForTimeout(500);
-    const after = await page.locator('.achievement-item').first().textContent();
-    expect(after).not.toEqual(before);
+    const after = await page.evaluate(() =>
+      window.rustGame && window.rustGame.get_achievements ? window.rustGame.get_achievements() : []
+    );
+
+    const changed = after.some((achievement, index) => {
+      const previous = before[index];
+      return previous && (
+        achievement.progress !== previous.progress ||
+        achievement.unlocked !== previous.unlocked
+      );
+    });
+
+    expect(changed).toBe(true);
   });
 });

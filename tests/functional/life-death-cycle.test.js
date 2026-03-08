@@ -45,6 +45,7 @@ test.describe('Life-Death Cycle System', () => {
       const json = JSON.parse(atob(raw));
       const now = Date.now();
 
+      json.state.current_stage = 'Workers';
       json.state.resources.Food = 0;
       json.state.resources.Corpse = 0;
       json.state.resources.Maggot = 0;
@@ -99,6 +100,8 @@ test.describe('Life-Death Cycle System', () => {
       const raw = window.rustGame.exportToBase64();
       const json = JSON.parse(atob(raw));
       const now = Date.now();
+
+      json.state.current_stage = 'Maggot';
 
       if (Array.isArray(json.buildings)) {
         json.buildings = json.buildings.map((b) => {

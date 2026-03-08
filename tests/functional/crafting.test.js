@@ -332,10 +332,11 @@ test.describe('Crafting System', () => {
     });
 
     test('crafting persist after page reload', async ({ page }) => {
-        const initialCraftStat = await page.evaluate(() => {
-            const stat = document.querySelector('.statistic-item:nth-child(5) .stat-value');
-            return stat ? stat.textContent : '0';
-        });
+        const initialStats = await page.evaluate(() =>
+            window.rustGame && typeof window.rustGame.getStatistics === 'function'
+                ? window.rustGame.getStatistics()
+                : { total_resources_crafted: 0 }
+        );
 
         const initialCoins = await page.textContent('#coins');
         const coinsValue = parseInt(initialCoins.split(': ')[1]);
@@ -357,13 +358,16 @@ test.describe('Crafting System', () => {
 
         await page.reload();
         await page.waitForFunction(() => window.gameInitialized === true);
-        await page.click('[data-tab="statistics"]');
-        await page.waitForTimeout(500);
+        await unlockWorkersStage(page);
 
-        const afterCraftStat = await page.locator('.statistic-item:nth-child(5) .stat-value').textContent();
+        const afterStats = await page.evaluate(() =>
+            window.rustGame && typeof window.rustGame.getStatistics === 'function'
+                ? window.rustGame.getStatistics()
+                : { total_resources_crafted: 0 }
+        );
         
-        console.log(`Craft stat before: ${initialCraftStat}, after: ${afterCraftStat}`);
-        expect(parseInt(afterCraftStat)).toBeGreaterThanOrEqual(parseInt(initialCraftStat));
+        console.log(`Craft stat before: ${initialStats.total_resources_crafted}, after: ${afterStats.total_resources_crafted}`);
+        expect(afterStats.total_resources_crafted).toBeGreaterThanOrEqual(initialStats.total_resources_crafted);
 
         await page.screenshot({
             path: '.sisyphus/evidence/task-30-persistence.png'

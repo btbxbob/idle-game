@@ -151,7 +151,7 @@ test.describe('Responsive Layout', () => {
         });
 
         test('tab navigation displays properly on tablet', async ({ page }) => {
-            const tabButtons = await page.locator('.tab-button');
+            const tabButtons = await page.locator('.tab-button:visible');
             const tabCount = await tabButtons.count();
             
             console.log(`768px: Tab buttons visible: ${tabCount}`);

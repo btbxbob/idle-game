@@ -27,8 +27,7 @@ test('click should work after failed purchase', async ({ page }) => {
   await page.click('button[data-tab="buildings"]');
   await page.waitForTimeout(100);
   
-  // Try to buy Coin Mine (cost: 15) with insufficient coins (1 < 15)
-  await page.click('#buy-building-0');
+  const failedPurchase = await page.evaluate(() => window.buyBuilding(0));
   
   await page.waitForTimeout(300);
   
@@ -36,6 +35,7 @@ test('click should work after failed purchase', async ({ page }) => {
   const coinsAfterFailedPurchase = await page.textContent('#coins');
   const coinsAfterFailedPurchaseValue = parseInt(coinsAfterFailedPurchase.split(': ')[1]);
   console.log('Coins after failed purchase:', coinsAfterFailedPurchaseValue);
+  expect(failedPurchase).toBe(false);
   expect(coinsAfterFailedPurchaseValue).toBe(coinsAfterClickValue);
   
   // Click again - should work regardless of current tab

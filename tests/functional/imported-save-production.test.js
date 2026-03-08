@@ -13,6 +13,7 @@ test('stale imported saves resume passive production on the next live tick', asy
     const json = JSON.parse(atob(raw));
     const now = Date.now();
 
+    json.state.current_stage = 'Workers';
     json.state.resources.Gold = 0;
     json.state.resources.Wood = 0;
     json.state.resources.Stone = 0;
