@@ -6,15 +6,11 @@ test('workers panel UI renders correctly', async ({ page }) => {
   
   await page.waitForFunction(() => window.gameInitialized === true);
   await unlockWorkersStage(page);
-  
-  await page.waitForTimeout(500);
-  
+
   await page.click('[data-tab="workers"]');
   
-  await page.waitForFunction(() => {
-    const tab = document.getElementById('tab-workers');
-    return tab && tab.classList.contains('active');
-  });
+  await expect(page.locator('#tab-workers')).toHaveClass(/active/);
+  await expect(page.locator('#workers-list')).toBeVisible();
   
   await page.screenshot({ 
     path: '.sisyphus/evidence/task-22-workers-panel-initial.png',
