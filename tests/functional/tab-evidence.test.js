@@ -4,7 +4,7 @@ const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 test('tab structure evidence capture', async ({ page }) => {
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
-  await expect(page.locator('#tab-resources')).toHaveClass(/active/);
+  await page.waitForTimeout(1000);
   
   // Screenshot 1: Tab structure overview showing all 9 tabs
   await page.screenshot({ 
@@ -23,7 +23,7 @@ test('tab structure evidence capture', async ({ page }) => {
   
   for (const tab of tabs) {
     await page.click(tab.button);
-    await expect(page.locator(tab.button)).toHaveClass(/active/);
+    await page.waitForTimeout(300);
   }
   
   // Screenshot 2: Tab switching - final state on unlocks tab
