@@ -36,39 +36,30 @@ test.describe('Secondary Resources (Tier 2)', () => {
         }
     });
 
-    test('tier 2 factory buildings are available after workers unlock', async ({ page }) => {
+    test('tier 2 factories exist and expose expected output resources', async ({ page }) => {
         const buildings = await page.evaluate(() => window.rustGame.get_buildings());
-        const factoryNames = [
-            '铁锭冶炼厂',
-            '铜锭冶炼厂',
-            '化学品厂',
-            '钢铁厂',
-            '玻璃厂',
-            '塑料厂',
-            '电路板厂',
-            '马达厂',
-            '传感器厂',
-            '齿轮厂',
-            '电池厂',
-            '发电机厂'
-        ];
-
         const buildingNames = buildings.map((building) => building.name);
-        expect(buildingNames).toEqual(expect.arrayContaining(factoryNames));
-    });
-
-    test('tier 2 factories expose the expected output resources', async ({ page }) => {
-        const buildings = await page.evaluate(() => window.rustGame.get_buildings());
         const outputs = new Map(buildings.map((building) => [building.name, building.output_resource || building.outputResource]));
-
-        expect(outputs.get('铁锭冶炼厂')).toBe('IronIngot');
-        expect(outputs.get('铜锭冶炼厂')).toBe('CopperIngot');
-        expect(outputs.get('化学品厂')).toBe('Chemicals');
-        expect(outputs.get('钢铁厂')).toBe('SteelPlate');
-        expect(outputs.get('玻璃厂')).toBe('Glass');
-        expect(outputs.get('塑料厂')).toBe('Plastic');
-        expect(outputs.get('电路板厂')).toBe('CircuitBoard');
-        expect(outputs.get('齿轮厂')).toBe('Gear');
+        
+        const tier2Factories = [
+            { name: '铁锭冶炼厂', output: 'IronIngot' },
+            { name: '铜锭冶炼厂', output: 'CopperIngot' },
+            { name: '化学品厂', output: 'Chemicals' },
+            { name: '钢铁厂', output: 'SteelPlate' },
+            { name: '玻璃厂', output: 'Glass' },
+            { name: '塑料厂', output: 'Plastic' },
+            { name: '电路板厂', output: 'CircuitBoard' },
+            { name: '马达厂', output: 'Motor' },
+            { name: '传感器厂', output: 'Sensor' },
+            { name: '齿轮厂', output: 'Gear' },
+            { name: '电池厂', output: 'Battery' },
+            { name: '发电机厂', output: 'Generator' }
+        ];
+        
+        for (const factory of tier2Factories) {
+            expect(buildingNames).toContain(factory.name);
+            expect(outputs.get(factory.name)).toBe(factory.output);
+        }
     });
 
     test('iron ingot production can start through factories', async ({ page }) => {

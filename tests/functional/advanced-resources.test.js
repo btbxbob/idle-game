@@ -28,31 +28,24 @@ test.describe('Advanced Resources (Tier 3)', () => {
         }
     });
 
-    test('tier 3 factory buildings exist in the building list', async ({ page }) => {
+    test('tier 3 factories exist and expose expected output resources', async ({ page }) => {
         const buildings = await page.evaluate(() => window.rustGame.get_buildings());
-        const factoryNames = [
-            '芯片制造厂',
-            '量子计算中心',
-            '机器人工厂',
-            '纳米机器人工厂',
-            '反物质反应堆',
-            '时间水晶合成器'
-        ];
-
         const buildingNames = buildings.map((building) => building.name);
-        expect(buildingNames).toEqual(expect.arrayContaining(factoryNames));
-    });
-
-    test('tier 3 factories expose the expected output resources', async ({ page }) => {
-        const buildings = await page.evaluate(() => window.rustGame.get_buildings());
         const outputs = new Map(buildings.map((building) => [building.name, building.output_resource || building.outputResource]));
-
-        expect(outputs.get('芯片制造厂')).toBe('Microchip');
-        expect(outputs.get('量子计算中心')).toBe('QuantumComputer');
-        expect(outputs.get('机器人工厂')).toBe('Robot');
-        expect(outputs.get('纳米机器人工厂')).toBe('Nanobot');
-        expect(outputs.get('反物质反应堆')).toBe('Antimatter');
-        expect(outputs.get('时间水晶合成器')).toBe('TimeCrystal');
+        
+        const tier3Factories = [
+            { name: '芯片制造厂', output: 'Microchip' },
+            { name: '量子计算中心', output: 'QuantumComputer' },
+            { name: '机器人工厂', output: 'Robot' },
+            { name: '纳米机器人工厂', output: 'Nanobot' },
+            { name: '反物质反应堆', output: 'Antimatter' },
+            { name: '时间水晶合成器', output: 'TimeCrystal' }
+        ];
+        
+        for (const factory of tier3Factories) {
+            expect(buildingNames).toContain(factory.name);
+            expect(outputs.get(factory.name)).toBe(factory.output);
+        }
     });
 
     test('advanced resource factories remain reachable without a crafting tab', async ({ page }) => {

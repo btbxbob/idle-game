@@ -25,6 +25,8 @@ tests/
 - Prefer `#id` selectors, then stable data attributes like `button[data-tab="workers"]`.
 - Use exact Chinese text when matching UI labels; zh-CN is the primary surface.
 - Coverage collection only records Chromium pages; multi-browser runs are opt-in via config/env.
+- Prefer selectors and visibility checks that match the current runtime DOM contract: `#coin-count` and banner resource cards for coin display, visible tab buttons for stage-gated navigation, and absence checks for removed tabs like `crafting` when the runtime no longer renders them.
+- When a gameplay surface moves from one UI entry point to another (for example crafting -> factory-based progression), migrate tests to the new user-visible contract or WASM API instead of forcing the old tab/DOM path to remain in assertions.
 
 ## ANTI-PATTERNS
 - Skipping the WASM init wait, especially in smoke or syntax-only tests.
@@ -32,6 +34,8 @@ tests/
 - Adding normal feature assertions under `tests/regression/` instead of `tests/functional/`.
 - Using raw `.class` selectors when an ID or tab data attribute already exists.
 - Checking in `test.only()`; CI forbids it.
+- Assuming all tabs are visible at startup; stage-gated tabs may exist in DOM but be hidden until progression unlocks them.
+- Hardcoding legacy selectors or removed surfaces (for example `#coins` or `button[data-tab="crafting"]`) after the runtime UI has moved on.
 
 ## NOTES
 - `playwright.config.js` defaults to Chromium locally and expands to all browsers in CI or `PW_ALL_BROWSERS=1`.

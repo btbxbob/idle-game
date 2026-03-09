@@ -1,5 +1,21 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function readCoinsText(page) {
+    const coinCount = page.locator('#coin-count');
+    if (await coinCount.count()) {
+        return await coinCount.textContent();
+    }
+
+    const legacyCoins = page.locator('#coins');
+    return await legacyCoins.textContent();
+}
+
+async function readCoinsValue(page) {
+    const text = await readCoinsText(page);
+    const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
+    return match ? parseFloat(match[1]) : 0;
+}
+
 test.describe('Performance Benchmark - 性能基准测试', () => {
     test.setTimeout(60000);
 
@@ -28,8 +44,7 @@ test.describe('Performance Benchmark - 性能基准测试', () => {
         await page.waitForTimeout(500);
         
         // 验证金币增加
-        const coins = await page.textContent('#coins');
-        const coinsValue = parseFloat(coins.split(': ')[1]);
+        const coinsValue = await readCoinsValue(page);
         console.log(`金币：${coinsValue}`);
         expect(coinsValue).toBeGreaterThanOrEqual(50);
         
@@ -62,8 +77,7 @@ test.describe('Performance Benchmark - 性能基准测试', () => {
         await page.waitForTimeout(300);
         
         // 验证状态正常
-        const coins = await page.textContent('#coins');
-        const coinsValue = parseFloat(coins.split(': ')[1]);
+        const coinsValue = await readCoinsValue(page);
         expect(Number.isFinite(coinsValue)).toBe(true);
         expect(coinsValue).toBeGreaterThanOrEqual(0);
         

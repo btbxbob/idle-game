@@ -52,6 +52,8 @@ Notes:
 - New persisted Rust fields require `#[serde(default)]` for backward-compatible save loading.
 - Keep `zh-CN` and `en` translations aligned when adding UI text.
 - Normalized day-to-day test scope is functional tests only (`tests/functional/`); use `tests/regression/` only for bug reproduction/fix validation.
+- Treat current runtime UI as the source of truth for E2E expectations; when product UI contracts change (for example tab removal, staged tab visibility, or selector changes like `#coin-count` replacing `#coins`), migrate tests to the new contract instead of preserving legacy UI assumptions.
+- Before changing or adding E2E assertions, check the live HTML/JS contract (`index.html`, `js/bootstrap.js`, `js/unlocks.js`, `js/resource-manager.js`) and align tests to the currently rendered DOM rather than historical screenshots or old failures.
 
 ## ANTI-PATTERNS (THIS PROJECT)
 - Holding `RefCell` borrows across method calls in `IdleGame` (can panic at runtime).
@@ -109,6 +111,8 @@ npx playwright test tests/regression/<bug-case>.test.js
 - Use `background_output(task_id="...")` to fetch progress/results on demand; summarize build number, final status, test result, and coverage percentages.
 - Coverage data source priority: `coverage-report/e2e-merged/coverage-summary.json` artifact first, fallback to build log extraction only after bounded attempts.
 - Keep the foreground free for other requests while background monitoring runs; do not idle-wait with long blocking sleeps.
+- If multiple people are using Jenkins, only diagnose and repair builds you personally triggered in this session; do not treat teammates' queued or running builds as your repair target.
+- Do root-cause analysis from existing build metadata/logs first, then trigger a new Jenkins run only after you have a concrete hypothesis worth validating; avoid speculative reruns that consume shared queue capacity.
 
 ### Jenkins MCP Timeout Mitigation
 - Known issue: `jenkins_getBuildLog` and `jenkins_searchBuildLog` may timeout (`MCP error -32001`) on active builds.

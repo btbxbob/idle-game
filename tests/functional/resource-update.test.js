@@ -1,5 +1,17 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function readCoinsValue(page) {
+  const coinCount = page.locator('#coin-count');
+  if (await coinCount.count()) {
+    const text = await coinCount.textContent();
+    const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  const coins = await page.textContent('#coins');
+  return parseInt(String(coins || '').split(': ')[1], 10);
+}
+
 test('resource updates should be real-time', async ({ page, browserName }) => {
   // Navigate to the game
   await page.goto('http://localhost:8080');
@@ -8,8 +20,7 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   await page.waitForFunction(() => window.gameInitialized === true);
   
   // Get initial coins count
-  const initialCoins = await page.textContent('#coins');
-  const initialCoinsValue = parseInt(initialCoins.split(': ')[1]);
+  const initialCoinsValue = await readCoinsValue(page);
   
   // Click the middle button to get some coins
   await page.click('#coin-button');
@@ -19,16 +30,18 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   // Wait for UI to update - wait for coins to actually change
   await page.waitForFunction(
     (expected) => {
-      const coinsText = document.getElementById('coins').textContent;
-      const coinsValue = parseInt(coinsText.split(': ')[1]);
+      const coinCount = document.getElementById('coin-count');
+      const legacyCoins = document.getElementById('coins');
+      const text = coinCount ? coinCount.textContent : (legacyCoins ? legacyCoins.textContent : '0');
+      const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
+      const coinsValue = match ? parseInt(match[1], 10) : 0;
       return coinsValue > expected;
     },
     initialCoinsValue
   );
   
   // Verify coins increased immediately
-  const coinsAfterClicks = await page.textContent('#coins');
-  const coinsAfterClicksValue = parseInt(coinsAfterClicks.split(': ')[1]);
+  const coinsAfterClicksValue = await readCoinsValue(page);
   expect(coinsAfterClicksValue).toBeGreaterThan(initialCoinsValue);
   
   // Get enough coins for a purchase
@@ -39,15 +52,17 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   // Wait for coins to update
   await page.waitForFunction(
     (expected) => {
-      const coinsText = document.getElementById('coins').textContent;
-      const coinsValue = parseInt(coinsText.split(': ')[1]);
+      const coinCount = document.getElementById('coin-count');
+      const legacyCoins = document.getElementById('coins');
+      const text = coinCount ? coinCount.textContent : (legacyCoins ? legacyCoins.textContent : '0');
+      const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
+      const coinsValue = match ? parseInt(match[1], 10) : 0;
       return coinsValue > expected;
     },
     coinsAfterClicksValue
   );
   
-  const coinsBeforePurchase = await page.textContent('#coins');
-  const coinsBeforePurchaseValue = parseInt(coinsBeforePurchase.split(': ')[1]);
+  const coinsBeforePurchaseValue = await readCoinsValue(page);
   
   // Switch to buildings tab
   await page.click('button[data-tab="buildings"]');
@@ -65,16 +80,18 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   // Wait for coins to decrease after purchase
   await page.waitForFunction(
     (expected) => {
-      const coinsText = document.getElementById('coins').textContent;
-      const coinsValue = parseInt(coinsText.split(': ')[1]);
+      const coinCount = document.getElementById('coin-count');
+      const legacyCoins = document.getElementById('coins');
+      const text = coinCount ? coinCount.textContent : (legacyCoins ? legacyCoins.textContent : '0');
+      const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
+      const coinsValue = match ? parseInt(match[1], 10) : 0;
       return coinsValue < expected;
     },
     coinsBeforePurchaseValue
   );
   
   // Verify coins decreased immediately after purchase
-  const coinsAfterPurchase = await page.textContent('#coins');
-  const coinsAfterPurchaseValue = parseInt(coinsAfterPurchase.split(': ')[1]);
+  const coinsAfterPurchaseValue = await readCoinsValue(page);
   expect(coinsAfterPurchaseValue).toBeLessThan(coinsBeforePurchaseValue);
   
   // Verify building was purchased

@@ -241,32 +241,25 @@ test.describe('Resource Production Complete', () => {
         });
     });
 
-    test('all tier 2 resources have corresponding factory buildings', async ({ page }) => {
+    test('tier 2 and tier 3 resources have corresponding factory buildings', async ({ page }) => {
         const buildings = await page.evaluate(() => window.rustGame.get_buildings());
+        const names = buildings.map((building) => building.name);
+        
         const tier2Factories = [
             '铁锭冶炼厂', '铜锭冶炼厂', '化学品厂', '钢铁厂', '玻璃厂', '塑料厂',
             '电路板厂', '马达厂', '传感器厂', '齿轮厂', '电池厂', '发电机厂'
         ];
-
-        const names = buildings.map((building) => building.name);
-        expect(names).toEqual(expect.arrayContaining(tier2Factories));
-
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-tier2-factories.png'
-        });
-    });
-
-    test('all tier 3 resources have corresponding factory buildings', async ({ page }) => {
-        const buildings = await page.evaluate(() => window.rustGame.get_buildings());
         const tier3Factories = [
             '芯片制造厂', '量子计算中心', '机器人工厂', '纳米机器人工厂', '反物质反应堆', '时间水晶合成器'
         ];
-
-        const names = buildings.map((building) => building.name);
+        
+        expect(names).toEqual(expect.arrayContaining(tier2Factories));
         expect(names).toEqual(expect.arrayContaining(tier3Factories));
-
+        
+        console.log(`Found ${tier2Factories.length} tier 2 factories and ${tier3Factories.length} tier 3 factories`);
+        
         await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-tier3-factories.png'
+            path: '.sisyphus/evidence/resource-production-tier2-tier3-factories.png'
         });
     });
 
