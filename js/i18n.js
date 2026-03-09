@@ -119,6 +119,7 @@ class I18n {
                 'cost': 'Cost',
                 'owned': 'Owned',
                 'buy': 'Buy',
+                'craft': 'Craft',
                 'perBuilding': '/sec per building',
                 'perSecond': '/sec',
                 'perClick': ' coins/click',
@@ -160,7 +161,7 @@ class I18n {
                 'totalCoinsEarned': 'Total Coins Earned',
                 'totalWoodEarned': 'Total Wood Earned',
                 'totalStoneEarned': 'Total Stone Earned',
-                'totalResourcesCrafted': 'Total Resources Crafted',
+                'totalResourcesCrafted': 'Total Factory Output',
                 'playTime': 'Play Time',
                 'buildingsPurchased': 'Buildings Purchased',
                 'upgradesPurchased': 'Upgrades Purchased',
@@ -174,7 +175,7 @@ class I18n {
                 'achievementCategory_clicks': 'Clicks',
                 'achievementCategory_resources': 'Resources',
                 'achievementCategory_buildings': 'Buildings',
-                'achievementCategory_crafting': 'Crafting',
+                'achievementCategory_crafting': 'Industry',
                 'achievementCategory_unlocks': 'Unlocks'
             },
             'zh-CN': {
@@ -293,6 +294,7 @@ class I18n {
                 'cost': '花费',
                 'owned': '拥有',
                 'buy': '购买',
+                'craft': '合成',
                 'perBuilding': '/秒 每建筑',
                 'perSecond': '/秒',
                 'perClick': ' 金币/点击',
@@ -334,7 +336,7 @@ class I18n {
                 'totalCoinsEarned': '总获得金币',
                 'totalWoodEarned': '总获得木头',
                 'totalStoneEarned': '总获得石头',
-                'totalResourcesCrafted': '总合成物品',
+                'totalResourcesCrafted': '总工厂产出',
                 'playTime': '游戏时间',
                 'buildingsPurchased': '购买建筑',
                 'upgradesPurchased': '购买升级',
@@ -348,7 +350,7 @@ class I18n {
                 'achievementCategory_clicks': '点击',
                 'achievementCategory_resources': '资源',
                 'achievementCategory_buildings': '建筑',
-                'achievementCategory_crafting': '合成',
+                'achievementCategory_crafting': '工业',
                 'achievementCategory_unlocks': '解锁'
             }
         };

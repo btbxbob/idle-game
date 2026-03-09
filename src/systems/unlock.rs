@@ -53,7 +53,7 @@ impl UnlockedFeature {
             },
             UnlockedFeature {
                 id: "unlock_crafting".to_string(),
-                name: "制作系统".to_string(),
+                name: "工厂系统".to_string(),
                 feature_type: "system".to_string(),
                 unlocked: false,
                 unlock_timestamp: None,
@@ -129,7 +129,7 @@ mod tests {
         let features = UnlockedFeature::get_default_features();
         let unlock_crafting = features.iter().find(|f| f.id == "unlock_crafting").unwrap();
 
-        assert_eq!(unlock_crafting.name, "制作系统");
+        assert_eq!(unlock_crafting.name, "工厂系统");
         assert_eq!(unlock_crafting.feature_type, "system");
         assert_eq!(unlock_crafting.unlocked, false);
         assert_eq!(unlock_crafting.requirement_type, "total_coins");

@@ -94,7 +94,7 @@ class AchievementManager {
             'clicks': '点击',
             'resources': '资源',
             'buildings': '建筑',
-            'crafting': '合成',
+            'crafting': '工业',
             'unlocks': '解锁'
         };
         
@@ -103,7 +103,7 @@ class AchievementManager {
                 'clicks': 'Clicks',
                 'resources': 'Resources',
                 'buildings': 'Buildings',
-                'crafting': 'Crafting',
+                'crafting': 'Industry',
                 'unlocks': 'Unlocks'
             };
             return enNames[category] || category;
