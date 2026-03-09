@@ -49,8 +49,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   expect(buildingListAfter).toMatch(/拥有:\s*1/);
   
   // Get current coins per click
-  const cpcTextBefore = await page.textContent('#cpc');
-  const cpcValueBefore = parseFloat(((cpcTextBefore || '').match(/[\d.]+$/) || ['0'])[0]);
+  const cpcValueBefore = await page.evaluate(() => window.rustGame?.get_coins_per_click?.() ?? 0);
   console.log('CPC before building click bonus:', cpcValueBefore);
   
   await page.click('#buy-building-0');
@@ -64,8 +63,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   expect(coinsAfterSecondBuildingValue).toBeLessThan(coinsAfterPurchaseValue);
   
   // Verify coins per click increased
-  const cpcTextAfter = await page.textContent('#cpc');
-  const cpcValueAfter = parseFloat(((cpcTextAfter || '').match(/[\d.]+$/) || ['0'])[0]);
+  const cpcValueAfter = await page.evaluate(() => window.rustGame?.get_coins_per_click?.() ?? 0);
   console.log('CPC after building click bonus:', cpcValueAfter);
   expect(cpcValueAfter).toBeGreaterThan(cpcValueBefore);
 });

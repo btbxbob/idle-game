@@ -6,17 +6,16 @@ async function waitForGameInitialization(page) {
 }
 
 async function assertCoreStateValid(page) {
-  const [coinsText, woodText, stoneText, cpcText] = await Promise.all([
+  const [coinsText, woodText, stoneText, cpc] = await Promise.all([
     page.textContent('#coins'),
     page.textContent('#wood'),
     page.textContent('#stone'),
-    page.textContent('#cpc'),
+    page.evaluate(() => window.rustGame?.get_coins_per_click?.() ?? 0),
   ]);
 
   const coins = parseFloat((coinsText || '0').split(':').pop().trim());
   const wood = parseFloat((woodText || '0').split(':').pop().trim());
   const stone = parseFloat((stoneText || '0').split(':').pop().trim());
-  const cpc = parseFloat((cpcText || '0').split(':').pop().trim());
 
   expect(Number.isFinite(coins)).toBe(true);
   expect(Number.isFinite(wood)).toBe(true);
@@ -82,13 +81,13 @@ test.describe('Monkey Test Suite', () => {
       await page.click('#coin-button');
     }
 
-    const cpcBefore = parseFloat(((await page.textContent('#cpc')) || '0').split(':').pop().trim());
+    const cpcBefore = await page.evaluate(() => window.rustGame?.get_coins_per_click?.() ?? 0);
 
     await page.click('button[data-tab="buildings"]');
     await page.click('#buy-building-0').catch(() => {});
     await page.waitForTimeout(300);
 
-    const cpcAfter = parseFloat(((await page.textContent('#cpc')) || '0').split(':').pop().trim());
+    const cpcAfter = await page.evaluate(() => window.rustGame?.get_coins_per_click?.() ?? 0);
     expect(cpcAfter).toBeGreaterThanOrEqual(cpcBefore);
   });
 });
