@@ -12,7 +12,7 @@ pub mod utils;
 pub use core::IdleGame;
 pub use entities::{Building, Worker};
 pub use state::{GameState, Statistics};
-pub use systems::{Achievement, CraftingRecipe, UnlockedFeature};
+pub use systems::{Achievement, UnlockedFeature};
 pub use utils::{Gender, NameGenerator};
 
 #[wasm_bindgen]

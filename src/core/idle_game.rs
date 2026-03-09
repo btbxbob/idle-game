@@ -74,8 +74,6 @@ pub struct IdleGame {
     #[wasm_bindgen(skip)]
     achievements: Vec<Achievement>,
     #[wasm_bindgen(skip)]
-    crafting_recipes: Vec<CraftingRecipe>,
-    #[wasm_bindgen(skip)]
     #[wasm_bindgen(skip)]
     unlocked_features: Vec<UnlockedFeature>,
     #[wasm_bindgen(skip)]
@@ -94,6 +92,7 @@ pub struct SavedGame {
     #[serde(default)]
     pub population_queue: PopulationQueue,
     pub achievements: Vec<Achievement>,
+    #[serde(default)]
     pub crafting_recipes: Vec<CraftingRecipe>,
     pub unlocked_features: Vec<UnlockedFeature>,
     #[serde(default)]
@@ -118,6 +117,24 @@ fn infer_output_resource_from_building_name(building_name: &str) -> ResourceType
         "石油井" => ResourceType::Oil,
         "水晶矿" => ResourceType::Crystal,
         "农场" => ResourceType::Food,
+        "铁锭冶炼厂" => ResourceType::IronIngot,
+        "铜锭冶炼厂" => ResourceType::CopperIngot,
+        "化学品厂" => ResourceType::Chemicals,
+        "钢铁厂" => ResourceType::SteelPlate,
+        "玻璃厂" => ResourceType::Glass,
+        "塑料厂" => ResourceType::Plastic,
+        "电路板厂" => ResourceType::CircuitBoard,
+        "马达厂" => ResourceType::Motor,
+        "传感器厂" => ResourceType::Sensor,
+        "齿轮厂" => ResourceType::Gear,
+        "电池厂" => ResourceType::Battery,
+        "发电机厂" => ResourceType::Generator,
+        "芯片制造厂" => ResourceType::Microchip,
+        "量子计算中心" => ResourceType::QuantumComputer,
+        "机器人工厂" => ResourceType::Robot,
+        "纳米机器人工厂" => ResourceType::Nanobot,
+        "反物质反应堆" => ResourceType::Antimatter,
+        "时间水晶合成器" => ResourceType::TimeCrystal,
         "蛆虫工厂" | "腐肉育池" => ResourceType::Maggot,
         "共生培育舱" => ResourceType::Food,
         "神经尖塔" => ResourceType::DarkMatter,
@@ -132,6 +149,97 @@ fn normalize_building_name(building_name: &str) -> String {
         "Woodcutter" | "Lumber Mill" | "Forest Workshop" => "伐木场".to_string(),
         "Stone Quarry" | "Rock Crusher" | "Mason Workshop" => "采石场".to_string(),
         _ => building_name.to_string(),
+    }
+}
+
+fn factory_building(
+    name: &str,
+    cost: f64,
+    production_rate: f64,
+    output_resource: ResourceType,
+) -> Building {
+    Building {
+        name: name.to_string(),
+        cost,
+        production_rate,
+        output_resource,
+        count: 0,
+    }
+}
+
+fn production_input_requirements(resource: ResourceType) -> &'static [(ResourceType, f64)] {
+    match resource {
+        ResourceType::IronIngot => &[(ResourceType::IronOre, 10.0)],
+        ResourceType::CopperIngot => &[(ResourceType::CopperOre, 10.0)],
+        ResourceType::Chemicals => &[(ResourceType::Oil, 4.0), (ResourceType::Coal, 2.0)],
+        ResourceType::SteelPlate => &[(ResourceType::IronOre, 12.0), (ResourceType::Coal, 3.0)],
+        ResourceType::Glass => &[(ResourceType::Stone, 8.0), (ResourceType::Coal, 1.0)],
+        ResourceType::Plastic => &[(ResourceType::Oil, 5.0), (ResourceType::Coal, 1.0)],
+        ResourceType::CircuitBoard => &[
+            (ResourceType::CopperOre, 12.0),
+            (ResourceType::Oil, 2.0),
+            (ResourceType::Crystal, 1.0),
+        ],
+        ResourceType::Motor => &[
+            (ResourceType::IronOre, 8.0),
+            (ResourceType::CopperOre, 4.0),
+            (ResourceType::Coal, 2.0),
+        ],
+        ResourceType::Sensor => &[
+            (ResourceType::Crystal, 3.0),
+            (ResourceType::CopperOre, 6.0),
+            (ResourceType::Oil, 2.0),
+        ],
+        ResourceType::Gear => &[(ResourceType::IronOre, 6.0), (ResourceType::Coal, 2.0)],
+        ResourceType::Battery => &[
+            (ResourceType::Coal, 5.0),
+            (ResourceType::Oil, 3.0),
+            (ResourceType::Crystal, 1.0),
+        ],
+        ResourceType::Generator => &[
+            (ResourceType::IronOre, 16.0),
+            (ResourceType::CopperOre, 10.0),
+            (ResourceType::Coal, 6.0),
+        ],
+        ResourceType::Microchip => &[(ResourceType::Crystal, 2.0), (ResourceType::CircuitBoard, 2.0)],
+        ResourceType::QuantumComputer => &[
+            (ResourceType::Crystal, 5.0),
+            (ResourceType::Microchip, 4.0),
+            (ResourceType::CircuitBoard, 3.0),
+        ],
+        ResourceType::Robot => &[
+            (ResourceType::Crystal, 2.0),
+            (ResourceType::SteelPlate, 4.0),
+            (ResourceType::Motor, 2.0),
+            (ResourceType::Sensor, 2.0),
+        ],
+        ResourceType::Nanobot => &[
+            (ResourceType::Oil, 5.0),
+            (ResourceType::Microchip, 2.0),
+            (ResourceType::Chemicals, 4.0),
+        ],
+        ResourceType::Antimatter => &[
+            (ResourceType::Crystal, 20.0),
+            (ResourceType::QuantumComputer, 3.0),
+            (ResourceType::Chemicals, 10.0),
+        ],
+        ResourceType::TimeCrystal => &[
+            (ResourceType::Crystal, 40.0),
+            (ResourceType::Microchip, 10.0),
+            (ResourceType::QuantumComputer, 2.0),
+        ],
+        ResourceType::DarkMatter => &[
+            (ResourceType::Crystal, 50.0),
+            (ResourceType::Microchip, 6.0),
+            (ResourceType::QuantumComputer, 2.0),
+        ],
+        ResourceType::Spaceship => &[
+            (ResourceType::Crystal, 80.0),
+            (ResourceType::SteelPlate, 20.0),
+            (ResourceType::Microchip, 10.0),
+            (ResourceType::Generator, 4.0),
+        ],
+        _ => &[],
     }
 }
 
@@ -292,7 +400,7 @@ impl IdleGame {
             workers: self.workers.clone(),
             population_queue: self.population_queue.clone(),
             achievements: self.achievements.clone(),
-            crafting_recipes: self.crafting_recipes.clone(),
+            crafting_recipes: vec![],
             unlocked_features: self.unlocked_features.clone(),
             technology_tree: self.technology_tree.clone(),
             last_food_consumption_time: self.last_food_consumption_time,
@@ -332,7 +440,6 @@ impl IdleGame {
         normalize_worker_building_references(&mut self.workers);
         self.population_queue = saved.population_queue;
         self.achievements = saved.achievements;
-        self.crafting_recipes = saved.crafting_recipes;
         self.unlocked_features = saved.unlocked_features;
         self.technology_tree = saved.technology_tree;
         {
@@ -481,8 +588,8 @@ impl IdleGame {
             // Crafting achievements
             Achievement {
                 id: "first_craft".to_string(),
-                name: "第一次制作".to_string(),
-                description: "制作第一个物品".to_string(),
+                name: "第一次加工".to_string(),
+                description: "通过工厂产出第一个加工资源".to_string(),
                 unlocked: false,
                 unlock_timestamp: None,
                 progress: 0.0,
@@ -491,8 +598,8 @@ impl IdleGame {
             },
             Achievement {
                 id: "craft_master_100".to_string(),
-                name: "制作大师".to_string(),
-                description: "制作 100 个物品".to_string(),
+                name: "工业大师".to_string(),
+                description: "通过工厂累计产出 100 个加工资源".to_string(),
                 unlocked: false,
                 unlock_timestamp: None,
                 progress: 0.0,
@@ -554,7 +661,6 @@ impl IdleGame {
                 upgrades_purchased: 0,
             })),
             achievements: achievements,
-            crafting_recipes: CraftingRecipe::get_default_recipes(),
             buildings: vec![
                 // 10 primary resource buildings
                 Building {
@@ -662,6 +768,24 @@ impl IdleGame {
                     output_resource: ResourceType::Spaceship,
                     count: 0,
                 },
+                factory_building("铁锭冶炼厂", 220.0, 0.1, ResourceType::IronIngot),
+                factory_building("铜锭冶炼厂", 240.0, 0.1, ResourceType::CopperIngot),
+                factory_building("化学品厂", 420.0, 0.08, ResourceType::Chemicals),
+                factory_building("钢铁厂", 520.0, 0.06, ResourceType::SteelPlate),
+                factory_building("玻璃厂", 460.0, 0.08, ResourceType::Glass),
+                factory_building("塑料厂", 540.0, 0.08, ResourceType::Plastic),
+                factory_building("电路板厂", 900.0, 0.05, ResourceType::CircuitBoard),
+                factory_building("马达厂", 1200.0, 0.04, ResourceType::Motor),
+                factory_building("传感器厂", 1250.0, 0.04, ResourceType::Sensor),
+                factory_building("齿轮厂", 750.0, 0.06, ResourceType::Gear),
+                factory_building("电池厂", 1500.0, 0.04, ResourceType::Battery),
+                factory_building("发电机厂", 2200.0, 0.03, ResourceType::Generator),
+                factory_building("芯片制造厂", 3200.0, 0.03, ResourceType::Microchip),
+                factory_building("量子计算中心", 9000.0, 0.01, ResourceType::QuantumComputer),
+                factory_building("机器人工厂", 5200.0, 0.02, ResourceType::Robot),
+                factory_building("纳米机器人工厂", 12000.0, 0.01, ResourceType::Nanobot),
+                factory_building("反物质反应堆", 25000.0, 0.005, ResourceType::Antimatter),
+                factory_building("时间水晶合成器", 28000.0, 0.005, ResourceType::TimeCrystal),
             ],
             housing_buildings: vec![
                 Housing::new(
@@ -926,59 +1050,6 @@ impl IdleGame {
         self.update_resources_only();
         Ok(true)
     }
-    pub fn craft_resource(&mut self, recipe_id: &str) -> Result<bool, String> {
-        let recipe = match self.crafting_recipes.iter().find(|r| r.id == recipe_id) {
-            Some(r) => r.clone(),
-            None => return Err(format!("Invalid recipe ID: {}", recipe_id)),
-        };
-
-        if !recipe.unlocked {
-            return Err(format!("Recipe not unlocked: {}", recipe.name));
-        }
-
-        let can_craft = {
-            let state = self.state.borrow();
-            let input_amount = state.get_resource(recipe.input_resource);
-            input_amount + 1e-10 >= recipe.input_amount
-        };
-
-        if !can_craft {
-            return Err(format!(
-                "Insufficient resources: need {} {:?}, have {}",
-                recipe.input_amount,
-                recipe.input_resource,
-                {
-                    let state = self.state.borrow();
-                    state.get_resource(recipe.input_resource)
-                }
-            ));
-        }
-
-        {
-            let mut state = self.state.borrow_mut();
-            let current = state.get_resource(recipe.input_resource);
-            state.set_resource(recipe.input_resource, current - recipe.input_amount);
-        }
-
-        {
-            let mut state = self.state.borrow_mut();
-            let current = state.get_resource(recipe.output_resource);
-            state.set_resource(recipe.output_resource, current + recipe.output_amount);
-        }
-
-        {
-            let mut stats = self.statistics.borrow_mut();
-            stats.total_resources_crafted += 1;
-        }
-
-        self.check_achievement("first_craft");
-        self.check_achievement("craft_master_100");
-
-        self.update_resources_only();
-
-        Ok(true)
-    }
-
     #[wasm_bindgen]
     pub fn get_coins(&self) -> f64 {
         self.state.borrow().get_coins()
@@ -1652,6 +1723,7 @@ impl IdleGame {
             }
         };
 
+        let mut processed_outputs = 0u32;
         {
             let mut state = self.state.borrow_mut();
             let current_coins = state.get_coins();
@@ -1677,7 +1749,49 @@ impl IdleGame {
             for (resource, index) in production_resource_slots() {
                 let gain = production[*index] * elapsed;
                 if gain.is_finite() && gain > 0.0 {
-                    state.add_resource(*resource, gain);
+                    let input_requirements = production_input_requirements(*resource);
+                    if input_requirements.is_empty() {
+                        state.add_resource(*resource, gain);
+                        if matches!(
+                            *resource,
+                            ResourceType::IronIngot
+                                | ResourceType::CopperIngot
+                                | ResourceType::Chemicals
+                                | ResourceType::SteelPlate
+                                | ResourceType::Glass
+                                | ResourceType::Plastic
+                                | ResourceType::CircuitBoard
+                                | ResourceType::Motor
+                                | ResourceType::Sensor
+                                | ResourceType::Gear
+                                | ResourceType::Battery
+                                | ResourceType::Generator
+                                | ResourceType::Microchip
+                                | ResourceType::QuantumComputer
+                                | ResourceType::Robot
+                                | ResourceType::Nanobot
+                                | ResourceType::Antimatter
+                                | ResourceType::TimeCrystal
+                                | ResourceType::DarkMatter
+                                | ResourceType::Spaceship
+                        ) {
+                            processed_outputs += 1;
+                        }
+                        continue;
+                    }
+
+                    let can_produce = input_requirements.iter().all(|(input_resource, amount_per_unit)| {
+                        let required_amount = gain * amount_per_unit;
+                        state.get_resource(*input_resource) + 1e-10 >= required_amount
+                    });
+
+                    if can_produce {
+                        for (input_resource, amount_per_unit) in input_requirements {
+                            state.add_resource(*input_resource, -(gain * amount_per_unit));
+                        }
+                        state.add_resource(*resource, gain);
+                        processed_outputs += 1;
+                    }
                 }
             }
 
@@ -1689,6 +1803,7 @@ impl IdleGame {
             {
                 let mut stats = self.statistics.borrow_mut();
                 stats.play_time_seconds += elapsed;
+                stats.total_resources_crafted += processed_outputs;
             }
 
             // Grant XP to assigned workers based on production
@@ -1895,14 +2010,6 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
-    pub fn get_crafting_recipes(&self) -> JsValue {
-        match serde_wasm_bindgen::to_value(&self.crafting_recipes) {
-            Ok(val) => val,
-            Err(_) => JsValue::NULL,
-        }
-    }
-
-    #[wasm_bindgen]
     pub fn unlock_feature(&mut self, feature_id: &str) -> bool {
         if !self.check_unlock(feature_id) {
             return false;
@@ -2065,7 +2172,6 @@ impl IdleGame {
         self.last_food_consumption_time = fresh_game.last_food_consumption_time;
         self.last_worker_spawn_time = fresh_game.last_worker_spawn_time;
         self.achievements = fresh_game.achievements;
-        self.crafting_recipes = fresh_game.crafting_recipes;
         self.unlocked_features = fresh_game.unlocked_features;
         self.technology_tree = fresh_game.technology_tree;
 

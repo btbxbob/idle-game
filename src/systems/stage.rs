@@ -21,7 +21,31 @@ pub struct RequirementDetails {
 pub fn required_stage_for_building(building_name: &str) -> GameStage {
     match building_name {
         "金币矿山" | "伐木场" | "采石场" => GameStage::Genesis,
-        "铁矿场" | "铜矿场" | "铝矿场" | "煤矿场" | "石油井" | "水晶矿" | "农场" => {
+        "铁矿场"
+        | "铜矿场"
+        | "铝矿场"
+        | "煤矿场"
+        | "石油井"
+        | "水晶矿"
+        | "农场"
+        | "铁锭冶炼厂"
+        | "铜锭冶炼厂"
+        | "化学品厂"
+        | "钢铁厂"
+        | "玻璃厂"
+        | "塑料厂"
+        | "电路板厂"
+        | "马达厂"
+        | "传感器厂"
+        | "齿轮厂"
+        | "电池厂"
+        | "发电机厂"
+        | "芯片制造厂"
+        | "量子计算中心"
+        | "机器人工厂"
+        | "纳米机器人工厂"
+        | "反物质反应堆"
+        | "时间水晶合成器" => {
             GameStage::Workers
         }
         "蛆虫工厂" | "腐肉育池" => GameStage::Maggot,
