@@ -241,106 +241,32 @@ test.describe('Resource Production Complete', () => {
         });
     });
 
-    test('all tier 2 resources have corresponding production recipes', async ({ page }) => {
-        // Navigate to crafting tab to check for tier 2 production recipes
-        await page.click('[data-tab="crafting"]');
-        await page.waitForTimeout(500);
-
-        const tier2Resources = [
-            'IronIngot', 'CopperIngot', 'AluminumIngot', 'SteelPlate', 'CopperPlate',
-            'AluminumPlate', 'Glass', 'Plastic', 'Chemicals', 'Fuel', 'Paper', 'Ink',
-            'Cloth', 'Leather', 'Ceramic', 'Cement', 'Brick', 'Rebar', 'Wire', 'Pipe',
-            'Valve', 'Gear', 'Bearing', 'Spring', 'Screw', 'Nut', 'Washer', 'Pump',
-            'Motor', 'Sensor', 'CircuitBoard', 'Capacitor', 'Resistor', 'Diode',
-            'Transistor', 'Transformer', 'Generator', 'Compressor', 'Battery'
+    test('all tier 2 resources have corresponding factory buildings', async ({ page }) => {
+        const buildings = await page.evaluate(() => window.rustGame.get_buildings());
+        const tier2Factories = [
+            '铁锭冶炼厂', '铜锭冶炼厂', '化学品厂', '钢铁厂', '玻璃厂', '塑料厂',
+            '电路板厂', '马达厂', '传感器厂', '齿轮厂', '电池厂', '发电机厂'
         ];
 
-        const chineseNames = {
-            'IronIngot': '铁锭', 'CopperIngot': '铜锭', 'AluminumIngot': '铝锭',
-            'SteelPlate': '钢板', 'CopperPlate': '铜板', 'AluminumPlate': '铝板',
-            'Glass': '玻璃', 'Plastic': '塑料', 'Chemicals': '化学品', 'Fuel': '燃料',
-            'Paper': '纸张', 'Ink': '墨水', 'Cloth': '布料', 'Leather': '皮革',
-            'Ceramic': '陶瓷', 'Cement': '水泥', 'Brick': '砖块', 'Rebar': '钢筋',
-            'Wire': '电线', 'Pipe': '管道', 'Valve': '阀门', 'Gear': '齿轮',
-            'Bearing': '轴承', 'Spring': '弹簧', 'Screw': '螺丝', 'Nut': '螺母',
-            'Washer': '垫片', 'Pump': '泵', 'Motor': '马达', 'Sensor': '传感器',
-            'CircuitBoard': '电路板', 'Capacitor': '电容器', 'Resistor': '电阻器',
-            'Diode': '二极管', 'Transistor': '晶体管', 'Transformer': '变压器',
-            'Generator': '发电机', 'Compressor': '压缩机', 'Battery': '电池'
-        };
-
-        // Get all crafting recipe buttons
-        const craftButtons = page.locator('.craft-button');
-        const count = await craftButtons.count();
-
-        let foundRecipes = 0;
-        for (let i = 0; i < count; i++) {
-            const button = craftButtons.nth(i);
-            const buttonText = await button.textContent();
-            
-            for (const resource of tier2Resources) {
-                const chineseName = chineseNames[resource];
-                if (buttonText && buttonText.includes(chineseName)) {
-                    foundRecipes++;
-                    console.log(`Found recipe for ${resource} (${chineseName})`);
-                    break;
-                }
-            }
-        }
-
-        console.log(`Found ${foundRecipes}/${tier2Resources.length} tier 2 crafting recipes`);
-        
-        // Test passes if we find at least one recipe (recipe system works)
-        // or if crafting tab loaded (recipes may be displayed differently)
-        expect(foundRecipes).toBeGreaterThanOrEqual(0);
+        const names = buildings.map((building) => building.name);
+        expect(names).toEqual(expect.arrayContaining(tier2Factories));
 
         await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-tier2-recipes.png'
+            path: '.sisyphus/evidence/resource-production-tier2-factories.png'
         });
     });
 
-    test('all tier 3 resources have corresponding production recipes', async ({ page }) => {
-        // Navigate to crafting tab to check for tier 3 production recipes
-        await page.click('[data-tab="crafting"]');
-        await page.waitForTimeout(500);
-
-        const tier3Resources = [
-            'Microchip', 'Engine', 'Robot', 'Satellite', 'Spaceship', 'QuantumComputer',
-            'Antimatter', 'DarkMatter', 'TimeCrystal', 'Nanobot'
+    test('all tier 3 resources have corresponding factory buildings', async ({ page }) => {
+        const buildings = await page.evaluate(() => window.rustGame.get_buildings());
+        const tier3Factories = [
+            '芯片制造厂', '量子计算中心', '机器人工厂', '纳米机器人工厂', '反物质反应堆', '时间水晶合成器'
         ];
 
-        const chineseNames = {
-            'Microchip': '芯片', 'Engine': '引擎', 'Robot': '机器人', 'Satellite': '卫星',
-            'Spaceship': '太空船', 'QuantumComputer': '量子计算机', 'Antimatter': '反物质',
-            'DarkMatter': '暗物质', 'TimeCrystal': '时间水晶', 'Nanobot': '纳米机器'
-        };
-
-        // Get all crafting recipe buttons
-        const craftButtons = page.locator('.craft-button');
-        const count = await craftButtons.count();
-
-        let foundRecipes = 0;
-        for (let i = 0; i < count; i++) {
-            const button = craftButtons.nth(i);
-            const buttonText = await button.textContent();
-            
-            for (const resource of tier3Resources) {
-                const chineseName = chineseNames[resource];
-                if (buttonText && buttonText.includes(chineseName)) {
-                    foundRecipes++;
-                    console.log(`Found recipe for ${resource} (${chineseName})`);
-                    break;
-                }
-            }
-        }
-
-        console.log(`Found ${foundRecipes}/${tier3Resources.length} tier 3 crafting recipes`);
-        
-        // Test passes if we find at least one recipe or if crafting tab loaded
-        expect(foundRecipes).toBeGreaterThanOrEqual(0);
+        const names = buildings.map((building) => building.name);
+        expect(names).toEqual(expect.arrayContaining(tier3Factories));
 
         await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-tier3-recipes.png'
+            path: '.sisyphus/evidence/resource-production-tier3-factories.png'
         });
     });
 
@@ -493,93 +419,20 @@ test.describe('Resource Production Complete', () => {
         });
     });
 
-    test('crafting produces resources as alternative production method', async ({ page }) => {
-        // Navigate to crafting tab
-        await page.click('[data-tab="crafting"]');
-        await page.waitForTimeout(500);
+    test('factory production remains the alternative production method', async ({ page }) => {
+        const craftingButton = page.locator('button[data-tab="crafting"]');
+        await expect(craftingButton).toHaveCount(0);
 
-        // Get crafting recipes
-        const recipes = await page.evaluate(() => {
-            if (window.rustGame && window.rustGame.get_crafting_recipes) {
-                return window.rustGame.get_crafting_recipes();
-            }
-            return [];
-        });
+        const buildings = await page.evaluate(() => window.rustGame.get_buildings());
+        const factoryCount = buildings.filter((building) => {
+            const name = building.name || '';
+            return name.includes('厂') || name.includes('中心') || name.includes('反应堆') || name.includes('合成器');
+        }).length;
 
-        console.log(`Total crafting recipes: ${recipes.length}`);
-        expect(Array.isArray(recipes)).toBe(true);
-
-        // Each recipe should have input and output resources
-        for (const recipe of recipes) {
-            expect(recipe).toHaveProperty('input_resource');
-            expect(recipe).toHaveProperty('output_resource');
-            expect(recipe).toHaveProperty('input_amount');
-            expect(recipe).toHaveProperty('output_amount');
-        }
-
-        // Click to earn coins for crafting
-        await page.click('[data-tab="resources"]');
-        for (let i = 0; i < 100; i++) {
-            await page.click('#coin-button');
-        }
-        await page.waitForTimeout(500);
-
-        await page.click('[data-tab="crafting"]');
-        await page.waitForTimeout(500);
-
-        // Get initial resources
-        const initialResources = await page.evaluate(() => {
-            if (window.rustGame && window.rustGame.get_resources) {
-                return window.rustGame.get_resources();
-            }
-            return {};
-        });
-
-        // Try to craft if we have enough resources
-        if (recipes.length > 0) {
-            const firstRecipe = recipes[0];
-            const inputResource = firstRecipe.input_resource;
-            const inputAmount = firstRecipe.input_amount;
-            
-            const availableAmount = initialResources[inputResource] || 0;
-            
-            if (availableAmount >= inputAmount) {
-                // Find and click craft button
-                const craftButtons = page.locator('.craft-button');
-                const count = await craftButtons.count();
-                
-                if (count > 0) {
-                    const firstBtn = craftButtons.first();
-                    const disabled = await firstBtn.evaluate(el => el.disabled);
-                    if (!disabled) {
-                        await firstBtn.click();
-                    }
-                    await page.waitForTimeout(500);
-
-                    // Confirm craft
-                    const confirmButton = page.locator('.craft-confirm-btn, button:has-text("确认"), button:has-text("Confirm")');
-                    if (await confirmButton.isVisible().catch(() => false)) {
-                        await confirmButton.click();
-                        await page.waitForTimeout(500);
-
-                        // Verify resources changed
-                        const afterResources = await page.evaluate(() => {
-                            if (window.rustGame && window.rustGame.get_resources) {
-                                return window.rustGame.get_resources();
-                            }
-                            return {};
-                        });
-
-                        console.log(`Crafting test - resources accessible: ${Object.keys(afterResources).length}`);
-                    }
-                }
-            }
-        }
-
-        console.log('Crafting production method verified');
+        expect(factoryCount).toBeGreaterThan(0);
 
         await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-crafting-method.png'
+            path: '.sisyphus/evidence/resource-production-factory-method.png'
         });
     });
 
