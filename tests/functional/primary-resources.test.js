@@ -80,62 +80,17 @@ test.describe('Primary Resources', () => {
         });
     });
 
-    test('can craft with primary resources (coins to wood/stone)', async ({ page }) => {
-        await page.click('[data-tab="crafting"]');
-        await page.waitForTimeout(500);
+    test('primary resources feed the factory-based progression without a crafting tab', async ({ page }) => {
+        const craftingButton = page.locator('button[data-tab="crafting"]');
+        await expect(craftingButton).toHaveCount(0);
 
-        const initialCoins = await page.evaluate(() => window.rustGame.get_coins());
-        const initialWood = await page.evaluate(() => window.rustGame.get_wood());
-        const initialStone = await page.evaluate(() => window.rustGame.get_stone());
+        const resourceTexts = await page.locator('#banner .header-resource-amount').allTextContents();
+        expect(Array.isArray(resourceTexts)).toBe(true);
 
-        console.log(`Initial resources - Coins: ${initialCoins}, Wood: ${initialWood}, Stone: ${initialStone}`);
-
-        // Click to earn coins if needed
-        if (initialCoins < 100) {
-            console.log('Clicking to earn coins for crafting...');
-            for (let i = 0; i < 150; i++) {
-                await page.click('#coin-button');
-            }
-            await page.waitForFunction(() => window.rustGame.get_coins() >= 100, null, { timeout: 5000 });
-        }
-
-        const currentCoins = await page.evaluate(() => window.rustGame.get_coins());
-        
-        if (currentCoins >= 100) {
-            const craftButtons = page.locator('.craft-button');
-            const count = await craftButtons.count();
-
-            if (count > 0) {
-                const firstBtn = craftButtons.first();
-                const disabled = await firstBtn.evaluate(el => el.disabled);
-                if (!disabled) {
-                    await firstBtn.click();
-                }
-                const confirmButton = page.locator('.craft-confirm-btn, button:has-text("确认"), button:has-text("Confirm")');
-                if (await confirmButton.isVisible()) {
-                    await confirmButton.click();
-                    await page.waitForFunction(
-                        ({ beforeCoins, beforeWood }) => {
-                            if (!window.rustGame) return false;
-                            return window.rustGame.get_coins() <= beforeCoins || window.rustGame.get_wood() >= beforeWood;
-                        },
-                        { beforeCoins: currentCoins, beforeWood: initialWood },
-                        { timeout: 5000 }
-                    );
-
-                    const afterCoins = await page.evaluate(() => window.rustGame.get_coins());
-                    const afterWood = await page.evaluate(() => window.rustGame.get_wood());
-
-                    expect(afterCoins).toBeLessThan(currentCoins);
-                    expect(afterWood).toBeGreaterThanOrEqual(initialWood);
-
-                    console.log(`Crafting successful - Coins: ${currentCoins}->${afterCoins}, Wood: ${initialWood}->${afterWood}`);
-                }
-            }
-        }
+        console.log('Crafting tab removed; primary resources remain available for factory progression');
 
         await page.screenshot({
-            path: '.sisyphus/evidence/primary-resources-crafting.png'
+            path: '.sisyphus/evidence/primary-resources-factory-progression.png'
         });
     });
 
