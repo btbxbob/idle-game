@@ -1,88 +1,43 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function clickCoins(page, count) {
+    const clickArea = page.locator('#coin-button');
+    for (let i = 0; i < count; i++) {
+        await clickArea.click();
+    }
+}
+
+async function unlockNotification(page, count = 10) {
+    await clickCoins(page, count);
+    const notification = page.locator('#achievement-notification');
+    await expect(notification).toBeVisible();
+    return notification;
+}
+
+async function waitForNotificationHidden(page) {
+    await page.waitForFunction(() => {
+        const el = document.getElementById('achievement-notification');
+        if (!el) return true;
+        const style = getComputedStyle(el);
+        return el.classList.contains('hide') || style.display === 'none' || style.opacity === '0';
+    }, null, { timeout: 10000 });
+}
+
 test.describe('Achievement Notification System', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080');
         await page.waitForFunction(() => window.gameInitialized === true);
     });
 
-    test('notification appears when achievement unlocks', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const notification = page.locator('#achievement-notification');
-        await expect(notification).toBeVisible();
+    test('notification renders expected structure, styles, and animation when achievement unlocks', async ({ page }) => {
+        const notification = await unlockNotification(page);
 
         await expect(notification.locator('.notification-title')).toBeVisible();
         await expect(notification.locator('.notification-name')).toBeVisible();
         await expect(notification.locator('.notification-description')).toBeVisible();
-    });
 
-    test('notification auto-dismisses after 5 seconds', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const notification = page.locator('#achievement-notification');
-        const exists = await notification.count();
-        if (exists === 0) {
-            test.skip(true, 'Notification may already be dismissed in current timing model.');
-        }
-        await expect(notification).toBeVisible();
-
-        await page.waitForFunction(() => {
-            const el = document.getElementById('achievement-notification');
-            if (!el) return true;
-            const style = getComputedStyle(el);
-            return el.classList.contains('hide') || style.display === 'none' || style.opacity === '0';
-        }, null, { timeout: 10000 });
-    });
-
-    test('notification uses i18n for title', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const title = page.locator('#achievement-notification .notification-title');
-        await expect(title).toContainText('成就解锁');
-
-        await page.click('button[data-tab="settings"]');
-        const languageSelect = page.locator('#language-select-setting');
-        await languageSelect.selectOption('en');
-        await expect(languageSelect).toHaveValue('en');
-
-        for (let i = 0; i < 90; i++) {
-            await clickArea.click();
-        }
-        const enTitle = page.locator('#achievement-notification .notification-title');
-        await expect(enTitle).toBeVisible();
-        await expect(enTitle).toContainText('Achievement Unlocked');
-    });
-
-    test('notification has slide-in animation class', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const notification = page.locator('#achievement-notification');
-        await expect(notification).toBeVisible();
         const hasShowClass = await notification.evaluate(el => el.classList.contains('show'));
         expect(hasShowClass).toBe(true);
-    });
-
-    test('notification CSS styles are applied', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const notification = page.locator('#achievement-notification');
-        await expect(notification).toBeVisible();
         
         const position = await notification.evaluate(el => getComputedStyle(el).position);
         expect(position).toBe('fixed');
@@ -92,16 +47,7 @@ test.describe('Achievement Notification System', () => {
 
         const zIndex = await notification.evaluate(el => getComputedStyle(el).zIndex);
         expect(parseInt(zIndex)).toBeGreaterThanOrEqual(1000);
-    });
 
-    test('notification content structure is correct', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const notification = page.locator('#achievement-notification');
-        await expect(notification).toBeVisible();
         const content = notification.locator('.notification-content');
         await expect(content).toBeVisible();
 
@@ -114,41 +60,50 @@ test.describe('Achievement Notification System', () => {
         await expect(text).toBeVisible();
     });
 
-    test('multiple achievements queue properly', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 100; i++) {
-            await clickArea.click();
+    test('notification auto-dismisses and leaves hidden state after timeout', async ({ page }) => {
+        const notification = await unlockNotification(page);
+        const exists = await notification.count();
+        if (exists === 0) {
+            test.skip(true, 'Notification may already be dismissed in current timing model.');
         }
+
+        await waitForNotificationHidden(page);
+
+        const remaining = await notification.count();
+        if (remaining > 0) {
+            const hiddenOrGone = await notification.evaluate(el =>
+                el.classList.contains('hide') || getComputedStyle(el).display === 'none' || getComputedStyle(el).opacity === '0'
+            );
+            expect(hiddenOrGone).toBe(true);
+        } else {
+            expect(remaining).toBe(0);
+        }
+    });
+
+    test('notification uses i18n for title', async ({ page }) => {
+        await unlockNotification(page);
+
+        const title = page.locator('#achievement-notification .notification-title');
+        await expect(title).toContainText('成就解锁');
+
+        await page.click('button[data-tab="settings"]');
+        const languageSelect = page.locator('#language-select-setting');
+        await languageSelect.selectOption('en');
+        await expect(languageSelect).toHaveValue('en');
+
+        await clickCoins(page, 90);
+        const enTitle = page.locator('#achievement-notification .notification-title');
+        await expect(enTitle).toBeVisible();
+        await expect(enTitle).toContainText('Achievement Unlocked');
+    });
+
+    test('multiple achievements queue properly', async ({ page }) => {
+        await clickCoins(page, 100);
 
         const notifications = page.locator('#achievement-notification');
         await expect(notifications).toBeVisible();
 
         const count = await notifications.count();
         expect(count).toBe(1);
-    });
-
-    test('notification hide class added on dismiss', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const notification = page.locator('#achievement-notification');
-        await expect(notification).toBeVisible();
-        await page.waitForFunction(() => {
-            const el = document.getElementById('achievement-notification');
-            if (!el) return true;
-            const style = getComputedStyle(el);
-            return el.classList.contains('hide') || style.display === 'none' || style.opacity === '0';
-        }, null, { timeout: 10000 });
-        const exists = await notification.count();
-        if (exists > 0) {
-            const hiddenOrGone = await notification.evaluate(el =>
-                el.classList.contains('hide') || getComputedStyle(el).display === 'none' || getComputedStyle(el).opacity === '0'
-            );
-            expect(hiddenOrGone).toBe(true);
-        } else {
-            expect(exists).toBe(0);
-        }
     });
 });
