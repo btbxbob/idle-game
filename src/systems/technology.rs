@@ -502,7 +502,7 @@ impl TechnologyTree {
                 costs(&[
                     (ResourceType::Gold, 600.0),
                     (ResourceType::Wood, 300.0),
-                    (ResourceType::IronIngot, 50.0),
+                    (ResourceType::Food, 200.0),
                 ]),
                 vec![TechnologyId::BasicAgriculture],
                 TechnologyEffect::ProductionBonus(ResourceType::Food, 0.25),
@@ -517,7 +517,7 @@ impl TechnologyTree {
                 TechnologyId::BasicRefining,
                 costs(&[
                     (ResourceType::Gold, 300.0),
-                    (ResourceType::IronIngot, 100.0),
+                    (ResourceType::IronOre, 120.0),
                     (ResourceType::Coal, 150.0),
                 ]),
                 vec![TechnologyId::BasicSmelting],
@@ -532,8 +532,8 @@ impl TechnologyTree {
                 TechnologyId::AdvancedRefining,
                 costs(&[
                     (ResourceType::Gold, 1000.0),
-                    (ResourceType::IronIngot, 200.0),
-                    (ResourceType::CopperIngot, 100.0),
+                    (ResourceType::IronOre, 250.0),
+                    (ResourceType::CopperOre, 150.0),
                     (ResourceType::Oil, 100.0),
                 ]),
                 vec![TechnologyId::BasicRefining, TechnologyId::AdvancedSmelting],
@@ -565,7 +565,8 @@ impl TechnologyTree {
                 costs(&[
                     (ResourceType::Gold, 1200.0),
                     (ResourceType::Oil, 300.0),
-                    (ResourceType::Chemicals, 200.0),
+                    (ResourceType::Coal, 250.0),
+                    (ResourceType::Crystal, 50.0),
                 ]),
                 vec![TechnologyId::BasicChemistry, TechnologyId::AdvancedRefining],
                 TechnologyEffect::ProductionBonus(ResourceType::Chemicals, 0.35),
@@ -582,7 +583,7 @@ impl TechnologyTree {
                     (ResourceType::Gold, 500.0),
                     (ResourceType::Wood, 200.0),
                     (ResourceType::Stone, 200.0),
-                    (ResourceType::IronIngot, 100.0),
+                    (ResourceType::IronOre, 150.0),
                 ]),
                 vec![
                     TechnologyId::BasicMining,
