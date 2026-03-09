@@ -24,8 +24,7 @@ test('new tabs structure verification', async ({ page }) => {
   expect(await achievementsButton.textContent()).toBe('成就');
   
   const craftingButton = await page.locator('button[data-tab="crafting"]');
-  await expect(craftingButton).toBeVisible();
-  expect(await craftingButton.textContent()).toBe('合成');
+  await expect(craftingButton).toHaveCount(0);
   
   const unlocksButton = await page.locator('button[data-tab="unlocks"]');
   await expect(unlocksButton).toBeVisible();
@@ -34,7 +33,7 @@ test('new tabs structure verification', async ({ page }) => {
   // Verify all tab content divs exist
   const tabContents = await page.locator('.tab-content').count();
   console.log(`Total tab content divs: ${tabContents}`);
-  expect(tabContents).toBeGreaterThanOrEqual(12);
+  expect(tabContents).toBe(11);
   
   // Verify specific new tab content divs exist (they exist but are hidden when not active)
   const statisticsTab = await page.locator('#tab-statistics');
@@ -44,7 +43,7 @@ test('new tabs structure verification', async ({ page }) => {
   await expect(achievementsTab).toHaveCount(1);
   
   const craftingTab = await page.locator('#tab-crafting');
-  await expect(craftingTab).toHaveCount(1);
+  await expect(craftingTab).toHaveCount(0);
   
   const unlocksTab = await page.locator('#tab-unlocks');
   await expect(unlocksTab).toHaveCount(1);
@@ -63,12 +62,6 @@ test('new tabs structure verification', async ({ page }) => {
   await page.waitForTimeout(200);
   const activeTabAfterAchievements = await page.locator('.tab-button.active').textContent();
   expect(activeTabAfterAchievements).toBe('成就');
-  
-  console.log('Testing crafting tab switching...');
-  await craftingButton.click();
-  await page.waitForTimeout(200);
-  const activeTabAfterCrafting = await page.locator('.tab-button.active').textContent();
-  expect(activeTabAfterCrafting).toBe('合成');
   
   console.log('Testing unlocks tab switching...');
   await unlocksButton.click();
