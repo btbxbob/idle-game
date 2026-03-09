@@ -4,20 +4,7 @@ class ResourceManager {
         this.i18n = i18n;
         this.currentCategory = 'primary';
         this.resourceKeys = this.getAllResourceKeys();
-        this.headerResourceConfigs = [
-            { key: 'coins', icon: '🪙', amountId: 'coins', rateId: 'cps' },
-            { key: 'wood', icon: '🪵', amountId: 'wood', rateId: 'wps' },
-            { key: 'stone', icon: '🪨', amountId: 'stone', rateId: 'sps' },
-            { key: 'ironOre', icon: '⛏️', amountId: 'iron-ore' },
-            { key: 'copperOre', icon: '🔶', amountId: 'copper-ore' },
-            { key: 'aluminumOre', icon: '⚪', amountId: 'aluminum-ore' },
-            { key: 'coal', icon: '⚫', amountId: 'coal' },
-            { key: 'oil', icon: '🛢️', amountId: 'oil' },
-            { key: 'crystal', icon: '💎', amountId: 'crystal' },
-            { key: 'food', icon: '🍞', amountId: 'food' },
-            { key: 'maggot', icon: '🪱', amountId: 'maggot' },
-            { key: 'corpse', icon: '🦴', amountId: 'corpse' }
-        ];
+        this.bannerResourceKeys = [...this.resourceKeys, 'maggot', 'corpse'];
     }
 
     getAllResourceKeys() {
@@ -162,6 +149,9 @@ class ResourceManager {
         const camelCaseKey = key.charAt(0).toLowerCase() + key.slice(1);
         if (resources[camelCaseKey] !== undefined) return resources[camelCaseKey];
 
+        const pascalCaseKey = key.charAt(0).toUpperCase() + key.slice(1);
+        if (resources[pascalCaseKey] !== undefined) return resources[pascalCaseKey];
+
         const rustMap = {
             'coins': 'Gold', 'wood': 'Wood', 'stone': 'Stone',
             'ironOre': 'IronOre', 'copperOre': 'CopperOre', 'aluminumOre': 'AluminumOre',
@@ -175,33 +165,32 @@ class ResourceManager {
     updateHeaderDisplay(resources) {
         this.ensureHeaderCards();
 
-        this.headerResourceConfigs.forEach((config) => {
-            const amountElement = document.getElementById(config.amountId);
+        this.bannerResourceKeys.forEach((resourceKey) => {
+            const amountElement = document.getElementById(`banner-${resourceKey}`);
             if (!amountElement) return;
 
-            const amount = this.getResourceAmount(resources, config.key);
-            const resourceName = this.i18n ? this.i18n.t(config.key) : config.key;
+            const amount = this.getResourceAmount(resources, resourceKey);
+            const resourceName = this.i18n ? this.i18n.t(resourceKey) : resourceKey;
             amountElement.textContent = `${resourceName}: ${Math.floor(amount).toLocaleString()}`;
 
-            const rateElementId = config.rateId || `${config.amountId}-rate`;
-            const rateElement = document.getElementById(rateElementId);
+            const rateElement = document.getElementById(`banner-${resourceKey}-rate`);
             const cardElement = amountElement.closest('.header-resource-card');
-            const rate = this.getResourceRate(resources, config.key);
+            const rate = this.getResourceRate(resources, resourceKey);
 
             if (rateElement) {
-                rateElement.textContent = `${rate >= 0 ? '+' : ''}${rate.toFixed(1)}/s`;
+                if (rate !== 0) {
+                    rateElement.textContent = `${rate >= 0 ? '+' : ''}${rate.toFixed(1)}/s`;
+                    rateElement.style.display = 'block';
+                } else {
+                    rateElement.textContent = '';
+                    rateElement.style.display = 'none';
+                }
             }
 
             if (cardElement) {
-                cardElement.style.display = rate > 0 && this.isResourceRevealed(config.key) ? 'grid' : 'none';
+                cardElement.style.display = amount !== 0 && this.isResourceRevealed(resourceKey) ? 'grid' : 'none';
             }
         });
-
-        const cpcElement = document.getElementById('cpc');
-        if (cpcElement) {
-            const coinsPerClick = resources.coinsPerClick || resources.CoinsPerClick || 0;
-            cpcElement.textContent = `+${coinsPerClick.toFixed(1)}/click`;
-        }
     }
 
     getResourceRate(resources, key) {
@@ -231,28 +220,18 @@ class ResourceManager {
             return;
         }
 
-        this.headerResourceConfigs.forEach((config) => {
+        this.bannerResourceKeys.forEach((resourceKey) => {
             const card = document.createElement('div');
             card.className = 'resource-item header-resource-card';
             card.innerHTML = `
                 <div class="header-resource-text">
-                    <span id="${config.amountId}" class="header-resource-amount">0</span>
-                    <span id="${config.rateId || `${config.amountId}-rate`}" class="header-resource-rate">+0.0/s</span>
+                    <span id="banner-${resourceKey}" class="header-resource-amount">0</span>
+                    <span id="banner-${resourceKey}-rate" class="header-resource-rate">+0.0/s</span>
                 </div>
             `;
 
             container.appendChild(card);
         });
-
-        const clickCard = document.createElement('div');
-        clickCard.className = 'resource-item header-resource-card header-click-card';
-        clickCard.innerHTML = `
-            <div class="header-resource-text">
-                <span class="header-resource-amount">点击收益</span>
-                <span id="cpc" class="header-resource-rate">+1.0/click</span>
-            </div>
-        `;
-        container.appendChild(clickCard);
     }
 
     renderToPanel(panelId) {

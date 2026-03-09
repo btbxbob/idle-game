@@ -108,7 +108,7 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
             const perSecondText = window.i18n ? window.i18n.t('perSecond') : '/sec';
             const productionRate = building.production_rate || building.productionRate || 0;
             const clickBonus = building.name === '金币矿山' ? Math.floor(building.count || 0) : 0;
-            const resourceName = getResourceNameForBuilding(building.name);
+            const resourceName = getResourceNameForBuilding(building);
             const realIndex = Number.isInteger(building.index) ? building.index : index;
 
             let sufficientFunds = true;
@@ -140,7 +140,16 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
 };
 
 // Helper function to get resource name for building
-function getResourceNameForBuilding(buildingName) {
+function getResourceNameForBuilding(building) {
+    const outputResource = building && typeof building === 'object'
+        ? (building.output_resource || building.outputResource || null)
+        : null;
+    if (outputResource) {
+        const resourceKey = outputResource.charAt(0).toLowerCase() + outputResource.slice(1);
+        return window.i18n ? window.i18n.t(resourceKey) : resourceKey;
+    }
+
+    const buildingName = typeof building === 'string' ? building : building?.name;
     const buildingResourceMap = {
         '金币矿山': 'coins',
         'Coin Mine': 'coins',
@@ -161,6 +170,24 @@ function getResourceNameForBuilding(buildingName) {
         '石油井': 'oil',
         '水晶矿': 'crystal',
         '农场': 'food',
+        '铁锭冶炼厂': 'ironIngot',
+        '铜锭冶炼厂': 'copperIngot',
+        '化学品厂': 'chemicals',
+        '钢铁厂': 'steelPlate',
+        '玻璃厂': 'glass',
+        '塑料厂': 'plastic',
+        '电路板厂': 'circuitBoard',
+        '马达厂': 'motor',
+        '传感器厂': 'sensor',
+        '齿轮厂': 'gear',
+        '电池厂': 'battery',
+        '发电机厂': 'generator',
+        '芯片制造厂': 'microchip',
+        '量子计算中心': 'quantumComputer',
+        '机器人工厂': 'robot',
+        '纳米机器人工厂': 'nanobot',
+        '反物质反应堆': 'antimatter',
+        '时间水晶合成器': 'timeCrystal',
         '蛆虫工厂': 'maggot',
         '腐肉育池': 'maggot',
         '共生培育舱': 'food',
