@@ -42,7 +42,7 @@ class UnlockManager {
         const visibleTabs = new Set(['resources', 'buildings', 'unlocks', 'settings']);
 
         if (stageId !== 'stage_genesis') {
-            ['workers', 'technology', 'work', 'housing', 'lifecycle', 'statistics', 'achievements', 'crafting'].forEach((tab) => {
+            ['workers', 'technology', 'work', 'housing', 'lifecycle', 'statistics', 'achievements'].forEach((tab) => {
                 visibleTabs.add(tab);
             });
         }

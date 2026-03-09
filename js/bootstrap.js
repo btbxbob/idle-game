@@ -98,10 +98,6 @@ async function initWasm() {
             window.statisticsManager = new window.StatisticsManager(game);
         }
         
-        if (window.CraftingManager) {
-            window.craftingManager = new window.CraftingManager(game);
-        }
-        
         if (window.AchievementManager) {
             window.achievementManager = new window.AchievementManager(game);
         }
@@ -169,9 +165,6 @@ function startGameLoop(game) {
         }
         if (window.updateUnlocksPanel) {
             window.updateUnlocksPanel();
-        }
-        if (window.updateCraftingPanel) {
-            window.updateCraftingPanel();
         }
         if (window.updateAchievementsPanel) {
             window.updateAchievementsPanel();

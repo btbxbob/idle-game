@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="使用 Rust 和 WebAssembly 构建的闲置游戏">
-    <meta name="app-version" content="0.6.5">
+    <meta name="app-version" content="0.6.6">
     <title>Rust WASM 闲置游戏</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23f4efe3'/%3E%3Ccircle cx='32' cy='32' r='20' fill='%23d4a72c' stroke='%23352510' stroke-width='4'/%3E%3Cpath d='M22 32h20' stroke='%23352510' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M32 22v20' stroke='%23352510' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-    <link rel="stylesheet" href="css/style.css?v=0.6.5">
-    <link rel="stylesheet" href="css/ascii-style.css?v=0.6.5">
+    <link rel="stylesheet" href="css/style.css?v=0.6.6">
+    <link rel="stylesheet" href="css/ascii-style.css?v=0.6.6">
 </head>
 <body>
     <div id="game-container">
@@ -37,7 +37,6 @@
             <button type="button" class="tab-button" data-tab="lifecycle">生命周期</button>
             <button type="button" class="tab-button" data-tab="statistics">统计</button>
             <button type="button" class="tab-button" data-tab="achievements">成就</button>
-            <button type="button" class="tab-button" data-tab="crafting">合成</button>
             <button type="button" class="tab-button" data-tab="unlocks">解锁</button>
             <button type="button" class="tab-button" data-tab="settings">设置</button>
         </div>
@@ -221,15 +220,6 @@
                 </div>
             </div>
             
-            <!-- Crafting Tab -->
-            <div id="tab-crafting" class="tab-content">
-                <div id="crafting">
-                    <div id="crafting-list">
-                        <p id="crafting-placeholder">合成系统将在未来版本中实现</p>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Unlocks Tab -->
             <div id="tab-unlocks" class="tab-content">
                 <div id="unlocks">
@@ -258,7 +248,7 @@
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label>游戏版本：v0.6.5</label>
+                            <label>游戏版本：v0.6.6</label>
                         </div>
                         <div class="setting-item">
                             <button type="button" id="reset-game">重置游戏</button>
@@ -292,20 +282,19 @@
     </div>
     
     <!-- 注意：在构建后此脚本将被替换为实际的 WASM 绑定 -->
-    <script src="js/i18n.js?v=0.6.5"></script>
-    <script src="js/game.js?v=0.6.5"></script>
-    <script src="js/statistics.js?v=0.6.5"></script>
-    <script src="js/crafting.js?v=0.6.5"></script>
-    <script src="js/achievements.js?v=0.6.5"></script>
-    <script src="js/unlocks.js?v=0.6.5"></script>
-    <script src="js/workers.js?v=0.6.5"></script>
-    <script src="js/resource-manager.js?v=0.6.5"></script>
-    <script src="js/technology-manager.js?v=0.6.5"></script>
-    <script src="js/housing-manager.js?v=0.6.5"></script>
-    <script src="js/population-manager.js?v=0.6.5"></script>
-    <script src="js/work-overview-manager.js?v=0.6.5"></script>
-    <script src="js/lifecycle-manager.js?v=0.6.5"></script>
-    <script src="js/bootstrap.js?v=0.6.5"></script>
+    <script src="js/i18n.js?v=0.6.6"></script>
+    <script src="js/game.js?v=0.6.6"></script>
+    <script src="js/statistics.js?v=0.6.6"></script>
+    <script src="js/achievements.js?v=0.6.6"></script>
+    <script src="js/unlocks.js?v=0.6.6"></script>
+    <script src="js/workers.js?v=0.6.6"></script>
+    <script src="js/resource-manager.js?v=0.6.6"></script>
+    <script src="js/technology-manager.js?v=0.6.6"></script>
+    <script src="js/housing-manager.js?v=0.6.6"></script>
+    <script src="js/population-manager.js?v=0.6.6"></script>
+    <script src="js/work-overview-manager.js?v=0.6.6"></script>
+    <script src="js/lifecycle-manager.js?v=0.6.6"></script>
+    <script src="js/bootstrap.js?v=0.6.6"></script>
     
     <!-- Tab navigation and settings script -->
     <script>
