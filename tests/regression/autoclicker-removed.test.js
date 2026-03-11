@@ -1,5 +1,14 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function getCoins(page) {
+  return page.evaluate(() => {
+    if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
+      return window.rustGame.get_coins();
+    }
+    return parseFloat(document.getElementById('coin-count')?.textContent || '0') || 0;
+  });
+}
+
 test('autoclicker completely removed from codebase', async ({ page }) => {
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
@@ -36,8 +45,7 @@ test('verify no passive auto-income from autoclicker', async ({ page }) => {
   await page.waitForFunction(() => window.gameInitialized === true);
   await page.waitForTimeout(500);
 
-  const initialCoins = await page.textContent('#coins');
-  const initialCoinsValue = parseFloat(initialCoins.split(': ')[1]) || 0;
+  const initialCoinsValue = await getCoins(page);
 
   for (let i = 0; i < 5; i++) {
     await page.click('#coin-button');
@@ -45,15 +53,13 @@ test('verify no passive auto-income from autoclicker', async ({ page }) => {
 
   await page.waitForTimeout(300);
 
-  const coinsAfterClicks = await page.textContent('#coins');
-  const coinsAfterClicksValue = parseFloat(coinsAfterClicks.split(': ')[1]) || 0;
+  const coinsAfterClicksValue = await getCoins(page);
 
   expect(coinsAfterClicksValue).toBeGreaterThan(initialCoinsValue);
 
   await page.waitForTimeout(2000);
 
-  const coinsAfterWait = await page.textContent('#coins');
-  const coinsAfterWaitValue = parseFloat(coinsAfterWait.split(': ')[1]) || 0;
+  const coinsAfterWaitValue = await getCoins(page);
 
-  expect(coinsAfterWaitValue).toBe(coinsAfterWaitValue);
+  expect(coinsAfterWaitValue).toBe(coinsAfterClicksValue);
 });

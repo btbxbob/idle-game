@@ -1,5 +1,14 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function getCoins(page) {
+  return page.evaluate(() => {
+    if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
+      return window.rustGame.get_coins();
+    }
+    return parseFloat(document.getElementById('coin-count')?.textContent || '0') || 0;
+  });
+}
+
 test('click should work after failed purchase', async ({ page }) => {
   // Navigate to the game
   await page.goto('http://localhost:8080');
@@ -8,8 +17,7 @@ test('click should work after failed purchase', async ({ page }) => {
   await page.waitForFunction(() => window.gameInitialized === true);
   
   // Get initial coins
-  const initialCoins = await page.textContent('#coins');
-  const initialCoinsValue = parseInt(initialCoins.split(': ')[1]);
+  const initialCoinsValue = await getCoins(page);
   console.log('Initial coins:', initialCoinsValue);
   expect(initialCoinsValue).toBe(0);
   
@@ -18,8 +26,7 @@ test('click should work after failed purchase', async ({ page }) => {
   
   await page.waitForTimeout(200);
   
-  const coinsAfterClick = await page.textContent('#coins');
-  const coinsAfterClickValue = parseInt(coinsAfterClick.split(': ')[1]);
+  const coinsAfterClickValue = await getCoins(page);
   console.log('Coins after 1 click:', coinsAfterClickValue);
   expect(coinsAfterClickValue).toBeGreaterThanOrEqual(1);
   
@@ -32,8 +39,7 @@ test('click should work after failed purchase', async ({ page }) => {
   await page.waitForTimeout(300);
   
   // Verify purchase failed but coins should remain unchanged
-  const coinsAfterFailedPurchase = await page.textContent('#coins');
-  const coinsAfterFailedPurchaseValue = parseInt(coinsAfterFailedPurchase.split(': ')[1]);
+  const coinsAfterFailedPurchaseValue = await getCoins(page);
   console.log('Coins after failed purchase:', coinsAfterFailedPurchaseValue);
   expect(failedPurchase).toBe(false);
   expect(coinsAfterFailedPurchaseValue).toBe(coinsAfterClickValue);
@@ -43,8 +49,7 @@ test('click should work after failed purchase', async ({ page }) => {
   
   await page.waitForTimeout(300);
   
-  const coinsAfterClickPostFailure = await page.textContent('#coins');
-  const coinsAfterClickPostFailureValue = parseInt(coinsAfterClickPostFailure.split(': ')[1]);
+  const coinsAfterClickPostFailureValue = await getCoins(page);
   console.log('Coins after click post-failure:', coinsAfterClickPostFailureValue);
   
   console.log('Expected increase after post-failure click, Actual:', coinsAfterClickPostFailureValue);
