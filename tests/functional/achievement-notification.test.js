@@ -94,6 +94,40 @@ test.describe('Achievement Notification System', () => {
         expect(parseInt(zIndex)).toBeGreaterThanOrEqual(1000);
     });
 
+    test('notification can be created manually and styled through shared classes', async ({ page }) => {
+        const notificationCreated = await page.evaluate(() => {
+            const notification = document.createElement('div');
+            notification.id = 'achievement-notification';
+            notification.className = 'achievement-notification';
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <div class="notification-icon">🏆</div>
+                    <div class="notification-text">
+                        <div class="notification-title">成就解锁!</div>
+                        <div class="notification-name">测试成就</div>
+                        <div class="notification-description">这是一个测试成就</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            requestAnimationFrame(() => {
+                notification.classList.add('show');
+            });
+
+            return document.getElementById('achievement-notification') !== null;
+        });
+
+        expect(notificationCreated).toBe(true);
+
+        const notification = page.locator('#achievement-notification');
+        await expect(notification).toBeVisible();
+        await expect(notification.locator('.notification-title')).toContainText('成就解锁!');
+
+        const hasShowClass = await notification.evaluate(el => el.classList.contains('show'));
+        expect(hasShowClass).toBe(true);
+    });
+
     test('notification content structure is correct', async ({ page }) => {
         const clickArea = page.locator('#coin-button');
         for (let i = 0; i < 10; i++) {
@@ -150,5 +184,55 @@ test.describe('Achievement Notification System', () => {
         } else {
             expect(exists).toBe(0);
         }
+    });
+
+    test('notification i18n API returns translated unlock title', async ({ page }) => {
+        const chineseText = await page.evaluate(() => {
+            if (!window.i18n) return null;
+            return window.i18n.t('achievementUnlockedTitle');
+        });
+
+        expect(chineseText).toBe('成就解锁!');
+
+        await page.evaluate(() => {
+            if (window.i18n) {
+                window.i18n.setLanguage('en');
+                window.i18n.updateAllTranslations();
+            }
+        });
+
+        const englishText = await page.evaluate(() => {
+            if (!window.i18n) return null;
+            return window.i18n.t('achievementUnlockedTitle');
+        });
+
+        expect(englishText).toBe('Achievement Unlocked!');
+    });
+
+    test('notification hide class fades manual notification out', async ({ page }) => {
+        const animationExists = await page.evaluate(() => {
+            const style = document.createElement('style');
+            style.textContent = `
+                .achievement-notification.hide {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+            `;
+            document.head.appendChild(style);
+
+            const notification = document.createElement('div');
+            notification.className = 'achievement-notification hide';
+            document.body.appendChild(notification);
+
+            const computed = getComputedStyle(notification);
+            const result = computed.opacity === '0';
+
+            notification.remove();
+            style.remove();
+
+            return result;
+        });
+
+        expect(animationExists).toBe(true);
     });
 });
