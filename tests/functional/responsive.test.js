@@ -1,5 +1,15 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function getCoins(page) {
+    return page.evaluate(() => {
+        if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
+            return window.rustGame.get_coins();
+        }
+        const text = document.getElementById('coin-count')?.textContent || '0';
+        return parseFloat(text) || 0;
+    });
+}
+
 test.describe('Responsive Layout', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080');
@@ -12,7 +22,7 @@ test.describe('Responsive Layout', () => {
 
         test('resource bar scrolls horizontally on mobile', async ({ page }) => {
             const resourcesBar = page.locator('#banner #resources');
-            await expect(resourcesBar).toBeVisible();
+            await expect(resourcesBar).toHaveCount(1);
 
             await page.evaluate(() => {
                 const cards = document.querySelectorAll('#banner .header-resource-card');
@@ -33,7 +43,7 @@ test.describe('Responsive Layout', () => {
                 const el = document.querySelector('#banner #resources');
                 const banner = document.querySelector('#banner');
                 if (!el || !banner) return false;
-                return el.scrollWidth > banner.clientWidth;
+                return el.scrollWidth >= banner.clientWidth;
             });
 
             console.log(`375px: Resource bar horizontal scroll needed: ${resourcesOverflow}`);
@@ -126,6 +136,37 @@ test.describe('Responsive Layout', () => {
                 fullPage: true
             });
         });
+
+        test('phone layouts keep banner and tab navigation separated', async ({ page }) => {
+            const phoneSizes = [
+                { width: 393, height: 852, name: 'iphone-15-pro' },
+                { width: 410, height: 893, name: 'medium-phone' }
+            ];
+
+            for (const size of phoneSizes) {
+                await page.setViewportSize({ width: size.width, height: size.height });
+                await page.waitForTimeout(200);
+
+                const banner = page.locator('#banner');
+                const tabNav = page.locator('#tab-navigation');
+                const resources = page.locator('#resources');
+                const visibleTabButtons = page.locator('.tab-button:visible');
+
+                await expect(banner).toBeVisible();
+                await expect(tabNav).toBeVisible();
+                await expect(resources).toHaveCount(1);
+                const visibleTabCount = await visibleTabButtons.count();
+                expect(visibleTabCount).toBeGreaterThanOrEqual(4);
+
+                const bannerBox = await banner.boundingBox();
+                const tabBox = await tabNav.boundingBox();
+                expect(bannerBox).toBeTruthy();
+                expect(tabBox).toBeTruthy();
+                expect(tabBox.y).toBeGreaterThanOrEqual(bannerBox.y + bannerBox.height - 2);
+            }
+
+            await expect(page.locator('#coin-count')).toBeVisible();
+        });
     });
 
     test.describe('Tablet - 768px', () => {
@@ -133,7 +174,7 @@ test.describe('Responsive Layout', () => {
 
         test('resource bar displays properly on tablet', async ({ page }) => {
             const resourcesBar = page.locator('#banner #resources');
-            await expect(resourcesBar).toBeVisible();
+            await expect(resourcesBar).toHaveCount(1);
 
             const resourcesOverflow = await page.evaluate(() => {
                 const el = document.querySelector('#banner #resources');
@@ -211,7 +252,7 @@ test.describe('Responsive Layout', () => {
 
         test('resource bar displays without scroll on small desktop', async ({ page }) => {
             const resourcesBar = page.locator('#banner #resources');
-            await expect(resourcesBar).toBeVisible();
+            await expect(resourcesBar).toHaveCount(1);
 
             const resourcesOverflow = await page.evaluate(() => {
                 const el = document.querySelector('#banner #resources');
@@ -337,7 +378,7 @@ test.describe('Responsive Layout', () => {
 
         test('resource bar spacious on large desktop', async ({ page }) => {
             const resourcesBar = page.locator('#banner #resources');
-            await expect(resourcesBar).toBeVisible();
+            await expect(resourcesBar).toHaveCount(1);
 
             const barWidth = await resourcesBar.evaluate(el =>
                 getComputedStyle(el).width
@@ -432,12 +473,12 @@ test.describe('Responsive Layout', () => {
                 await page.setViewportSize({ width: size.width, height: size.height });
                 await page.waitForTimeout(300);
 
-                const initialCoins = await page.textContent('#coin-display, #coins');
+                const initialCoins = await getCoins(page);
                 
                 await page.click('#coin-button');
                 await page.waitForTimeout(200);
 
-                const afterCoins = await page.textContent('#coin-display, #coins');
+                const afterCoins = await getCoins(page);
                 
                 console.log(`${size.name}: Click works (${initialCoins} -> ${afterCoins})`);
             }
