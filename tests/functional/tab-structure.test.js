@@ -1,73 +1,82 @@
 const { test, expect } = require('../fixtures/coverage');
 const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
-test('new tabs structure verification', async ({ page }) => {
-  await page.goto('http://localhost:8080');
-  
-  // Wait for the game to be initialized
-  await page.waitForFunction(() => window.gameInitialized === true);
-  await page.waitForTimeout(1000);
-  
-  const initialVisibleTabs = await page.locator('.tab-button:visible').allTextContents();
-  console.log(`Initial visible tabs: ${initialVisibleTabs.join(', ')}`);
-  expect(initialVisibleTabs).toEqual(expect.arrayContaining(['资源', '建筑', '解锁', '设置']));
-  expect(initialVisibleTabs).not.toContain('统计');
-  
-  await unlockWorkersStage(page);
+test.describe('Tab structure and navigation', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:8080');
+    await page.waitForFunction(() => window.gameInitialized === true);
+  });
 
-  const statisticsButton = await page.locator('button[data-tab="statistics"]');
-  await expect(statisticsButton).toBeVisible();
-  expect(await statisticsButton.textContent()).toBe('统计');
-  
-  const achievementsButton = await page.locator('button[data-tab="achievements"]');
-  await expect(achievementsButton).toBeVisible();
-  expect(await achievementsButton.textContent()).toBe('成就');
-  
-  const craftingButton = await page.locator('button[data-tab="crafting"]');
-  await expect(craftingButton).toHaveCount(0);
-  
-  const unlocksButton = await page.locator('button[data-tab="unlocks"]');
-  await expect(unlocksButton).toBeVisible();
-  expect(await unlocksButton.textContent()).toBe('解锁');
-  
-  // Verify all tab content divs exist
-  const tabContents = await page.locator('.tab-content').count();
-  console.log(`Total tab content divs: ${tabContents}`);
-  expect(tabContents).toBe(11);
-  
-  // Verify specific new tab content divs exist (they exist but are hidden when not active)
-  const statisticsTab = await page.locator('#tab-statistics');
-  await expect(statisticsTab).toHaveCount(1);
-  
-  const achievementsTab = await page.locator('#tab-achievements');
-  await expect(achievementsTab).toHaveCount(1);
-  
-  const craftingTab = await page.locator('#tab-crafting');
-  await expect(craftingTab).toHaveCount(0);
-  
-  const unlocksTab = await page.locator('#tab-unlocks');
-  await expect(unlocksTab).toHaveCount(1);
-  
-  // Test tab switching for new tabs
-  console.log('Testing statistics tab switching...');
-  await statisticsButton.click();
-  await page.waitForTimeout(200);
-  const activeTabAfterStats = await page.locator('.tab-button.active').textContent();
-  expect(activeTabAfterStats).toBe('统计');
-  const statisticsTabActive = await statisticsTab.evaluate(el => el.classList.contains('active'));
-  expect(statisticsTabActive).toBe(true);
-  
-  console.log('Testing achievements tab switching...');
-  await achievementsButton.click();
-  await page.waitForTimeout(200);
-  const activeTabAfterAchievements = await page.locator('.tab-button.active').textContent();
-  expect(activeTabAfterAchievements).toBe('成就');
-  
-  console.log('Testing unlocks tab switching...');
-  await unlocksButton.click();
-  await page.waitForTimeout(200);
-  const activeTabAfterUnlocks = await page.locator('.tab-button.active').textContent();
-  expect(activeTabAfterUnlocks).toBe('解锁');
-  
-  console.log('All new tab structure tests passed!');
+  test('genesis tabs and unlocked navigation remain consistent', async ({ page }) => {
+    const initialVisibleTabs = await page.locator('.tab-button:visible').allTextContents();
+    expect(initialVisibleTabs).toEqual(expect.arrayContaining(['资源', '建筑', '解锁', '设置']));
+    expect(initialVisibleTabs).not.toContain('工人');
+    expect(initialVisibleTabs).not.toContain('统计');
+
+    await expect(page.locator('button[data-tab="resources"]')).toHaveClass(/active/);
+    await expect(page.locator('#tab-resources')).toHaveClass(/active/);
+
+    await page.click('button[data-tab="buildings"]');
+    await expect(page.locator('button[data-tab="buildings"]')).toHaveClass(/active/);
+    await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
+    await expect(page.locator('#building-list')).toBeVisible();
+
+    await page.click('button[data-tab="settings"]');
+    await expect(page.locator('button[data-tab="settings"]')).toHaveClass(/active/);
+    await expect(page.locator('#tab-settings')).toHaveClass(/active/);
+    await expect(page.locator('#reset-game')).toBeVisible();
+    await expect(page.locator('#language-select-setting')).toBeVisible();
+
+    await page.screenshot({
+      path: '.sisyphus/evidence/tab-structure-genesis.png',
+      fullPage: true,
+    });
+
+    await unlockWorkersStage(page);
+
+    const statisticsButton = page.locator('button[data-tab="statistics"]');
+    const achievementsButton = page.locator('button[data-tab="achievements"]');
+    const unlocksButton = page.locator('button[data-tab="unlocks"]');
+    const workersButton = page.locator('button[data-tab="workers"]');
+    const craftingButton = page.locator('button[data-tab="crafting"]');
+
+    await expect(workersButton).toBeVisible();
+    await expect(statisticsButton).toBeVisible();
+    await expect(achievementsButton).toBeVisible();
+    await expect(unlocksButton).toBeVisible();
+    await expect(craftingButton).toHaveCount(0);
+
+    expect(await statisticsButton.textContent()).toBe('统计');
+    expect(await achievementsButton.textContent()).toBe('成就');
+    expect(await unlocksButton.textContent()).toBe('解锁');
+
+    await expect(page.locator('#tab-statistics')).toHaveCount(1);
+    await expect(page.locator('#tab-achievements')).toHaveCount(1);
+    await expect(page.locator('#tab-unlocks')).toHaveCount(1);
+    await expect(page.locator('#tab-crafting')).toHaveCount(0);
+
+    expect(await page.locator('.tab-content').count()).toBe(11);
+
+    await workersButton.click();
+    await expect(page.locator('.tab-button.active')).toHaveText('工人');
+    await expect(page.locator('#tab-workers')).toHaveClass(/active/);
+    await expect(page.locator('#workers-list')).toBeVisible();
+
+    await statisticsButton.click();
+    await expect(page.locator('.tab-button.active')).toHaveText('统计');
+    await expect(page.locator('#tab-statistics')).toHaveClass(/active/);
+
+    await achievementsButton.click();
+    await expect(page.locator('.tab-button.active')).toHaveText('成就');
+    await expect(page.locator('#tab-achievements')).toHaveClass(/active/);
+
+    await unlocksButton.click();
+    await expect(page.locator('.tab-button.active')).toHaveText('解锁');
+    await expect(page.locator('#tab-unlocks')).toHaveClass(/active/);
+
+    await page.screenshot({
+      path: '.sisyphus/evidence/tab-structure-unlocked.png',
+      fullPage: true,
+    });
+  });
 });
