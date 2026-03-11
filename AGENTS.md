@@ -67,7 +67,70 @@ Notes:
 ## UNIQUE STYLES
 - UI is manager-driven vanilla JS (no framework), one module per system surface.
 - Tech tree currently has text/ASCII-oriented rendering in JS manager layer.
+## UNIQUE STYLES
+- UI is manager-driven vanilla JS (no framework), one module per system surface.
+- Tech tree currently has text/ASCII-oriented rendering in JS manager layer.
 - Rust crates expose minimal JS-friendly WASM API boundary; complex internals remain skipped.
+
+## VERSION BUMP CHECKLIST
+When updating the project version (e.g., 0.6.6 → 0.6.7), follow this checklist in order:
+
+### 1. Update Version Sources (All Required)
+| File | Location | What to Update |
+|------|----------|---------------|
+| `Cargo.toml` | Line 3 | `version = "0.6.7"` — **WASM embeds this at compile time** |
+| `package.json` | Line 3 | `"version": "0.6.7"` — npm package version |
+| `README.md` | Version badge | `当前版本：**v0.6.7**` — documentation display |
+| `index.html` | Line 7 | `<meta name="app-version" content="0.6.7">` — **runtime WASM loader reads this** |
+| `index.html` | Lines 10-11 | CSS `?v=0.6.7` cache-busting parameters |
+| `index.html` | Lines 285-297 | All JS `?v=0.6.7` cache-busting parameters |
+| `index.html` | Line 251 | Footer version label `游戏版本：v0.6.7` |
+
+### 2. Rebuild WASM (CRITICAL — DO NOT SKIP)
+```bash
+# Remove old versioned bundles
+rm -f pkg/idle_game.v0.6.*.js pkg/idle_game_bg.v0.6.*.wasm
+
+# Rebuild WASM with new version embedded
+wasm-pack build --target web --out-dir pkg --dev
+
+# Verify version is embedded correctly
+strings pkg/idle_game_bg.wasm | grep "0\.6\."
+# Should output: 0.6.7
+```
+
+**Why this matters:** The footer version display calls `window.rustGame.get_version()`, which returns `env!("CARGO_PKG_VERSION")` compiled into the WASM binary. If you skip rebuilding WASM, the page will show the old version even after updating all text labels.
+
+### 3. Verify Runtime Behavior
+1. Start server: `python3 server.py`
+2. Hard-refresh browser: `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac)
+3. Check footer version: should display `v0.6.7`
+4. Verify no 404s in browser dev tools Network tab
+
+### 4. Commit Changes
+```bash
+# Stage version files
+git add Cargo.toml package.json README.md index.html
+
+# Commit with semantic message
+git commit -m "chore: bump runtime version to v0.6.7"
+
+# Note: pkg/ directory is gitignored; WASM is a build artifact
+# Do NOT commit pkg/ files unless your workflow requires it
+```
+
+### Common Pitfalls (Learned from Experience)
+- **Pitfall 1**: Only updating `Cargo.toml` + `package.json` without rebuilding WASM → footer shows old version
+- **Pitfall 2**: Only updating `index.html` text labels without updating `meta[name="app-version"]` → browser loads wrong WASM bundle
+- **Pitfall 3**: Not updating CSS/JS `?v=` parameters → browser serves cached old assets
+- **Pitfall 4**: Forgetting to hard-refresh browser → still seeing cached HTML
+
+### Root Cause Reference
+Issue discovered in v0.6.6 → v0.6.7 bump (2026-03-12):
+- `bootstrap.js:19-27` reads `meta[name="app-version"]` to load `pkg/idle_game.v${version}.js`
+- If versioned bundle missing, falls back to `pkg/idle_game.js` (unversioned)
+- Footer calls `window.rustGame.get_version()` which returns WASM-compiled `CARGO_PKG_VERSION`
+- Old WASM binary in `pkg/` contained `0.6.6` string, causing mismatch with updated labels
 
 ## COMMANDS
 ```bash
