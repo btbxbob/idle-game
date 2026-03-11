@@ -1,6 +1,6 @@
 use crate::entities::technology::BuildingType;
 use crate::entities::technology::{Technology, TechnologyEffect, TechnologyId};
-use crate::state::resource::{ResourceTier, ResourceType};
+use crate::state::resource::ResourceType;
 use crate::state::GameState;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -1395,6 +1395,7 @@ mod tests {
 
     #[test]
     fn test_tier1_technologies_only_reference_primary_resources() {
+        use crate::state::resource::ResourceTier;
         let tree = TechnologyTree::new();
 
         for tech in tree.technologies.values().filter(|tech| tech.tier() == 1) {
