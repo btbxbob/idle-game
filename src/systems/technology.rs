@@ -1,6 +1,6 @@
 use crate::entities::technology::BuildingType;
 use crate::entities::technology::{Technology, TechnologyEffect, TechnologyId};
-use crate::state::resource::ResourceType;
+use crate::state::resource::{ResourceTier, ResourceType};
 use crate::state::GameState;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -478,7 +478,7 @@ impl TechnologyTree {
                     (ResourceType::Coal, 300.0),
                 ]),
                 vec![TechnologyId::BasicSmelting, TechnologyId::AdvancedMining],
-                TechnologyEffect::ProductionBonus(ResourceType::IronIngot, 0.3),
+                TechnologyEffect::ProductionBonus(ResourceType::IronOre, 0.3),
                 0.3,
             ),
         );
@@ -537,7 +537,7 @@ impl TechnologyTree {
                     (ResourceType::Oil, 100.0),
                 ]),
                 vec![TechnologyId::BasicRefining, TechnologyId::AdvancedSmelting],
-                TechnologyEffect::ProductionBonus(ResourceType::Fuel, 0.3),
+                TechnologyEffect::ProductionBonus(ResourceType::Oil, 0.3),
                 0.3,
             ),
         );
@@ -569,7 +569,7 @@ impl TechnologyTree {
                     (ResourceType::Crystal, 50.0),
                 ]),
                 vec![TechnologyId::BasicChemistry, TechnologyId::AdvancedRefining],
-                TechnologyEffect::ProductionBonus(ResourceType::Chemicals, 0.35),
+                TechnologyEffect::ProductionBonus(ResourceType::Coal, 0.35),
                 0.35,
             ),
         );
@@ -1391,6 +1391,33 @@ mod tests {
 
         let godhood = tree.technologies.get(&TechnologyId::Godhood).unwrap();
         assert!(!godhood.costs.is_empty());
+    }
+
+    #[test]
+    fn test_tier1_technologies_only_reference_primary_resources() {
+        let tree = TechnologyTree::new();
+
+        for tech in tree.technologies.values().filter(|tech| tech.tier() == 1) {
+            for resource in tech.costs.keys() {
+                assert_eq!(
+                    resource.tier_enum(),
+                    ResourceTier::Primary,
+                    "Tier 1 tech {:?} uses non-primary cost resource {:?}",
+                    tech.id,
+                    resource
+                );
+            }
+
+            if let TechnologyEffect::ProductionBonus(resource, _) = &tech.effect {
+                assert_eq!(
+                    resource.tier_enum(),
+                    ResourceTier::Primary,
+                    "Tier 1 tech {:?} uses non-primary effect resource {:?}",
+                    tech.id,
+                    resource
+                );
+            }
+        }
     }
 
     #[test]
