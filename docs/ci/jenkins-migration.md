@@ -83,6 +83,8 @@ Coverage threshold env vars (can be overridden in Jenkins job/pipeline env):
 
 Playwright Chromium is preinstalled in the Jenkins image (`docker/jenkins/Dockerfile`) to avoid runtime browser download timeouts.
 
+The Jenkins pipeline does not pull the Playwright runtime image during CI anymore. It only verifies that the DinD daemon already has either `mcr.microsoft.com/playwright:v1.58.2-jammy` or the configured mirror tag cached locally, then runs `docker run --pull=never ...`. If the image is missing, the pipeline fails fast with a preload hint instead of hanging in a long registry pull.
+
 The pipeline exports:
 
 - JUnit XML: `test-results/playwright-junit.xml` (for Jenkins Test Result trend)

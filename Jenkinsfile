@@ -15,6 +15,7 @@ pipeline {
     PATH = "/var/jenkins_home/.cargo/bin:${env.PATH}"
     PLAYWRIGHT_IMAGE_PRIMARY = 'mcr.microsoft.com/playwright:v1.58.2-jammy'
     PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
+    PLAYWRIGHT_PULL_TIMEOUT_SECONDS = '30'
     E2E_COVERAGE_MIN_LINES = '20'
     E2E_COVERAGE_MIN_STATEMENTS = '20'
     E2E_COVERAGE_MIN_FUNCTIONS = '15'
@@ -98,37 +99,28 @@ pipeline {
       }
     }
 
-    stage('Prewarm Playwright Image') {
+    stage('Verify Playwright Image') {
       when {
         expression { return params.RUN_PLAYWRIGHT || params.RUN_COVERAGE }
       }
       options {
-        timeout(time: 15, unit: 'MINUTES')
+        timeout(time: 2, unit: 'MINUTES')
       }
       steps {
         sh '''
           PLAYWRIGHT_IMAGE="$PLAYWRIGHT_IMAGE_PRIMARY"
           MIRROR_IMAGE="$PLAYWRIGHT_IMAGE_MIRROR"
 
-          if docker image inspect "$PLAYWRIGHT_IMAGE" >/dev/null 2>&1; then
+          if timeout "$PLAYWRIGHT_PULL_TIMEOUT_SECONDS" docker image inspect "$PLAYWRIGHT_IMAGE" >/dev/null 2>&1; then
             echo "Playwright image already present: $PLAYWRIGHT_IMAGE"
+          elif [ -n "$MIRROR_IMAGE" ] && timeout "$PLAYWRIGHT_PULL_TIMEOUT_SECONDS" docker image inspect "$MIRROR_IMAGE" >/dev/null 2>&1; then
+            echo "Using locally cached mirror image: $MIRROR_IMAGE"
+            docker tag "$MIRROR_IMAGE" "$PLAYWRIGHT_IMAGE"
           else
-            pulled=0
-            if [ -n "$MIRROR_IMAGE" ]; then
-              echo "Trying mirror first: $MIRROR_IMAGE"
-              if timeout 300 docker pull "$MIRROR_IMAGE"; then
-                docker tag "$MIRROR_IMAGE" "$PLAYWRIGHT_IMAGE"
-                pulled=1
-                echo "Mirror pull succeeded and tagged as: $PLAYWRIGHT_IMAGE"
-              else
-                echo "Mirror pull failed or timed out, falling back to primary registry"
-              fi
-            fi
-
-            if [ "$pulled" -ne 1 ]; then
-              echo "Pulling primary image with timeout: $PLAYWRIGHT_IMAGE"
-              timeout 900 docker pull "$PLAYWRIGHT_IMAGE"
-            fi
+            echo "Playwright image is not available in the Jenkins DinD cache."
+            echo "Expected one of: $PLAYWRIGHT_IMAGE or $MIRROR_IMAGE"
+            echo "Preload the image into the DinD daemon before running Jenkins Playwright stages."
+            exit 1
           fi
         '''
       }

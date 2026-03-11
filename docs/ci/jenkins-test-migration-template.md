@@ -62,12 +62,18 @@ pipeline {
       }
     }
 
-    stage('Prewarm Playwright Image') {
+    stage('Verify Playwright Image') {
       when {
         expression { return params.RUN_PLAYWRIGHT || params.RUN_COVERAGE }
       }
       steps {
-        sh 'docker pull mcr.microsoft.com/playwright:v1.58.2-jammy'
+        sh '''
+          PLAYWRIGHT_IMAGE="mcr.microsoft.com/playwright:v1.58.2-jammy"
+          if ! timeout 30 docker image inspect "$PLAYWRIGHT_IMAGE" >/dev/null 2>&1; then
+            echo "Missing Playwright image in Jenkins DinD cache: $PLAYWRIGHT_IMAGE"
+            exit 1
+          fi
+        '''
       }
     }
 
@@ -160,7 +166,7 @@ volumes:
 - [ ] Add pipeline parameters (`RUN_PLAYWRIGHT`, `RUN_COVERAGE`).
 - [ ] Add `disableConcurrentBuilds()`.
 - [ ] Move E2E execution to `docker run` stage.
-- [ ] Add image prewarm (`docker pull`).
+- [ ] Add Playwright image verification (`docker image inspect` + fail fast).
 - [ ] Ensure coverage merge/check runs in `RUN_COVERAGE=true` mode.
 - [ ] Archive JUnit, HTML report, and coverage artifacts.
 - [ ] Verify Jenkins has Docker CLI and reachable daemon.
@@ -179,9 +185,9 @@ volumes:
   - Cause: script exits before merge step.
   - Fix: capture test exit code, run merge, then exit with original code.
 
-- First run very slow
-  - Cause: large Playwright image pull.
-  - Fix: prewarm stage and keep DinD image cache volume.
+- Playwright image stage hangs on registry access
+  - Cause: Jenkins tries to pull the large runtime image through an unreliable network path.
+  - Fix: preload the image into DinD, verify it locally in pipeline, and keep the DinD image cache volume.
 
 ## 7. Verification Commands (Jenkins API)
 
