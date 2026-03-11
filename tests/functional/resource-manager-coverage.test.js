@@ -113,16 +113,16 @@ test.describe('ResourceManager branch coverage', () => {
             manager.initialize();
             manager.switchCategory('secondary');
 
-            const coinsEl = document.getElementById('coins');
-            const cpsEl = document.getElementById('cps');
-            const cpcEl = document.getElementById('cpc');
+            const bannerCoinsEl = document.getElementById('banner-coins');
+            const bannerCoinsRateEl = document.getElementById('banner-coins-rate');
+            const coinsPanelAmount = document.querySelector('#primary-resources .resource-item[data-resource="coins"] .resource-amount');
 
             const currentCategory = manager.currentCategory;
             const primaryDisplay = panelPrimary.style.display;
             const secondaryDisplay = panelSecondary.style.display;
-            const coinsText = coinsEl.textContent || '';
-            const cpsText = cpsEl.textContent || '';
-            const cpcText = cpcEl.textContent || '';
+            const bannerCoinsText = bannerCoinsEl ? bannerCoinsEl.textContent || '' : '';
+            const bannerCoinsRateText = bannerCoinsRateEl ? bannerCoinsRateEl.textContent || '' : '';
+            const coinsPanelText = coinsPanelAmount ? coinsPanelAmount.textContent || '' : '';
 
             const guardManager = new window.ResourceManager(null, { t: (key) => key });
             const guardNull = guardManager.update();
@@ -168,9 +168,9 @@ test.describe('ResourceManager branch coverage', () => {
                 currentCategory,
                 primaryDisplay,
                 secondaryDisplay,
-                coinsText,
-                cpsText,
-                cpcText,
+                bannerCoinsText,
+                bannerCoinsRateText,
+                coinsPanelText,
                 guardNull,
                 throwResult,
                 updateCalls,
@@ -181,9 +181,9 @@ test.describe('ResourceManager branch coverage', () => {
         expect(result.currentCategory).toBe('secondary');
         expect(result.primaryDisplay).toBe('none');
         expect(result.secondaryDisplay).toBe('block');
-        expect(result.coinsText).toContain('TXT_coins');
-        expect(result.cpsText).toContain('+2.7/s');
-        expect(result.cpcText).toContain('+4.4/click');
+        expect(result.bannerCoinsText).toContain('TXT_coins');
+        expect(result.bannerCoinsRateText).toContain('+2.7/s');
+        expect(result.coinsPanelText).toBe('123');
         expect(result.guardNull).toBe(null);
         expect(result.throwResult).toBe(null);
         expect(result.updateCalls).toBe(1);

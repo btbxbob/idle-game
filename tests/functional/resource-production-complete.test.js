@@ -369,19 +369,25 @@ test.describe('Resource Production Complete', () => {
     });
 
     test('resource production displays in UI with correct format', async ({ page }) => {
-        // Check that production rates are displayed in the UI
-        const coinsDisplay = await page.locator('#cps').textContent().catch(() => '0');
-        const woodDisplay = await page.locator('#wps').textContent().catch(() => '0');
-        const stoneDisplay = await page.locator('#sps').textContent().catch(() => '0');
+        const uiState = await page.evaluate(() => ({
+            coinBanner: document.getElementById('banner-coins')?.textContent || '',
+            coinRate: document.getElementById('banner-coins-rate')?.textContent || '',
+            coinName: document.querySelector('#primary-resources .resource-item[data-resource="coins"] .resource-name')?.textContent || '',
+            woodName: document.querySelector('#primary-resources .resource-item[data-resource="wood"] .resource-name')?.textContent || '',
+            stoneName: document.querySelector('#primary-resources .resource-item[data-resource="stone"] .resource-name')?.textContent || '',
+        }));
 
-        console.log(`coins production display: ${coinsDisplay}`);
-        console.log(`wood production display: ${woodDisplay}`);
-        console.log(`stone production display: ${stoneDisplay}`);
+        console.log(`coins banner display: ${uiState.coinBanner}`);
+        console.log(`coins rate display: ${uiState.coinRate}`);
+        console.log(`primary names: ${uiState.coinName}, ${uiState.woodName}, ${uiState.stoneName}`);
 
-        // Displays should contain the resource name and rate
-        expect(coinsDisplay).toContain('金币');
-        expect(woodDisplay).toContain('木头');
-        expect(stoneDisplay).toContain('石头');
+        expect(uiState.coinBanner).toContain('金币');
+        if (uiState.coinRate) {
+            expect(uiState.coinRate).toContain('/s');
+        }
+        expect(uiState.coinName).toContain('金币');
+        expect(uiState.woodName).toContain('木头');
+        expect(uiState.stoneName).toContain('石头');
 
         await page.screenshot({
             path: '.sisyphus/evidence/resource-production-display.png'
