@@ -123,7 +123,8 @@ header::after {
 }
 
 .tab-button:last-child {
-    border-right: none !important;
+    border-right: 2px solid var(--border-color) !important;
+    margin-right: 0 !important;
 }
 
 .tab-button.active {
