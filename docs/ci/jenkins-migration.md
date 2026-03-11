@@ -69,10 +69,14 @@ When `RUN_PLAYWRIGHT=true`, Jenkins executes:
 
 - `npx playwright test --project=chromium --reporter=line,junit,html`
 
+The Jenkins pipeline now passes `PW_TEST_WORKERS=2` into the Playwright container by default, so Chromium E2E runs can use two workers unless the pipeline environment overrides that value.
+
 When `RUN_COVERAGE=true`, Jenkins executes Playwright on Chromium and then merges/checks E2E coverage:
 
 - `npx playwright test --project=chromium --reporter=line,junit,html`
 - `node scripts/merge-e2e-coverage.js`
+
+Before a coverage run starts, the pipeline removes `coverage-report/raw` and `coverage-report/e2e-merged` so the merged report only reflects the current Jenkins execution.
 
 Coverage threshold env vars (can be overridden in Jenkins job/pipeline env):
 

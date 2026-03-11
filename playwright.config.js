@@ -5,6 +5,15 @@ const isCI = !!process.env.CI;
 const runAllBrowsers = isCI || process.env.PW_ALL_BROWSERS === '1';
 const testPort = Number(process.env.PW_TEST_PORT || '8080');
 const testBaseUrl = `http://localhost:${testPort}`;
+const configuredWorkersRaw = process.env.PW_TEST_WORKERS;
+
+let configuredWorkers;
+if (configuredWorkersRaw !== undefined && configuredWorkersRaw !== '') {
+  configuredWorkers = Number.parseInt(configuredWorkersRaw, 10);
+  if (!Number.isInteger(configuredWorkers) || configuredWorkers < 1) {
+    throw new Error(`PW_TEST_WORKERS must be a positive integer, got: ${configuredWorkersRaw}`);
+  }
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -18,8 +27,7 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: isCI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: isCI ? 1 : undefined,
+  workers: configuredWorkers ?? (isCI ? 2 : undefined),
   reporter: process.env.CI ? 'html' : 'line',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

@@ -16,6 +16,7 @@ pipeline {
     PLAYWRIGHT_IMAGE_PRIMARY = 'mcr.microsoft.com/playwright:v1.58.2-jammy'
     PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
     PLAYWRIGHT_PULL_TIMEOUT_SECONDS = '30'
+    PW_TEST_WORKERS = '4'
     E2E_COVERAGE_MIN_LINES = '20'
     E2E_COVERAGE_MIN_STATEMENTS = '20'
     E2E_COVERAGE_MIN_FUNCTIONS = '15'
@@ -141,6 +142,7 @@ pipeline {
             -e CI=true \
             -e RUN_COVERAGE=${RUN_COVERAGE} \
             -e PW_TEST_PORT=8080 \
+            -e PW_TEST_WORKERS=${PW_TEST_WORKERS} \
             -e E2E_COVERAGE_MIN_LINES=${E2E_COVERAGE_MIN_LINES} \
             -e E2E_COVERAGE_MIN_STATEMENTS=${E2E_COVERAGE_MIN_STATEMENTS} \
             -e E2E_COVERAGE_MIN_FUNCTIONS=${E2E_COVERAGE_MIN_FUNCTIONS} \
@@ -151,6 +153,7 @@ pipeline {
             bash -lc '
               set -e
               if [ "${RUN_COVERAGE}" = "true" ]; then
+                rm -rf coverage-report/raw coverage-report/e2e-merged
                 set +e
                 PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit.xml \
                 npx playwright test --project=chromium --reporter=line,junit,html
