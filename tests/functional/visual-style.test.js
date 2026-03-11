@@ -37,7 +37,7 @@ test('visual style should be white background with black text and ASCII art', as
   expect(fontFamily).toContain('monospace');
   
   // Check resource colors are applied
-  const coinsElement = await page.locator('#coins');
+  const coinsElement = await page.locator('#coin-count');
   const coinsColor = await coinsElement.evaluate(el => 
     window.getComputedStyle(el).color
   );
@@ -53,7 +53,7 @@ test('visual style should be white background with black text and ASCII art', as
   expect(['rgb(0, 0, 0)', 'rgba(0, 0, 0, 0)']).toContain(clickAreaBg);
   
   // Check coin display has gold color
-  const coinDisplay = await page.locator('#coins');
+  const coinDisplay = await page.locator('#coin-count');
   const coinDisplayColor = await coinDisplay.evaluate(el => 
     window.getComputedStyle(el).color
   );

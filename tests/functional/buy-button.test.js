@@ -1,5 +1,15 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function getCoins(page) {
+  return page.evaluate(() => {
+    if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
+      return window.rustGame.get_coins();
+    }
+    const text = document.getElementById('coin-count')?.textContent || '0';
+    return parseFloat(text) || 0;
+  });
+}
+
 test('buy buttons should have real-time response', async ({ page }) => {
   // Navigate to the game
   await page.goto('http://localhost:8080');
@@ -8,8 +18,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   await page.waitForFunction(() => window.gameInitialized === true);
   
   // Get initial coins count
-  const initialCoins = await page.textContent('#coins');
-  const initialCoinsValue = parseInt(initialCoins.split(': ')[1]);
+  const initialCoinsValue = await getCoins(page);
   console.log('Initial coins:', initialCoinsValue);
   
   for (let i = 0; i < 30; i++) {
@@ -20,8 +29,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   await page.waitForTimeout(200);
   
   // Verify coins increased
-  const coinsAfterClicks = await page.textContent('#coins');
-  const coinsAfterClicksValue = parseInt(coinsAfterClicks.split(': ')[1]);
+  const coinsAfterClicksValue = await getCoins(page);
   console.log('Coins after clicks:', coinsAfterClicksValue);
   expect(coinsAfterClicksValue).toBeGreaterThan(initialCoinsValue);
   
@@ -38,8 +46,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   await page.waitForTimeout(300);
   
   // Verify purchase was successful - coins should decrease
-  const coinsAfterPurchase = await page.textContent('#coins');
-  const coinsAfterPurchaseValue = parseInt(coinsAfterPurchase.split(': ')[1]);
+  const coinsAfterPurchaseValue = await getCoins(page);
   console.log('Coins after Coin Mine purchase:', coinsAfterPurchaseValue);
   expect(coinsAfterPurchaseValue).toBeLessThan(coinsAfterClicksValue);
   
@@ -57,8 +64,7 @@ test('buy buttons should have real-time response', async ({ page }) => {
   // Wait for UI to update
   await page.waitForTimeout(300);
   
-  const coinsAfterSecondBuilding = await page.textContent('#coins');
-  const coinsAfterSecondBuildingValue = parseInt(coinsAfterSecondBuilding.split(': ')[1]);
+  const coinsAfterSecondBuildingValue = await getCoins(page);
   console.log('Coins after second Coin Mine purchase:', coinsAfterSecondBuildingValue);
   expect(coinsAfterSecondBuildingValue).toBeLessThan(coinsAfterPurchaseValue);
   
