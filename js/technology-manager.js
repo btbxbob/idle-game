@@ -6,8 +6,11 @@ class TechnologyManager {
         this.detailPanel = document.getElementById('technology-detail');
         this.researchBtn = document.getElementById('research-button');
         this.selectedTechnology = null;
-this.technologies = [];
+        this.technologies = [];
         this.activeTier = 1;
+        
+        // Cache for preventing excessive re-renders
+        this.lastSelectedTechState = null;
         
         // Canvas visualization state
         this.canvas = null;
@@ -61,13 +64,40 @@ this.technologies = [];
             const technologyTab = document.getElementById('tab-technology');
             if (technologyTab && technologyTab.classList.contains('active')) {
                 this.renderTree();
+                // Only re-render detail panel if selected technology state changed
                 if (this.selectedTechnology) {
-                    this.selectTechnology(this.selectedTechnology.id);
+                    this.updateSelectedTechnology();
                 }
             }
         } catch (error) {
             console.error('TechnologyManager: Error updating technologies:', error);
         }
+    }
+
+    /**
+     * Update the selected technology display only if state changed
+     */
+    updateSelectedTechnology() {
+        const tech = this.technologies.find(t => t.id === this.selectedTechnology.id);
+        if (!tech) return;
+        
+        // Create a state signature to detect changes
+        const currentState = {
+            researched: tech.researched || tech.purchased || false,
+            canResearch: this.canResearch(tech),
+            costs: JSON.stringify(tech.costs || {})
+        };
+        
+        // Only re-render if state changed
+        if (this.lastSelectedTechState && 
+            JSON.stringify(this.lastSelectedTechState) === JSON.stringify(currentState)) {
+            return; // No change, skip re-render
+        }
+        
+        // State changed, update cache and re-render
+        this.lastSelectedTechState = currentState;
+        this.selectedTechnology = tech;
+        this.selectTechnology(tech.id);
     }
 
     /**
