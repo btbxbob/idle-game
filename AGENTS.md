@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-06
-**Commit:** 2bab852
+**Generated:** 2026-03-12
+**Commit:** c7dc464
 **Branch:** master
 
 ## OVERVIEW
@@ -43,150 +43,197 @@ idle-game/
 | `window.rustGame.*` | API boundary | `src/lib.rs` + `js/*.js` | JS->Rust interaction contract |
 
 Notes:
-- Rust LSP symbols are currently unavailable in this environment; use file-level map above plus scoped guides.
+- Rust LSP symbols may be unavailable; use file-level map above plus scoped guides.
 
-## CONVENTIONS
-- Use `python3` (not `python`) for local server and Playwright `webServer.command`.
-- Keep game loop cadence at 1000ms; timing changes affect balance and tests.
-- JS must call exported WASM methods (`window.rustGame.*`) instead of mutating Rust state directly.
-- New persisted Rust fields require `#[serde(default)]` for backward-compatible save loading.
-- Keep `zh-CN` and `en` translations aligned when adding UI text.
-- Normalized day-to-day test scope is functional tests only (`tests/functional/`); use `tests/regression/` only for bug reproduction/fix validation.
-- Treat current runtime UI as the source of truth for E2E expectations; when product UI contracts change (for example tab removal, staged tab visibility, or selector changes like `#coin-count` replacing `#coins`), migrate tests to the new contract instead of preserving legacy UI assumptions.
-- Before changing or adding E2E assertions, check the live HTML/JS contract (`index.html`, `js/bootstrap.js`, `js/unlocks.js`, `js/resource-manager.js`) and align tests to the currently rendered DOM rather than historical screenshots or old failures.
+## COMMANDS
 
-## ANTI-PATTERNS (THIS PROJECT)
-- Holding `RefCell` borrows across method calls in `IdleGame` (can panic at runtime).
-- Using `unwrap()`/`expect()` in production-facing WASM paths.
-- Skipping `window.gameInitialized === true` wait in Playwright tests.
-- Adding Playwright tests without `*.test.js` suffix.
-- Backup files (e.g., `lib.rs.backup2`) in `src/` directory.
-- Build artifacts (e.g., `.pdb` files) in `src/utils/` — belongs in `target/`.
-- `building.rs` at `src/` root — should be in `src/entities/`.
+### Build WASM
+```bash
+# Development build
+wasm-pack build --target web --out-dir pkg --dev
+
+# Release build (production)
+wasm-pack build --target web --out-dir pkg --release
+
+# Using build script
+./build.sh          # Linux/macOS
+.\build.bat         # Windows
+```
+
+### Run Tests
+```bash
+# Rust tests
+cargo test
+
+# Playwright tests (Chromium only by default)
+npm run test
+# or
+npx playwright test
+
+# Single test file
+npx playwright test tests/functional/workers.test.js
+
+# Single test by pattern
+npx playwright test -g "test-name-pattern"
+
+# All browsers (Chromium, Firefox, Webkit)
+PW_ALL_BROWSERS=1 npm run test
+
+# With coverage
+npm run test:e2e:coverage
+
+# Regression tests (bugfix validation only)
+npx playwright test tests/regression/<bug-case>.test.js
+```
+
+### Lint
+```bash
+# Rust (strict mode - warnings as errors)
+cargo clippy --all-targets --all-features -- -D warnings
+
+# JavaScript syntax check
+npm run lint
+# or
+node scripts/lint-syntax.js
+```
+
+### Development Workflow
+```bash
+# 1. Build WASM
+wasm-pack build --target web --out-dir pkg --dev
+
+# 2. Start server
+python3 server.py
+
+# 3. Run tests in another terminal
+npm run test
+
+# 4. Lint before committing
+npm run lint && cargo clippy --all-targets --all-features -- -D warnings
+```
+
+## CODE STYLE
+
+### Rust Conventions
+- **Imports**: std → external crates → local modules (alphabetical within groups)
+- **Naming**: `PascalCase` for types/enums, `snake_case` for functions/variables
+- **Constants**: `SCREAMING_SNAKE_CASE`
+- **Error Handling**: Return `Result<T, String>` for fallible operations; avoid `unwrap()` in production WASM paths
+- **Serde**: All persisted structs use `Serialize` + `Deserialize`; new fields MUST have `#[serde(default)]`
+- **Borrow Scopes**: Never hold `RefCell` borrows across method calls - use explicit scope blocks
+
+```rust
+// CORRECT - borrow released before method call
+{
+    let mut state = self.state.borrow_mut();
+    state.spend_coins(cost);
+} // borrow released
+self.check_achievement("purchase"); // OK
+
+// FORBIDDEN - holds borrow across method call
+let state = self.state.borrow();
+if state.coins >= cost {
+    self.check_achievement(); // PANIC!
+}
+```
+
+### JavaScript Conventions
+- **Classes**: `PascalCase` (e.g., `WorkerManager`, `ResourceManager`)
+- **Functions**: `camelCase` (e.g., `updateResourceDisplay`)
+- **Documentation**: JSDoc for all public methods
+- **WASM Access**: Always use `window.rustGame.*` - never mutate Rust state directly
+- **Guard Checks**: Verify element existence before DOM manipulation
+
+```javascript
+// CORRECT - guard check before DOM access
+const coinsElement = document.getElementById('coins');
+if (coinsElement) {
+    coinsElement.textContent = `金币：${Math.floor(safeCoins)}`;
+}
+
+// CORRECT - try-catch around WASM calls
+assignWorker(workerIndex, buildingId) {
+    try {
+        return this.rustGame.assign_worker(workerIndex, buildingId);
+    } catch (error) {
+        console.error('Failed to assign worker:', error);
+        return false;
+    }
+}
+```
+
+## ANTI-PATTERNS
+- ❌ Holding `RefCell` borrows across method calls in Rust
+- ❌ Using `unwrap()`/`expect()` in production-facing WASM paths
+- ❌ Skipping `window.gameInitialized === true` wait in Playwright tests
+- ❌ Adding Playwright tests without `*.test.js` suffix
+- ❌ Backup files (e.g., `lib.rs.backup2`) in `src/` directory
+- ❌ Build artifacts (e.g., `.pdb` files) in `src/utils/` — belongs in `target/`
+- ❌ `building.rs` at `src/` root — should be in `src/entities/`
+- ❌ JS mutating Rust state directly instead of using `window.rustGame.*`
+- ❌ Embedding gameplay formulas in JS managers when Rust systems own them
 
 ## UNIQUE STYLES
-- UI is manager-driven vanilla JS (no framework), one module per system surface.
-- Tech tree currently has text/ASCII-oriented rendering in JS manager layer.
-## UNIQUE STYLES
-- UI is manager-driven vanilla JS (no framework), one module per system surface.
-- Tech tree currently has text/ASCII-oriented rendering in JS manager layer.
-- Rust crates expose minimal JS-friendly WASM API boundary; complex internals remain skipped.
+- UI is manager-driven vanilla JS (no framework), one module per system surface
+- Tech tree has text/ASCII-oriented rendering in JS manager layer
+- Rust crates expose minimal JS-friendly WASM API boundary; complex internals remain skipped
+- Manager pattern: each UI surface has its own class (`WorkerManager`, `TechnologyManager`, etc.)
 
 ## VERSION BUMP CHECKLIST
-When updating the project version (e.g., 0.6.6 → 0.6.7), follow this checklist in order:
+When updating version (e.g., 0.6.6 → 0.6.7):
 
-### 1. Update Version Sources (All Required)
+### 1. Update Version Sources
 | File | Location | What to Update |
 |------|----------|---------------|
 | `Cargo.toml` | Line 3 | `version = "0.6.7"` — **WASM embeds this at compile time** |
 | `package.json` | Line 3 | `"version": "0.6.7"` — npm package version |
-| `README.md` | Version badge | `当前版本：**v0.6.7**` — documentation display |
-| `index.html` | Line 7 | `<meta name="app-version" content="0.6.7">` — **runtime WASM loader reads this** |
-| `index.html` | Lines 10-11 | CSS `?v=0.6.7` cache-busting parameters |
-| `index.html` | Lines 285-297 | All JS `?v=0.6.7` cache-busting parameters |
-| `index.html` | Line 251 | Footer version label `游戏版本：v0.6.7` |
+| `README.md` | Version badge | `当前版本：**v0.6.7**` |
+| `index.html` | Line 7 | `<meta name="app-version" content="0.6.7">` |
+| `index.html` | Lines 10-11 | CSS `?v=0.6.7` cache-busting |
+| `index.html` | Lines 285-297 | All JS `?v=0.6.7` cache-busting |
+| `index.html` | Line 251 | Footer `游戏版本：v0.6.7` |
 
-### 2. Rebuild WASM (CRITICAL — DO NOT SKIP)
+### 2. Rebuild WASM (CRITICAL)
 ```bash
-# Remove old versioned bundles
 rm -f pkg/idle_game.v0.6.*.js pkg/idle_game_bg.v0.6.*.wasm
-
-# Rebuild WASM with new version embedded
 wasm-pack build --target web --out-dir pkg --dev
-
-# Verify version is embedded correctly
-strings pkg/idle_game_bg.wasm | grep "0\.6\."
-# Should output: 0.6.7
+strings pkg/idle_game_bg.wasm | grep "0\.6\."  # Should output: 0.6.7
 ```
 
-**Why this matters:** The footer version display calls `window.rustGame.get_version()`, which returns `env!("CARGO_PKG_VERSION")` compiled into the WASM binary. If you skip rebuilding WASM, the page will show the old version even after updating all text labels.
-
-### 3. Verify Runtime Behavior
-1. Start server: `python3 server.py`
-2. Hard-refresh browser: `Ctrl+Shift+R` (or `Cmd+Shift+R` on Mac)
-3. Check footer version: should display `v0.6.7`
-4. Verify no 404s in browser dev tools Network tab
-
-### 4. Commit Changes
+### 3. Verify & Commit
 ```bash
-# Stage version files
-git add Cargo.toml package.json README.md index.html
-
-# Commit with semantic message
-git commit -m "chore: bump runtime version to v0.6.7"
-
-# Note: pkg/ directory is gitignored; WASM is a build artifact
-# Do NOT commit pkg/ files unless your workflow requires it
-```
-
-### Common Pitfalls (Learned from Experience)
-- **Pitfall 1**: Only updating `Cargo.toml` + `package.json` without rebuilding WASM → footer shows old version
-- **Pitfall 2**: Only updating `index.html` text labels without updating `meta[name="app-version"]` → browser loads wrong WASM bundle
-- **Pitfall 3**: Not updating CSS/JS `?v=` parameters → browser serves cached old assets
-- **Pitfall 4**: Forgetting to hard-refresh browser → still seeing cached HTML
-
-### Root Cause Reference
-Issue discovered in v0.6.6 → v0.6.7 bump (2026-03-12):
-- `bootstrap.js:19-27` reads `meta[name="app-version"]` to load `pkg/idle_game.v${version}.js`
-- If versioned bundle missing, falls back to `pkg/idle_game.js` (unversioned)
-- Footer calls `window.rustGame.get_version()` which returns WASM-compiled `CARGO_PKG_VERSION`
-- Old WASM binary in `pkg/` contained `0.6.6` string, causing mismatch with updated labels
-
-## COMMANDS
-```bash
-# Build and run
-wasm-pack build --target web --out-dir pkg --dev
 python3 server.py
-
-# Checks
-cargo check
-cargo clippy --all-targets --all-features -- -D warnings
-npm run lint
-
-# Tests
-cargo test
-npx playwright test tests/functional
-npx playwright test tests/functional/workers.test.js
-
-# Regression (bugfix validation only)
-npx playwright test tests/regression/<bug-case>.test.js
+# Hard-refresh browser: Ctrl+Shift+R
+git add Cargo.toml package.json README.md index.html
+git commit -m "chore: bump runtime version to v0.6.7"
+# Note: pkg/ is gitignored; do NOT commit WASM artifacts
 ```
 
 ## CI OWNERSHIP
-- CI build/test execution is centralized in Jenkins pipeline (`Jenkinsfile`).
-- GitHub Pages deployment remains in GitHub Actions workflow (`.github/workflows/deploy.yml`).
-- Do not treat OpenCode automation as CI executor for build/test/deploy stages.
-- Agent rule: do not run test commands directly in local sessions; trigger Jenkins jobs for all test execution and report the Jenkins build number/results.
+- CI build/test execution is centralized in Jenkins pipeline (`Jenkinsfile`)
+- GitHub Pages deployment remains in GitHub Actions workflow
+- Agent rule: do not run test commands locally; trigger Jenkins jobs for all test execution
 
 ### Jenkins Test Flow
-- Jenkins job: `idle-game-ci`.
-- Stage order: `Checkout` -> `Install JS Dependencies` -> `Lint` -> `Setup Rust Toolchain` -> `Rust Check` -> `Rust Tests` -> `Build WASM` -> optional `Playwright E2E` (`RUN_PLAYWRIGHT=true` or `RUN_COVERAGE=true`).
-- Trigger Playwright E2E with `RUN_PLAYWRIGHT=true`; trigger coverage gate with `RUN_COVERAGE=true`.
-- Coverage thresholds in Jenkins env: `E2E_COVERAGE_MIN_LINES=20`, `E2E_COVERAGE_MIN_STATEMENTS=20`, `E2E_COVERAGE_MIN_FUNCTIONS=15`, `E2E_COVERAGE_MIN_BRANCHES=10`.
-- Playwright in CI uses `python3 server.py --quiet` from `playwright.config.js`.
-- CI artifacts: `pkg/**`, `playwright-report/**`, `test-results/**`, `coverage-report/e2e-merged/**`; JUnit source: `test-results/**/*.xml`.
-- Timeout policy: pipeline `120 minutes`, Playwright stage `60 minutes`.
+- Job: `idle-game-ci`
+- Stages: Checkout → Install JS → Lint → Rust Check → Rust Tests → Build WASM → Playwright E2E
+- Trigger E2E: `RUN_PLAYWRIGHT=true`
+- Trigger coverage: `RUN_COVERAGE=true`
+- Coverage thresholds: `E2E_COVERAGE_MIN_LINES=20`, `E2E_COVERAGE_MIN_STATEMENTS=20`
 
-### Jenkins Background Monitoring Policy
-- Default mode: never block OpenCode foreground while waiting for Jenkins completion; always monitor in background.
-- Trigger builds (including coverage) first, then start a background `task(...)` to poll Jenkins build status/logs until `building=false`.
-- Required parameter combo for full E2E + coverage: `RUN_PLAYWRIGHT=true` and `RUN_COVERAGE=true`.
-- Use `background_output(task_id="...")` to fetch progress/results on demand; summarize build number, final status, test result, and coverage percentages.
-- Coverage data source priority: `coverage-report/e2e-merged/coverage-summary.json` artifact first, fallback to build log extraction only after bounded attempts.
-- Keep the foreground free for other requests while background monitoring runs; do not idle-wait with long blocking sleeps.
-- If multiple people are using Jenkins, only diagnose and repair builds you personally triggered in this session; do not treat teammates' queued or running builds as your repair target.
-- Do root-cause analysis from existing build metadata/logs first, then trigger a new Jenkins run only after you have a concrete hypothesis worth validating; avoid speculative reruns that consume shared queue capacity.
+### Jenkins Background Monitoring
+- Trigger builds first, then start background `task(...)` to poll status
+- Use `background_output(task_id="...")` to fetch results on demand
+- Coverage priority: `coverage-report/e2e-merged/coverage-summary.json` artifact first
+- Only diagnose builds you personally triggered in this session
+- Do root-cause analysis from metadata/logs before triggering new runs
 
 ### Jenkins MCP Timeout Mitigation
-- Known issue: `jenkins_getBuildLog` and `jenkins_searchBuildLog` may timeout (`MCP error -32001`) on active builds.
-- Mandatory sequence: call `jenkins_getBuild` first; if `building=true`, do not use log APIs for status polling.
-- Running build polling should use metadata APIs only: `jenkins_getBuild`, `jenkins_getQueueItem`, and `jenkins_getTestResults`.
-- Only call log APIs after `building=false`; use bounded windows (`limit<=200`, prefer `skip=-200` for recent lines) instead of full log scans.
-- For `jenkins_searchBuildLog`, use narrow patterns and bounded matches (`maxMatches<=20`); avoid broad regex during long logs.
-- Retry policy for log APIs: max 3 attempts with backoff (2s, 5s, 10s), then fall back to artifacts/test APIs and report partial diagnostics.
-- Preferred result sources to avoid log timeouts: build result from `jenkins_getBuild`, tests from `jenkins_getTestResults`, coverage from archived `coverage-summary.json`.
-- Local Jenkins may use a workspace-source copy instead of Git checkout; verify the job config before assuming remote-only SCM state.
-
+- Known issue: `jenkins_getBuildLog` may timeout on active builds
+- Sequence: call `jenkins_getBuild` first; if `building=true`, do NOT use log APIs
+- Use metadata APIs only for running builds: `jenkins_getBuild`, `jenkins_getQueueItem`, `jenkins_getTestResults`
+- Call log APIs only after `building=false`; use bounded windows (`limit<=200`, `skip=-200`)
+- Retry policy: max 3 attempts with backoff (2s, 5s, 10s)
 
 ## SCOPED GUIDES
 - `src/AGENTS.md`
@@ -204,5 +251,6 @@ npx playwright test tests/regression/<bug-case>.test.js
 - `scripts/AGENTS.md`
 
 ## NOTES
-- LSP Rust analysis may be unavailable if `rust-analyzer` is not installed in environment.
-- `wasm-pack` release profile has `wasm-opt = false` in `Cargo.toml` (WASM not optimized in release builds).
+- LSP Rust analysis may be unavailable if `rust-analyzer` is not installed
+- `wasm-pack` release profile has `wasm-opt = false` (WASM not optimized in release builds)
+- No Cursor/Copilot rules configured; this file is the primary agentic coding guide
