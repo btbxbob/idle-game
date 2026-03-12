@@ -86,6 +86,20 @@ npm run test:e2e:coverage
 npx playwright test tests/regression/<bug-case>.test.js
 ```
 
+⚠️ **IMPORTANT: Commit Before Testing**
+
+Always commit your code changes BEFORE running tests. This ensures:
+1. Tests run against the committed version
+2. No uncommitted changes interfere with test results
+3. Git history accurately reflects what was tested
+
+```bash
+# Workflow:
+1. Make changes
+2. git add <files> && git commit -m "message"
+3. npm run test  # Test the committed version
+```
+
 ### Lint
 ```bash
 # Rust (strict mode - warnings as errors)
