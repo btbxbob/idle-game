@@ -1997,6 +1997,205 @@ footer {
     border-top: 2px solid var(--border-color);
 }
 
+/* ========================================
+   TECHNOLOGY CARD GRID (NEW)
+   ======================================== */
+
+.tech-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+    align-items: center;
+}
+
+.tech-search {
+    flex: 1;
+    min-width: 150px;
+    padding: 6px 10px;
+    border: 2px solid var(--border-color);
+    background-color: var(--main-bg);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.tech-filter, .tech-sort {
+    padding: 6px 10px;
+    border: 2px solid var(--border-color);
+    background-color: var(--main-bg);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.tech-hide-researched {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.tech-hide-researched input {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.tech-count {
+    margin-left: auto;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    padding: 0;
+}
+
+.tech-card {
+    background-color: var(--panel-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    padding: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    transition: all 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 3px 3px 0px var(--shadow-color);
+    cursor: pointer;
+}
+
+.tech-card:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px var(--shadow-color);
+}
+
+.tech-card.researched {
+    opacity: 0.7;
+    background-color: var(--panel-bg);
+}
+
+.tech-card.researched .tech-header {
+    background-color: #27ae60;
+}
+
+.tech-card.locked {
+    opacity: 0.6;
+}
+
+.tech-card.locked .tech-header {
+    background-color: #7f8c8d;
+}
+
+.tech-header {
+    background-color: var(--text-color);
+    color: var(--click-area-text);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.tech-name {
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tech-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border: 1px solid var(--border-color);
+    background: rgba(255,255,255,0.1);
+}
+
+.tech-status {
+    font-size: 14px;
+}
+
+.tech-body {
+    padding: 8px 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tech-effect {
+    color: #3498db;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.tech-costs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.tech-cost-item {
+    font-size: 10px;
+    padding: 2px 5px;
+    background: rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+}
+
+.tech-cost-item.insufficient {
+    color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.tech-footer {
+    padding: 6px 10px;
+    border-top: 1px dashed var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.tech-research-btn {
+    padding: 6px 16px;
+    border: 2px solid var(--border-color);
+    background-color: #27ae60;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.tech-research-btn:hover:not(:disabled) {
+    background-color: #2ecc71;
+}
+
+.tech-research-btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.tech-research-btn.can-research {
+    background-color: #27ae60;
+}
+
+.tech-research-btn.cannot-afford {
+    background-color: #e67e22;
+}
+
+.tech-research-btn.researched {
+    background-color: #95a5a6;
+}
+
 .work-overview {
     display: grid;
     gap: 12px;
@@ -2729,10 +2928,32 @@ footer {
     .modal-content {
         width: 95%;
     }
+
+    .tech-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .tech-card {
+        font-size: 12px;
+    }
+
+    .tech-header {
+        padding: 8px 10px;
+    }
+
+    .tech-body {
+        padding: 10px;
+    }
 }
 
 @media (max-width: 768px) {
     .workers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 12px;
+    }
+
+    .tech-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 12px;
     }

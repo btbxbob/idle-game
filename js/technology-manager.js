@@ -1,36 +1,24 @@
+/**
+ * TechnologyManager - Card-based technology tree UI
+ * Matches the visual style of worker cards for consistency
+ */
 class TechnologyManager {
     constructor(rustGame, i18n) {
         this.rustGame = rustGame;
         this.i18n = i18n;
         this.treeContainer = document.getElementById('technology-tree-container');
-        this.detailPanel = document.getElementById('technology-detail');
-        this.researchBtn = document.getElementById('research-button');
-        this.selectedTechnology = null;
         this.technologies = [];
-        this.activeTier = 1;
+        
+        // Filter/sort state
+        this.filterState = {
+            query: '',
+            filterBy: 'all', // 'all', 'available', 'researched'
+            hideResearched: false,
+            sortBy: 'tier' // 'tier', 'name'
+        };
         
         // Cache for preventing excessive re-renders
-        this.lastSelectedTechState = null;
-        
-        // Canvas visualization state
-        this.canvas = null;
-        this.ctx = null;
-        this.nodes = [];
-        this.edges = [];
-        this.selectedNode = null;
-        this.draggedNode = null;
-        
-        // Zoom/pan state
-        this.scale = 1;
-        this.offsetX = 0;
-        this.offsetY = 0;
-        this.isPanning = false;
-        this.lastMouseX = 0;
-        this.lastMouseY = 0;
-        
-        // Force simulation state
-        this.simulationRunning = false;
-        this.animationFrame = null;
+        this.lastTechStates = new Map();
     }
 
     initialize() {
@@ -43,7 +31,9 @@ class TechnologyManager {
         try {
             const techData = this.rustGame.get_technologies();
             this.technologies = Array.isArray(techData) ? techData : [];
+            this.cacheTechStates();
             this.renderTree();
+            this.bindEvents();
             this.bindEvents();
         } catch (error) {
             console.error('TechnologyManager: Error loading technologies:', error);
@@ -51,9 +41,45 @@ class TechnologyManager {
         }
     }
 
+    /**
+     * Cache current technology states for change detection
+     */
+    cacheTechStates() {
+        this.lastTechStates.clear();
+        this.technologies.forEach(tech => {
+            this.lastTechStates.set(tech.id, {
+                researched: tech.researched || tech.purchased || false,
+                canResearch: this.canResearch(tech),
+                costs: JSON.stringify(tech.costs || {})
+            });
+        });
+    }
+
+    /**
+     * Check if any technology state has changed
+     */
+    hasStateChanged() {
+        if (this.lastTechStates.size !== this.technologies.length) return true;
+        
+        for (const tech of this.technologies) {
+            const cached = this.lastTechStates.get(tech.id);
+            if (!cached) return true;
+            
+            const currentState = {
+                researched: tech.researched || tech.purchased || false,
+                canResearch: this.canResearch(tech),
+                costs: JSON.stringify(tech.costs || {})
+            };
+            
+            if (JSON.stringify(cached) !== JSON.stringify(currentState)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     update() {
         if (!this.rustGame || typeof this.rustGame.get_technologies !== 'function') {
-            this.technologies = [];
             return;
         }
 
@@ -63,10 +89,10 @@ class TechnologyManager {
             
             const technologyTab = document.getElementById('tab-technology');
             if (technologyTab && technologyTab.classList.contains('active')) {
-                this.renderTree();
-                // Only re-render detail panel if selected technology state changed
-                if (this.selectedTechnology) {
-                    this.updateSelectedTechnology();
+                // Only re-render if state actually changed
+                if (this.hasStateChanged()) {
+                    this.cacheTechStates();
+                    this.renderTechCards();
                 }
             }
         } catch (error) {
@@ -75,857 +101,337 @@ class TechnologyManager {
     }
 
     /**
-     * Update the selected technology display only if state changed
+     * Main render method - builds tools + card grid
      */
-    updateSelectedTechnology() {
-        const tech = this.technologies.find(t => t.id === this.selectedTechnology.id);
-        if (!tech) return;
+    render() {
+        if (!this.treeContainer) return;
         
-        // Create a state signature to detect changes
-        const currentState = {
-            researched: tech.researched || tech.purchased || false,
-            canResearch: this.canResearch(tech),
-            costs: JSON.stringify(tech.costs || {})
-        };
-        
-        // Only re-render if state changed
-        if (this.lastSelectedTechState && 
-            JSON.stringify(this.lastSelectedTechState) === JSON.stringify(currentState)) {
-            return; // No change, skip re-render
-        }
-        
-        // State changed, update cache and re-render
-        this.lastSelectedTechState = currentState;
-        this.selectedTechnology = tech;
-        this.selectTechnology(tech.id);
+        this.renderTools();
+        this.renderTechCards();
     }
 
     /**
-     * Initialize and render the force-directed graph visualization
+     * Render filter/sort tools bar
      */
-    renderForceDirectedGraph() {
-        if (!this.treeContainer) return;
-        
+    renderTools() {
         const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
+        const researchedCount = this.technologies.filter(t => t.researched || t.purchased).length;
+        const availableCount = this.technologies.filter(t => this.canResearch(t) && !(t.researched || t.purchased)).length;
         
-        if (this.technologies.length === 0) {
-            this.treeContainer.innerHTML = `<p class="no-technologies">${t('noTechnologies') || '暂无科技可研究'}</p>`;
-            return;
+        // Find or create tools container
+        let toolsEl = this.treeContainer.querySelector('.tech-tools');
+        if (!toolsEl) {
+            toolsEl = document.createElement('div');
+            toolsEl.className = 'tech-tools';
+            this.treeContainer.appendChild(toolsEl);
         }
-
-        // Create canvas container
-        this.treeContainer.innerHTML = `
-            <div class="tech-tree-canvas-container">
-                <canvas id="tech-tree-canvas"></canvas>
-            </div>
-            <div class="tech-tree-controls">
-                <button id="tech-zoom-in" class="tech-control-btn">🔍+</button>
-                <button id="tech-zoom-out" class="tech-control-btn">🔍-</button>
-                <button id="tech-reset-view" class="tech-control-btn">🔄</button>
-            </div>
+        
+        toolsEl.innerHTML = `
+            <input type="text" class="tech-search" placeholder="${t('search') || '搜索科技'}" value="${this.escapeHtml(this.filterState.query)}">
+            <select class="tech-filter">
+                <option value="all" ${this.filterState.filterBy === 'all' ? 'selected' : ''}>${t('all') || '全部'} (${this.technologies.length})</option>
+                <option value="available" ${this.filterState.filterBy === 'available' ? 'selected' : ''}>${t('available') || '可研究'} (${availableCount})</option>
+                <option value="researched" ${this.filterState.filterBy === 'researched' ? 'selected' : ''}>${t('researched') || '已研究'} (${researchedCount})</option>
+            </select>
+            <label class="tech-hide-researched">
+                <input type="checkbox" ${this.filterState.hideResearched ? 'checked' : ''}>
+                ${t('hideResearched') || '隐藏已研究'}
+            </label>
+            <span class="tech-count">${researchedCount}/${this.technologies.length}</span>
         `;
         
-        const canvas = document.getElementById('tech-tree-canvas');
-        const container = canvas.parentElement;
-        
-        // Set canvas size
-        canvas.width = Math.max(800, container.clientWidth);
-        canvas.height = Math.max(600, this.technologies.length * 60);
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        
-        // Initialize nodes from technologies
-        this.nodes = this.technologies.map((tech, index) => {
-            const tier = tech.tier || 1;
-            const tierWidth = 800;
-            const tierHeight = 180;
-            const tierY = (tier - 1) * tierHeight + 120;
-            const techsInTier = this.technologies.filter(t => (t.tier || 1) === tier).length;
-            const tierIndex = this.technologies.filter((t, i) => i < index && (t.tier || 1) === tier).length;
-            
-            return {
-                id: tech.id,
-                name: tech.name,
-                tier: tier,
-                researched: tech.researched || tech.purchased || false,
-                canResearch: this.canResearch(tech),
-                dependencies: tech.dependencies || [],
-                x: (tierWidth / (techsInTier + 1)) * (tierIndex + 1),
-                y: tierY,
-                vx: 0,
-                vy: 0,
-                radius: 40,
-                selected: false
-            };
-        });
-        
-        // Build edges from dependencies
-        this.edges = [];
-        this.nodes.forEach(node => {
-            node.dependencies.forEach(depId => {
-                const depNode = this.nodes.find(n => n.id === depId);
-                if (depNode) {
-                    this.edges.push({
-                        from: depNode,
-                        to: node
-                    });
-                }
-            });
-        });
-        
-        // Setup event listeners
-        this.setupCanvasEvents();
-        
-        // Start force simulation
-        this.startForceSimulation();
+        this.bindToolEvents(toolsEl);
     }
 
     /**
-     * Force-directed graph simulation
+     * Bind events for filter/sort tools
      */
-    startForceSimulation() {
-        if (this.simulationRunning) return;
-        this.simulationRunning = true;
+    bindToolEvents(toolsEl) {
+        const search = toolsEl.querySelector('.tech-search');
+        const filter = toolsEl.querySelector('.tech-filter');
+        const hideCheckbox = toolsEl.querySelector('.tech-hide-researched input');
         
-        const animate = () => {
-            if (!this.simulationRunning) return;
-            
-            this.updatePhysics();
-            this.render();
-            this.animationFrame = requestAnimationFrame(animate);
-        };
-        
-        animate();
-    }
-
-    stopForceSimulation() {
-        this.simulationRunning = false;
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
-            this.animationFrame = null;
-        }
-    }
-
-    updatePhysics() {
-        const width = this.canvas.width;
-        const height = this.canvas.height;
-        const k = 0.5;
-        const damping = 0.85;
-        const repulsion = 8000;
-        const attraction = 0.02;
-        const centerForce = 0.0008;
-        
-        // Apply repulsion between all nodes
-        for (let i = 0; i < this.nodes.length; i++) {
-            for (let j = i + 1; j < this.nodes.length; j++) {
-                const nodeA = this.nodes[i];
-                const nodeB = this.nodes[j];
-                
-                const dx = nodeB.x - nodeA.x;
-                const dy = nodeB.y - nodeA.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                
-                if (dist < 250) {
-                    const force = repulsion / (dist * dist);
-                    const fx = (dx / dist) * force;
-                    const fy = (dy / dist) * force;
-                    
-                    if (!this.draggedNode || this.draggedNode !== nodeA) {
-                        nodeA.vx -= fx;
-                        nodeA.vy -= fy;
-                    }
-                    if (!this.draggedNode || this.draggedNode !== nodeB) {
-                        nodeB.vx += fx;
-                        nodeB.vy += fy;
-                    }
-                }
-            }
-        }
-        
-        // Apply spring forces along edges
-        this.edges.forEach(edge => {
-            const dx = edge.to.x - edge.from.x;
-            const dy = edge.to.y - edge.from.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            
-            const force = (dist - 180) * attraction;
-            const fx = (dx / dist) * force;
-            const fy = (dy / dist) * force;
-            
-            if (!this.draggedNode || this.draggedNode !== edge.from) {
-                edge.from.vx += fx;
-                edge.from.vy += fy;
-            }
-            if (!this.draggedNode || this.draggedNode !== edge.to) {
-                edge.to.vx -= fx;
-                edge.to.vy -= fy;
-            }
-        });
-        
-        // Apply center gravity
-        const centerX = width / 2;
-        const centerY = height / 2 - 80;
-        
-        this.nodes.forEach(node => {
-            if (this.draggedNode === node) return;
-            
-            node.vx += (centerX - node.x) * centerForce;
-            node.vy += (centerY - node.y) * centerForce;
-            
-            // Apply damping
-            node.vx *= damping;
-            node.vy *= damping;
-            
-            // Update position
-            node.x += node.vx;
-            node.y += node.vy;
-            
-            // Boundary constraints
-            const margin = node.radius + 15;
-            if (node.x < margin) { node.x = margin; node.vx *= -0.5; }
-            if (node.x > width - margin) { node.x = width - margin; node.vx *= -0.5; }
-            if (node.y < margin) { node.y = margin; node.vy *= -0.5; }
-            if (node.y > height - margin) { node.y = height - margin; node.vy *= -0.5; }
-        });
-    }
-
-    render() {
-        const ctx = this.ctx;
-        const width = this.canvas.width;
-        const height = this.canvas.height;
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, width, height);
-        
-        // Draw background gradient
-        const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-        bgGradient.addColorStop(0, 'rgba(20, 30, 48, 0.3)');
-        bgGradient.addColorStop(1, 'rgba(36, 59, 85, 0.3)');
-        ctx.fillStyle = bgGradient;
-        ctx.fillRect(0, 0, width, height);
-        
-        // Apply transform
-        ctx.save();
-        ctx.translate(this.offsetX, this.offsetY);
-        ctx.scale(this.scale, this.scale);
-        
-        // Draw edges
-        this.edges.forEach(edge => {
-            ctx.beginPath();
-            ctx.moveTo(edge.from.x, edge.from.y);
-            ctx.lineTo(edge.to.x, edge.to.y);
-            
-            if (edge.from.researched && edge.to.researched) {
-                ctx.strokeStyle = '#2ecc71';
-                ctx.lineWidth = 3;
-                ctx.shadowColor = '#2ecc71';
-                ctx.shadowBlur = 10;
-            } else if (edge.from.researched && edge.to.canResearch) {
-                ctx.strokeStyle = '#f39c12';
-                ctx.lineWidth = 2.5;
-                ctx.shadowColor = '#f39c12';
-                ctx.shadowBlur = 8;
-            } else {
-                ctx.strokeStyle = 'rgba(100, 116, 139, 0.4)';
-                ctx.lineWidth = 1.5;
-                ctx.shadowBlur = 0;
-            }
-            
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-            
-            // Draw arrow
-            const angle = Math.atan2(edge.to.y - edge.from.y, edge.to.x - edge.from.x);
-            const arrowLength = 12;
-            const arrowX = edge.to.x - (edge.to.radius + 5) * Math.cos(angle);
-            const arrowY = edge.to.y - (edge.to.radius + 5) * Math.sin(angle);
-            
-            ctx.beginPath();
-            ctx.moveTo(arrowX, arrowY);
-            ctx.lineTo(
-                arrowX - arrowLength * Math.cos(angle - Math.PI / 6),
-                arrowY - arrowLength * Math.sin(angle - Math.PI / 6)
-            );
-            ctx.moveTo(arrowX, arrowY);
-            ctx.lineTo(
-                arrowX - arrowLength * Math.cos(angle + Math.PI / 6),
-                arrowY - arrowLength * Math.sin(angle + Math.PI / 6)
-            );
-            ctx.stroke();
-        });
-        
-        // Draw nodes
-        this.nodes.forEach(node => {
-            // Node glow effect for selected/hovered
-            if (node.selected || (this.draggedNode === node)) {
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, node.radius + 12, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.fill();
-                
-                // Outer ring
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, node.radius + 8, 0, Math.PI * 2);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-            
-            // Node circle with state-based gradient
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-            
-            let gradient;
-            if (node.researched) {
-                gradient = ctx.createRadialGradient(node.x - 10, node.y - 10, 0, node.x, node.y, node.radius);
-                gradient.addColorStop(0, '#58d68d');
-                gradient.addColorStop(0.7, '#2ecc71');
-                gradient.addColorStop(1, '#1e8449');
-            } else if (node.canResearch) {
-                gradient = ctx.createRadialGradient(node.x - 10, node.y - 10, 0, node.x, node.y, node.radius);
-                gradient.addColorStop(0, '#f5b041');
-                gradient.addColorStop(0.7, '#f39c12');
-                gradient.addColorStop(1, '#b9770e');
-            } else {
-                gradient = ctx.createRadialGradient(node.x - 10, node.y - 10, 0, node.x, node.y, node.radius);
-                gradient.addColorStop(0, '#85929e');
-                gradient.addColorStop(0.7, '#5d6d7e');
-                gradient.addColorStop(1, '#34495e');
-            }
-            
-            ctx.fillStyle = gradient;
-            ctx.fill();
-            
-            // Node border
-            ctx.lineWidth = node.selected ? 4 : 2;
-            ctx.strokeStyle = node.selected ? '#ffffff' : 'rgba(255, 255, 255, 0.4)';
-            ctx.stroke();
-            
-            // Node label - split long names
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 13px "Courier New", monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            const maxCharsPerLine = 6;
-            if (node.name.length > maxCharsPerLine) {
-                const mid = Math.ceil(node.name.length / 2);
-                const line1 = node.name.substring(0, mid);
-                const line2 = node.name.substring(mid);
-                ctx.fillText(line1, node.x, node.y - 8);
-                ctx.fillText(line2, node.x, node.y + 10);
-            } else {
-                ctx.fillText(node.name, node.x, node.y);
-            }
-            
-            // Tier indicator
-            ctx.font = '11px "Courier New", monospace';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.fillText(`T${node.tier}`, node.x, node.y + node.radius - 14);
-            
-            // Status icon
-            if (node.researched) {
-                ctx.font = '16px Arial';
-                ctx.fillText('✓', node.x, node.y - node.radius + 18);
-            } else if (node.canResearch) {
-                ctx.font = '16px Arial';
-                ctx.fillText('⚡', node.x, node.y - node.radius + 18);
-            } else {
-                ctx.font = '14px Arial';
-                ctx.fillText('🔒', node.x, node.y - node.radius + 16);
-            }
-        });
-        
-        ctx.restore();
-    }
-
-    setupCanvasEvents() {
-        const canvas = this.canvas;
-        
-        // Mouse down
-        canvas.addEventListener('mousedown', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = (e.clientX - rect.left - this.offsetX) / this.scale;
-            const mouseY = (e.clientY - rect.top - this.offsetY) / this.scale;
-            
-            const clickedNode = this.nodes.find(node => {
-                const dx = node.x - mouseX;
-                const dy = node.y - mouseY;
-                return Math.sqrt(dx * dx + dy * dy) < node.radius;
-            });
-            
-            if (clickedNode) {
-                this.draggedNode = clickedNode;
-                this.selectNode(clickedNode);
-            } else {
-                this.isPanning = true;
-                this.lastMouseX = e.clientX;
-                this.lastMouseY = e.clientY;
-            }
-        });
-        
-        // Mouse move
-        canvas.addEventListener('mousemove', (e) => {
-            if (this.draggedNode) {
-                const rect = canvas.getBoundingClientRect();
-                this.draggedNode.x = (e.clientX - rect.left - this.offsetX) / this.scale;
-                this.draggedNode.y = (e.clientY - rect.top - this.offsetY) / this.scale;
-                this.draggedNode.vx = 0;
-                this.draggedNode.vy = 0;
-            } else if (this.isPanning) {
-                const dx = e.clientX - this.lastMouseX;
-                const dy = e.clientY - this.lastMouseY;
-                this.offsetX += dx;
-                this.offsetY += dy;
-                this.lastMouseX = e.clientX;
-                this.lastMouseY = e.clientY;
-            }
-            
-            // Cursor feedback
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = (e.clientX - rect.left - this.offsetX) / this.scale;
-            const mouseY = (e.clientY - rect.top - this.offsetY) / this.scale;
-            const hoveredNode = this.nodes.find(node => {
-                const dx = node.x - mouseX;
-                const dy = node.y - mouseY;
-                return Math.sqrt(dx * dx + dy * dy) < node.radius;
-            });
-            canvas.style.cursor = hoveredNode || this.isPanning ? 'grab' : 'default';
-        });
-        
-        // Mouse up
-        canvas.addEventListener('mouseup', () => {
-            this.draggedNode = null;
-            this.isPanning = false;
-        });
-        
-        canvas.addEventListener('mouseleave', () => {
-            this.draggedNode = null;
-            this.isPanning = false;
-        });
-        
-        // Mouse wheel - zoom
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomFactor = e.deltaY > 0 ? 0.85 : 1.15;
-            this.scale *= zoomFactor;
-            this.scale = Math.max(0.5, Math.min(3, this.scale));
-        }, { passive: false });
-        
-        // Control buttons
-        const zoomInBtn = document.getElementById('tech-zoom-in');
-        const zoomOutBtn = document.getElementById('tech-zoom-out');
-        const resetBtn = document.getElementById('tech-reset-view');
-        
-        if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', () => {
-                this.scale *= 1.3;
-                this.scale = Math.min(3, this.scale);
+        if (search) {
+            search.addEventListener('input', (e) => {
+                this.filterState.query = e.target.value || '';
+                this.renderTechCards();
             });
         }
         
-        if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', () => {
-                this.scale *= 0.77;
-                this.scale = Math.max(0.5, this.scale);
+        if (filter) {
+            filter.addEventListener('change', (e) => {
+                this.filterState.filterBy = e.target.value || 'all';
+                this.renderTechCards();
             });
         }
         
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                this.scale = 1;
-                this.offsetX = 0;
-                this.offsetY = 0;
+        if (hideCheckbox) {
+            hideCheckbox.addEventListener('change', (e) => {
+                this.filterState.hideResearched = e.target.checked;
+                this.renderTechCards();
             });
         }
-    }
-
-    selectNode(node) {
-        this.nodes.forEach(n => {
-            n.selected = false;
-        });
-        node.selected = true;
-        this.selectedNode = node;
-        
-        const tech = this.technologies.find(t => t.id === node.id);
-        if (tech) {
-            this.selectTechnology(tech.id);
-        }
-    }
-
-    renderTree() {
-        if (!this.treeContainer) {
-            console.warn('TechnologyManager: #technology-tree-container element not found');
-            return;
-        }
-        
-        this.stopForceSimulation();
-        this.renderTextBasedTree();
     }
 
     /**
-     * Render technology tree using plain text and ASCII art
+     * Render technology cards in a grid
      */
-    renderTextBasedTree() {
-        if (!this.treeContainer) return;
-        
+    renderTechCards() {
         const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
         
-        if (this.technologies.length === 0) {
-            this.treeContainer.innerHTML = `<p class="no-technologies">${t('noTechnologies') || '暂无科技可研究'}</p>`;
+        // Find or create grid container
+        let gridEl = this.treeContainer.querySelector('.tech-grid');
+        if (!gridEl) {
+            gridEl = document.createElement('div');
+            gridEl.className = 'tech-grid';
+            this.treeContainer.appendChild(gridEl);
+        }
+        
+        // Filter technologies
+        const filtered = this.getFilteredTechnologies();
+        
+        if (filtered.length === 0) {
+            gridEl.innerHTML = `<p class="no-technologies" style="padding:20px;text-align:center;opacity:0.7;">${t('noTechnologies') || '暂无科技可研究'}</p>`;
             return;
         }
         
-        // Group technologies by tier
-        const tiers = {};
-        this.technologies.forEach(tech => {
-            const tier = tech.tier || 1;
-            if (!tiers[tier]) tiers[tier] = [];
-            tiers[tier].push(tech);
-        });
+        // Render cards
+        let html = '';
+        for (const tech of filtered) {
+            html += this.renderTechCard(tech, t);
+        }
+        gridEl.innerHTML = html;
         
-        // Get available tiers sorted
-        const tierKeys = Object.keys(tiers).map(Number).sort((a, b) => a - b);
-        
-        // Build collapsible tier groups
-        let techListHtml = tierKeys.map(tierNum => {
-            const techsInTier = tiers[tierNum];
-            const techItemsHtml = techsInTier.map(tech => {
-                const isResearched = tech.researched || tech.purchased || false;
-                const canResearch = this.canResearch(tech);
-                const statusClass = isResearched ? 'researched' : (canResearch ? 'available' : 'locked');
-                const isSelected = this.selectedTechnology && this.selectedTechnology.id === tech.id;
-                const effectDesc = this.getEffectDescription(tech);
-                const shortEffect = effectDesc.length > 18 ? effectDesc.substring(0, 18) + '...' : effectDesc;
-                return `<div class="tech-item-compact ${statusClass}" data-tech-id="${tech.id}" 
-                    style="cursor:pointer;padding:5px 8px;margin:2px 0;border-radius:4px;border:2px solid ${isSelected ? '#007bff' : 'transparent'};
-                           ${isResearched ? 'background:#e8f5e9' : (canResearch ? 'background:#fffde7' : 'background:#f5f5f5')};"
-                    title="${effectDesc}">
-                    <span style="font-weight:bold;width:18px;display:inline-block;">${isResearched ? '✓' : (canResearch ? '○' : '×')}</span>
-                    <span style="font-weight:500;font-size:13px;">${this.escapeHtml(tech.name || tech.id)}</span>
-                    <span style="color:#888;font-size:11px;margin-left:auto;">${shortEffect}</span>
-                </div>`;
-            }).join('');
-            
-            const tierLabels = {1: '基础', 2: '进阶', 3: '高级', 4: '终极'};
-            return `<details class="tech-tier-group" open>
-                <summary style="cursor:pointer;padding:8px 12px;margin:4px 0;background:#e9ecef;border-radius:4px;font-weight:bold;font-size:14px;">
-                    T${tierNum} - ${tierLabels[tierNum] || 'Tier ' + tierNum} (${techsInTier.length})
-                </summary>
-                <div class="tech-tier-items" style="padding:4px 8px;background:#fafafa;border-radius:4px;margin-bottom:8px;">
-                    ${techItemsHtml}
-                </div>
-            </details>`;
-        }).join('');
-        
-        this.treeContainer.innerHTML = techListHtml;
-        
-        // Bind item clicks
-        const self = this;
-        this.treeContainer.querySelectorAll('.tech-item-compact').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const techId = this.getAttribute('data-tech-id');
-                self.selectTechnology(techId);
-                self.updateDetailPanel();
-            });
-        });
+        // Bind card events
+        this.bindCardEvents(gridEl);
     }
-    
-    renderTechDetail(tech) {
-        if (!tech) return '<p style="color:#888;text-align:center;">未选择科技</p>';
+
+    /**
+     * Get filtered and sorted technologies
+     */
+    getFilteredTechnologies() {
+        const query = this.filterState.query.trim().toLowerCase();
+        const filterBy = this.filterState.filterBy;
+        const hideResearched = this.filterState.hideResearched;
         
+        let filtered = this.technologies.filter(tech => {
+            // Filter by status
+            const isResearched = tech.researched || tech.purchased || false;
+            const isAvailable = this.canResearch(tech);
+            
+            if (filterBy === 'available' && (isResearched || !isAvailable)) return false;
+            if (filterBy === 'researched' && !isResearched) return false;
+            if (hideResearched && isResearched) return false;
+            
+            // Filter by search query
+            if (query) {
+                const searchStr = `${tech.name || ''} ${tech.description || ''} ${this.getEffectDescription(tech)}`.toLowerCase();
+                if (!searchStr.includes(query)) return false;
+            }
+            
+            return true;
+        });
+        
+        // Sort by tier then name
+        filtered.sort((a, b) => {
+            const tierA = a.tier || 1;
+            const tierB = b.tier || 1;
+            if (tierA !== tierB) return tierA - tierB;
+            return String(a.name || '').localeCompare(String(b.name || ''));
+        });
+        
+        return filtered;
+    }
+
+    /**
+     * Render a single technology card
+     */
+    renderTechCard(tech, t) {
         const isResearched = tech.researched || tech.purchased || false;
         const canResearch = this.canResearch(tech);
         const hasResources = this.hasResources(tech.costs);
-        const canUnlock = canResearch && hasResources;
+        const statusClass = isResearched ? 'researched' : (canResearch ? '' : 'locked');
         const effectDesc = this.getEffectDescription(tech);
         
-        let costsStr = '';
+        // Status icon and text
+        let statusIcon = '';
+        let statusText = '';
+        if (isResearched) {
+            statusIcon = '✓';
+            statusText = t('researched') || '已研究';
+        } else if (canResearch) {
+            statusIcon = '○';
+            statusText = t('available') || '可研究';
+        } else {
+            statusIcon = '×';
+            statusText = t('locked') || '未解锁';
+        }
+        
+        // Build costs HTML
+        let costsHtml = '';
         if (tech.costs && Object.keys(tech.costs).length > 0) {
-            costsStr = this.sortCosts(tech.costs)
-                .map(([k, v]) => `<span style="background:#f0f0f0;padding:2px 6px;border-radius:3px;margin:2px;font-size:11px;">${this.getResourceName(k)}: ${Math.floor(v)}</span>`)
-                .join('');
-        } else {
-            costsStr = '<span style="color:#28a745;">免费</span>';
+            const costItems = this.sortCosts(tech.costs).map(([resource, amount]) => {
+                const hasEnough = this.getResourceValue(resource) >= amount;
+                const insufficientClass = !hasEnough ? 'insufficient' : '';
+                return `<span class="tech-cost-item ${insufficientClass}">${this.getResourceShortName(resource)}:${Math.floor(amount)}</span>`;
+            });
+            costsHtml = `<div class="tech-costs">${costItems.join('')}</div>`;
         }
         
-        let depsStr = '';
-        if (tech.dependencies && tech.dependencies.length > 0) {
-            depsStr = tech.dependencies.map(depId => {
-                const depTech = this.technologies.find(t => t.id === depId);
-                const depName = depTech ? depTech.name : depId;
-                const depResearched = depTech && (depTech.researched || depTech.purchased);
-                return `<span style="${depResearched ? 'color:#28a745;' : 'color:#dc3545;'}">${depResearched ? '✓' : '○'} ${depName}</span>`;
-            }).join('<br>');
+        // Button HTML
+        let buttonHtml = '';
+        if (!isResearched) {
+            const btnClass = canResearch && hasResources ? 'can-research' : (canResearch ? 'cannot-afford' : '');
+            const btnDisabled = !canResearch || !hasResources ? 'disabled' : '';
+            const btnText = canResearch ? (hasResources ? (t('research') || '研究') : (t('insufficientResources') || '资源不足')) : (t('locked') || '未解锁');
+            buttonHtml = `<button class="tech-research-btn ${btnClass}" ${btnDisabled} data-tech-id="${tech.id}">${btnText}</button>`;
         } else {
-            depsStr = '<span style="color:#888;">无前置需求</span>';
+            buttonHtml = `<span style="color:#27ae60;font-size:11px;">✓ ${t('researched') || '已研究'}</span>`;
         }
-        
-        const status = isResearched ? '已研究' : canResearch ? '可研究' : '未解锁';
-        const statusColor = isResearched ? '#28a745' : canResearch ? '#ffc107' : '#dc3545';
         
         return `
-            <div style="padding:5px;">
-                <h3 style="margin:0 0 8px 0;font-size:16px;color:#333;">${this.escapeHtml(tech.name || tech.id)}</h3>
-                <div style="margin-bottom:8px;">
-                    <span style="background:#e3f2fd;padding:2px 8px;border-radius:3px;font-size:11px;">T${tech.tier || 1}</span>
-                    <span style="color:${statusColor};font-weight:bold;font-size:12px;margin-left:8px;">${status}</span>
+            <div class="tech-card ${statusClass}" data-tech-id="${tech.id}">
+                <div class="tech-header">
+                    <span class="tech-name">
+                        <span class="tech-badge">T${tech.tier || 1}</span>
+                        ${this.escapeHtml(tech.name || tech.id)}
+                    </span>
+                    <span class="tech-status">${statusIcon}</span>
                 </div>
-                <p style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">${this.escapeHtml(tech.description || '')}</p>
-                <div style="background:#f9f9f9;padding:8px;border-radius:4px;margin:8px 0;">
-                    <div style="font-size:11px;font-weight:bold;color:#555;margin-bottom:4px;">效果:</div>
-                    <div style="font-size:12px;color:#007bff;">${effectDesc}</div>
+                <div class="tech-body">
+                    <div class="tech-effect">${this.escapeHtml(effectDesc)}</div>
+                    ${costsHtml}
                 </div>
-                <div style="margin:8px 0;">
-                    <div style="font-size:11px;font-weight:bold;color:#555;margin-bottom:4px;">花费:</div>
-                    <div>${costsStr}</div>
+                <div class="tech-footer">
+                    ${buttonHtml}
                 </div>
-                <div style="margin:8px 0;">
-                    <div style="font-size:11px;font-weight:bold;color:#555;margin-bottom:4px;">前置:</div>
-                    <div style="font-size:11px;">${depsStr}</div>
-                </div>
-                ${!isResearched ? `
-                    <button id="btn-research-inline" style="width:100%;padding:10px;margin-top:10px;
-                           background:${canUnlock ? '#28a745' : '#ccc'};color:#fff;border:none;
-                           cursor:${canUnlock ? 'pointer' : 'not-allowed'};font-size:14px;border-radius:4px;">
-                        ${canUnlock ? '【研究】' : hasResources ? '资源不足' : '前置未完成'}
-                    </button>
-                ` : `<div style="text-align:center;padding:10px;background:#e8f5e9;color:#28a745;font-weight:bold;border-radius:4px;margin-top:10px;">✓ 已研究</div>`}
             </div>
         `;
     }
-    
-    updateDetailPanel() {
-        const detailPanel = document.getElementById('tech-detail-inline');
-        if (detailPanel && this.selectedTechnology) {
-            detailPanel.innerHTML = this.renderTechDetail(this.selectedTechnology);
-            
-            // Bind research button
-            const btn = document.getElementById('btn-research-inline');
-            if (btn && !btn.disabled) {
-                btn.addEventListener('click', () => {
-                    this.researchTechnology(this.selectedTechnology.id);
-                    this.updateDetailPanel();
-                });
-            }
-        }
+
+    /**
+     * Bind click events for technology cards
+     */
+    bindCardEvents(gridEl) {
+        // Research button clicks
+        gridEl.querySelectorAll('.tech-research-btn:not([disabled])').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const techId = btn.getAttribute('data-tech-id');
+                this.researchTechnology(techId);
+            });
+        });
+        
+        // Card clicks for detail modal
+        gridEl.querySelectorAll('.tech-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const techId = card.getAttribute('data-tech-id');
+                this.showTechDetail(techId);
+            });
+        });
     }
 
-
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    selectTechnology(techId) {
+    /**
+     * Show technology detail modal
+     */
+    showTechDetail(techId) {
         const tech = this.technologies.find(t => t.id === techId);
-        if (!tech) {
-            console.warn('TechnologyManager: Technology not found:', techId);
-            return;
-        }
-
-        this.selectedTechnology = tech;
+        if (!tech) return;
+        
+        const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
         const isResearched = tech.researched || tech.purchased || false;
         const canResearch = this.canResearch(tech);
         const hasResources = this.hasResources(tech.costs);
-
-        if (!this.detailPanel) {
-            const container = this.treeContainer;
-            if (!container) return;
-
-            let costsStr = '';
-            if (tech.costs && Object.keys(tech.costs).length > 0) {
-                costsStr = this.sortCosts(tech.costs)
-                    .map(([k, v]) => `${k}: ${Math.floor(v)}`)
-                    .join(', ');
-            }
-
-            let depsStr = '';
-            if (tech.dependencies && tech.dependencies.length > 0) {
-                depsStr = tech.dependencies
-                    .map(d => {
-                        const depTech = this.technologies.find(t => t.id === d);
-                        return depTech ? depTech.name || d : d;
-                    })
-                    .join(', ');
-            }
-
-            const status = isResearched ? '已研究' : canResearch ? '可研究' : '未解锁';
-            const canUnlock = canResearch && hasResources;
-
-            const existing = container.querySelector('.tech-inline-detail');
-            if (existing) existing.remove();
-
-            const detailHtml = `<div class="tech-inline-detail" style="padding:15px;background:#fff;border:2px solid #007bff;margin:10px 0;">
-                    <h3>${tech.name || tech.id}</h3>
-                    <p><strong>等级:</strong> T${tech.tier || 1}</p>
-                    <p><strong>状态:</strong> ${status}</p>
-                    ${costsStr ? `<p><strong>花费:</strong> ${costsStr}</p>` : ''}
-                    ${depsStr ? `<p><strong>依赖:</strong> ${depsStr}</p>` : ''}
-                    ${!isResearched ? `
-                        <button id="btn-research-inline" style="padding:10px 20px;background:${canUnlock ? '#28a745' : '#ccc'};color:#fff;border:none;cursor:${canUnlock ? 'pointer' : 'not-allowed'};font-size:14px;">
-                            ${canUnlock ? '【研究此科技】' : hasResources ? '资源不足' : '前置未完成'}
-                        </button>
-                    ` : '<p><em>✓ 已研究</em></p>'}
-                </div>`;
-
-            const listEl = container.querySelector('.tech-tree-list');
-            if (listEl) {
-                listEl.insertAdjacentHTML('afterend', detailHtml);
-                const btn = document.getElementById('btn-research-inline');
-                if (btn && canUnlock) {
-                    btn.addEventListener('click', () => {
-                        this.researchTechnology(tech.id);
-                    });
-                }
-            }
-            return;
-        }
-
-        const t = this.i18n ? this.i18n.t.bind(this.i18n) : key => key;
-
+        const effectDesc = this.getEffectDescription(tech);
+        
+        // Build costs HTML
         let costsHtml = '';
         if (tech.costs && Object.keys(tech.costs).length > 0) {
-            costsHtml = '<div class="tech-costs">';
+            costsHtml = '<div class="tech-detail-row"><strong>' + (t('costs') || '花费') + ':</strong><br>';
             for (const [resource, amount] of this.sortCosts(tech.costs)) {
-                const resourceName = this.getResourceName(resource);
-                costsHtml += `<span class="cost-item">${resourceName}: ${Math.floor(amount)}</span>`;
+                const hasEnough = this.getResourceValue(resource) >= amount;
+                const color = hasEnough ? '#27ae60' : '#e74c3c';
+                costsHtml += `<span style="color:${color}">${this.getResourceName(resource)}: ${Math.floor(amount)}</span> `;
             }
             costsHtml += '</div>';
-        } else {
-            costsHtml = '<p class="no-costs">免费</p>';
         }
-
+        
+        // Build dependencies HTML
         let depsHtml = '';
         if (tech.dependencies && tech.dependencies.length > 0) {
-            depsHtml = '<div class="tech-dependencies"><strong>前置科技:</strong><br>';
+            depsHtml = '<div class="tech-detail-row"><strong>' + (t('dependencies') || '前置科技') + ':</strong><br>';
             tech.dependencies.forEach(depId => {
                 const depTech = this.technologies.find(t => t.id === depId);
                 const depName = depTech ? depTech.name : depId;
                 const depResearched = depTech && (depTech.researched || depTech.purchased);
-                depsHtml += `<span class="dep-item ${depResearched ? 'completed' : ''}">${depName}</span>`;
+                const color = depResearched ? '#27ae60' : '#e74c3c';
+                depsHtml += `<span style="color:${color}">${depResearched ? '✓' : '○'} ${this.escapeHtml(depName)}</span> `;
             });
             depsHtml += '</div>';
         }
-
-        const effectDesc = this.getEffectDescription(tech);
-        this.detailPanel.innerHTML = `
-            <div class="technology-detail-content">
-                <h3 class="tech-detail-name">${tech.name}</h3>
-                <div class="tech-detail-tier">等级：T${tech.tier}</div>
-                <p class="tech-detail-description">${tech.description || ''}</p>
-                ${costsHtml}
-                ${depsHtml}
-                <div class="tech-detail-effect">
-                    <strong>效果:</strong><br>
-                    ${effectDesc}
+        
+        // Build button HTML
+        let buttonHtml = '';
+        if (!isResearched) {
+            const btnDisabled = !canResearch || !hasResources ? 'disabled' : '';
+            const btnText = canResearch ? (hasResources ? (t('research') || '研究') : (t('insufficientResources') || '资源不足')) : (t('locked') || '未解锁');
+            buttonHtml = `<button class="tech-research-btn" style="width:100%;margin-top:10px;" ${btnDisabled} id="modal-research-btn">${btnText}</button>`;
+        }
+        
+        // Create modal
+        const existingModal = document.getElementById('tech-detail-modal');
+        if (existingModal) existingModal.remove();
+        
+        const modal = document.createElement('div');
+        modal.id = 'tech-detail-modal';
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width:400px;">
+                <div class="modal-header">
+                    <h3>${this.escapeHtml(tech.name || tech.id)}</h3>
+                    <button class="modal-close">&times;</button>
                 </div>
-                <div class="tech-detail-status">
-                    <strong>状态:</strong>
-                    <span class="status-badge ${isResearched ? 'researched' : 'locked'}">
-                        ${isResearched ? (t('researched') || '已研究') : (canResearch ? (t('available') || '可研究') : (t('locked') || '未解锁'))}
-                    </span>
+                <div class="modal-body" style="padding:15px;">
+                    <div class="tech-detail-row">
+                        <span class="tech-badge" style="background:#333;color:#fff;">T${tech.tier || 1}</span>
+                        <span style="margin-left:8px;font-weight:bold;color:${isResearched ? '#27ae60' : (canResearch ? '#e67e22' : '#e74c3c')}">
+                            ${isResearched ? (t('researched') || '已研究') : (canResearch ? (t('available') || '可研究') : (t('locked') || '未解锁'))}
+                        </span>
+                    </div>
+                    <p style="margin:10px 0;color:#666;font-size:12px;">${this.escapeHtml(tech.description || '')}</p>
+                    <div class="tech-detail-row" style="color:#3498db;"><strong>${t('effect') || '效果'}:</strong> ${this.escapeHtml(effectDesc)}</div>
+                    ${costsHtml}
+                    ${depsHtml}
+                    ${buttonHtml}
                 </div>
-                ${!isResearched ? `
-                    <button type="button" id="research-button" class="research-btn ${canResearch && hasResources ? 'can-research' : 'cannot-research'}" ${!canResearch || !hasResources ? 'disabled' : ''}>
-                        ${hasResources ? (t('research') || '研究') : (t('insufficientResources') || '资源不足')}
-                    </button>
-                ` : `
-                    <button type="button" disabled class="research-btn researched">${t('researched') || '已研究'}</button>
-                `}
             </div>
         `;
-
-        const researchBtn = this.detailPanel.querySelector('#research-button');
-        if (researchBtn) {
+        
+        document.body.appendChild(modal);
+        
+        // Bind modal events
+        modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+        
+        const researchBtn = modal.querySelector('#modal-research-btn');
+        if (researchBtn && !researchBtn.disabled) {
             researchBtn.addEventListener('click', () => {
                 this.researchTechnology(techId);
-                this.selectTechnology(techId);
+                modal.remove();
             });
         }
     }
 
-    researchTechnology(techId) {
-        if (!this.rustGame || typeof this.rustGame.research_technology !== 'function') {
-            console.warn('TechnologyManager: rustGame or research_technology not available');
-            return false;
-        }
-
-        try {
-            const success = this.rustGame.research_technology(techId);
-            if (success) {
-                this.update();
-                if (this.selectedTechnology && this.selectedTechnology.id === techId) {
-                    this.selectTechnology(techId);
-                }
-                console.log('Technology researched successfully:', techId);
-            } else {
-                const t = this.i18n ? this.i18n.t.bind(this.i18n) : key => key;
-                this.showMessageNotification(t('researchFailed') || '研究失败');
-                console.info('TechnologyManager: Failed to research technology:', techId);
-            }
-            return success;
-        } catch (error) {
-            const message = String(error && error.message ? error.message : error);
-            const lowerMessage = message.toLowerCase();
-            const insufficientResource =
-                lowerMessage.includes('cannot afford') ||
-                lowerMessage.includes('insufficient');
-            const t = this.i18n ? this.i18n.t.bind(this.i18n) : key => key;
-
-            if (insufficientResource) {
-                this.showMessageNotification(t('insufficientResources') || '资源不足');
-                console.info('TechnologyManager: Not enough resources to research technology:', message);
-            } else {
-                console.error('TechnologyManager: Error researching technology:', error);
-            }
-            return false;
-        }
-    }
-
-    showMessageNotification(message) {
-        const existing = document.getElementById('technology-message-notification');
-        if (existing) {
-            existing.remove();
-        }
-
-        const notification = document.createElement('div');
-        notification.id = 'technology-message-notification';
-        notification.className = 'achievement-notification';
-        notification.innerHTML = `
-            <div class="notification-content">
-                <div class="notification-icon">ℹ️</div>
-                <div class="notification-text">
-                    <div class="notification-title">${message}</div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-        requestAnimationFrame(() => {
-            notification.classList.add('show');
-        });
-
-        setTimeout(() => {
-            notification.classList.remove('show');
-            notification.classList.add('hide');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 2000);
-    }
+    // =====================
+    // Core logic methods
+    // =====================
 
     canResearch(tech) {
         if (!tech) return false;
-        if (typeof tech.can_research === 'boolean') {
-            return tech.can_research;
-        }
-        if (typeof tech.canResearch === 'boolean') {
-            return tech.canResearch;
-        }
+        if (typeof tech.can_research === 'boolean') return tech.can_research;
+        if (typeof tech.canResearch === 'boolean') return tech.canResearch;
         if (tech.researched || tech.purchased) return false;
         if (tech.dependencies && tech.dependencies.length > 0) {
             for (const depId of tech.dependencies) {
@@ -941,37 +447,25 @@ class TechnologyManager {
     hasResources(costs) {
         if (!costs || Object.keys(costs).length === 0) return true;
         for (const [resource, amount] of Object.entries(costs)) {
-            const resourceValue = this.getResourceValue(resource);
-            if (resourceValue < amount) {
-                return false;
-            }
+            if (this.getResourceValue(resource) < amount) return false;
         }
         return true;
     }
 
     getResourceValue(resourceType) {
         if (!this.rustGame) return 0;
-
+        
         if (typeof this.rustGame.get_resources === 'function') {
             try {
                 const resources = this.rustGame.get_resources();
                 if (resources && typeof resources === 'object') {
                     const direct = resources[resourceType];
-                    if (typeof direct === 'number') {
-                        return direct;
-                    }
-
+                    if (typeof direct === 'number') return direct;
+                    
                     const camelMap = {
-                        Gold: 'coins',
-                        Wood: 'wood',
-                        Stone: 'stone',
-                        IronOre: 'ironOre',
-                        CopperOre: 'copperOre',
-                        AluminumOre: 'aluminumOre',
-                        Coal: 'coal',
-                        Oil: 'oil',
-                        Crystal: 'crystal',
-                        Food: 'food'
+                        Gold: 'coins', Wood: 'wood', Stone: 'stone', IronOre: 'ironOre',
+                        CopperOre: 'copperOre', AluminumOre: 'aluminumOre',
+                        Coal: 'coal', Oil: 'oil', Crystal: 'crystal', Food: 'food'
                     };
                     const camelKey = camelMap[resourceType];
                     if (camelKey && typeof resources[camelKey] === 'number') {
@@ -979,21 +473,15 @@ class TechnologyManager {
                     }
                 }
             } catch (error) {
-                console.warn('TechnologyManager: Failed to read resource snapshot for costs:', error);
+                // Fall through to individual getters
             }
         }
-
+        
         const resourceMap = {
-            'Gold': 'get_coins',
-            'Wood': 'get_wood',
-            'Stone': 'get_stone',
-            'IronOre': 'get_iron_ore',
-            'CopperOre': 'get_copper_ore',
-            'AluminumOre': 'get_aluminum_ore',
-            'Coal': 'get_coal',
-            'Oil': 'get_oil',
-            'Crystal': 'get_crystal',
-            'Food': 'get_food'
+            'Gold': 'get_coins', 'Wood': 'get_wood', 'Stone': 'get_stone',
+            'IronOre': 'get_iron_ore', 'CopperOre': 'get_copper_ore',
+            'AluminumOre': 'get_aluminum_ore', 'Coal': 'get_coal',
+            'Oil': 'get_oil', 'Crystal': 'get_crystal', 'Food': 'get_food'
         };
         const getter = resourceMap[resourceType];
         if (getter && typeof this.rustGame[getter] === 'function') {
@@ -1003,67 +491,46 @@ class TechnologyManager {
     }
 
     getResourceName(resourceType) {
-        const resourceNames = {
-            'Gold': '金币',
-            'Wood': '木头',
-            'Stone': '石头',
-            'IronOre': '铁矿石',
-            'CopperOre': '铜矿石',
-            'AluminumOre': '铝矿石',
-            'Coal': '煤炭',
-            'Oil': '石油',
-            'Crystal': '水晶',
-            'Food': '食物'
+        const names = {
+            'Gold': '金币', 'Wood': '木头', 'Stone': '石头',
+            'IronOre': '铁矿石', 'CopperOre': '铜矿石', 'AluminumOre': '铝矿石',
+            'Coal': '煤炭', 'Oil': '石油', 'Crystal': '水晶', 'Food': '食物'
         };
         if (this.i18n && this.i18n.currentLanguage === 'en') {
             const enNames = {
-                'Gold': 'Gold',
-                'Wood': 'Wood',
-                'Stone': 'Stone',
-                'IronOre': 'Iron Ore',
-                'CopperOre': 'Copper Ore',
-                'AluminumOre': 'Aluminum Ore',
-                'Coal': 'Coal',
-                'Oil': 'Oil',
-                'Crystal': 'Crystal',
-                'Food': 'Food'
+                'Gold': 'Gold', 'Wood': 'Wood', 'Stone': 'Stone',
+                'IronOre': 'Iron Ore', 'CopperOre': 'Copper Ore', 'AluminumOre': 'Aluminum Ore',
+                'Coal': 'Coal', 'Oil': 'Oil', 'Crystal': 'Crystal', 'Food': 'Food'
             };
             return enNames[resourceType] || resourceType;
         }
-        return resourceNames[resourceType] || resourceType;
+        return names[resourceType] || resourceType;
     }
 
-    /**
-     * Sort technology costs into a deterministic order for consistent UI rendering.
-     * Uses a canonical resource priority list to ensure stable ordering across renders.
-     * @param {Object} costs - Object mapping resource type to amount
-     * @returns {Array} Array of [resourceType, amount] tuples sorted deterministically
-     */
+    getResourceShortName(resourceType) {
+        const shortNames = {
+            'Gold': '金', 'Wood': '木', 'Stone': '石',
+            'IronOre': '铁', 'CopperOre': '铜', 'AluminumOre': '铝',
+            'Coal': '煤', 'Oil': '油', 'Crystal': '晶', 'Food': '食'
+        };
+        return shortNames[resourceType] || resourceType.substring(0, 2);
+    }
 
     sortCosts(costs) {
         if (!costs || typeof costs !== 'object') return [];
         
-        // Canonical resource ordering for deterministic rendering
         const resourcePriority = [
             'Gold', 'Wood', 'Stone', 'IronOre', 'CopperOre', 'AluminumOre',
             'Coal', 'Oil', 'Crystal', 'Food'
         ];
         
         const entries = Object.entries(costs);
-        
-        // Sort by priority index, then by resource name for unknown resources
         entries.sort((a, b) => {
             const indexA = resourcePriority.indexOf(a[0]);
             const indexB = resourcePriority.indexOf(b[0]);
-            
-            // Known resources sort by priority index
-            if (indexA !== -1 && indexB !== -1) {
-                return indexA - indexB;
-            }
-            // Known resources come before unknown
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
             if (indexA !== -1) return -1;
             if (indexB !== -1) return 1;
-            // Unknown resources sort alphabetically
             return a[0].localeCompare(b[0]);
         });
         
@@ -1073,25 +540,16 @@ class TechnologyManager {
     getEffectDescription(tech) {
         const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
         
-        // Handle null/undefined effect
-        if (!tech.effect) {
-            return tech.description || t('unknownEffect') || '未知效果';
-        }
+        if (!tech.effect) return tech.description || (t('unknownEffect') || '未知效果');
         
-        // Rust serializes enum variants as {"VariantName": data}
-        // e.g., {"ProductionBonus": ["Gold", 0.5]}, {"UnlockBuilding": "Mine"}, "UnlockUI"
         const effectKeys = Object.keys(tech.effect);
-        
-        if (effectKeys.length === 0) {
-            return tech.description || t('unknownEffect') || '未知效果';
-        }
+        if (effectKeys.length === 0) return tech.description || (t('unknownEffect') || '未知效果');
         
         const effectType = effectKeys[0];
         const effectData = tech.effect[effectType];
         
         switch (effectType) {
             case 'ProductionBonus':
-                // Data is [resourceType, value] array
                 if (Array.isArray(effectData) && effectData.length >= 2) {
                     const resource = effectData[0];
                     const value = effectData[1];
@@ -1100,83 +558,186 @@ class TechnologyManager {
                 return `+${Math.floor(tech.effect_value * 100)}% 产量`;
             
             case 'UnlockBuilding':
-                // Data is building type string
-                return `🏗️ 解锁建筑: ${effectData || '未知建筑'}`;
+                return `🏗️ 解锁: ${effectData || '未知建筑'}`;
             
             case 'UnlockUI':
-                return '🔓 解锁新功能界面';
+                return '🔓 解锁新功能';
             
             case 'MechanicChange':
-                // Data is description string
                 if (typeof effectData === 'string') {
-                    return this.getMechanicDescription(effectData, tech.effect_value);
+                    return this.getMechanicDescription(effectData);
                 }
                 return tech.description || '游戏机制改变';
             
             default:
-                return tech.description || t('unknownEffect') || '未知效果';
+                return tech.description || (t('unknownEffect') || '未知效果');
         }
     }
-    
-    getMechanicDescription(mechanic, value) {
+
+    getMechanicDescription(mechanic) {
         const descriptions = {
-            'auto_production': '🤖 自动化生产减少人工需求',
-            'full_automation': '⚙️ 全自动化生产系统',
-            'ai_assistance': '🤖 AI 助手辅助管理',
-            'ai_optimization': '🧠 AI 优化生产效率',
-            'molecular_assembly': '🔬 分子级组装技术',
-            'genetic_optimization': '🧬 基因优化提升产出',
-            'nuclear_power': '⚡ 核能提供超级能量',
-            'fusion_power': '☀️ 聚变能源无限供应',
-            'terraforming': '🌍 行星改造能力',
-            'time_manipulation': '⏰ 时间操控加速发展',
-            'dimensional_travel': '🌌 维度旅行探索平行宇宙',
-            'consciousness_upload': '🧠 意识上传数字永生',
-            'immortality': '✨ 永生技术',
+            'auto_production': '🤖 自动化生产',
+            'full_automation': '⚙️ 全自动化',
+            'ai_assistance': '🤖 AI助手',
+            'ai_optimization': '🧠 AI优化',
+            'molecular_assembly': '🔬 分子组装',
+            'genetic_optimization': '🧬 基因优化',
+            'nuclear_power': '⚡ 核能',
+            'fusion_power': '☀️ 聚变能源',
+            'terraforming': '🌍 行星改造',
+            'time_manipulation': '⏰ 时间操控',
+            'dimensional_travel': '🌌 维度旅行',
+            'consciousness_upload': '🧠 意识上传',
+            'immortality': '✨ 永生',
             'godhood': '🌟 神级能力',
-            'click_efficiency': '👆 点击效率提升',
-            'resource_boost': '💎 资源增益效果',
-            'production_multiplier': '📈 生产倍增器',
+            'click_efficiency': '👆 点击效率',
+            'resource_boost': '💎 资源增益',
+            'production_multiplier': '📈 生产倍增',
             'cost_reduction': '💰 成本降低',
-            'critical_click': '💥 暴击点击机制',
-            'auto_assignment': '👥 工人自动分配',
-            'legacy_bonus': '👑 遗产加成系统',
-            'ascension': '🚀 飞升系统',
-            'omniscience': '👁️ 全知全能' 
+            'critical_click': '💥 暴击点击',
+            'auto_assignment': '👥 自动分配',
+            'legacy_bonus': '👑 遗产加成',
+            'ascension': '🚀 飞升',
+            'omniscience': '👁️ 全知全能'
         };
         return descriptions[mechanic] || `⚙️ ${mechanic}`;
     }
 
-    bindEvents() {
+    researchTechnology(techId) {
+        if (!this.rustGame || typeof this.rustGame.research_technology !== 'function') {
+            console.warn('TechnologyManager: research_technology not available');
+            return false;
+        }
+
+        try {
+            const success = this.rustGame.research_technology(techId);
+            if (success) {
+                this.cacheTechStates();
+                this.renderTree();
+                this.selectTechnology(techId);
+                console.log('Technology researched:', techId);
+            } else {
+                const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
+                this.showNotification(t('researchFailed') || '研究失败');
+            }
+            return success;
+        } catch (error) {
+            const message = String(error?.message || error);
+            const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
+            
+            if (message.toLowerCase().includes('cannot afford') || message.toLowerCase().includes('insufficient')) {
+                this.showNotification(t('insufficientResources') || '资源不足');
+            } else {
+                console.error('TechnologyManager: Error researching:', error);
+            }
+            return false;
+        }
     }
 
+    showNotification(message) {
+        const existing = document.getElementById('tech-notification');
+        if (existing) existing.remove();
+        
+        const notification = document.createElement('div');
+        notification.id = 'tech-notification';
+        notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#333;color:#fff;padding:10px 20px;border-radius:4px;z-index:10000;font-size:13px;';
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 2000);
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+
+    // =====================
+    // Backward-compatible stubs for old tests
+    // =====================
+
+    /** @deprecated Use render() instead */
+    renderTree() {
+        this.render();
+    }
+
+    /** @deprecated Use render() instead */
+    renderTextBasedTree() {
+        this.render();
+    }
+
+    /** @deprecated Use showTechDetail() instead */
+    selectTechnology(techId) {
+        const tech = this.technologies.find(t => t.id === techId);
+        if (tech) {
+            this.showTechDetail(techId);
+        }
+    }
+
+    /** @deprecated Use render() instead */
     renderToPanel(containerId) {
         const container = document.getElementById(containerId);
         if (!container) {
             console.warn('TechnologyManager: Container not found:', containerId);
             return;
         }
-
-        if (this.treeContainer && this.treeContainer.parentNode === container) {
-            this.update();
-            return;
+        if (!this.treeContainer || this.treeContainer.parentNode !== container) {
+            container.innerHTML = '<div id="technology-tree-container"></div>';
+            this.treeContainer = document.getElementById('technology-tree-container');
         }
+        this.render();
+    }
 
-        container.innerHTML = `
-            <div id="technology-tree-container"></div>
-            <div id="technology-detail"></div>
-        `;
 
-        this.treeContainer = document.getElementById('technology-tree-container');
-        this.detailPanel = document.getElementById('technology-detail');
-        this.update();
+
+    // =====================
+    // Removed force-directed graph methods (stubs for backward compatibility)
+    // =====================
+
+    /** @deprecated Force-directed graph removed - no-op */
+    renderForceDirectedGraph() { this.render(); }
+
+    /** @deprecated Force-directed graph removed - no-op */
+    startForceSimulation() {}
+
+    /** @deprecated Force-directed graph removed - no-op */
+    stopForceSimulation() {}
+
+    /** @deprecated Force-directed graph removed - no-op */
+    updatePhysics() {}
+
+    /** @deprecated Force-directed graph removed - no-op */
+    setupCanvasEvents() {}
+
+    /** @deprecated Force-directed graph removed - no-op */
+    selectNode() {}
+
+    /** @deprecated Use showTechDetail() instead */
+    updateDetailPanel() {}
+
+
+    bindEvents() {
+        // Tab activation check
+        const technologyTab = document.getElementById('tab-technology');
+        if (technologyTab) {
+            const observer = new MutationObserver(() => {
+                if (technologyTab.classList.contains('active')) {
+                    this.update();
+                }
+            });
+            observer.observe(technologyTab, { attributes: true, attributeFilter: ['class'] });
+        }
     }
 }
 
+// Export
 window.TechnologyManager = TechnologyManager;
 
 window.updateTechnologyPanel = function() {
-    if (window.technologyManager && typeof window.technologyManager.renderToPanel === 'function') {
+    if (window.technologyManager && typeof window.technologyManager.update === 'function') {
         const technologyTab = document.getElementById('tab-technology');
         if (technologyTab && technologyTab.classList.contains('active')) {
             window.technologyManager.update();
@@ -1185,5 +746,5 @@ window.updateTechnologyPanel = function() {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('TechnologyManager class loaded');
+    console.log('TechnologyManager class loaded (card-based UI)');
 });
