@@ -191,4 +191,84 @@ test.describe('HousingManager coverage', () => {
         expect(result.alerts.length).toBeGreaterThan(0);
         expect(result.emptyHasText).toBe(true);
     });
+
+    test('render list, full warning, fallback list rendering and update panel branches', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const panel = document.createElement('div');
+            panel.id = 'housing-panel';
+            document.body.appendChild(panel);
+            const buildingsTab = document.createElement('div');
+            buildingsTab.id = 'tab-buildings';
+            buildingsTab.className = 'tab-content active';
+            document.body.appendChild(buildingsTab);
+
+            const manager = new window.HousingManager({
+                get_housing_capacity: () => 10,
+                get_housing_occupied: () => 10,
+                get_population_queue_json: () => JSON.stringify({ length: 2 }),
+                get_housing: () => [
+                    { name: '满员小屋', level: 2, capacity: 10, upgradeCost: { coins: 1 } },
+                    { name: '昂贵小屋', level: 1, capacity: 8, upgradeCost: { coins: 999 } },
+                ],
+                get_resources: () => ({ Gold: 5, Wood: 0, Stone: 0 }),
+            });
+
+            const listHtml = manager.renderHousingToList();
+            manager.renderToPanel('housing-panel');
+            const panelHtml = panel.innerHTML;
+
+            const fallbackManager = new window.HousingManager({
+                get_housing: () => [{ name: '回退小屋', level: 1, capacity: 4, upgradeCost: { coins: 1 } }],
+                get_resources: () => ({ Gold: 10, Wood: 0, Stone: 0 }),
+            });
+            let renderCalls = 0;
+            fallbackManager.renderToPanel = () => { renderCalls += 1; };
+            fallbackManager.renderHousingList();
+
+            const originalManager = window.housingManager;
+            let updateCalls = 0;
+            window.housingManager = { renderToPanel: () => { updateCalls += 1; } };
+            window.updateHousingPanel();
+            buildingsTab.classList.remove('active');
+            window.updateHousingPanel();
+            window.housingManager = originalManager;
+
+            panel.remove();
+            buildingsTab.remove();
+
+            return {
+                listHtml,
+                panelHtml,
+                renderCalls,
+                updateCalls,
+            };
+        });
+
+        expect(result.listHtml).toContain('housing-item-full');
+        expect(result.listHtml).toContain('disabled');
+        expect(result.panelHtml).toContain('housing-full-warning');
+        expect(result.panelHtml).toContain('当前入住');
+        expect(result.renderCalls).toBe(1);
+        expect(result.updateCalls).toBe(1);
+    });
+
+    test('format cost and affordability error branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.HousingManager({
+                get_resources: () => { throw new Error('boom-resources'); },
+            });
+
+            return {
+                noCostText: manager.formatUpgradeCost(null),
+                mappedCostText: manager.formatUpgradeCost({ gold: 12, stone: 3, gems: 2 }),
+                affordError: manager.canAffordUpgrade({ coins: 1 }),
+            };
+        });
+
+        expect(result.noCostText).toBe('');
+        expect(result.mappedCostText).toContain('12');
+        expect(result.mappedCostText).toContain('石头');
+        expect(result.mappedCostText).toContain('gems');
+        expect(result.affordError).toBe(false);
+    });
 });

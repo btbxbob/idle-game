@@ -350,4 +350,131 @@ test.describe('WorkerManager coverage', () => {
         expect(result.updateCalls).toBeGreaterThan(0);
         expect(result.alerts.length).toBeGreaterThan(2);
     });
+
+    test('processed workers, hobbies and card rendering branches', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.WorkerManager({
+                get_workers: () => [
+                    {
+                        name: 'Alpha',
+                        level: 2,
+                        efficiencyMultiplier: 1.3,
+                        assignedBuilding: 'Farm',
+                        skills: 'Mining',
+                        preferences: 'Quiet',
+                        background: 'Village',
+                        hobbies: ['Gaming', 'UnknownHobby'],
+                        primaryTrait: 'Diligent',
+                        secondary_traits: ['Lazy', 'MysteryTrait'],
+                        happiness: 80,
+                        hunger: 10,
+                        isHungry: false,
+                        xp: 20,
+                        xpToNextLevel: 40,
+                    },
+                    {
+                        name: 'Beta',
+                        level: 4,
+                        efficiencyMultiplier: 0.8,
+                        assignedBuilding: null,
+                        skills: 'Cooking',
+                        preferences: 'Loud',
+                        background: 'Forest',
+                        hobbies: [],
+                        primary_trait: 'Optimistic',
+                        secondaryTraits: [],
+                        happiness: 40,
+                        hunger: 90,
+                        is_hungry: true,
+                        xp: 10,
+                        xpToNextLevel: 50,
+                    },
+                ],
+            });
+
+            manager.virtualState = { sortBy: 'name', filterBy: 'all', query: '', workers: [] };
+            const allNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            manager.virtualState.filterBy = 'assigned';
+            const assignedNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            manager.virtualState.filterBy = 'unassigned';
+            const unassignedNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            manager.virtualState.filterBy = 'all';
+            manager.virtualState.query = 'cook';
+            const queryNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            manager.virtualState.query = '';
+            manager.virtualState.sortBy = 'level';
+            const levelSorted = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            manager.virtualState.sortBy = 'efficiency';
+            const efficiencySorted = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+
+            const grid = document.createElement('div');
+            grid.id = 'workers-grid';
+            document.body.appendChild(grid);
+            manager.virtualState.workers = manager.update().map((worker, index) => ({ ...worker, __index: index }));
+            manager.renderWorkerCards();
+            const html = grid.innerHTML;
+            grid.remove();
+
+            return {
+                allNames,
+                assignedNames,
+                unassignedNames,
+                queryNames,
+                levelSorted,
+                efficiencySorted,
+                unknownHobby: manager.getHobbyLabel('UnknownHobby'),
+                html,
+            };
+        });
+
+        expect(result.allNames).toEqual(['Alpha', 'Beta']);
+        expect(result.assignedNames).toEqual(['Alpha']);
+        expect(result.unassignedNames).toEqual(['Beta']);
+        expect(result.queryNames).toEqual(['Beta']);
+        expect(result.levelSorted).toEqual(['Beta', 'Alpha']);
+        expect(result.efficiencySorted).toEqual(['Alpha', 'Beta']);
+        expect(result.unknownHobby).toBe('UnknownHobby');
+        expect(result.html).toContain('饥饿中');
+        expect(result.html).toContain('状态稳定');
+        expect(result.html).toContain('UnknownHobby');
+        expect(result.html).toContain('MysteryTrait');
+    });
+
+    test('invalid worker modal and delayed close branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originalConsoleError = console.error;
+            const originalSetTimeout = window.setTimeout;
+            const errors = [];
+            console.error = (...args) => errors.push(args.map(String).join(' '));
+            const scheduled = [];
+            window.setTimeout = (fn) => {
+                scheduled.push(fn);
+                return scheduled.length;
+            };
+
+            window.workerManager.showAssignmentModal(999);
+
+            const modal = document.createElement('div');
+            modal.id = 'worker-assignment-modal';
+            modal.className = 'show';
+            document.body.appendChild(modal);
+            window.workerManager.closeAssignmentModal();
+            const hasShowAfterClose = modal.classList.contains('show');
+            scheduled.forEach((fn) => fn());
+            const modalStillExists = !!document.getElementById('worker-assignment-modal');
+
+            console.error = originalConsoleError;
+            window.setTimeout = originalSetTimeout;
+
+            return {
+                errors,
+                hasShowAfterClose,
+                modalStillExists,
+            };
+        });
+
+        expect(result.errors.some((entry) => entry.includes('Worker not found'))).toBe(true);
+        expect(result.hasShowAfterClose).toBe(false);
+        expect(result.modalStillExists).toBe(false);
+    });
 });
