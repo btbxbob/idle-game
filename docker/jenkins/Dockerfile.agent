@@ -1,0 +1,40 @@
+FROM docker.1ms.run/jenkins/inbound-agent:jdk17
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    curl \
+    ca-certificates \
+    git \
+    python3 \
+    docker-cli \
+    docker.io \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://nodejs.org/dist/v20.19.5/node-v20.19.5-linux-x64.tar.gz -o /tmp/node.tar.gz \
+    && tar -xzf /tmp/node.tar.gz -C /opt \
+    && ln -s /opt/node-v20.19.5-linux-x64 /opt/node \
+    && ln -sf /opt/node/bin/node /usr/local/bin/node \
+    && ln -sf /opt/node/bin/npm /usr/local/bin/npm \
+    && ln -sf /opt/node/bin/npx /usr/local/bin/npx \
+    && rm -f /tmp/node.tar.gz
+
+USER jenkins
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable \
+    && . /home/jenkins/.cargo/env \
+    && cargo --version \
+    && curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh \
+    && wasm-pack --version
+
+ENV PATH="/home/jenkins/.cargo/bin:/opt/node/bin:${PATH}"
+
+USER root
+COPY docker/jenkins/agent-entrypoint.sh /usr/local/bin/agent-entrypoint.sh
+RUN chmod 0755 /usr/local/bin/agent-entrypoint.sh
+USER jenkins
+
+ENTRYPOINT ["/usr/local/bin/agent-entrypoint.sh"]

@@ -1,22 +1,25 @@
 pipeline {
-  agent any
+  agent { label 'idle-game-build-agent' }
 
   options {
     timeout(time: 120, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '3'))
   }
 
   parameters {
     booleanParam(name: 'RUN_PLAYWRIGHT', defaultValue: false, description: 'Run Playwright e2e suite in Jenkins')
     booleanParam(name: 'RUN_COVERAGE', defaultValue: false, description: 'Run Playwright e2e coverage check in Jenkins')
+    booleanParam(name: 'PW_PARALLEL_CONTAINERS', defaultValue: false, description: 'Run functional tests in 2 parallel containers')
+    booleanParam(name: 'RUN_REGRESSION_TESTS', defaultValue: false, description: 'Include regression tests (only when not using parallel containers)')
   }
 
   environment {
     CI = 'true'
-    PATH = "/var/jenkins_home/.cargo/bin:${env.PATH}"
+    PATH = "/home/jenkins/.cargo/bin:${env.PATH}"
     PLAYWRIGHT_IMAGE_PRIMARY = 'mcr.microsoft.com/playwright:v1.58.2-jammy'
     PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
     PLAYWRIGHT_PULL_TIMEOUT_SECONDS = '30'
-    PW_TEST_WORKERS = '4'
+    PW_TEST_WORKERS = '2'
     E2E_COVERAGE_MIN_LINES = '20'
     E2E_COVERAGE_MIN_STATEMENTS = '20'
     E2E_COVERAGE_MIN_FUNCTIONS = '15'
@@ -26,7 +29,10 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
+        sh '''
+          rm -rf ./* ./.??* 2>/dev/null || true
+          cp -a /workspace/idle-game/. .
+        '''
       }
     }
 
@@ -119,7 +125,7 @@ pipeline {
             docker tag "$MIRROR_IMAGE" "$PLAYWRIGHT_IMAGE"
           else
             echo "Playwright image is not available in the Jenkins DinD cache."
-            echo "Expected one of: $PLAYWRIGHT_IMAGE or $MIRROR_IMAGE"
+            echo "Expected one of: $PLAYWRIGHT_IMAGE or $PLAYWRIGHT_IMAGE_MIRROR"
             echo "Preload the image into the DinD daemon before running Jenkins Playwright stages."
             exit 1
           fi
@@ -135,38 +141,133 @@ pipeline {
         timeout(time: 60, unit: 'MINUTES')
       }
       steps {
-        sh '''
-          mkdir -p test-results
-          docker run --rm \
-            --pull=never \
-            -e CI=true \
-            -e RUN_COVERAGE=${RUN_COVERAGE} \
-            -e PW_TEST_PORT=8080 \
-            -e PW_TEST_WORKERS=${PW_TEST_WORKERS} \
-            -e E2E_COVERAGE_MIN_LINES=${E2E_COVERAGE_MIN_LINES} \
-            -e E2E_COVERAGE_MIN_STATEMENTS=${E2E_COVERAGE_MIN_STATEMENTS} \
-            -e E2E_COVERAGE_MIN_FUNCTIONS=${E2E_COVERAGE_MIN_FUNCTIONS} \
-            -e E2E_COVERAGE_MIN_BRANCHES=${E2E_COVERAGE_MIN_BRANCHES} \
-            -v "$PWD:/work" \
-            -w /work \
-            "$PLAYWRIGHT_IMAGE_PRIMARY" \
-            bash -lc '
-              set -e
-              if [ "${RUN_COVERAGE}" = "true" ]; then
-                rm -rf coverage-report/raw coverage-report/e2e-merged
-                set +e
-                PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit.xml \
-                npx playwright test --project=chromium --reporter=line,junit,html
-                PW_EXIT=$?
-                set -e
+        script {
+          if (params.PW_PARALLEL_CONTAINERS) {
+            // Multi-container parallel mode: split functional tests into 2 containers (alphabetically)
+            // Regression tests run separately if requested
+            def testSuites = [
+              [name: 'functional-1', testDir: 'tests/functional', grep: '^[a-l]', workers: 2],
+              [name: 'functional-2', testDir: 'tests/functional', grep: '^[m-z]', workers: 2]
+            ]
+            def runRegression = params.RUN_REGRESSION_TESTS != null ? params.RUN_REGRESSION_TESTS : false
+
+            def parallelStages = [:]
+            for (suite in testSuites) {
+              def s = suite
+              parallelStages[s.name] = {
+                stage("Playwright ${s.name}") {
+                  sh """
+                    mkdir -p test-results
+                    docker run --rm \
+                      --pull=never \
+                      --ipc=host \
+                      --shm-size=1g \
+                      -e CI=true \
+                      -e RUN_COVERAGE=${RUN_COVERAGE} \
+                      -e PW_TEST_PORT=8080 \
+                      -e PW_TEST_WORKERS=${s.workers} \
+                      -e E2E_COVERAGE_MIN_LINES=${E2E_COVERAGE_MIN_LINES} \
+                      -e E2E_COVERAGE_MIN_STATEMENTS=${E2E_COVERAGE_MIN_STATEMENTS} \
+                      -e E2E_COVERAGE_MIN_FUNCTIONS=${E2E_COVERAGE_MIN_FUNCTIONS} \
+                      -e E2E_COVERAGE_MIN_BRANCHES=${E2E_COVERAGE_MIN_BRANCHES} \
+                      -v "${env.WORKSPACE}:/work" \
+                      -w /work \
+                      "$PLAYWRIGHT_IMAGE_PRIMARY" \
+                      bash -lc '
+                        set -e
+
+                        # Start webServer in background (container-internal)
+                        python3 server.py --quiet --port 8080 &
+                        WEBSERVER_PID=\$!
+                        sleep 3
+
+                        set +e
+                        if [ "${RUN_COVERAGE}" = "true" ]; then
+                          PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit-${s.name}.xml \
+                          ./node_modules/.bin/playwright test ${s.testDir} --project=chromium --grep "${s.grep}" --reporter=line,junit,html
+                          PW_EXIT=\$?
+                        else
+                          PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit-${s.name}.xml \
+                          ./node_modules/.bin/playwright test ${s.testDir} --project=chromium --grep "${s.grep}" --reporter=line,junit,html
+                          PW_EXIT=\$?
+                        fi
+                        set -e
+
+                        # Rename coverage files to avoid collision
+                        if [ -d coverage-report/raw ]; then
+                          for f in coverage-report/raw/*.json; do
+                            [ -f "\$f" ] && mv "\$f" "\${f%.json}-${s.name}.json"
+                          done
+                        fi
+
+                        # Cleanup
+                        kill \$WEBSERVER_PID 2>/dev/null || true
+
+                        exit \$PW_EXIT
+                      '
+                  """
+                }
+              }
+            }
+            parallel parallelStages
+
+            // Merge coverage from all containers
+            if (params.RUN_COVERAGE) {
+              sh '''
+                # Collect all coverage files into raw directory
+                mkdir -p coverage-report/raw
+                cp coverage-report/raw/*-functional.json coverage-report/raw/ 2>/dev/null || true
+                cp coverage-report/raw/*-regression.json coverage-report/raw/ 2>/dev/null || true
+
+                # Merge and check coverage
                 node scripts/merge-e2e-coverage.js
-                exit $PW_EXIT
-              else
-                PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit.xml \
-                npx playwright test --project=chromium --reporter=line,junit,html
-              fi
-            '
-        '''
+              '''
+            }
+
+            // Ensure JUnit files exist for Jenkins
+            sh '''
+              ls -la test-results/playwright-junit-*.xml || true
+            '''
+          } else {
+            // Original single-container mode: functional tests + optional regression
+            def testDirs = params.RUN_REGRESSION_TESTS ? "tests/functional tests/regression" : "tests/functional"
+
+            sh """
+              mkdir -p test-results
+              docker run --rm \
+                --pull=never \
+                --ipc=host \
+                --shm-size=1g \
+                -e CI=true \
+                -e RUN_COVERAGE=${RUN_COVERAGE} \
+                -e PW_TEST_PORT=8080 \
+                -e PW_TEST_WORKERS=${PW_TEST_WORKERS} \
+                -e E2E_COVERAGE_MIN_LINES=${E2E_COVERAGE_MIN_LINES} \
+                -e E2E_COVERAGE_MIN_STATEMENTS=${E2E_COVERAGE_MIN_STATEMENTS} \
+                -e E2E_COVERAGE_MIN_FUNCTIONS=${E2E_COVERAGE_MIN_FUNCTIONS} \
+                -e E2E_COVERAGE_MIN_BRANCHES=${E2E_COVERAGE_MIN_BRANCHES} \
+                -v "${env.WORKSPACE}:/work" \
+                -w /work \
+                "$PLAYWRIGHT_IMAGE_PRIMARY" \
+                bash -lc '
+                  set -e
+                  if [ "${RUN_COVERAGE}" = "true" ]; then
+                    rm -rf coverage-report/raw coverage-report/e2e-merged
+                    set +e
+                    PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit.xml \
+                    ./node_modules/.bin/playwright test ${testDirs} --project=chromium --reporter=line,junit,html
+                    PW_EXIT=\$?
+                    set -e
+                    node scripts/merge-e2e-coverage.js
+                    exit \$PW_EXIT
+                  else
+                    PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit.xml \
+                    ./node_modules/.bin/playwright test ${testDirs} --project=chromium --reporter=line,junit,html
+                  fi
+                '
+            """
+          }
+        }
       }
     }
 
