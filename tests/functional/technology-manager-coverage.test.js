@@ -359,4 +359,158 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.researchFail).toBe(false);
         expect(result.researchThrow).toBe(false);
     });
+
+    test('filter, card, state change and cost-sorting branches', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.TechnologyManager(null, { currentLanguage: 'zh-CN', t: (key) => key });
+
+            manager.getResourceValue = (resource) => ({ Gold: 200, Wood: 10, Stone: 0 }[resource] || 0);
+            manager.technologies = [
+                { id: 'researched-tech', name: 'Alpha', description: 'Done', tier: 2, researched: true, costs: { Gold: 10 }, dependencies: [] },
+                { id: 'available-tech', name: 'Beta', description: 'Available', tier: 1, researched: false, costs: { Gold: 20, Wood: 5 }, dependencies: [] },
+                { id: 'cannot-afford-tech', name: 'Gamma', description: 'Needs stone', tier: 1, researched: false, costs: { Stone: 5 }, dependencies: [] },
+                { id: 'locked-tech', name: 'Delta', description: 'Locked', tier: 3, researched: false, costs: { Gold: 10 }, dependencies: ['researched-tech', 'missing-tech'] },
+            ];
+
+            manager.cacheTechStates();
+            const unchanged = manager.hasStateChanged();
+            manager.technologies[1].costs = { Gold: 99 };
+            const changed = manager.hasStateChanged();
+            manager.technologies[1].costs = { Gold: 20, Wood: 5 };
+
+            manager.filterState = { query: '', filterBy: 'available', hideResearched: false, sortBy: 'tier' };
+            const availableIds = manager.getFilteredTechnologies().map((tech) => tech.id);
+
+            manager.filterState = { query: '', filterBy: 'researched', hideResearched: false, sortBy: 'tier' };
+            const researchedIds = manager.getFilteredTechnologies().map((tech) => tech.id);
+
+            manager.filterState = { query: 'available', filterBy: 'all', hideResearched: true, sortBy: 'tier' };
+            const queryIds = manager.getFilteredTechnologies().map((tech) => tech.id);
+
+            const t = (key) => ({ researched: '已研究', available: '可研究', locked: '未解锁', research: '研究', insufficientResources: '资源不足' }[key] || key);
+            const researchedCard = manager.renderTechCard(manager.technologies[0], t);
+            const availableCard = manager.renderTechCard(manager.technologies[1], t);
+            const unaffordableCard = manager.renderTechCard(manager.technologies[2], t);
+            const lockedCard = manager.renderTechCard(manager.technologies[3], t);
+            const sortedCosts = manager.sortCosts({ Stone: 5, Gold: 1, Wood: 2, Unknown: 3 }).map(([key]) => key);
+            const shortKnown = manager.getResourceShortName('Gold');
+            const shortUnknown = manager.getResourceShortName('QuantumDust');
+
+            return {
+                unchanged,
+                changed,
+                availableIds,
+                researchedIds,
+                queryIds,
+                researchedCard,
+                availableCard,
+                unaffordableCard,
+                lockedCard,
+                sortedCosts,
+                shortKnown,
+                shortUnknown,
+            };
+        });
+
+        expect(result.unchanged).toBe(false);
+        expect(result.changed).toBe(true);
+        expect(result.availableIds).toEqual(['available-tech', 'cannot-afford-tech']);
+        expect(result.researchedIds).toEqual(['researched-tech']);
+        expect(result.queryIds).toEqual(['available-tech']);
+        expect(result.researchedCard).toContain('researched');
+        expect(result.availableCard).toContain('can-research');
+        expect(result.unaffordableCard).toContain('cannot-afford');
+        expect(result.lockedCard).toContain('locked');
+        expect(result.sortedCosts).toEqual(['Gold', 'Wood', 'Stone', 'Unknown']);
+        expect(result.shortKnown).toBe('金');
+        expect(result.shortUnknown).toBe('Qu');
+    });
+
+    test('showTechDetail, notification and mechanic description branches', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originalSetTimeout = window.setTimeout;
+            const scheduled = [];
+            window.setTimeout = (fn) => {
+                scheduled.push(fn);
+                return scheduled.length;
+            };
+
+            const manager = new window.TechnologyManager(null, { currentLanguage: 'zh-CN', t: (key) => key });
+            manager.getResourceValue = (resource) => ({ Gold: 30, Wood: 5 }[resource] || 0);
+            let researchedTechId = null;
+            manager.researchTechnology = (techId) => {
+                researchedTechId = techId;
+                return true;
+            };
+
+            manager.technologies = [
+                { id: 'dep-tech', name: 'Dependency', tier: 1, researched: true, costs: {}, dependencies: [] },
+                {
+                    id: 'target-tech',
+                    name: 'Target',
+                    description: 'Target description',
+                    tier: 2,
+                    can_research: true,
+                    researched: false,
+                    costs: { Gold: 20, Wood: 2 },
+                    dependencies: ['dep-tech', 'unknown-dep'],
+                    effect: { MechanicChange: 'auto_assignment' },
+                },
+            ];
+
+            manager.showTechDetail('missing-tech');
+            const missingModal = document.getElementById('tech-detail-modal');
+
+            manager.showTechDetail('target-tech');
+            const modal = document.getElementById('tech-detail-modal');
+            const modalHtml = modal ? modal.innerHTML : '';
+            const overlayBefore = !!document.getElementById('tech-detail-modal');
+            if (modal) {
+                modal.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            }
+            const overlayAfter = !!document.getElementById('tech-detail-modal');
+
+            manager.showTechDetail('target-tech');
+            const reopenModal = document.getElementById('tech-detail-modal');
+            const button = reopenModal ? reopenModal.querySelector('#modal-research-btn') : null;
+            if (button) {
+                button.click();
+            }
+            const afterButton = !!document.getElementById('tech-detail-modal');
+
+            manager.showNotification('first');
+            manager.showNotification('second');
+            const notificationBeforeTimeout = document.getElementById('tech-notification')?.textContent || '';
+            scheduled.forEach((fn) => fn());
+            const notificationAfterTimeout = document.getElementById('tech-notification');
+
+            window.setTimeout = originalSetTimeout;
+
+            return {
+                missingModal: !!missingModal,
+                overlayBefore,
+                overlayAfter,
+                modalHtml,
+                afterButton,
+                researchedTechId,
+                notificationBeforeTimeout,
+                notificationAfterTimeout: !!notificationAfterTimeout,
+                knownMechanic: manager.getMechanicDescription('auto_assignment'),
+                unknownMechanic: manager.getMechanicDescription('wild_unknown_mechanic'),
+            };
+        });
+
+        expect(result.missingModal).toBe(false);
+        expect(result.overlayBefore).toBe(true);
+        expect(result.overlayAfter).toBe(false);
+        expect(result.modalHtml).toContain('Target');
+        expect(result.modalHtml).toContain('Dependency');
+        expect(result.modalHtml).toContain('unknown-dep');
+        expect(result.afterButton).toBe(false);
+        expect(result.researchedTechId).toBe('target-tech');
+        expect(result.notificationBeforeTimeout).toBe('second');
+        expect(result.notificationAfterTimeout).toBe(false);
+        expect(result.knownMechanic).toContain('自动分配');
+        expect(result.unknownMechanic).toContain('wild_unknown_mechanic');
+    });
 });

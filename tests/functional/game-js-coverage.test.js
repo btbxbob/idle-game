@@ -341,4 +341,117 @@ test.describe('Game.js Coverage Tests', () => {
         expect(result.ok).toBe(true);
         expect(result.error).toBeFalsy();
     });
+
+    test('DOMContentLoaded save export import handlers cover success and failure branches', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originals = {
+                rustGame: window.rustGame,
+                alert: window.alert,
+                confirm: window.confirm,
+                execCommand: document.execCommand,
+            };
+
+            const alerts = [];
+            let saveCalls = 0;
+            let exportCalls = 0;
+            let importCalls = 0;
+            let updateUiCalls = 0;
+            let shouldSaveThrow = false;
+            let shouldExportThrow = false;
+            let shouldImportThrow = false;
+            let confirmAnswer = false;
+
+            const manualSave = document.getElementById('manual-save');
+            const saveStatus = document.getElementById('save-status');
+            const exportButton = document.getElementById('export-base64');
+            const importButton = document.getElementById('import-base64');
+            const textArea = document.getElementById('import-export-text');
+            if (!manualSave || !saveStatus || !exportButton || !importButton || !textArea) {
+                return { ok: false, reason: 'missing import export controls' };
+            }
+
+            window.alert = (msg) => alerts.push(String(msg));
+            window.confirm = () => confirmAnswer;
+            document.execCommand = () => true;
+            window.rustGame = {
+                saveToLocalStorage: () => {
+                    saveCalls += 1;
+                    if (shouldSaveThrow) {
+                        throw new Error('save failed');
+                    }
+                },
+                exportToBase64: () => {
+                    exportCalls += 1;
+                    if (shouldExportThrow) {
+                        throw new Error('export failed');
+                    }
+                    return 'BASE64_DATA';
+                },
+                importFromBase64: () => {
+                    importCalls += 1;
+                    if (shouldImportThrow) {
+                        throw new Error('import failed');
+                    }
+                },
+                update_ui: () => { updateUiCalls += 1; },
+            };
+
+            manualSave.click();
+            const saveSuccessText = saveStatus.textContent;
+
+            shouldSaveThrow = true;
+            manualSave.click();
+            const saveFailureText = saveStatus.textContent;
+
+            exportButton.click();
+            const exportedValue = textArea.value;
+
+            shouldExportThrow = true;
+            exportButton.click();
+
+            textArea.value = '';
+            importButton.click();
+
+            textArea.value = 'NEXT_BASE64';
+            confirmAnswer = false;
+            importButton.click();
+
+            confirmAnswer = true;
+            importButton.click();
+
+            shouldImportThrow = true;
+            importButton.click();
+
+            window.rustGame = originals.rustGame;
+            window.alert = originals.alert;
+            window.confirm = originals.confirm;
+            document.execCommand = originals.execCommand;
+
+            return {
+                ok: true,
+                saveCalls,
+                exportCalls,
+                importCalls,
+                updateUiCalls,
+                saveSuccessText,
+                saveFailureText,
+                exportedValue,
+                alerts,
+            };
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.saveCalls).toBe(2);
+        expect(result.exportCalls).toBe(2);
+        expect(result.importCalls).toBe(2);
+        expect(result.updateUiCalls).toBe(1);
+        expect(result.saveSuccessText).toContain('已保存');
+        expect(result.saveFailureText).toContain('保存失败');
+        expect(result.exportedValue).toBe('BASE64_DATA');
+        expect(result.alerts).toContain('导出成功！已复制到剪贴板。');
+        expect(result.alerts).toContain('导出失败：export failed');
+        expect(result.alerts).toContain('请先粘贴 BASE64 字符串。');
+        expect(result.alerts).toContain('导入成功！游戏已加载。');
+        expect(result.alerts).toContain('导入失败：import failed');
+    });
 });
