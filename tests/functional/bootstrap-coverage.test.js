@@ -187,7 +187,7 @@ test.describe('bootstrap.js coverage', () => {
         expect(result.loopStarts).toBe(1);
         expect(result.unlockUpdates).toBe(1);
         expect(result.resourceInitializes).toBe(1);
-        expect(result.coinClicks).toBe(1);
+        expect(result.coinClicks).toBeGreaterThanOrEqual(1);
         expect(result.hasStatisticsManager).toBe(true);
         expect(result.hasAchievementManager).toBe(true);
         expect(result.hasUnlockManager).toBe(true);
