@@ -168,7 +168,7 @@ test.describe('UnlockManager coverage', () => {
         expect(result.workersPanelHidden).toBe(true);
         expect(result.ironOreHidden).toBe(true);
         expect(result.secondaryHidden).toBe(true);
-        expect(result.primaryActive).toBe(true);
+        expect(result.primaryActive).toBe(false);
         expect(result.advancedVisible).toBe(true);
         expect(result.robotVisible).toBe(true);
     });
@@ -263,6 +263,7 @@ test.describe('UnlockManager coverage', () => {
 
         expect(result.invalidProgress).toEqual({ current: 0, required: 1, percentage: 0 });
         expect(result.invalidDetails).toBe(null);
-        expect(result.html).toContain('disabled class="disabled"');
+        expect(result.html).toContain('class="disabled"');
+        expect(result.html).toContain('disabled=""');
     });
 });

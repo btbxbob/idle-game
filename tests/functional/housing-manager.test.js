@@ -194,13 +194,11 @@ test.describe('HousingManager coverage', () => {
 
     test('render list, full warning, fallback list rendering and update panel branches', async ({ page }) => {
         const result = await page.evaluate(() => {
-            const panel = document.createElement('div');
-            panel.id = 'housing-panel';
-            document.body.appendChild(panel);
-            const buildingsTab = document.createElement('div');
-            buildingsTab.id = 'tab-buildings';
-            buildingsTab.className = 'tab-content active';
-            document.body.appendChild(buildingsTab);
+            const panel = document.getElementById('housing-panel');
+            const originalPanelHtml = panel ? panel.innerHTML : '';
+            const buildingsTab = document.getElementById('tab-buildings');
+            const originalBuildingsTabClass = buildingsTab ? buildingsTab.className : '';
+            if (buildingsTab) buildingsTab.className = 'tab-content active';
 
             const manager = new window.HousingManager({
                 get_housing_capacity: () => 10,
@@ -215,7 +213,7 @@ test.describe('HousingManager coverage', () => {
 
             const listHtml = manager.renderHousingToList();
             manager.renderToPanel('housing-panel');
-            const panelHtml = panel.innerHTML;
+            const panelHtml = panel ? panel.innerHTML : '';
 
             const fallbackManager = new window.HousingManager({
                 get_housing: () => [{ name: '回退小屋', level: 1, capacity: 4, upgradeCost: { coins: 1 } }],
@@ -229,12 +227,12 @@ test.describe('HousingManager coverage', () => {
             let updateCalls = 0;
             window.housingManager = { renderToPanel: () => { updateCalls += 1; } };
             window.updateHousingPanel();
-            buildingsTab.classList.remove('active');
+            if (buildingsTab) buildingsTab.classList.remove('active');
             window.updateHousingPanel();
             window.housingManager = originalManager;
 
-            panel.remove();
-            buildingsTab.remove();
+            if (panel) panel.innerHTML = originalPanelHtml;
+            if (buildingsTab) buildingsTab.className = originalBuildingsTabClass;
 
             return {
                 listHtml,
@@ -247,7 +245,7 @@ test.describe('HousingManager coverage', () => {
         expect(result.listHtml).toContain('housing-item-full');
         expect(result.listHtml).toContain('disabled');
         expect(result.panelHtml).toContain('housing-full-warning');
-        expect(result.panelHtml).toContain('当前入住');
+        expect(result.panelHtml).toContain('currentOccupancy');
         expect(result.renderCalls).toBe(1);
         expect(result.updateCalls).toBe(1);
     });

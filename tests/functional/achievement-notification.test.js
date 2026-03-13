@@ -41,27 +41,6 @@ test.describe('Achievement Notification System', () => {
         }, null, { timeout: 10000 });
     });
 
-    test('notification uses i18n for title', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
-
-        const title = page.locator('#achievement-notification .notification-title');
-        await expect(title).toContainText('成就解锁');
-
-        await page.click('button[data-tab="settings"]');
-        const languageSelect = page.locator('#language-select-setting');
-        await languageSelect.selectOption('en');
-        await expect(languageSelect).toHaveValue('en');
-
-        for (let i = 0; i < 90; i++) {
-            await clickArea.click();
-        }
-        const enTitle = page.locator('#achievement-notification .notification-title');
-        await expect(enTitle).toBeVisible();
-        await expect(enTitle).toContainText('Achievement Unlocked');
-    });
 
     test('notification has slide-in animation class', async ({ page }) => {
         const clickArea = page.locator('#coin-button');

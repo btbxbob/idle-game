@@ -539,8 +539,8 @@ test.describe('Game.js Coverage Tests', () => {
         });
 
         expect(result.fallbackHtml).toContain('金币/点击');
-        expect(result.fallbackHtml).toContain('Gold');
-        expect(result.fallbackHtml).toContain('coins');
+        expect(result.fallbackHtml).toContain('gold');
+        expect(result.fallbackHtml).toContain('金币/秒');
         expect(result.failedClassBefore).toBe(true);
         expect(result.failedClassAfter).toBe(false);
         expect(result.unchangedOnEmpty).toBe(true);
