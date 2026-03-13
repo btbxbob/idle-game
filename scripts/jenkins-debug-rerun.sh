@@ -34,7 +34,7 @@ cleanup() {
 trap cleanup EXIT
 
 auth_curl() {
-  curl -sS -u "${JENKINS_USER}:${JENKINS_TOKEN}" -b "${COOKIE_JAR}" -c "${COOKIE_JAR}" "$@"
+  curl -g -sS -u "${JENKINS_USER}:${JENKINS_TOKEN}" -b "${COOKIE_JAR}" -c "${COOKIE_JAR}" "$@"
 }
 
 echo "[1/5] Getting Jenkins crumb"
@@ -93,9 +93,11 @@ TEST_JSON="$(auth_curl "${JENKINS_URL}/job/${JOB_NAME}/${BUILD_NUMBER}/testRepor
 echo "Tests: $(python3 -c 'import json,sys; d=json.load(sys.stdin); print(f"total={d.get("totalCount")}, fail={d.get("failCount")}, skip={d.get("skipCount")}")' <<<"${TEST_JSON}")"
 
 FAIL_CASES_JSON="$(auth_curl "${JENKINS_URL}/job/${JOB_NAME}/${BUILD_NUMBER}/testReport/api/json?tree=suites[cases[className,name,status,errorDetails]]")"
-python3 - <<'PY' <<<"${FAIL_CASES_JSON}"
-import json, sys
-d = json.load(sys.stdin)
+FAIL_CASES_JSON_PAYLOAD="${FAIL_CASES_JSON}" python3 - <<'PY'
+import json
+import os
+
+d = json.loads(os.environ["FAIL_CASES_JSON_PAYLOAD"])
 failed = []
 for s in d.get("suites", []):
     for c in s.get("cases", []):
@@ -112,9 +114,11 @@ PY
 
 COVERAGE_JSON="$(auth_curl "${JENKINS_URL}/job/${JOB_NAME}/${BUILD_NUMBER}/artifact/coverage-report/e2e-merged/coverage-summary.json" || true)"
 if [[ -n "${COVERAGE_JSON}" ]]; then
-  python3 - <<'PY' <<<"${COVERAGE_JSON}"
-import json, sys
-d = json.load(sys.stdin)
+  COVERAGE_JSON_PAYLOAD="${COVERAGE_JSON}" python3 - <<'PY'
+import json
+import os
+
+d = json.loads(os.environ["COVERAGE_JSON_PAYLOAD"])
 t = d["total"]
 print("Coverage:")
 print(f"- lines: {t['lines']['pct']}%")
