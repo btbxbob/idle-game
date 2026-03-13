@@ -477,4 +477,55 @@ test.describe('WorkerManager coverage', () => {
         expect(result.hasShowAfterClose).toBe(false);
         expect(result.modalStillExists).toBe(false);
     });
+
+    test('cancelled auto assign, name sort and missing method guard branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.WorkerManager({
+                get_workers: () => [
+                    { name: 'Zulu', assignedBuilding: null, level: 1, efficiencyMultiplier: 1 },
+                    { name: 'Alpha', assignedBuilding: 'Farm', level: 2, efficiencyMultiplier: 1.5 },
+                ],
+            });
+
+            manager.virtualState = { sortBy: 'name', filterBy: 'all', query: '', workers: [] };
+            const allNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+
+            const originalConfirm = window.confirm;
+            const originalAlert = window.alert;
+            const originalUpdate = window.updateResourceDisplay;
+            const alerts = [];
+            let updateCalls = 0;
+            window.confirm = () => false;
+            window.alert = (msg) => alerts.push(String(msg));
+            window.updateResourceDisplay = () => { updateCalls += 1; };
+
+            manager.rustGame = { assign_worker_auto: () => 5 };
+            manager.handleAutoAssign();
+
+            manager.rustGame = {};
+            const noMethodUpdate = manager.update();
+            const noMethodAssign = manager.assignWorker(0, 'Farm');
+            const noMethodBuildings = manager.getBuildings();
+
+            window.confirm = originalConfirm;
+            window.alert = originalAlert;
+            window.updateResourceDisplay = originalUpdate;
+
+            return {
+                allNames,
+                alerts,
+                updateCalls,
+                noMethodUpdateLength: noMethodUpdate.length,
+                noMethodAssign,
+                noMethodBuildingsLength: noMethodBuildings.length,
+            };
+        });
+
+        expect(result.allNames).toEqual(['Alpha', 'Zulu']);
+        expect(result.alerts.length).toBe(0);
+        expect(result.updateCalls).toBe(0);
+        expect(result.noMethodUpdateLength).toBe(0);
+        expect(result.noMethodAssign).toBe(false);
+        expect(result.noMethodBuildingsLength).toBe(0);
+    });
 });

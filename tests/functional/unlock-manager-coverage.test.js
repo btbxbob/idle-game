@@ -227,4 +227,42 @@ test.describe('UnlockManager coverage', () => {
         expect(result.requirementDefault).toBe('满足当前阶段条件');
         expect(result.descriptionDefault).toBe('新的阶段边界正在显现。');
     });
+
+    test('invalid progress details and disabled unlock button branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.UnlockManager({
+                getUnlockProgress: () => 'bad-progress',
+                getUnlockRequirementDetails: () => 'bad-details',
+                get_unlocks: () => [{
+                    id: 'stage_workers',
+                    name: '工人阶段',
+                    unlocked: false,
+                    feature_type: 'stage',
+                    requirement_type: 'workers_stage',
+                }],
+            });
+
+            const panel = document.createElement('div');
+            panel.id = 'unlock-list';
+            document.body.appendChild(panel);
+            manager.containerElement = panel;
+            manager.progressionState = null;
+            manager.renderUnlocks();
+
+            const invalidProgress = manager.checkProgress('stage_workers');
+            const invalidDetails = manager.getRequirementDetails('stage_workers');
+            const html = panel.innerHTML;
+            panel.remove();
+
+            return {
+                invalidProgress,
+                invalidDetails,
+                html,
+            };
+        });
+
+        expect(result.invalidProgress).toEqual({ current: 0, required: 1, percentage: 0 });
+        expect(result.invalidDetails).toBe(null);
+        expect(result.html).toContain('disabled class="disabled"');
+    });
 });
