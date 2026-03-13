@@ -262,4 +262,90 @@ test.describe('bootstrap.js coverage', () => {
         expect(result.counters.lifecycle).toBe(1);
         expect(result.errors.some((entry) => entry.includes('Auto-save failed:'))).toBe(true);
     });
+
+    test('initWasm covers no-save, no-i18n, load error and fatal init branches', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const originals = {
+                loadWasmBindings: window.loadWasmBindings,
+                startGameLoop: window.startGameLoop,
+                alert: window.alert,
+                i18n: window.i18n,
+                rustGame: window.rustGame,
+                gameInitialized: window.gameInitialized,
+                ResourceManager: window.ResourceManager,
+                localStorageGetItem: Storage.prototype.getItem,
+                consoleLog: console.log,
+                consoleError: console.error,
+            };
+
+            const logs = [];
+            const errors = [];
+            const alerts = [];
+            let resourceInitializes = 0;
+            let loopStarts = 0;
+
+            console.log = (...args) => logs.push(args.map(String).join(' '));
+            console.error = (...args) => errors.push(args.map(String).join(' '));
+            window.alert = (msg) => alerts.push(String(msg));
+            window.i18n = null;
+            Storage.prototype.getItem = () => null;
+            window.ResourceManager = function() {
+                this.initialize = () => { resourceInitializes += 1; };
+            };
+            window.startGameLoop = () => { loopStarts += 1; };
+
+            window.loadWasmBindings = async () => ({
+                default: async () => ({}),
+                init_game: () => ({
+                    loadFromLocalStorage: () => false,
+                    update_ui: () => {},
+                }),
+            });
+            const noSaveResult = await window.initWasm();
+
+            window.loadWasmBindings = async () => ({
+                default: async () => ({}),
+                init_game: () => ({
+                    loadFromLocalStorage: () => { throw new Error('load-boom'); },
+                    update_ui: () => {},
+                }),
+            });
+            await window.initWasm();
+
+            window.loadWasmBindings = async () => {
+                throw new Error('init-boom');
+            };
+            const fatalResult = await window.initWasm();
+
+            window.loadWasmBindings = originals.loadWasmBindings;
+            window.startGameLoop = originals.startGameLoop;
+            window.alert = originals.alert;
+            window.i18n = originals.i18n;
+            window.rustGame = originals.rustGame;
+            window.gameInitialized = originals.gameInitialized;
+            window.ResourceManager = originals.ResourceManager;
+            Storage.prototype.getItem = originals.localStorageGetItem;
+            console.log = originals.consoleLog;
+            console.error = originals.consoleError;
+
+            return {
+                noSaveResult: !!noSaveResult,
+                fatalResult,
+                logs,
+                errors,
+                alerts,
+                resourceInitializes,
+                loopStarts,
+            };
+        });
+
+        expect(result.noSaveResult).toBe(true);
+        expect(result.fatalResult).toBeUndefined();
+        expect(result.logs.some((entry) => entry.includes('No saved game found'))).toBe(true);
+        expect(result.errors.some((entry) => entry.includes('Error loading saved game'))).toBe(true);
+        expect(result.errors.some((entry) => entry.includes('Failed to initialize WASM'))).toBe(true);
+        expect(result.alerts).toContain('Failed to load game. Please check the console for details.');
+        expect(result.resourceInitializes).toBe(0);
+        expect(result.loopStarts).toBe(2);
+    });
 });

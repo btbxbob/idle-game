@@ -454,4 +454,98 @@ test.describe('Game.js Coverage Tests', () => {
         expect(result.alerts).toContain('导入成功！游戏已加载。');
         expect(result.alerts).toContain('导入失败：import failed');
     });
+
+    test('building fallback, purchase feedback cleanup and panel guard branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originals = {
+                rustGame: window.rustGame,
+                setTimeout: window.setTimeout,
+            };
+            const scheduled = [];
+            window.setTimeout = (fn) => {
+                scheduled.push(fn);
+                return scheduled.length;
+            };
+
+            const buildingList = document.createElement('div');
+            buildingList.id = 'building-list';
+            document.body.appendChild(buildingList);
+
+            window.rustGame = {
+                get_buildings: () => [
+                    { name: '金币矿山', cost: 20, production_rate: 1, count: 2, output_resource: 'Gold', index: 4 },
+                    { name: 'Mystery Building', cost: 99, production_rate: 3, count: 0 },
+                ],
+                get_coins: () => 25,
+                buy_building: () => false,
+            };
+
+            window.updateBuildingDisplay(null, NaN);
+            const fallbackHtml = buildingList.innerHTML;
+
+            window.buyBuilding(4);
+            const failedButton = document.getElementById('buy-building-4');
+            const failedClassBefore = failedButton ? failedButton.classList.contains('purchase-failed') : false;
+            scheduled.forEach((fn) => fn());
+            const failedClassAfter = failedButton ? failedButton.classList.contains('purchase-failed') : false;
+
+            const preservedHtml = buildingList.innerHTML;
+            window.updateBuildingDisplay([], 5);
+            const unchangedOnEmpty = buildingList.innerHTML === preservedHtml;
+
+            const originalStats = window.statisticsManager;
+            const originalUnlocks = window.unlockManager;
+            let statsRenderCalls = 0;
+            let unlockRenderCalls = 0;
+            let unlockUpdateCalls = 0;
+            window.statisticsManager = { renderToPanel: () => { statsRenderCalls += 1; } };
+            window.unlockManager = {
+                update: () => { unlockUpdateCalls += 1; },
+                renderUnlocks: () => { unlockRenderCalls += 1; },
+            };
+
+            const statisticsTab = document.getElementById('tab-statistics');
+            const unlocksTab = document.getElementById('tab-unlocks');
+            const statsWasActive = statisticsTab ? statisticsTab.classList.contains('active') : false;
+            const unlocksWasActive = unlocksTab ? unlocksTab.classList.contains('active') : false;
+
+            if (statisticsTab) statisticsTab.classList.remove('active');
+            if (unlocksTab) unlocksTab.classList.remove('active');
+            window.updateStatisticsPanel();
+            window.updateUnlocksPanel();
+
+            if (statisticsTab) statisticsTab.classList.add('active');
+            if (unlocksTab) unlocksTab.classList.add('active');
+            window.updateStatisticsPanel();
+            window.updateUnlocksPanel();
+
+            if (statisticsTab) statisticsTab.classList.toggle('active', statsWasActive);
+            if (unlocksTab) unlocksTab.classList.toggle('active', unlocksWasActive);
+            window.statisticsManager = originalStats;
+            window.unlockManager = originalUnlocks;
+            window.rustGame = originals.rustGame;
+            window.setTimeout = originals.setTimeout;
+            buildingList.remove();
+
+            return {
+                fallbackHtml,
+                failedClassBefore,
+                failedClassAfter,
+                unchangedOnEmpty,
+                statsRenderCalls,
+                unlockRenderCalls,
+                unlockUpdateCalls,
+            };
+        });
+
+        expect(result.fallbackHtml).toContain('金币/点击');
+        expect(result.fallbackHtml).toContain('Gold');
+        expect(result.fallbackHtml).toContain('coins');
+        expect(result.failedClassBefore).toBe(true);
+        expect(result.failedClassAfter).toBe(false);
+        expect(result.unchangedOnEmpty).toBe(true);
+        expect(result.statsRenderCalls).toBe(1);
+        expect(result.unlockRenderCalls).toBe(1);
+        expect(result.unlockUpdateCalls).toBe(2);
+    });
 });
