@@ -37,13 +37,13 @@ test.describe('HousingManager coverage', () => {
             const renderedList = manager.renderHousingToList();
 
             const panel = document.createElement('div');
-            panel.id = 'housing-panel';
+            panel.id = 'housing-panel-test';
             document.body.appendChild(panel);
             const occupancyValue = document.createElement('span');
             occupancyValue.id = 'occupancy-value';
             document.body.appendChild(occupancyValue);
 
-            manager.renderToPanel('housing-panel');
+            manager.renderToPanel('housing-panel-test');
             manager.handleOccupancyChange('75');
             manager.handleBulkUpgrade();
             const upgraded = manager.upgradeHousing(0);

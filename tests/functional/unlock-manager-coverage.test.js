@@ -76,74 +76,80 @@ test.describe('UnlockManager coverage', () => {
         const result = await page.evaluate(() => {
             const manager = new window.UnlockManager(null);
 
-            const tabs = ['resources', 'workers', 'technology', 'statistics', 'achievements'];
-            tabs.forEach((tab) => {
-                const button = document.createElement('button');
-                button.className = 'tab-button';
-                button.setAttribute('data-tab', tab);
-                if (tab === 'workers') {
-                    button.classList.add('active');
-                }
-                document.body.appendChild(button);
+            const resourcesButton = document.querySelector('.tab-button[data-tab="resources"]');
+            const workersButton = document.querySelector('.tab-button[data-tab="workers"]');
+            const workersPanel = document.getElementById('tab-workers');
+            const primaryButton = document.querySelector('.category-tab-button[data-category="primary"]');
+            const secondaryButton = document.querySelector('.category-tab-button[data-category="secondary"]');
+            const advancedButton = document.querySelector('.category-tab-button[data-category="advanced"]');
+            const primaryPanel = document.getElementById('primary-resources');
+            const secondaryPanel = document.getElementById('secondary-resources');
+            const advancedPanel = document.getElementById('advanced-resources');
+            const ironOreItem = document.querySelector('.resource-panel .resource-item[data-resource="ironOre"]');
+            const robotItem = advancedPanel ? advancedPanel.querySelector('[data-resource="robot"]') : null;
 
-                const panel = document.createElement('div');
-                panel.id = `tab-${tab}`;
-                panel.className = 'tab-content';
-                if (tab === 'workers') {
-                    panel.classList.add('active');
-                }
-                document.body.appendChild(panel);
-            });
+            const originals = {
+                activeButtons: Array.from(document.querySelectorAll('.tab-button.active')).map((button) => button.getAttribute('data-tab')),
+                activePanels: Array.from(document.querySelectorAll('.tab-content.active')).map((panel) => panel.id),
+                activeCategory: document.querySelector('.category-tab-button.active')?.dataset.category || null,
+                workersButtonDisplay: workersButton ? workersButton.style.display : '',
+                workersPanelDisplay: workersPanel ? workersPanel.style.display : '',
+                resourcesButtonDisplay: resourcesButton ? resourcesButton.style.display : '',
+                secondaryButtonDisplay: secondaryButton ? secondaryButton.style.display : '',
+                advancedButtonDisplay: advancedButton ? advancedButton.style.display : '',
+                primaryPanelDisplay: primaryPanel ? primaryPanel.style.display : '',
+                secondaryPanelDisplay: secondaryPanel ? secondaryPanel.style.display : '',
+                advancedPanelDisplay: advancedPanel ? advancedPanel.style.display : '',
+                ironOreDisplay: ironOreItem ? ironOreItem.style.display : '',
+                robotDisplay: robotItem ? robotItem.style.display : '',
+            };
 
-            const primaryButton = document.createElement('button');
-            primaryButton.className = 'category-tab-button';
-            primaryButton.dataset.category = 'primary';
-            document.body.appendChild(primaryButton);
-            const secondaryButton = document.createElement('button');
-            secondaryButton.className = 'category-tab-button active';
-            secondaryButton.dataset.category = 'secondary';
-            document.body.appendChild(secondaryButton);
-            const advancedButton = document.createElement('button');
-            advancedButton.className = 'category-tab-button';
-            advancedButton.dataset.category = 'advanced';
-            document.body.appendChild(advancedButton);
-
-            const primaryPanel = document.createElement('div');
-            primaryPanel.id = 'primary-resources';
-            primaryPanel.className = 'resource-panel';
-            primaryPanel.innerHTML = '<div class="resource-item" data-resource="coins"></div>';
-            document.body.appendChild(primaryPanel);
-            const secondaryPanel = document.createElement('div');
-            secondaryPanel.id = 'secondary-resources';
-            secondaryPanel.className = 'resource-panel';
-            secondaryPanel.innerHTML = '<div class="resource-item" data-resource="paper"></div>';
-            document.body.appendChild(secondaryPanel);
-            const advancedPanel = document.createElement('div');
-            advancedPanel.id = 'advanced-resources';
-            advancedPanel.className = 'resource-panel';
-            advancedPanel.innerHTML = '<div class="resource-item" data-resource="robot"></div>';
-            document.body.appendChild(advancedPanel);
-
-            const resourceShell = document.createElement('div');
-            resourceShell.className = 'resource-panel';
-            resourceShell.innerHTML = '<div class="resource-item" data-resource="ironOre"></div>';
-            document.body.appendChild(resourceShell);
+            document.querySelectorAll('.tab-button').forEach((button) => button.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach((panel) => panel.classList.remove('active'));
+            if (workersButton) workersButton.classList.add('active');
+            if (workersPanel) workersPanel.classList.add('active');
+            document.querySelectorAll('.category-tab-button').forEach((button) => button.classList.remove('active'));
+            if (secondaryButton) secondaryButton.classList.add('active');
 
             manager.progressionState = { current_stage_id: 'stage_genesis' };
             manager.updateTabVisibility();
 
-            const workersButtonHidden = document.querySelector('.tab-button[data-tab="workers"]').style.display === 'none';
-            const resourcesButtonActive = document.querySelector('.tab-button[data-tab="resources"]').classList.contains('active');
-            const workersPanelHidden = document.getElementById('tab-workers').style.display === 'none';
-            const ironOreHidden = resourceShell.querySelector('[data-resource="ironOre"]').style.display === 'none';
-            const secondaryHidden = secondaryButton.style.display === 'none';
-            const primaryActive = primaryButton.classList.contains('active');
+            const workersButtonHidden = workersButton ? workersButton.style.display === 'none' : false;
+            const resourcesButtonActive = resourcesButton ? resourcesButton.classList.contains('active') : false;
+            const workersPanelHidden = workersPanel ? workersPanel.style.display === 'none' : false;
+            const ironOreHidden = ironOreItem ? ironOreItem.style.display === 'none' : false;
+            const secondaryHidden = secondaryButton ? secondaryButton.style.display === 'none' : false;
+            const primaryActive = primaryButton ? primaryButton.classList.contains('active') : false;
 
             manager.updateResourceVisibility('stage_collective');
-            const advancedVisible = advancedButton.style.display !== 'none';
-            const robotVisible = advancedPanel.querySelector('[data-resource="robot"]').style.display !== 'none';
+            const advancedVisible = advancedButton ? advancedButton.style.display !== 'none' : false;
+            const robotVisible = robotItem ? robotItem.style.display !== 'none' : false;
 
-            document.querySelectorAll('.tab-button, .tab-content, .category-tab-button, .resource-panel').forEach((node) => node.remove());
+            document.querySelectorAll('.tab-button').forEach((button) => button.classList.remove('active'));
+            originals.activeButtons.forEach((tab) => {
+                const button = document.querySelector(`.tab-button[data-tab="${tab}"]`);
+                if (button) button.classList.add('active');
+            });
+            document.querySelectorAll('.tab-content').forEach((panel) => panel.classList.remove('active'));
+            originals.activePanels.forEach((panelId) => {
+                const panel = document.getElementById(panelId);
+                if (panel) panel.classList.add('active');
+            });
+            document.querySelectorAll('.category-tab-button').forEach((button) => button.classList.remove('active'));
+            if (originals.activeCategory) {
+                const button = document.querySelector(`.category-tab-button[data-category="${originals.activeCategory}"]`);
+                if (button) button.classList.add('active');
+            }
+            if (workersButton) workersButton.style.display = originals.workersButtonDisplay;
+            if (workersPanel) workersPanel.style.display = originals.workersPanelDisplay;
+            if (resourcesButton) resourcesButton.style.display = originals.resourcesButtonDisplay;
+            if (secondaryButton) secondaryButton.style.display = originals.secondaryButtonDisplay;
+            if (advancedButton) advancedButton.style.display = originals.advancedButtonDisplay;
+            if (primaryPanel) primaryPanel.style.display = originals.primaryPanelDisplay;
+            if (secondaryPanel) secondaryPanel.style.display = originals.secondaryPanelDisplay;
+            if (advancedPanel) advancedPanel.style.display = originals.advancedPanelDisplay;
+            if (ironOreItem) ironOreItem.style.display = originals.ironOreDisplay;
+            if (robotItem) robotItem.style.display = originals.robotDisplay;
 
             return {
                 workersButtonHidden,
