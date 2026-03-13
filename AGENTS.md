@@ -230,6 +230,8 @@ git commit -m "chore: bump runtime version to v0.6.7"
 
 ### Jenkins Test Flow
 - Job: `idle-game-ci`
+- Local Jenkins URL: `http://localhost:8081`
+- Local Jenkins credentials: `admin` / `admin123`
 - Stages: Checkout → Install JS → Lint → Rust Check → Rust Tests → Build WASM → Playwright E2E
 - Trigger E2E: `RUN_PLAYWRIGHT=true`
 - Trigger coverage: `RUN_COVERAGE=true`

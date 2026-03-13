@@ -5,7 +5,8 @@ This project delegates build/test CI execution to Jenkins.
 ## 1) Start Jenkins (with MCP server plugin)
 
 ```bash
-docker compose -f docker-compose.jenkins.yml up -d --build
+cp .env.jenkins.example .env.jenkins
+docker compose --env-file .env.jenkins -f docker-compose.jenkins.yml up -d --build
 ```
 
 Jenkins UI: `http://localhost:8081`
@@ -20,6 +21,16 @@ You can override credentials before startup:
 export JENKINS_ADMIN_ID="your-admin"
 export JENKINS_ADMIN_PASSWORD="your-strong-password"
 ```
+
+The local Compose profile now defaults to staying under `512MB` total memory for the Jenkins stack:
+
+- `jenkins`: `416m` hard limit, `288m` reservation
+- `dind`: `1536m` hard limit, `1024m` reservation
+- Jenkins JVM: `-Xms128m -Xmx256m`
+
+Use `.env.jenkins.example` as the tracked template and keep your actual local values in `.env.jenkins` (already gitignored). Start Jenkins with `--env-file .env.jenkins` so the memory limits and credentials are applied.
+
+To keep the controller lightweight, Compose also starts a dedicated inbound build agent. The controller runs with `0` executors, while the `agent` service handles checkout, Rust, npm, and Jenkins pipeline shell steps. The Playwright browser container runs through `dind`, so `DIND_MEMORY_LIMIT` / `DIND_MEMORY_RESERVATION` need enough headroom for browser processes even though the controller itself stays under `512MB`.
 
 ## 2) Jenkins MCP endpoint
 
@@ -69,12 +80,14 @@ When `RUN_PLAYWRIGHT=true`, Jenkins executes:
 
 - `npx playwright test --project=chromium --reporter=line,junit,html`
 
-The Jenkins pipeline now passes `PW_TEST_WORKERS=2` into the Playwright container by default, so Chromium E2E runs can use two workers unless the pipeline environment overrides that value.
+The Jenkins pipeline passes `PW_TEST_WORKERS=2` into the Playwright container by default, matching the CI fallback in `playwright.config.js` and reducing browser memory pressure in a single container.
 
-When `RUN_COVERAGE=true`, Jenkins executes Playwright on Chromium and then merges/checks E2E coverage:
+The pipeline also enables `buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '3'))` so the Jenkins controller keeps only the latest 10 build records and the latest 3 sets of archived artifacts, reducing local disk growth.
 
-- `npx playwright test --project=chromium --reporter=line,junit,html`
+VX|- `npx playwright test tests/functional --project=chromium --reporter=line,junit,html`
 - `node scripts/merge-e2e-coverage.js`
+
+By default, only functional tests are run. To include regression tests, set `RUN_REGRESSION_TESTS=true`.
 
 Before a coverage run starts, the pipeline removes `coverage-report/raw` and `coverage-report/e2e-merged` so the merged report only reflects the current Jenkins execution.
 
@@ -137,6 +150,7 @@ JENKINS_TOKEN=admin123 \
 JOB_NAME=idle-game-ci \
 RUN_PLAYWRIGHT=true \
 RUN_COVERAGE=true \
+RUN_REGRESSION_TESTS=true \
 scripts/jenkins-debug-rerun.sh
 ```
 
