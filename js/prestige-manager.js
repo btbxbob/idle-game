@@ -37,6 +37,14 @@ class PrestigeManager {
             });
         }
     }
+
+    formatInteger(value) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(value);
+        }
+
+        return Math.floor(Number(value) || 0).toLocaleString();
+    }
     
     // Calculate PP to gain based on current coins
     calculatePPGain() {
@@ -54,16 +62,16 @@ class PrestigeManager {
         const ppGain = this.calculatePPGain();
         
         if (coins < this.PRESTIGE_THRESHOLD) {
-            alert(`需要 ${this.PRESTIGE_THRESHOLD.toLocaleString()} 金币才能转生！\n当前金币：${coins.toLocaleString()}`);
+            alert(`需要 ${this.formatInteger(this.PRESTIGE_THRESHOLD)} 金币才能转生！\n当前金币：${this.formatInteger(coins)}`);
             return;
         }
         
         if (this.currentCoinsEl) {
-            this.currentCoinsEl.textContent = coins.toLocaleString();
+            this.currentCoinsEl.textContent = this.formatInteger(coins);
         }
         
         if (this.willGainEl) {
-            this.willGainEl.textContent = ppGain.toLocaleString();
+            this.willGainEl.textContent = this.formatInteger(ppGain);
         }
         
         if (this.modal) {
@@ -107,7 +115,7 @@ class PrestigeManager {
             }, 1000);
         }
         
-        alert(`转生成功！获得 ${ppGain} PP！`);
+        alert(`转生成功！获得 ${this.formatInteger(ppGain)} PP！`);
     }
 }
 

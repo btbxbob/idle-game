@@ -329,7 +329,7 @@ class UnlockManager {
                     <div class="progress-bar">
                         <div class="progress-bar-fill" style="width: ${progressBarWidth}"></div>
                     </div>
-                    <span class="progress-text">${(progress.percentage || 0).toFixed(0)}%</span>
+                    <span class="progress-text">${this.formatPercent(progress.percentage || 0, 0)}</span>
                 </div>
                 <div class="unlock-action">
                     ${!unlock.unlocked ? `
@@ -378,9 +378,9 @@ class UnlockManager {
             return '0';
         }
         if (Math.abs(value - Math.round(value)) < 0.001) {
-            return String(Math.round(value));
+            return this.formatInteger(value);
         }
-        return value.toFixed(1);
+        return this.formatDecimal(value, 1);
     }
 
     getStageThemeClass(stageId) {
@@ -420,10 +420,34 @@ class UnlockManager {
         return `
             <div class="progression-metric-card">
                 <span class="metric-label">${label}</span>
-                <strong>${Number(value || 0).toFixed(1)}</strong>
+                <strong>${this.formatDecimal(value, 1)}</strong>
                 <small>${note}</small>
             </div>
         `;
+    }
+
+    formatInteger(value) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(value);
+        }
+
+        return Math.floor(Number(value) || 0).toLocaleString();
+    }
+
+    formatDecimal(value, fractionDigits = 1) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatDecimal === 'function') {
+            return window.NumberFormatter.formatDecimal(value, { fractionDigits });
+        }
+
+        return Number(value || 0).toFixed(fractionDigits);
+    }
+
+    formatPercent(value, fractionDigits = 1) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatPercent === 'function') {
+            return window.NumberFormatter.formatPercent(value, { fractionDigits });
+        }
+
+        return `${Number(value || 0).toFixed(fractionDigits)}%`;
     }
 
     getFeatureTypeLabel(featureType) {

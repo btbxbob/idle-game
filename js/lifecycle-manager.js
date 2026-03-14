@@ -26,23 +26,23 @@ class LifecycleManager {
         }
 
         const darkRows = s.dark_cycle_revealed ? `
-                <div>尸体: ${Number(s.corpses || 0).toFixed(1)}</div>
-                <div>蛆虫: ${Number(s.maggots || 0).toFixed(1)}</div>
+                <div>尸体: ${this.formatDecimal(s.corpses)}</div>
+                <div>蛆虫: ${this.formatDecimal(s.maggots)}</div>
             ` : '';
         const coexistenceRows = s.coexistence_revealed ? `
-                <div>人类压力: ${Number(s.human_pressure || 0).toFixed(1)}</div>
-                <div>蛆虫影响: ${Number(s.maggot_influence || 0).toFixed(1)}</div>
-                <div>共生稳定度: ${Number(s.symbiosis_stability || 0).toFixed(1)}</div>
-                <div>混合人口: ${Number(s.hybrid_population || 0).toFixed(1)}</div>
+                <div>人类压力: ${this.formatDecimal(s.human_pressure)}</div>
+                <div>蛆虫影响: ${this.formatDecimal(s.maggot_influence)}</div>
+                <div>共生稳定度: ${this.formatDecimal(s.symbiosis_stability)}</div>
+                <div>混合人口: ${this.formatDecimal(s.hybrid_population)}</div>
             ` : '';
         panel.innerHTML = `
             <div class="lifecycle-overview">
                 <h3>生命周期资源</h3>
-                <div>工人: ${s.workers}</div>
-                <div>饥饿工人: ${s.hungry_workers}</div>
-                <div>等待队列: ${s.queue_workers}</div>
-                <div>住房容量: ${s.housing_capacity}</div>
-                <div>食物: ${Number(s.food || 0).toFixed(1)}</div>
+                <div>工人: ${this.formatInteger(s.workers)}</div>
+                <div>饥饿工人: ${this.formatInteger(s.hungry_workers)}</div>
+                <div>等待队列: ${this.formatInteger(s.queue_workers)}</div>
+                <div>住房容量: ${this.formatInteger(s.housing_capacity)}</div>
+                <div>食物: ${this.formatDecimal(s.food)}</div>
                 ${darkRows}
                 ${coexistenceRows}
             </div>
@@ -83,24 +83,24 @@ class LifecycleManager {
         const maggotFactoryCount = this.getMaggotFactoryCount();
         const canProcessNow = maggotFactoryCount > 0 && maggots >= 10;
         const darkCycleInline = s.dark_cycle_revealed ? `
-                    <span>尸体 ${corpses.toFixed(1)}</span>
-                    <span>蛆虫 ${maggots.toFixed(1)} (转化 ${Math.floor(maggots / 10)})</span>
-                    <span>蛆虫工厂 x${maggotFactoryCount}</span>
+                    <span>尸体 ${this.formatDecimal(corpses)}</span>
+                    <span>蛆虫 ${this.formatDecimal(maggots)} (转化 ${this.formatInteger(maggots / 10)})</span>
+                    <span>蛆虫工厂 x${this.formatInteger(maggotFactoryCount)}</span>
                     ${maggotFactoryCount > 0 ? `<button type="button" id="process-maggot-now" ${canProcessNow ? '' : 'disabled'}>立即转化</button>` : ''}
                 ` : '';
         const coexistenceInline = s.coexistence_revealed ? `
-                    <span>稳态 ${Number(s.symbiosis_stability || 0).toFixed(1)}</span>
-                    <span>混合人口 ${Number(s.hybrid_population || 0).toFixed(1)}</span>
+                    <span>稳态 ${this.formatDecimal(s.symbiosis_stability)}</span>
+                    <span>混合人口 ${this.formatDecimal(s.hybrid_population)}</span>
                 ` : '';
 
         panel.innerHTML = `
             <div class="lifecycle-resource-widget compact ${foodWarning ? 'warning' : ''}">
                 <div class="widget-inline">
                     <span class="widget-badge ${foodWarning ? 'danger' : 'ok'}">${foodWarning ? '补给紧张' : '稳定'}</span>
-                    <span>工人 ${workers}</span>
-                    <span class="${hungry > 0 ? 'danger' : ''}">饥饿 ${hungry}</span>
-                    <span>队列 ${queue}</span>
-                    <span>食物 ${food.toFixed(1)} (${foodConsumeRate.toFixed(1)}/秒)</span>
+                    <span>工人 ${this.formatInteger(workers)}</span>
+                    <span class="${hungry > 0 ? 'danger' : ''}">饥饿 ${this.formatInteger(hungry)}</span>
+                    <span>队列 ${this.formatInteger(queue)}</span>
+                    <span>食物 ${this.formatDecimal(food)} (${this.formatDecimal(foodConsumeRate)}/秒)</span>
                     ${darkCycleInline}
                     ${coexistenceInline}
                 </div>
@@ -135,6 +135,22 @@ class LifecycleManager {
             console.error('Failed to get maggot factory count:', error);
             return 0;
         }
+    }
+
+    formatInteger(value) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(value);
+        }
+
+        return Math.floor(Number(value) || 0).toLocaleString();
+    }
+
+    formatDecimal(value, fractionDigits = 1) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatDecimal === 'function') {
+            return window.NumberFormatter.formatDecimal(value, { fractionDigits });
+        }
+
+        return Number(value || 0).toFixed(fractionDigits);
     }
 }
 

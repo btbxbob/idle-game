@@ -70,7 +70,7 @@ class AchievementManager {
                                     <div class="progress-bar">
                                         <div class="progress-fill" style="width: ${progressPercent}%"></div>
                                     </div>
-                                    <div class="progress-text">${Math.floor(achievement.progress)} / ${Math.floor(achievement.requirement)}</div>
+                                    <div class="progress-text">${this.formatInteger(achievement.progress)} / ${this.formatInteger(achievement.requirement)}</div>
                                 </div>
                             ` : `
                                 <div class="achievement-unlocked-time">
@@ -201,6 +201,14 @@ class AchievementManager {
         if (achievement) {
             this.showNotification(achievement);
         }
+    }
+
+    formatInteger(value) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(value);
+        }
+
+        return Math.floor(Number(value) || 0).toLocaleString();
     }
 }
 

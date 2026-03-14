@@ -68,6 +68,7 @@ test.describe('bootstrap.js coverage', () => {
                 LifecycleManager: window.LifecycleManager,
                 ResourceManager: window.ResourceManager,
                 localStorageGetItem: Storage.prototype.getItem,
+                setTimeout: window.setTimeout,
             };
 
             const alerts = [];
@@ -76,6 +77,8 @@ test.describe('bootstrap.js coverage', () => {
             let unlockUpdates = 0;
             let resourceInitializes = 0;
             let coinClicks = 0;
+            const loadingMessages = [];
+            let loadingHidden = false;
 
             const existingCoinButton = document.getElementById('coin-button');
             const createdCoinButton = !existingCoinButton;
@@ -86,6 +89,10 @@ test.describe('bootstrap.js coverage', () => {
             }
 
             window.alert = (msg) => alerts.push(String(msg));
+            window.setTimeout = (fn) => {
+                fn();
+                return 1;
+            };
             window.i18n = {
                 currentLanguage: 'zh-CN',
                 t: (key) => ({ saveResetAlert: '存档已重置' }[key] || key),
@@ -114,6 +121,8 @@ test.describe('bootstrap.js coverage', () => {
                 init_game: () => game,
             });
             window.startGameLoop = () => { loopStarts += 1; };
+            window.setLoadingStatus = (message) => { loadingMessages.push(String(message)); };
+            window.hideLoadingScreen = () => { loadingHidden = true; };
 
             window.StatisticsManager = function(g) { this.game = g; };
             window.AchievementManager = function(g) { this.game = g; };
@@ -154,6 +163,8 @@ test.describe('bootstrap.js coverage', () => {
                 hasWorkOverviewManager: !!window.workOverviewManager,
                 hasLifecycleManager: !!window.lifecycleManager,
                 hasResourceManager: !!window.resourceManager,
+                loadingMessages,
+                loadingHidden,
             };
 
             if (createdCoinButton) {
@@ -174,6 +185,7 @@ test.describe('bootstrap.js coverage', () => {
             window.WorkOverviewManager = originals.WorkOverviewManager;
             window.LifecycleManager = originals.LifecycleManager;
             window.ResourceManager = originals.ResourceManager;
+            window.setTimeout = originals.setTimeout;
             Storage.prototype.getItem = originals.localStorageGetItem;
 
             return summary;
@@ -197,6 +209,12 @@ test.describe('bootstrap.js coverage', () => {
         expect(result.hasWorkOverviewManager).toBe(true);
         expect(result.hasLifecycleManager).toBe(true);
         expect(result.hasResourceManager).toBe(true);
+        expect(result.loadingMessages).toContain('正在载入 WASM 模块...');
+        expect(result.loadingMessages).toContain('正在初始化游戏核心...');
+        expect(result.loadingMessages).toContain('正在读取本地存档...');
+        expect(result.loadingMessages).toContain('正在连接界面管理器...');
+        expect(result.loadingMessages).toContain('准备完成，正在进入游戏...');
+        expect(result.loadingHidden).toBe(true);
     });
 
     test('startGameLoop covers update hooks and autosave failure branches', async ({ page }) => {

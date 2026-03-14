@@ -1,15 +1,24 @@
 const { test, expect } = require('../fixtures/coverage');
 
 async function readCoinsValue(page) {
-  const coinCount = page.locator('#coin-count');
-  if (await coinCount.count()) {
-    const text = await coinCount.textContent();
-    const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
-    return match ? parseInt(match[1], 10) : 0;
-  }
+  return page.evaluate(() => {
+    if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
+      return window.rustGame.get_coins();
+    }
 
-  const coins = await page.textContent('#coins');
-  return parseInt(String(coins || '').split(': ')[1], 10);
+    const formatter = window.NumberFormatter;
+    const coinCount = document.getElementById('coin-count');
+    if (coinCount && formatter && typeof formatter.parseDisplayedNumber === 'function') {
+      return formatter.parseDisplayedNumber(coinCount.textContent || '0');
+    }
+
+    const legacyCoins = document.getElementById('coins');
+    if (legacyCoins && formatter && typeof formatter.parseDisplayedNumber === 'function') {
+      return formatter.parseDisplayedNumber(legacyCoins.textContent || '0');
+    }
+
+    return 0;
+  });
 }
 
 test('resource updates should be real-time', async ({ page, browserName }) => {
@@ -30,11 +39,9 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   // Wait for UI to update - wait for coins to actually change
   await page.waitForFunction(
     (expected) => {
-      const coinCount = document.getElementById('coin-count');
-      const legacyCoins = document.getElementById('coins');
-      const text = coinCount ? coinCount.textContent : (legacyCoins ? legacyCoins.textContent : '0');
-      const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
-      const coinsValue = match ? parseInt(match[1], 10) : 0;
+      const coinsValue = window.rustGame && typeof window.rustGame.get_coins === 'function'
+        ? window.rustGame.get_coins()
+        : 0;
       return coinsValue > expected;
     },
     initialCoinsValue
@@ -52,11 +59,9 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   // Wait for coins to update
   await page.waitForFunction(
     (expected) => {
-      const coinCount = document.getElementById('coin-count');
-      const legacyCoins = document.getElementById('coins');
-      const text = coinCount ? coinCount.textContent : (legacyCoins ? legacyCoins.textContent : '0');
-      const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
-      const coinsValue = match ? parseInt(match[1], 10) : 0;
+      const coinsValue = window.rustGame && typeof window.rustGame.get_coins === 'function'
+        ? window.rustGame.get_coins()
+        : 0;
       return coinsValue > expected;
     },
     coinsAfterClicksValue
@@ -80,11 +85,9 @@ test('resource updates should be real-time', async ({ page, browserName }) => {
   // Wait for coins to decrease after purchase
   await page.waitForFunction(
     (expected) => {
-      const coinCount = document.getElementById('coin-count');
-      const legacyCoins = document.getElementById('coins');
-      const text = coinCount ? coinCount.textContent : (legacyCoins ? legacyCoins.textContent : '0');
-      const match = String(text || '').match(/([0-9]+(?:\.[0-9]+)?)/);
-      const coinsValue = match ? parseInt(match[1], 10) : 0;
+      const coinsValue = window.rustGame && typeof window.rustGame.get_coins === 'function'
+        ? window.rustGame.get_coins()
+        : 0;
       return coinsValue < expected;
     },
     coinsBeforePurchaseValue

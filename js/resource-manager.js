@@ -20,6 +20,74 @@ class ResourceManager {
         ];
     }
 
+    getResourceIcon(resourceKey) {
+        const iconMap = {
+            coins: '🪙',
+            wood: '🪵',
+            stone: '🪨',
+            ironOre: '⛏️',
+            copperOre: '🔶',
+            aluminumOre: '⚪',
+            coal: '⚫',
+            oil: '🛢️',
+            crystal: '💎',
+            food: '🍞',
+            ironIngot: '🔩',
+            copperIngot: '🔶',
+            aluminumIngot: '⚪',
+            steelPlate: '🪓',
+            copperPlate: '🟧',
+            aluminumPlate: '⬜',
+            glass: '🪟',
+            plastic: '🧪',
+            chemicals: '⚗️',
+            fuel: '⛽',
+            paper: '📄',
+            ink: '🖋️',
+            cloth: '🧵',
+            leather: '👜',
+            ceramic: '🏺',
+            cement: '🧱',
+            brick: '🧱',
+            rebar: '🔩',
+            wire: '🔌',
+            pipe: '🚿',
+            valve: '⚙️',
+            gear: '⚙️',
+            bearing: '⚙️',
+            spring: '🌀',
+            screw: '🔩',
+            nut: '🔩',
+            washer: '🔩',
+            pump: '💧',
+            motor: '⚡',
+            sensor: '📡',
+            circuitBoard: '🔌',
+            capacitor: '⚡',
+            resistor: '⚡',
+            diode: '⚡',
+            transistor: '⚡',
+            transformer: '⚡',
+            generator: '⚡',
+            compressor: '💨',
+            battery: '🔋',
+            microchip: '💾',
+            engine: '🚀',
+            robot: '🤖',
+            satellite: '🛰️',
+            spaceship: '🚀',
+            quantumComputer: '💻',
+            antimatter: '⚛️',
+            darkMatter: '🌌',
+            timeCrystal: '💎',
+            nanobot: '🦠',
+            maggot: '🪱',
+            corpse: '🦴',
+        };
+
+        return iconMap[resourceKey] || '👜';
+    }
+
     getResourceKeysByCategory(category) {
         const ranges = {
             'primary': { start: 0, end: 10 },
@@ -46,9 +114,11 @@ class ResourceManager {
                 const resourceKey = resourceKeys[index];
                 if (!resourceKey) return;
 
+                const iconElement = element.querySelector('.resource-icon');
                 const nameElement = element.querySelector('.resource-name');
                 const amountElement = element.querySelector('.resource-amount');
                 
+                if (iconElement) iconElement.textContent = this.getResourceIcon(resourceKey);
                 if (nameElement) nameElement.textContent = this.i18n.t(resourceKey);
                 if (amountElement) amountElement.textContent = '0';
                 element.setAttribute('data-resource', resourceKey);
@@ -110,7 +180,7 @@ class ResourceManager {
 
                 const amountElement = element.querySelector('.resource-amount');
                 if (amountElement) {
-                    amountElement.textContent = Math.floor(this.getResourceAmount(resources, resourceKey)).toLocaleString();
+                    amountElement.textContent = this.formatResourceAmount(this.getResourceAmount(resources, resourceKey));
                 }
             });
         });
@@ -171,7 +241,7 @@ class ResourceManager {
 
             const amount = this.getResourceAmount(resources, resourceKey);
             const resourceName = this.i18n ? this.i18n.t(resourceKey) : resourceKey;
-            amountElement.textContent = `${resourceName}: ${Math.floor(amount).toLocaleString()}`;
+            amountElement.textContent = `${resourceName}: ${this.formatResourceAmount(amount)}`;
 
             const rateElement = document.getElementById(`banner-${resourceKey}-rate`);
             const cardElement = amountElement.closest('.header-resource-card');
@@ -179,7 +249,7 @@ class ResourceManager {
 
             if (rateElement) {
                 if (rate !== 0) {
-                    rateElement.textContent = `${rate >= 0 ? '+' : ''}${rate.toFixed(1)}/s`;
+                    rateElement.textContent = `${this.formatRate(rate)}/s`;
                     rateElement.style.display = 'block';
                 } else {
                     rateElement.textContent = '';
@@ -212,6 +282,23 @@ class ResourceManager {
         }
 
         return 0;
+    }
+
+    formatResourceAmount(amount) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatResource === 'function') {
+            return window.NumberFormatter.formatResource(amount);
+        }
+
+        return Math.floor(Number(amount) || 0).toLocaleString();
+    }
+
+    formatRate(rate) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatRate === 'function') {
+            return window.NumberFormatter.formatRate(rate, { includeSign: true, fractionDigits: 1 });
+        }
+
+        const numericRate = Number(rate) || 0;
+        return `${numericRate >= 0 ? '+' : ''}${numericRate.toFixed(1)}`;
     }
 
     ensureHeaderCards() {
@@ -248,7 +335,7 @@ class ResourceManager {
 
             const amountElement = element.querySelector('.resource-amount');
             if (amountElement) {
-                amountElement.textContent = Math.floor(this.getResourceAmount(resources, resourceKey)).toLocaleString();
+                amountElement.textContent = this.formatResourceAmount(this.getResourceAmount(resources, resourceKey));
             }
         });
     }

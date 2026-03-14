@@ -31,10 +31,33 @@ async function loadWasmBindings() {
     return await import(fallbackUrl.href);
 }
 
+function setLoadingStatus(message, options = {}) {
+    const loadingScreen = document.getElementById('loading-screen');
+    const loadingStatus = document.getElementById('loading-status');
+    if (loadingStatus) {
+        loadingStatus.textContent = message;
+    }
+    if (loadingScreen && options.error) {
+        loadingScreen.classList.remove('is-hidden');
+    }
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (!loadingScreen) {
+        return;
+    }
+
+    loadingScreen.classList.add('is-hidden');
+    loadingScreen.setAttribute('aria-busy', 'false');
+}
+
 async function initWasm() {
     try {
+        setLoadingStatus('正在载入 WASM 模块...');
         // 动态导入生成的WASM绑定
         const init = await loadWasmBindings();
+        setLoadingStatus('正在初始化游戏核心...');
         const wasm = await init.default();
         
         // 初始化游戏
@@ -43,6 +66,7 @@ async function initWasm() {
         // 尝试从 localStorage 加载存档
         let gameLoaded = false;
         let hadExistingSave = false;
+        setLoadingStatus('正在读取本地存档...');
         try {
             // Check if we have an existing save
             const existingSave = localStorage.getItem('idle_game_save');
@@ -81,6 +105,7 @@ async function initWasm() {
         }
         
         // 将游戏实例暴露到全局作用域供 UI 使用
+        setLoadingStatus('正在连接界面管理器...');
         window.rustGame = game;
         window.gameInitialized = true;
         
@@ -140,15 +165,24 @@ async function initWasm() {
         if (window.i18n) {
             window.i18n.updateAllTranslations();
         }
+
+        if (window.updateCoinButton) {
+            window.updateCoinButton();
+        }
         
         console.log('Idle game initialized successfully!');
         
         // 启动游戏主循环
         startGameLoop(game);
+        setLoadingStatus('准备完成，正在进入游戏...');
+        window.setTimeout(() => {
+            hideLoadingScreen();
+        }, 180);
         
         return game;
     } catch (error) {
         console.error('Failed to initialize WASM:', error);
+        setLoadingStatus('加载失败，请刷新页面重试。', { error: true });
         alert('Failed to load game. Please check the console for details.');
     }
 }
@@ -198,5 +232,9 @@ function startGameLoop(game) {
 
 // 页面加载完成后初始化游戏
 document.addEventListener('DOMContentLoaded', () => {
+    setLoadingStatus('正在准备界面资源...');
     initWasm();
 });
+
+window.setLoadingStatus = setLoadingStatus;
+window.hideLoadingScreen = hideLoadingScreen;

@@ -20,6 +20,53 @@ test.describe('Responsive Layout', () => {
     test.describe('Mobile - 375px', () => {
         test.use({ viewport: { width: 375, height: 667 } });
 
+        test('large formatted numbers stay readable without truncation on mobile', async ({ page }) => {
+            const layout = await page.evaluate(() => {
+                const largeCoins = 1234567890123;
+                const largeRate = 12345678.9;
+
+                if (!window.NumberFormatter || !window.resourceManager || !window.rustGame) {
+                    return null;
+                }
+
+                window.rustGame.get_coins = () => largeCoins;
+                window.updateCoinButton();
+                window.resourceManager.updateHeaderDisplay({
+                    coins: largeCoins,
+                    coinsPerSecond: largeRate,
+                });
+
+                const coinButton = document.getElementById('coin-button');
+                const coinCount = document.getElementById('coin-count');
+                const title = document.getElementById('game-title');
+                const bannerCoins = document.getElementById('banner-coins');
+                const bannerRate = document.getElementById('banner-coins-rate');
+                const coinRect = coinButton ? coinButton.getBoundingClientRect() : null;
+                const titleRect = title ? title.getBoundingClientRect() : null;
+
+                return {
+                    coinText: coinCount ? coinCount.textContent || '' : '',
+                    bannerText: bannerCoins ? bannerCoins.textContent || '' : '',
+                    bannerRateText: bannerRate ? bannerRate.textContent || '' : '',
+                    coinFits: coinCount ? coinCount.scrollWidth <= coinCount.clientWidth : false,
+                    bannerFits: bannerCoins ? bannerCoins.scrollWidth <= bannerCoins.clientWidth : false,
+                    coinButtonInsideViewport: coinRect ? coinRect.left >= 0 && coinRect.right <= window.innerWidth : false,
+                    coinOverlapsTitle: coinRect && titleRect
+                        ? !(coinRect.right <= titleRect.left || coinRect.left >= titleRect.right || coinRect.bottom <= titleRect.top || coinRect.top >= titleRect.bottom)
+                        : true,
+                };
+            });
+
+            expect(layout).not.toBeNull();
+            expect(layout.coinText).toBe('1e12');
+            expect(layout.bannerText).toContain('1e12');
+            expect(layout.bannerRateText).toContain('1.234568e7/s');
+            expect(layout.coinFits).toBe(true);
+            expect(layout.bannerFits).toBe(true);
+            expect(layout.coinButtonInsideViewport).toBe(true);
+            expect(layout.coinOverlapsTitle).toBe(false);
+        });
+
         test('resource bar scrolls horizontally on mobile', async ({ page }) => {
             const resourcesBar = page.locator('#banner #resources');
             await expect(resourcesBar).toHaveCount(1);
@@ -249,6 +296,46 @@ test.describe('Responsive Layout', () => {
 
     test.describe('Small Desktop - 1024px', () => {
         test.use({ viewport: { width: 1024, height: 768 } });
+
+        test('large formatted numbers render fully on small desktop', async ({ page }) => {
+            const layout = await page.evaluate(() => {
+                const largeCoins = 1234567890123;
+                const largeRate = 12345678.9;
+
+                if (!window.NumberFormatter || !window.resourceManager || !window.rustGame) {
+                    return null;
+                }
+
+                window.rustGame.get_coins = () => largeCoins;
+                window.updateCoinButton();
+                window.resourceManager.updateHeaderDisplay({
+                    coins: largeCoins,
+                    coinsPerSecond: largeRate,
+                });
+
+                const coinButton = document.getElementById('coin-button');
+                const coinCount = document.getElementById('coin-count');
+                const bannerCoins = document.getElementById('banner-coins');
+                const bannerCard = bannerCoins ? bannerCoins.closest('.header-resource-card') : null;
+
+                return {
+                    coinText: coinCount ? coinCount.textContent || '' : '',
+                    bannerText: bannerCoins ? bannerCoins.textContent || '' : '',
+                    coinFits: coinCount ? coinCount.scrollWidth <= coinCount.clientWidth : false,
+                    bannerFits: bannerCoins ? bannerCoins.scrollWidth <= bannerCoins.clientWidth : false,
+                    coinButtonInsideViewport: coinButton ? coinButton.getBoundingClientRect().right <= window.innerWidth : false,
+                    bannerCardInsideViewport: bannerCard ? bannerCard.getBoundingClientRect().right <= window.innerWidth : false,
+                };
+            });
+
+            expect(layout).not.toBeNull();
+            expect(layout.coinText).toBe('1e12');
+            expect(layout.bannerText).toContain('1e12');
+            expect(layout.coinFits).toBe(true);
+            expect(layout.bannerFits).toBe(true);
+            expect(layout.coinButtonInsideViewport).toBe(true);
+            expect(layout.bannerCardInsideViewport).toBe(true);
+        });
 
         test('resource bar displays without scroll on small desktop', async ({ page }) => {
             const resourcesBar = page.locator('#banner #resources');

@@ -36,6 +36,14 @@ class StatisticsManager {
         return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
     }
 
+    formatNumber(num) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(num);
+        }
+
+        return Math.floor(Number(num) || 0).toLocaleString();
+    }
+
     /**
      * Render statistics to a panel element
      * @param {string} panelId - DOM element ID for the statistics panel
@@ -64,36 +72,31 @@ class StatisticsManager {
 
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
 
-        // Format number with commas for readability
-        const formatNumber = (num) => {
-            return Math.floor(num).toLocaleString();
-        };
-
         panel.innerHTML = `
             <div class="statistics-grid">
                 <div class="statistic-item">
                     <span class="stat-label">${t('totalClicks')}</span>
-                    <span class="stat-value">${formatNumber(stats.total_clicks)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.total_clicks)}</span>
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('totalCoinsEarned')}</span>
-                    <span class="stat-value">${formatNumber(stats.total_coins_earned)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.total_coins_earned)}</span>
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('totalWoodEarned')}</span>
-                    <span class="stat-value">${formatNumber(stats.total_wood_earned)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.total_wood_earned)}</span>
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('totalStoneEarned')}</span>
-                    <span class="stat-value">${formatNumber(stats.total_stone_earned)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.total_stone_earned)}</span>
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('totalResourcesCrafted')}</span>
-                    <span class="stat-value">${formatNumber(stats.total_resources_crafted)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.total_resources_crafted)}</span>
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('achievementsUnlocked')}</span>
-                    <span class="stat-value">${formatNumber(stats.achievements_unlocked_count)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.achievements_unlocked_count)}</span>
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('playTime')}</span>
@@ -101,11 +104,11 @@ class StatisticsManager {
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('buildingsPurchased')}</span>
-                    <span class="stat-value">${formatNumber(stats.buildings_purchased)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.buildings_purchased)}</span>
                 </div>
                 <div class="statistic-item">
                     <span class="stat-label">${t('upgradesPurchased')}</span>
-                    <span class="stat-value">${formatNumber(stats.upgrades_purchased)}</span>
+                    <span class="stat-value">${this.formatNumber(stats.upgrades_purchased)}</span>
                 </div>
             </div>
         `;

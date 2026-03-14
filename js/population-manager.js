@@ -37,6 +37,10 @@ class PopulationManager {
 
     formatEfficiency(multiplier) {
         const bonus = (multiplier - 1.0) * 100;
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatPercent === 'function') {
+            return window.NumberFormatter.formatPercent(bonus, { includeSign: bonus >= 0, fractionDigits: 1 });
+        }
+
         return bonus >= 0 ? '+' + bonus.toFixed(1) + '%' : bonus.toFixed(1) + '%';
     }
 
@@ -49,7 +53,10 @@ class PopulationManager {
 
     formatColoredValue(value, low, high) {
         const cls = value < low ? 'value-low' : (value >= high ? 'value-high' : 'value-normal');
-        return '<span class="' + cls + '">' + value.toFixed(1) + '</span>';
+        const formatted = window.NumberFormatter && typeof window.NumberFormatter.formatDecimal === 'function'
+            ? window.NumberFormatter.formatDecimal(value, { fractionDigits: 1 })
+            : value.toFixed(1);
+        return '<span class="' + cls + '">' + formatted + '</span>';
     }
 
     renderPopulation() {

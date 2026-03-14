@@ -42,14 +42,14 @@ class WorkOverviewManager {
                         <td>${this.escapeHtml(j.job_type || '未命名工种')}</td>
                         <td>
                             <div class="metric-cell">
-                                <span>${workerCount}</span>
+                                <span>${this.formatInteger(workerCount)}</span>
                                 <div class="metric-bar"><i style="width:${workerBar}%"></i></div>
                             </div>
                         </td>
-                        <td>${(avgEfficiency * 100).toFixed(1)}%</td>
+                        <td>${this.formatPercent(avgEfficiency * 100)}</td>
                         <td>
                             <div class="metric-cell">
-                                <span>${totalOutput.toFixed(2)}</span>
+                                <span>${this.formatDecimal(totalOutput, 2)}</span>
                                 <div class="metric-bar output"><i style="width:${outputBar}%"></i></div>
                             </div>
                         </td>
@@ -76,7 +76,7 @@ class WorkOverviewManager {
                 const color = this.getPaletteColor(index);
                 const count = Number(j.worker_count || 0);
                 const ratio = totalWorkers > 0 ? Math.round((count / totalWorkers) * 100) : 0;
-                return `<li><span class="legend-dot" style="background:${color}"></span><span>${this.escapeHtml(j.job_type || '未命名')} (${count}, ${ratio}%)</span></li>`;
+                return `<li><span class="legend-dot" style="background:${color}"></span><span>${this.escapeHtml(j.job_type || '未命名')} (${this.formatInteger(count)}, ${ratio}%)</span></li>`;
             })
             .join('');
 
@@ -84,13 +84,13 @@ class WorkOverviewManager {
             <div class="work-overview">
                 <h3>工作总览</h3>
                 <div class="work-overview-summary">
-                    <div class="summary-card"><strong>${totalWorkers}</strong><span>总工人</span></div>
-                    <div class="summary-card"><strong>${assignedWorkers}</strong><span>已分配</span></div>
-                    <div class="summary-card"><strong>${unassignedWorkers}</strong><span>空闲工人</span></div>
-                    <div class="summary-card"><strong>${(avgGlobalEfficiency * 100).toFixed(1)}%</strong><span>总平均效率</span></div>
+                    <div class="summary-card"><strong>${this.formatInteger(totalWorkers)}</strong><span>总工人</span></div>
+                    <div class="summary-card"><strong>${this.formatInteger(assignedWorkers)}</strong><span>已分配</span></div>
+                    <div class="summary-card"><strong>${this.formatInteger(unassignedWorkers)}</strong><span>空闲工人</span></div>
+                    <div class="summary-card"><strong>${this.formatPercent(avgGlobalEfficiency * 100)}</strong><span>总平均效率</span></div>
                 </div>
                 <div class="assignment-progress">
-                    <span>分配率 ${assignmentRate}%</span>
+                    <span>分配率 ${this.formatPercent(assignmentRate, 0)}</span>
                     <div class="assignment-progress-bar"><i style="width:${assignmentRate}%"></i></div>
                 </div>
                 <div class="work-overview-chart">
@@ -137,6 +137,30 @@ class WorkOverviewManager {
             .replaceAll('>', '&gt;')
             .replaceAll('"', '&quot;')
             .replaceAll("'", '&#39;');
+    }
+
+    formatDecimal(value, fractionDigits = 1) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatDecimal === 'function') {
+            return window.NumberFormatter.formatDecimal(value, { fractionDigits });
+        }
+
+        return Number(value || 0).toFixed(fractionDigits);
+    }
+
+    formatInteger(value) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(value);
+        }
+
+        return Math.floor(Number(value) || 0).toLocaleString();
+    }
+
+    formatPercent(value, fractionDigits = 1) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatPercent === 'function') {
+            return window.NumberFormatter.formatPercent(value, { fractionDigits });
+        }
+
+        return `${Number(value || 0).toFixed(fractionDigits)}%`;
     }
 }
 

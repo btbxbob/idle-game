@@ -12,6 +12,10 @@ test.describe('ResourceManager branch coverage', () => {
                 return { ok: false, reason: 'missing class' };
             }
 
+            const formatterOk = Boolean(window.NumberFormatter && typeof window.NumberFormatter.formatResource === 'function');
+            const scientific = formatterOk ? window.NumberFormatter.formatResource(123456789) : null;
+            const parsedScientific = formatterOk ? window.NumberFormatter.parseDisplayedNumber(scientific) : null;
+
             const manager = new window.ResourceManager(
                 {
                     get_resources: () => ({
@@ -66,6 +70,9 @@ test.describe('ResourceManager branch coverage', () => {
                 rateWood,
                 rateCustom,
                 rateUnknown,
+                formatterOk,
+                scientific,
+                parsedScientific,
             };
         });
 
@@ -83,6 +90,9 @@ test.describe('ResourceManager branch coverage', () => {
         expect(result.rateWood).toBe(1.5);
         expect(result.rateCustom).toBe(0.2);
         expect(result.rateUnknown).toBe(0);
+        expect(result.formatterOk).toBe(true);
+        expect(result.scientific).toBe('1.234568e8');
+        expect(result.parsedScientific).toBe(123456800);
     });
 
     test('initialize/switch/update/render/global updateResourcePanel branches', async ({ page }) => {

@@ -4,6 +4,27 @@
 // Initialize the game when WASM module loads
 window.gameInitialized = false;
 
+function formatIntegerDisplay(value) {
+    if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+        return window.NumberFormatter.formatInteger(value);
+    }
+
+    return Math.floor(Number(value) || 0).toLocaleString();
+}
+
+function formatRateDisplay(value) {
+    if (window.NumberFormatter && typeof window.NumberFormatter.formatRate === 'function') {
+        return window.NumberFormatter.formatRate(value, { fractionDigits: 1 });
+    }
+
+    const numeric = (typeof value === 'number' && isFinite(value)) ? value : 0;
+    return numeric.toFixed(1);
+}
+
+function formatCoinButtonValue(value) {
+    return formatIntegerDisplay(value);
+}
+
 // Function that will be called from Rust/WASM to update UI
 window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, woodPerSecond, stonePerSecond, coinsPerClick) {
     // Use i18n system to update resource displays
@@ -22,56 +43,56 @@ window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, wood
         const headerCoinDisplay = document.getElementById('header-coin-display');
         
          if (coinsElement) {
-             // Ensure the value is a valid finite number
-             const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
-             coinsElement.textContent = `金币：${Math.floor(safeCoins)}`;
-         }
+              // Ensure the value is a valid finite number
+              const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
+              coinsElement.textContent = `金币：${formatIntegerDisplay(safeCoins)}`;
+          }
         
          if (woodElement) {
              // Ensure the value is a valid finite number
              const safeWood = (typeof wood === 'number' && isFinite(wood)) ? wood : 0;
-             woodElement.textContent = `木头：${Math.floor(safeWood)}`;
-         }
+              woodElement.textContent = `木头：${formatIntegerDisplay(safeWood)}`;
+          }
         
          if (stoneElement) {
              // Ensure the value is a valid finite number
              const safeStone = (typeof stone === 'number' && isFinite(stone)) ? stone : 0;
-             stoneElement.textContent = `石头：${Math.floor(safeStone)}`;
-         }
+              stoneElement.textContent = `石头：${formatIntegerDisplay(safeStone)}`;
+          }
         
          if (cpsElement) {
              // Ensure the value is a valid finite number
              const safeCoinsPerSec = (typeof coinsPerSecond === 'number' && isFinite(coinsPerSecond)) ? coinsPerSecond : 0;
-             cpsElement.textContent = `金币/秒：${safeCoinsPerSec.toFixed(1)}`;
-         }
+              cpsElement.textContent = `金币/秒：${formatRateDisplay(safeCoinsPerSec)}`;
+          }
         
          if (wpsElement) {
              // Ensure the value is a valid finite number
              const safeWoodPerSec = (typeof woodPerSecond === 'number' && isFinite(woodPerSecond)) ? woodPerSecond : 0;
-             wpsElement.textContent = `木头/秒：${safeWoodPerSec.toFixed(1)}`;
-         }
+              wpsElement.textContent = `木头/秒：${formatRateDisplay(safeWoodPerSec)}`;
+          }
         
          if (spsElement) {
              // Ensure the value is a valid finite number
              const safeStonePerSec = (typeof stonePerSecond === 'number' && isFinite(stonePerSecond)) ? stonePerSecond : 0;
-             spsElement.textContent = `石头/秒：${safeStonePerSec.toFixed(1)}`;
-         }
+              spsElement.textContent = `石头/秒：${formatRateDisplay(safeStonePerSec)}`;
+          }
         
          if (cpcElement) {
              // Ensure the value is a valid finite number
              const safeCoinsPerClick = (typeof coinsPerClick === 'number' && isFinite(coinsPerClick)) ? coinsPerClick : 1;
-             cpcElement.textContent = `金币/点击：${safeCoinsPerClick.toFixed(1)}`;
-         }
+              cpcElement.textContent = `金币/点击：${formatRateDisplay(safeCoinsPerClick)}`;
+          }
         
-         if (coinDisplay) {
-             const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
-             coinDisplay.textContent = `${Math.floor(safeCoins)}`;
-         }
+          if (coinDisplay) {
+              const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
+              coinDisplay.textContent = `${formatIntegerDisplay(safeCoins)}`;
+          }
          
-         if (headerCoinDisplay) {
-             const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
-             headerCoinDisplay.textContent = `${Math.floor(safeCoins)}`;
-         }
+          if (headerCoinDisplay) {
+              const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
+              headerCoinDisplay.textContent = `${formatIntegerDisplay(safeCoins)}`;
+          }
     }
 };
 
@@ -126,7 +147,7 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
                 </div>
                 <div>
                     ${ownedText}: ${building.count}<br>
-                    ${costText}: ${Math.floor(building.cost)}
+                    ${costText}: ${formatIntegerDisplay(building.cost)}
                     <button id="buy-building-${realIndex}"
                             onclick="window.buyBuilding(${realIndex})"
                             ${!window.gameInitialized || !sufficientFunds ? 'disabled' : ''}>
@@ -388,6 +409,6 @@ window.updateCoinButton = function() {
     const coins = window.rustGame.get_coins();
     const coinCount = document.getElementById('coin-count');
     if (coinCount) {
-        coinCount.textContent = Math.floor(coins).toLocaleString();
+        coinCount.textContent = formatCoinButtonValue(coins);
     }
 };
