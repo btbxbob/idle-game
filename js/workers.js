@@ -81,6 +81,24 @@ class WorkerManager {
         return `${Math.floor(xp)} / ${Math.floor(xpToNext)}`;
     }
 
+    getTranslator() {
+        return window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+    }
+
+    getI18n() {
+        return window.i18n || null;
+    }
+
+    formatStatusLabel(worker) {
+        const i18n = this.getI18n();
+        if (i18n && typeof i18n.getWorkerStatusLabel === 'function') {
+            return i18n.getWorkerStatusLabel(worker.isHungry || worker.is_hungry);
+        }
+
+        const t = this.getTranslator();
+        return worker.isHungry || worker.is_hungry ? (t('hungryStatus') || '饥饿中') : (t('stableStatus') || '状态稳定');
+    }
+
     renderWorkers() {
         const container = document.getElementById('workers-list');
         if (!container) {
@@ -89,7 +107,7 @@ class WorkerManager {
         }
 
         const workers = this.getProcessedWorkers(this.update());
-        const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        const t = this.getTranslator();
 
         if (workers.length === 0) {
             container.innerHTML = `<p id="workers-placeholder">${t('workersPlaceholder') || '工人系统将在未来版本中实现'}</p>`;
@@ -151,12 +169,14 @@ class WorkerManager {
     }
 
     handleAutoAssign() {
+        const t = this.getTranslator();
+
         if (!this.rustGame || typeof this.rustGame.assign_worker_auto !== 'function') {
-            alert('自动分配功能不可用');
+            alert(t('autoAssignUnavailable') || '自动分配功能不可用');
             return;
         }
 
-        const confirmed = window.confirm('将为未分配工人执行自动分配，是否继续？');
+        const confirmed = window.confirm(t('autoAssignConfirm') || '将为未分配工人执行自动分配，是否继续？');
         if (!confirmed) return;
 
         try {
@@ -165,10 +185,10 @@ class WorkerManager {
             if (window.updateResourceDisplay) {
                 window.updateResourceDisplay();
             }
-            alert(`自动分配完成：成功分配 ${assignedCount} 名工人`);
+            alert(t('autoAssignSuccess', { count: assignedCount }) || `自动分配完成：成功分配 ${assignedCount} 名工人`);
         } catch (error) {
             console.error('Auto assignment failed:', error);
-            alert('自动分配失败，请稍后重试');
+            alert(t('autoAssignFailed') || '自动分配失败，请稍后重试');
         }
     }
 
@@ -199,7 +219,7 @@ class WorkerManager {
     renderWorkerCards() {
         const content = document.getElementById('workers-grid');
         const workers = this.virtualState.workers;
-        const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        const t = this.getTranslator();
 
         if (!content) return;
 
@@ -211,14 +231,14 @@ class WorkerManager {
             const xpToNext = Number(worker.experienceToNext || worker.xpToNext || 100);
             const xpProgress = xpToNext > 0 ? Math.max(0, Math.min(100, (xp / xpToNext) * 100)) : 0;
             const assignmentName = this.escapeHtml(worker.assignedBuilding || (t('unassigned') || '未分配'));
-            const skillsText = this.escapeHtml(worker.skills || '');
-            const backgroundText = this.escapeHtml(worker.background || '');
-            const preferenceText = this.escapeHtml(worker.preferences || '');
+            const skillsText = this.escapeHtml(this.getSkillLabel(worker.skills));
+            const backgroundText = this.escapeHtml(this.getBackgroundLabel(worker.background));
+            const preferenceText = this.escapeHtml(this.getPreferenceLabel(worker.preferences));
             const genderText = this.getGenderLabel(worker.gender);
             const hobbiesText = this.escapeHtml(this.getHobbiesLabel(worker.hobbies));
             const happiness = Number(worker.happiness || 0).toFixed(0);
             const hunger = Number(worker.hunger || 0).toFixed(0);
-            const hungryText = worker.isHungry || worker.is_hungry ? '饥饿中' : '状态稳定';
+            const hungryText = this.formatStatusLabel(worker);
             const traitInfo = this.getTraitInfo(worker);
             html += `
                 <div class="worker-card worker-list-item" onclick="window.workerManager.showAssignmentModal(${worker.__index})">
@@ -319,7 +339,7 @@ class WorkerManager {
             existingModal.remove();
         }
 
-        const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        const t = this.getTranslator();
         const buildings = this.getBuildings();
         const genderText = this.getGenderLabel(worker.gender);
         const hobbiesText = this.getHobbiesLabel(worker.hobbies);
@@ -380,7 +400,7 @@ class WorkerManager {
                             ${this.renderBuildingSelect(workerIndex)}
                         </select>
                     </div>
-                    <div class="worker-preview"><span class="preview-label">${t('preference') || '偏好'}:</span> <span class="preview-value">${this.escapeHtml(worker.preferences || '')}</span></div>
+                    <div class="worker-preview"><span class="preview-label">${t('preference') || '偏好'}:</span> <span class="preview-value">${this.escapeHtml(this.getPreferenceLabel(worker.preferences))}</span></div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="window.workerManager.closeAssignmentModal()">
@@ -398,31 +418,72 @@ class WorkerManager {
     }
 
     getGenderLabel(gender) {
-        if (gender === 'Male' || gender === 1) return '♂ 男';
-        if (gender === 'Female' || gender === 2) return '♀ 女';
-        return '⚪ 其他';
+        const i18n = this.getI18n();
+        const t = this.getTranslator();
+        if (i18n && typeof i18n.getWorkerGenderLabel === 'function') {
+            if (gender === 'Male' || gender === 1) return `♂ ${i18n.getWorkerGenderLabel(gender)}`;
+            if (gender === 'Female' || gender === 2) return `♀ ${i18n.getWorkerGenderLabel(gender)}`;
+            return `⚪ ${i18n.getWorkerGenderLabel(gender)}`;
+        }
+
+        if (gender === 'Male' || gender === 1) return `♂ ${t('male') || '男'}`;
+        if (gender === 'Female' || gender === 2) return `♀ ${t('female') || '女'}`;
+        return `⚪ ${t('otherGender') || '其他'}`;
     }
 
     getHobbiesLabel(hobbies) {
         const list = Array.isArray(hobbies) ? hobbies : [];
-        if (list.length === 0) return '无';
+        const t = this.getTranslator();
+        if (list.length === 0) return t('noHobby') || '无';
         return list.map(h => this.getHobbyLabel(h)).join(' / ');
     }
 
+    getSkillLabel(skill) {
+        const i18n = this.getI18n();
+        if (i18n && typeof i18n.getWorkerSkillLabel === 'function') {
+            return i18n.getWorkerSkillLabel(skill);
+        }
+
+        return String(skill || '').trim() || '—';
+    }
+
+    getPreferenceLabel(preference) {
+        const i18n = this.getI18n();
+        const t = this.getTranslator();
+        if (i18n && typeof i18n.getWorkerPreferenceLabel === 'function') {
+            return i18n.getWorkerPreferenceLabel(preference);
+        }
+
+        return String(preference || '').trim() || (t('noPreference') || '无');
+    }
+
+    getBackgroundLabel(background) {
+        const i18n = this.getI18n();
+        if (i18n && typeof i18n.getWorkerBackgroundLabel === 'function') {
+            return i18n.getWorkerBackgroundLabel(background);
+        }
+
+        return String(background || '').trim() || '—';
+    }
+
     getHobbyLabel(hobby) {
-        const map = {
-            Reading: '📚 阅读',
-            Gaming: '🎮 游戏',
-            Sports: '🏃 运动',
-            Music: '🎵 音乐',
-            Art: '🎨 艺术',
-            Cooking: '🍳 烹饪',
-            Gardening: '🌱 园艺',
-            Fishing: '🎣 钓鱼',
-            Traveling: '🧳 旅行',
-            Photography: '📷 摄影',
+        const i18n = this.getI18n();
+        const icons = {
+            Reading: '📚',
+            Gaming: '🎮',
+            Sports: '🏃',
+            Music: '🎵',
+            Art: '🎨',
+            Cooking: '🍳',
+            Gardening: '🌱',
+            Fishing: '🎣',
+            Traveling: '🧳',
+            Photography: '📷',
         };
-        return map[hobby] || String(hobby || '');
+        const translated = i18n && typeof i18n.getWorkerHobbyLabel === 'function'
+            ? i18n.getWorkerHobbyLabel(hobby)
+            : (String(hobby || '').trim() || '—');
+        return icons[hobby] ? `${icons[hobby]} ${translated}` : translated;
     }
 
     getTraitInfo(worker) {
@@ -531,7 +592,7 @@ class WorkerManager {
         }
 
         const workers = this.update();
-        const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        const t = this.getTranslator();
 
         if (workers.length === 0) {
             panel.innerHTML = `
@@ -579,13 +640,13 @@ class WorkerManager {
             const efficiencyBonus = this.formatEfficiency(worker.efficiencyMultiplier);
             const genderText = this.getGenderLabel(worker.gender);
             const hobbiesText = this.escapeHtml(this.getHobbiesLabel(worker.hobbies));
-            const backgroundText = this.escapeHtml(worker.background || '');
-            const preferenceText = this.escapeHtml(worker.preferences || '');
-            const skillsText = this.escapeHtml(worker.skills || '');
+            const backgroundText = this.escapeHtml(this.getBackgroundLabel(worker.background));
+            const preferenceText = this.escapeHtml(this.getPreferenceLabel(worker.preferences));
+            const skillsText = this.escapeHtml(this.getSkillLabel(worker.skills));
             const traitInfo = this.getTraitInfo(worker);
             const happiness = Number(worker.happiness || 0).toFixed(0);
             const hunger = Number(worker.hunger || 0).toFixed(0);
-            const hungryText = worker.isHungry || worker.is_hungry ? '饥饿中' : '状态稳定';
+            const hungryText = this.formatStatusLabel(worker);
 
             html += `
                 <div class="worker-list-item" id="worker-item-${index}">

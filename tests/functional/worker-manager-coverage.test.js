@@ -423,6 +423,9 @@ test.describe('WorkerManager coverage', () => {
                 levelSorted,
                 efficiencySorted,
                 unknownHobby: manager.getHobbyLabel('UnknownHobby'),
+                skillMining: manager.getSkillLabel('Mining'),
+                preferenceQuiet: manager.getPreferenceLabel('Quiet'),
+                backgroundVillage: manager.getBackgroundLabel('Village'),
                 html,
             };
         });
@@ -434,8 +437,14 @@ test.describe('WorkerManager coverage', () => {
         expect(result.levelSorted).toEqual(['Beta', 'Alpha']);
         expect(result.efficiencySorted).toEqual(['Alpha', 'Beta']);
         expect(result.unknownHobby).toBe('UnknownHobby');
+        expect(result.skillMining).toBe('采矿');
+        expect(result.preferenceQuiet).toBe('安静');
+        expect(result.backgroundVillage).toBe('乡村出身');
         expect(result.html).toContain('饥饿中');
         expect(result.html).toContain('状态稳定');
+        expect(result.html).toContain('采矿');
+        expect(result.html).toContain('安静');
+        expect(result.html).toContain('乡村出身');
         expect(result.html).toContain('UnknownHobby');
         expect(result.html).toContain('MysteryTrait');
     });

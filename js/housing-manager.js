@@ -84,24 +84,102 @@ class HousingManager {
         return Math.floor(capacity * (this.occupancyRate / 100));
     }
 
-    formatUpgradeCost(cost) {
-        if (!cost) return '';
-        
-        const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
-        const parts = [];
+    formatInteger(value) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(value);
+        }
 
-        const labelMap = {
+        return Math.floor(Number(value) || 0).toLocaleString();
+    }
+
+    normalizeResourceKey(resource) {
+        const normalized = String(resource || '').trim();
+        if (!normalized) return '';
+
+        const aliases = {
             gold: 'coins',
             coin: 'coins',
             coins: 'coins',
+            Gold: 'coins',
+            Coin: 'coins',
+            Coins: 'coins',
+            Wood: 'wood',
             wood: 'wood',
-            stone: 'stone'
+            Stone: 'stone',
+            stone: 'stone',
+            IronOre: 'ironOre',
+            ironore: 'ironOre',
+            ironOre: 'ironOre',
+            CopperOre: 'copperOre',
+            copperore: 'copperOre',
+            copperOre: 'copperOre',
+            AluminumOre: 'aluminumOre',
+            aluminumore: 'aluminumOre',
+            aluminumOre: 'aluminumOre',
         };
+
+        if (aliases[normalized]) {
+            return aliases[normalized];
+        }
+
+        const lower = normalized.toLowerCase();
+        if (aliases[lower]) {
+            return aliases[lower];
+        }
+
+        return normalized.charAt(0).toLowerCase() + normalized.slice(1);
+    }
+
+    getResourceAmount(resources, resource) {
+        const normalizedKey = this.normalizeResourceKey(resource);
+        if (!normalizedKey || !resources || typeof resources !== 'object') {
+            return 0;
+        }
+
+        const candidates = [
+            normalizedKey,
+            normalizedKey.charAt(0).toUpperCase() + normalizedKey.slice(1),
+        ];
+
+        const rustMap = {
+            coins: 'Gold',
+            wood: 'Wood',
+            stone: 'Stone',
+            ironOre: 'IronOre',
+            copperOre: 'CopperOre',
+            aluminumOre: 'AluminumOre',
+            coal: 'Coal',
+            oil: 'Oil',
+            crystal: 'Crystal',
+            food: 'Food',
+        };
+
+        if (rustMap[normalizedKey]) {
+            candidates.push(rustMap[normalizedKey]);
+        }
+
+        for (const candidate of candidates) {
+            if (resources[candidate] !== undefined) {
+                return Number(resources[candidate]) || 0;
+            }
+        }
+
+        return 0;
+    }
+
+    getResourceLabel(resource) {
+        const normalizedKey = this.normalizeResourceKey(resource);
+        const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        return t(normalizedKey) || normalizedKey || String(resource || '');
+    }
+
+    formatUpgradeCost(cost) {
+        if (!cost) return '';
+        const parts = [];
         
         for (const [resource, amount] of Object.entries(cost)) {
-            const key = resource.toLowerCase();
-            const resourceName = t(labelMap[key] || key) || resource;
-            parts.push(`${Math.floor(amount)} ${resourceName}`);
+            const resourceName = this.getResourceLabel(resource);
+            parts.push(`${this.formatInteger(amount)} ${resourceName}`);
         }
         
         return parts.join(', ');
@@ -138,11 +216,11 @@ class HousingManager {
                     <div class="housing-stats">
                         <span class="housing-stat">
                             <span class="stat-label">${t('capacity') || '容量'}:</span>
-                            <span class="stat-value">${house.capacity}</span>
+                            <span class="stat-value">${this.formatInteger(house.capacity)}</span>
                         </span>
                         <span class="housing-stat">
                             <span class="stat-label">${t('occupants') || '入住人数'}:</span>
-                            <span class="stat-value">${occupants}/${house.capacity}</span>
+                            <span class="stat-value">${this.formatInteger(occupants)}/${this.formatInteger(house.capacity)}</span>
                         </span>
                     </div>
                     <div class="housing-upgrade">
@@ -168,19 +246,8 @@ class HousingManager {
 
         try {
             const resources = this.rustGame.get_resources();
-            const keyMap = {
-                gold: 'Gold',
-                coin: 'Gold',
-                coins: 'Gold',
-                wood: 'Wood',
-                stone: 'Stone'
-            };
             for (const [resource, amount] of Object.entries(cost)) {
-                const resourceKey = keyMap[resource.toLowerCase()];
-                if (!resourceKey) {
-                    return false;
-                }
-                const current = resources[resourceKey] || 0;
+                const current = this.getResourceAmount(resources, resource);
                 if (current < amount) {
                     return false;
                 }
@@ -322,7 +389,8 @@ class HousingManager {
         }
         
         if (result.failures > 0) {
-            alert(`${result.failures} housing upgrades failed (insufficient resources)`);
+            const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+            alert(t('housingUpgradeFailed', { count: result.failures }) || `${result.failures} 个住房升级失败（资源不足）`);
         }
     }
 

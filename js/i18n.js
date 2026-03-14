@@ -114,6 +114,85 @@ class I18n {
                 'totalWorkers': 'Total Workers',
                 'assignedWorkers': 'Assigned',
                 'noWorkers': 'No workers available',
+                'search': 'Search',
+                'all': 'All',
+                'name': 'Name',
+                'autoAssign': 'Auto Assign',
+                'gender': 'Gender',
+                'background': 'Background',
+                'hobby': 'Hobby',
+                'hobbies': 'Hobbies',
+                'happiness': 'Happiness',
+                'hunger': 'Hunger',
+                'status': 'Status',
+                'building': 'Building',
+                'traits': 'Traits',
+                'primaryTrait': 'Primary Trait',
+                'secondaryTraits': 'Secondary Traits',
+                'noPreference': 'None',
+                'noHobby': 'None',
+                'stableStatus': 'Stable',
+                'hungryStatus': 'Hungry',
+                'male': 'Male',
+                'female': 'Female',
+                'otherGender': 'Other',
+                'autoAssignUnavailable': 'Auto assign is unavailable',
+                'autoAssignConfirm': 'Auto assign all unassigned workers now?',
+                'autoAssignSuccess': 'Auto assign completed: {count} workers assigned',
+                'autoAssignFailed': 'Auto assign failed, please try again later',
+                'skill_Mining': 'Mining',
+                'skill_Cooking': 'Cooking',
+                'skill_Farming': 'Farming',
+                'skill_Building': 'Building',
+                'skill_Crafting': 'Crafting',
+                'skill_Research': 'Research',
+                'skill_Gathering': 'Gathering',
+                'skill_Smithing': 'Smithing',
+                'skill_Engineering': 'Engineering',
+                'skill_Alchemy': 'Alchemy',
+                'preference_Quiet': 'Quiet',
+                'preference_Loud': 'Loud',
+                'preference_Indoor': 'Indoor',
+                'preference_Outdoor': 'Outdoor',
+                'preference_Teamwork': 'Teamwork',
+                'preference_Solo': 'Solo',
+                'background_Village': 'Village',
+                'background_Forest': 'Forest',
+                'background_City': 'City',
+                'background_Mountain': 'Mountain',
+                'background_River': 'River',
+                'background_Desert': 'Desert',
+                'background_Scholar': 'Scholar',
+                'background_Merchant': 'Merchant',
+                'background_Hunter': 'Hunter',
+                'background_Farmer': 'Farmer',
+                'hobby_Reading': 'Reading',
+                'hobby_Gaming': 'Gaming',
+                'hobby_Sports': 'Sports',
+                'hobby_Music': 'Music',
+                'hobby_Art': 'Art',
+                'hobby_Cooking': 'Cooking',
+                'hobby_Gardening': 'Gardening',
+                'hobby_Fishing': 'Fishing',
+                'hobby_Traveling': 'Traveling',
+                'hobby_Photography': 'Photography',
+                'housingPlaceholder': 'Housing system will be implemented in a future version',
+                'housingLevel': 'Housing Level',
+                'capacity': 'Capacity',
+                'occupants': 'Occupants',
+                'housingUpgradeCost': 'Upgrade Cost',
+                'upgradeHousing': 'Upgrade',
+                'housingManagement': 'Housing Management',
+                'housingList': 'Housing Count',
+                'totalCapacity': 'Total Capacity',
+                'currentOccupancy': 'Current Occupancy',
+                'queueWorkers': 'Queue',
+                'occupancyRate': 'Occupancy Rate',
+                'housingFullWarning': 'Housing is full. New population will enter the waiting queue.',
+                'bulkUpgradeHousing': 'Bulk Upgrade Housing',
+                'occupancyControl': 'Occupancy Control',
+                'noHousing': 'No housing available',
+                'housingUpgradeFailed': '{count} housing upgrades failed (insufficient resources)',
                 
                 // Building/Upgrade labels
                 'cost': 'Cost',
@@ -289,6 +368,85 @@ class I18n {
                 'totalWorkers': '总工人',
                 'assignedWorkers': '已分配',
                 'noWorkers': '没有工人',
+                'search': '搜索',
+                'all': '全部',
+                'name': '姓名',
+                'autoAssign': '自动分配',
+                'gender': '性别',
+                'background': '背景',
+                'hobby': '爱好',
+                'hobbies': '爱好',
+                'happiness': '心情',
+                'hunger': '饥饿',
+                'status': '状态',
+                'building': '建筑',
+                'traits': '特性',
+                'primaryTrait': '主特性',
+                'secondaryTraits': '次特性',
+                'noPreference': '无',
+                'noHobby': '无',
+                'stableStatus': '状态稳定',
+                'hungryStatus': '饥饿中',
+                'male': '男',
+                'female': '女',
+                'otherGender': '其他',
+                'autoAssignUnavailable': '自动分配功能不可用',
+                'autoAssignConfirm': '将为未分配工人执行自动分配，是否继续？',
+                'autoAssignSuccess': '自动分配完成：成功分配 {count} 名工人',
+                'autoAssignFailed': '自动分配失败，请稍后重试',
+                'skill_Mining': '采矿',
+                'skill_Cooking': '烹饪',
+                'skill_Farming': '耕作',
+                'skill_Building': '建造',
+                'skill_Crafting': '制作',
+                'skill_Research': '研究',
+                'skill_Gathering': '采集',
+                'skill_Smithing': '锻造',
+                'skill_Engineering': '工程',
+                'skill_Alchemy': '炼金',
+                'preference_Quiet': '安静',
+                'preference_Loud': '热闹',
+                'preference_Indoor': '室内',
+                'preference_Outdoor': '户外',
+                'preference_Teamwork': '团队协作',
+                'preference_Solo': '独立工作',
+                'background_Village': '乡村出身',
+                'background_Forest': '森林出身',
+                'background_City': '城市出身',
+                'background_Mountain': '山地出身',
+                'background_River': '河畔出身',
+                'background_Desert': '沙地出身',
+                'background_Scholar': '学者出身',
+                'background_Merchant': '商贩出身',
+                'background_Hunter': '猎人出身',
+                'background_Farmer': '农夫出身',
+                'hobby_Reading': '阅读',
+                'hobby_Gaming': '游戏',
+                'hobby_Sports': '运动',
+                'hobby_Music': '音乐',
+                'hobby_Art': '艺术',
+                'hobby_Cooking': '烹饪',
+                'hobby_Gardening': '园艺',
+                'hobby_Fishing': '钓鱼',
+                'hobby_Traveling': '旅行',
+                'hobby_Photography': '摄影',
+                'housingPlaceholder': '住房系统将在未来版本中实现',
+                'housingLevel': '住房等级',
+                'capacity': '容量',
+                'occupants': '入住人数',
+                'housingUpgradeCost': '升级所需资源',
+                'upgradeHousing': '升级住房',
+                'housingManagement': '住房管理',
+                'housingList': '住房数量',
+                'totalCapacity': '总容量',
+                'currentOccupancy': '当前入住',
+                'queueWorkers': '等待队列',
+                'occupancyRate': '入住率',
+                'housingFullWarning': '住房容量已满，新增人口将进入等待队列',
+                'bulkUpgradeHousing': '批量升级住房',
+                'occupancyControl': '入住控制',
+                'noHousing': '暂无住房建筑',
+                'housingUpgradeFailed': '{count} 个住房升级失败（资源不足）',
                 
                 // Building/Upgrade labels
                 'cost': '花费',
@@ -378,7 +536,48 @@ class I18n {
         }
         return result;
     }
-    
+
+    normalizeWorkerValue(value) {
+        return String(value || '').trim();
+    }
+
+    getWorkerValueLabel(prefix, value, fallback = '—') {
+        const normalized = this.normalizeWorkerValue(value);
+        if (!normalized) {
+            return fallback;
+        }
+
+        const key = `${prefix}_${normalized}`;
+        const translated = this.t(key);
+        return translated === key ? normalized : translated;
+    }
+
+    getWorkerSkillLabel(skill) {
+        return this.getWorkerValueLabel('skill', skill);
+    }
+
+    getWorkerPreferenceLabel(preference) {
+        return this.getWorkerValueLabel('preference', preference, this.t('noPreference'));
+    }
+
+    getWorkerBackgroundLabel(background) {
+        return this.getWorkerValueLabel('background', background);
+    }
+
+    getWorkerHobbyLabel(hobby) {
+        return this.getWorkerValueLabel('hobby', hobby, this.t('noHobby'));
+    }
+
+    getWorkerStatusLabel(isHungry) {
+        return isHungry ? this.t('hungryStatus') : this.t('stableStatus');
+    }
+
+    getWorkerGenderLabel(gender) {
+        if (gender === 'Male' || gender === 1) return this.t('male');
+        if (gender === 'Female' || gender === 2) return this.t('female');
+        return this.t('otherGender');
+    }
+     
     // Update all translatable elements on the page
     updateAllTranslations() {
         // Update static text elements
