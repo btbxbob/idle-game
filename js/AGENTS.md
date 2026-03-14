@@ -16,6 +16,7 @@
 ## CONVENTIONS
 - JS stays manager-driven: fetch state through `window.rustGame.*`, then render DOM.
 - `bootstrap.js` owns manager construction order; do not instantiate managers ad hoc elsewhere.
+- Keep the bootstrap construction order stable: statistics -> achievements -> unlocks -> workers -> technology -> housing -> work overview -> lifecycle -> resources.
 - Guard all WASM access with `window.gameInitialized` / `window.rustGame` checks.
 - Keep the 1000ms game loop cadence in `bootstrap.js`; balance and tests assume it.
 - Use `window.i18n.t(...)` for labels instead of hardcoded UI text.
@@ -34,4 +35,5 @@
 
 ## NOTES
 - `window.update*` hooks in `game.js` are part of the main-loop contract; preserve their names when refactoring.
+- `bootstrap.js` prefers versioned `pkg/idle_game.v{appVersion}.js` bundles and falls back to plain `pkg/idle_game.js` for local/dev runs.
 - Local browser checks are fine here, but repository-wide test execution policy still routes formal test runs through Jenkins.

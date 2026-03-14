@@ -5,10 +5,18 @@
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
-| Update gameplay/design intent | `DESIGN.md`, `phase-2-systems.md` | Mechanics, progression, UI goals |
+| Update gameplay/design intent | `DESIGN.md`, `phase-2-systems.md`, `CHANGELOG.md` | Mechanics, shipped milestones, and progression history |
 | Update CI / Jenkins process | `ci/jenkins-migration.md` | Current source of truth for local Jenkins setup |
 | Cross-check implemented vs planned behavior | `DESIGN.md` + matching code/test area | Docs can drift from shipped mechanics |
-| Review testing guidance | `TEST_CASES.md`, `unit_tests.md` | Functional/E2E vs Rust-unit coverage |
+| Review testing guidance | `TEST_CASES.md`, `unit_tests.md`, `QA_REPORT.md` | Functional/E2E plans plus recent validation evidence |
+
+## STRUCTURE
+```text
+docs/
+├── ci/              # Jenkins / CI operations
+├── releases/        # Historical release notes
+└── *.md             # Design, test, QA, and process docs
+```
 
 ## CONVENTIONS
 - Treat `docs/ci/jenkins-migration.md` as the detailed CI operations guide; root `AGENTS.md` only carries the concise policy.

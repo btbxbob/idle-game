@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-12
-**Commit:** c7dc464
+**Generated:** 2026-03-14
+**Commit:** 6699168
 **Branch:** master
 
 ## OVERVIEW
@@ -16,6 +16,8 @@ idle-game/
 ├── tests/               # Playwright functional/regression tests
 ├── docs/                # Design and development docs
 ├── scripts/             # Jenkins rerun, coverage merge, debug helpers
+├── docker/jenkins/      # Local Jenkins controller/agent/DinD images + init
+├── .github/workflows/   # Pages deploy + opencode orchestration workflow
 ├── index.html           # Main UI shell + script loading order
 ├── Cargo.toml           # Rust + wasm-pack config
 ├── package.json         # npm scripts + Playwright dependency
@@ -33,6 +35,8 @@ idle-game/
 | E2E behavior validation | `tests/functional/` | Feature flows and multi-browser checks |
 | Bug regression coverage | `tests/regression/` | Past issue repro + fixed assertions |
 | CI/debug helper scripts | `scripts/` | Jenkins rerun and coverage utilities |
+| Local Jenkins container config | `docker/jenkins/` | Controller, inbound agent, DinD bootstrap |
+| GitHub workflow ownership | `.github/workflows/` | Pages deploy stays here; build/test CI does not |
 
 ## CODE MAP
 | Symbol | Type | Location | Role |
@@ -193,6 +197,10 @@ assignWorker(workerIndex, buildingId) {
 - Rust crates expose minimal JS-friendly WASM API boundary; complex internals remain skipped
 - Manager pattern: each UI surface has its own class (`WorkerManager`, `TechnologyManager`, etc.)
 
+## GENERATED ARTIFACTS
+- Ignore `pkg/`, `coverage-report/`, `playwright-report/`, `test-results/`, `target/`, and `node_modules/` during code/documentation discovery.
+- Treat `.sisyphus/`, `__pycache__/`, and `*.log` as workspace noise unless the task is explicitly about tooling output.
+
 ## VERSION BUMP CHECKLIST
 When updating version (e.g., 0.6.6 → 0.6.7):
 
@@ -263,8 +271,13 @@ git commit -m "chore: bump runtime version to v0.6.7"
 - `css/AGENTS.md`
 - `js/AGENTS.md`
 - `tests/AGENTS.md`
+- `tests/fixtures/AGENTS.md`
+- `tests/functional/AGENTS.md`
+- `tests/regression/AGENTS.md`
 - `docs/AGENTS.md`
 - `scripts/AGENTS.md`
+- `docker/jenkins/AGENTS.md`
+- `.github/workflows/AGENTS.md`
 
 ## NOTES
 - LSP Rust analysis may be unavailable if `rust-analyzer` is not installed

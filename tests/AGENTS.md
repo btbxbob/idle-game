@@ -11,6 +11,11 @@ tests/
 └── regression/      # Bug reproduction / fix-locking tests only
 ```
 
+Scoped guides:
+- `tests/fixtures/AGENTS.md`
+- `tests/functional/AGENTS.md`
+- `tests/regression/AGENTS.md`
+
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
@@ -40,4 +45,5 @@ tests/
 ## NOTES
 - `playwright.config.js` defaults to Chromium locally and expands to all browsers in CI or `PW_ALL_BROWSERS=1`.
 - The web server command is `python3 server.py --quiet --port ${PW_TEST_PORT}`; keep tests compatible with that server contract.
+- `playwright.config.js` excludes Monkey tests with `grep: /^(?!.*Monkey).*$/i`; opt in explicitly when working on that suite.
 - Formal repository test execution still belongs to Jenkins even though local Playwright structure lives here.
