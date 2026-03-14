@@ -85,7 +85,8 @@ test.describe('banner-tab overlap regression', () => {
 
     await assertBannerNotCoveredByTabs(page);
 
-    await page.evaluate(() => {
+    const stressed = await page.evaluate(() => {
+      const formatter = window.NumberFormatter;
       const cards = document.querySelectorAll('#banner .header-resource-card');
       cards.forEach((card, index) => {
         card.style.display = 'grid';
@@ -94,16 +95,26 @@ test.describe('banner-tab overlap regression', () => {
         const rate = card.querySelector('.header-resource-rate');
 
         if (amount) {
-          amount.textContent = `资源${index + 1}: 9999999`;
+          amount.textContent = `资源${index + 1}: ${formatter ? formatter.formatResource(123456789 + index) : '123456789'}`;
         }
         if (rate) {
-          rate.textContent = '+999.9/s';
+          rate.textContent = formatter ? `${formatter.formatRate(12345678.9 + index, { includeSign: true, fractionDigits: 1 })}/s` : '+12345678.9/s';
         }
       });
+
+      const amountNodes = Array.from(document.querySelectorAll('#banner .header-resource-amount'));
+      return amountNodes.slice(0, 3).map((node) => ({
+        text: node.textContent || '',
+        fits: node.scrollWidth <= node.clientWidth,
+      }));
     });
 
     await page.waitForTimeout(150);
     await assertBannerNotCoveredByTabs(page);
+    stressed.forEach((entry) => {
+      expect(entry.text).toMatch(/e[0-9]+/);
+      expect(entry.fits).toBe(true);
+    });
   });
 
   test('393px viewport keeps tab bar below banner after tab switching', async ({ page }) => {

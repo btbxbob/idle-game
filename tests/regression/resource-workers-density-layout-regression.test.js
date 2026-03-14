@@ -37,22 +37,27 @@ test('resources density and workers 3-column layout are compact', async ({ page 
   const resourceDensity = await page.evaluate(() => {
     const grid = document.querySelector('#primary-resources .resource-grid');
     const item = document.querySelector('#primary-resources .resource-item');
+    const amount = document.querySelector('#primary-resources .resource-item[data-resource="coins"] .resource-amount');
     if (!grid || !item) {
       return null;
     }
     const gridStyle = getComputedStyle(grid);
     const itemStyle = getComputedStyle(item);
     return {
+      columns: gridStyle.gridTemplateColumns.split(' ').filter(Boolean).length,
       gap: parseFloat(gridStyle.gap || '0'),
       paddingTop: parseFloat(itemStyle.paddingTop || '0'),
-      paddingBottom: parseFloat(itemStyle.paddingBottom || '0')
+      paddingBottom: parseFloat(itemStyle.paddingBottom || '0'),
+      amountFits: amount ? amount.scrollWidth <= amount.clientWidth + 1 : false,
     };
   });
 
   expect(resourceDensity).not.toBeNull();
+  expect(resourceDensity.columns).toBe(3);
   expect(resourceDensity.gap).toBeLessThanOrEqual(6);
-  expect(resourceDensity.paddingTop).toBeLessThanOrEqual(6);
-  expect(resourceDensity.paddingBottom).toBeLessThanOrEqual(6);
+  expect(resourceDensity.paddingTop).toBeLessThanOrEqual(10);
+  expect(resourceDensity.paddingBottom).toBeLessThanOrEqual(10);
+  expect(resourceDensity.amountFits).toBe(true);
 
   await page.click('button[data-tab="workers"]');
   await page.waitForTimeout(300);

@@ -254,6 +254,97 @@ test.describe('TechnologyManager Card UI Coverage', () => {
         expect(result.statusIcon).toBe('×');
     });
 
+    test('update preserves tech card DOM nodes when order is unchanged', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            if (!window.TechnologyManager) return { ok: false, reason: 'missing manager' };
+
+            const container = document.createElement('div');
+            container.id = 'technology-tree-container';
+            document.body.appendChild(container);
+
+            const techStates = [
+                [{ id: 'tech1', name: 'Stable Tech', tier: 1, researched: false, costs: { Gold: 10 } }],
+                [{ id: 'tech1', name: 'Stable Tech', tier: 1, researched: false, costs: { Gold: 10 } }],
+            ];
+            let stateIndex = 0;
+
+            const manager = new window.TechnologyManager({
+                get_technologies: () => techStates[stateIndex],
+                get_resources: () => ({ Gold: 100 }),
+            }, window.i18n || null);
+
+            manager.treeContainer = container;
+            manager.initialize();
+
+            const firstCard = container.querySelector('.tech-card');
+            if (!firstCard) {
+                container.remove();
+                return { ok: false, reason: 'no card rendered' };
+            }
+
+            firstCard.dataset.probe = 'persist';
+            stateIndex = 1;
+            manager.update();
+
+            const updatedCard = container.querySelector('.tech-card');
+            const sameNode = updatedCard === firstCard;
+            const probePreserved = updatedCard?.dataset.probe === 'persist';
+
+            container.remove();
+
+            return { ok: true, sameNode, probePreserved };
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.sameNode).toBe(true);
+        expect(result.probePreserved).toBe(true);
+    });
+
+    test('research button still works after incremental sync updates footer', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            if (!window.TechnologyManager) return { ok: false, reason: 'missing manager' };
+
+            const container = document.createElement('div');
+            container.id = 'technology-tree-container';
+            document.body.appendChild(container);
+
+            const techStates = [
+                [{ id: 'tech1', name: 'Clickable Tech', tier: 1, researched: false, costs: { Gold: 10 } }],
+                [{ id: 'tech1', name: 'Clickable Tech', tier: 1, researched: false, costs: { Gold: 10 } }],
+            ];
+            let stateIndex = 0;
+            let researchedId = null;
+
+            const manager = new window.TechnologyManager({
+                get_technologies: () => techStates[stateIndex],
+                get_resources: () => ({ Gold: 100 }),
+                research_technology: (techId) => {
+                    researchedId = techId;
+                    return true;
+                },
+            }, window.i18n || null);
+
+            manager.treeContainer = container;
+            manager.initialize();
+            stateIndex = 1;
+            manager.update();
+
+            const button = container.querySelector('.tech-research-btn');
+            if (!button) {
+                container.remove();
+                return { ok: false, reason: 'missing research button' };
+            }
+
+            button.click();
+
+            container.remove();
+            return { ok: true, researchedId };
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.researchedId).toBe('tech1');
+    });
+
     test('showTechDetail creates modal', async ({ page }) => {
         const result = await page.evaluate(() => {
             if (!window.technologyManager) return { ok: false, reason: 'missing manager' };

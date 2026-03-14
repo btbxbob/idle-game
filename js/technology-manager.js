@@ -19,6 +19,7 @@ class TechnologyManager {
         
         // Cache for preventing excessive re-renders
         this.lastTechStates = new Map();
+        this.boundTechnologyTab = null;
     }
 
     initialize() {
@@ -33,7 +34,6 @@ class TechnologyManager {
             this.technologies = Array.isArray(techData) ? techData : [];
             this.cacheTechStates();
             this.renderTree();
-            this.bindEvents();
             this.bindEvents();
         } catch (error) {
             console.error('TechnologyManager: Error loading technologies:', error);
@@ -91,8 +91,14 @@ class TechnologyManager {
             if (technologyTab && technologyTab.classList.contains('active')) {
                 // Only re-render if state actually changed
                 if (this.hasStateChanged()) {
+                    const filtered = this.getFilteredTechnologies();
+                    if (this.needsFullCardRender(filtered)) {
+                        this.renderTechCards(filtered);
+                    } else {
+                        this.syncRenderedCards(filtered);
+                    }
+                    this.syncToolsDisplay();
                     this.cacheTechStates();
-                    this.renderTechCards();
                 }
             }
         } catch (error) {
@@ -124,23 +130,59 @@ class TechnologyManager {
             toolsEl = document.createElement('div');
             toolsEl.className = 'tech-tools';
             this.treeContainer.appendChild(toolsEl);
+            toolsEl.innerHTML = `
+                <input type="text" class="tech-search">
+                <select class="tech-filter"></select>
+                <label class="tech-hide-researched">
+                    <input type="checkbox">
+                    <span class="tech-hide-label"></span>
+                </label>
+                <span class="tech-count"></span>
+            `;
+            this.bindToolEvents(toolsEl);
         }
-        
-        toolsEl.innerHTML = `
-            <input type="text" class="tech-search" placeholder="${t('search') || '搜索科技'}" value="${this.escapeHtml(this.filterState.query)}">
-            <select class="tech-filter">
-                <option value="all" ${this.filterState.filterBy === 'all' ? 'selected' : ''}>${t('all') || '全部'} (${this.technologies.length})</option>
-                <option value="available" ${this.filterState.filterBy === 'available' ? 'selected' : ''}>${t('available') || '可研究'} (${availableCount})</option>
-                <option value="researched" ${this.filterState.filterBy === 'researched' ? 'selected' : ''}>${t('researched') || '已研究'} (${researchedCount})</option>
-            </select>
-            <label class="tech-hide-researched">
-                <input type="checkbox" ${this.filterState.hideResearched ? 'checked' : ''}>
-                ${t('hideResearched') || '隐藏已研究'}
-            </label>
-            <span class="tech-count">${researchedCount}/${this.technologies.length}</span>
-        `;
-        
-        this.bindToolEvents(toolsEl);
+
+        const searchEl = toolsEl.querySelector('.tech-search');
+        const filterEl = toolsEl.querySelector('.tech-filter');
+        const hideCheckbox = toolsEl.querySelector('.tech-hide-researched input');
+        const hideLabel = toolsEl.querySelector('.tech-hide-label');
+        const countEl = toolsEl.querySelector('.tech-count');
+
+        if (searchEl) {
+            searchEl.placeholder = t('search') || '搜索科技';
+            if (searchEl.value !== this.filterState.query) {
+                searchEl.value = this.filterState.query;
+            }
+        }
+
+        if (filterEl) {
+            filterEl.innerHTML = `
+                <option value="all">${t('all') || '全部'} (${this.technologies.length})</option>
+                <option value="available">${t('available') || '可研究'} (${availableCount})</option>
+                <option value="researched">${t('researched') || '已研究'} (${researchedCount})</option>
+            `;
+            filterEl.value = this.filterState.filterBy;
+        }
+
+        if (hideCheckbox) {
+            hideCheckbox.checked = this.filterState.hideResearched;
+        }
+
+        if (hideLabel) {
+            hideLabel.textContent = t('hideResearched') || '隐藏已研究';
+        }
+
+        if (countEl) {
+            countEl.textContent = `${researchedCount}/${this.technologies.length}`;
+        }
+    }
+
+    syncToolsDisplay() {
+        if (!this.treeContainer || !this.treeContainer.querySelector('.tech-tools')) {
+            return;
+        }
+
+        this.renderTools();
     }
 
     /**
@@ -176,7 +218,7 @@ class TechnologyManager {
     /**
      * Render technology cards in a grid
      */
-    renderTechCards() {
+    renderTechCards(filteredTechnologies = null) {
         const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
         
         // Find or create grid container
@@ -188,7 +230,7 @@ class TechnologyManager {
         }
         
         // Filter technologies
-        const filtered = this.getFilteredTechnologies();
+        const filtered = filteredTechnologies || this.getFilteredTechnologies();
         
         if (filtered.length === 0) {
             gridEl.innerHTML = `<p class="no-technologies" style="padding:20px;text-align:center;opacity:0.7;">${t('noTechnologies') || '暂无科技可研究'}</p>`;
@@ -204,6 +246,100 @@ class TechnologyManager {
         
         // Bind card events
         this.bindCardEvents(gridEl);
+    }
+
+    needsFullCardRender(filtered) {
+        if (!this.treeContainer) return true;
+
+        const gridEl = this.treeContainer.querySelector('.tech-grid');
+        if (!gridEl) return true;
+
+        const renderedCards = Array.from(gridEl.querySelectorAll('.tech-card'));
+        if (renderedCards.length !== filtered.length) return true;
+
+        const renderedIds = renderedCards.map((card) => card.getAttribute('data-tech-id'));
+        const filteredIds = filtered.map((tech) => tech.id);
+        return renderedIds.some((id, index) => id !== filteredIds[index]);
+    }
+
+    syncRenderedCards(filtered) {
+        if (!this.treeContainer) return;
+
+        const gridEl = this.treeContainer.querySelector('.tech-grid');
+        if (!gridEl) return;
+
+        filtered.forEach((tech) => {
+            const card = gridEl.querySelector(`.tech-card[data-tech-id="${CSS.escape(String(tech.id))}"]`);
+            if (card) {
+                this.updateTechCardElement(card, tech);
+            }
+        });
+    }
+
+    updateTechCardElement(card, tech) {
+        const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
+        const isResearched = tech.researched || tech.purchased || false;
+        const canResearch = this.canResearch(tech);
+        const hasResources = this.hasResources(tech.costs);
+        const statusClass = isResearched ? 'researched' : (canResearch ? '' : 'locked');
+        const statusIcon = isResearched ? '✓' : (canResearch ? '○' : '×');
+
+        card.className = `tech-card ${statusClass}`.trim();
+
+        const statusEl = card.querySelector('.tech-status');
+        if (statusEl) {
+            statusEl.textContent = statusIcon;
+        }
+
+        const effectEl = card.querySelector('.tech-effect');
+        if (effectEl) {
+            effectEl.textContent = this.getEffectDescription(tech);
+        }
+
+        const bodyEl = card.querySelector('.tech-body');
+        if (bodyEl) {
+            const existingCosts = bodyEl.querySelector('.tech-costs');
+            const costsMarkup = this.renderTechCostsHtml(tech.costs);
+            if (costsMarkup) {
+                if (existingCosts) {
+                    existingCosts.outerHTML = costsMarkup;
+                } else {
+                    bodyEl.insertAdjacentHTML('beforeend', costsMarkup);
+                }
+            } else if (existingCosts) {
+                existingCosts.remove();
+            }
+        }
+
+        const footerEl = card.querySelector('.tech-footer');
+        if (footerEl) {
+            footerEl.innerHTML = this.renderTechFooterHtml(tech, t, canResearch, hasResources, isResearched);
+        }
+    }
+
+    renderTechCostsHtml(costs) {
+        if (!costs || Object.keys(costs).length === 0) {
+            return '';
+        }
+
+        const costItems = this.sortCosts(costs).map(([resource, amount]) => {
+            const hasEnough = this.getResourceValue(resource) >= amount;
+            const insufficientClass = !hasEnough ? 'insufficient' : '';
+            return `<span class="tech-cost-item ${insufficientClass}">${this.getResourceShortName(resource)}:${this.formatInteger(amount)}</span>`;
+        });
+
+        return `<div class="tech-costs">${costItems.join('')}</div>`;
+    }
+
+    renderTechFooterHtml(tech, t, canResearch, hasResources, isResearched) {
+        if (!isResearched) {
+            const btnClass = canResearch && hasResources ? 'can-research' : (canResearch ? 'cannot-afford' : '');
+            const btnDisabled = !canResearch || !hasResources ? 'disabled' : '';
+            const btnText = canResearch ? (hasResources ? (t('research') || '研究') : (t('insufficientResources') || '资源不足')) : (t('locked') || '未解锁');
+            return `<button class="tech-research-btn ${btnClass}" ${btnDisabled} data-tech-id="${tech.id}">${btnText}</button>`;
+        }
+
+        return `<span style="color:#27ae60;font-size:11px;">✓ ${t('researched') || '已研究'}</span>`;
     }
 
     /**
@@ -255,39 +391,16 @@ class TechnologyManager {
         
         // Status icon and text
         let statusIcon = '';
-        let statusText = '';
         if (isResearched) {
             statusIcon = '✓';
-            statusText = t('researched') || '已研究';
         } else if (canResearch) {
             statusIcon = '○';
-            statusText = t('available') || '可研究';
         } else {
             statusIcon = '×';
-            statusText = t('locked') || '未解锁';
         }
         
-        // Build costs HTML
-        let costsHtml = '';
-        if (tech.costs && Object.keys(tech.costs).length > 0) {
-            const costItems = this.sortCosts(tech.costs).map(([resource, amount]) => {
-                const hasEnough = this.getResourceValue(resource) >= amount;
-                const insufficientClass = !hasEnough ? 'insufficient' : '';
-                return `<span class="tech-cost-item ${insufficientClass}">${this.getResourceShortName(resource)}:${Math.floor(amount)}</span>`;
-            });
-            costsHtml = `<div class="tech-costs">${costItems.join('')}</div>`;
-        }
-        
-        // Button HTML
-        let buttonHtml = '';
-        if (!isResearched) {
-            const btnClass = canResearch && hasResources ? 'can-research' : (canResearch ? 'cannot-afford' : '');
-            const btnDisabled = !canResearch || !hasResources ? 'disabled' : '';
-            const btnText = canResearch ? (hasResources ? (t('research') || '研究') : (t('insufficientResources') || '资源不足')) : (t('locked') || '未解锁');
-            buttonHtml = `<button class="tech-research-btn ${btnClass}" ${btnDisabled} data-tech-id="${tech.id}">${btnText}</button>`;
-        } else {
-            buttonHtml = `<span style="color:#27ae60;font-size:11px;">✓ ${t('researched') || '已研究'}</span>`;
-        }
+        const costsHtml = this.renderTechCostsHtml(tech.costs);
+        const buttonHtml = this.renderTechFooterHtml(tech, t, canResearch, hasResources, isResearched);
         
         return `
             <div class="tech-card ${statusClass}" data-tech-id="${tech.id}">
@@ -313,22 +426,35 @@ class TechnologyManager {
      * Bind click events for technology cards
      */
     bindCardEvents(gridEl) {
-        // Research button clicks
-        gridEl.querySelectorAll('.tech-research-btn:not([disabled])').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        if (!gridEl || gridEl.dataset.techEventsBound === 'true') {
+            return;
+        }
+
+        gridEl.addEventListener('click', (e) => {
+            const researchButton = e.target.closest('.tech-research-btn');
+            if (researchButton && gridEl.contains(researchButton)) {
                 e.stopPropagation();
-                const techId = btn.getAttribute('data-tech-id');
-                this.researchTechnology(techId);
-            });
-        });
-        
-        // Card clicks for detail modal
-        gridEl.querySelectorAll('.tech-card').forEach(card => {
-            card.addEventListener('click', () => {
+                if (researchButton.disabled) {
+                    return;
+                }
+
+                const techId = researchButton.getAttribute('data-tech-id');
+                if (techId) {
+                    this.researchTechnology(techId);
+                }
+                return;
+            }
+
+            const card = e.target.closest('.tech-card');
+            if (card && gridEl.contains(card)) {
                 const techId = card.getAttribute('data-tech-id');
-                this.showTechDetail(techId);
-            });
+                if (techId) {
+                    this.showTechDetail(techId);
+                }
+            }
         });
+
+        gridEl.dataset.techEventsBound = 'true';
     }
 
     /**
@@ -351,7 +477,7 @@ class TechnologyManager {
             for (const [resource, amount] of this.sortCosts(tech.costs)) {
                 const hasEnough = this.getResourceValue(resource) >= amount;
                 const color = hasEnough ? '#27ae60' : '#e74c3c';
-                costsHtml += `<span style="color:${color}">${this.getResourceName(resource)}: ${Math.floor(amount)}</span> `;
+                costsHtml += `<span style="color:${color}">${this.getResourceName(resource)}: ${this.formatInteger(amount)}</span> `;
             }
             costsHtml += '</div>';
         }
@@ -553,9 +679,9 @@ class TechnologyManager {
                 if (Array.isArray(effectData) && effectData.length >= 2) {
                     const resource = effectData[0];
                     const value = effectData[1];
-                    return `+${Math.floor(value * 100)}% ${this.getResourceName(resource)} 产量`;
+                    return `+${this.formatInteger(value * 100)}% ${this.getResourceName(resource)} 产量`;
                 }
-                return `+${Math.floor(tech.effect_value * 100)}% 产量`;
+                return `+${this.formatInteger(tech.effect_value * 100)}% 产量`;
             
             case 'UnlockBuilding':
                 return `🏗️ 解锁: ${effectData || '未知建筑'}`;
@@ -572,6 +698,14 @@ class TechnologyManager {
             default:
                 return tech.description || (t('unknownEffect') || '未知效果');
         }
+    }
+
+    formatInteger(value) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
+            return window.NumberFormatter.formatInteger(value);
+        }
+
+        return Math.floor(Number(value) || 0).toLocaleString();
     }
 
     getMechanicDescription(mechanic) {
@@ -722,7 +856,8 @@ class TechnologyManager {
     bindEvents() {
         // Tab activation check
         const technologyTab = document.getElementById('tab-technology');
-        if (technologyTab) {
+        if (technologyTab && technologyTab !== this.boundTechnologyTab) {
+            this.boundTechnologyTab = technologyTab;
             const observer = new MutationObserver(() => {
                 if (technologyTab.classList.contains('active')) {
                     this.update();
