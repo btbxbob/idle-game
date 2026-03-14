@@ -18,6 +18,7 @@ Thumbs.db
 # Environment
 .env
 .env.jenkins
+docker/jenkins/.env.jenkins
 .env.local
 .env.development.local
 .env.test.local
@@ -47,8 +48,3 @@ test-results/
 # Agent working directories
 .sisyphus/
 .opencode/
-
-# Local temporary helper scripts
-add_*.py
-fix_*.py
-fix_*.js

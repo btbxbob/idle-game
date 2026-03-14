@@ -1,7 +1,7 @@
 services:
   dind:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/jenkins/Dockerfile.dind
     container_name: idle-game-dind
     privileged: true
@@ -16,7 +16,7 @@ services:
 
   jenkins:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/jenkins/Dockerfile
     container_name: idle-game-jenkins
     ports:
@@ -34,7 +34,7 @@ services:
       DOCKER_HOST: tcp://dind:2375
     volumes:
       - jenkins_home:/var/jenkins_home
-      - ./:/workspace/idle-game
+      - ../../:/workspace/idle-game
     mem_limit: ${JENKINS_MEMORY_LIMIT:-416m}
     mem_reservation: ${JENKINS_MEMORY_RESERVATION:-288m}
     depends_on:
@@ -43,7 +43,7 @@ services:
 
   agent:
     build:
-      context: .
+      context: ../..
       dockerfile: docker/jenkins/Dockerfile.agent
     container_name: idle-game-jenkins-agent
     environment:
@@ -55,7 +55,7 @@ services:
       DOCKER_HOST: tcp://dind:2375
     volumes:
       - jenkins_agent_home:${JENKINS_AGENT_REMOTE_FS:-/home/jenkins/agent}
-      - ./:/workspace/idle-game
+      - ../../:/workspace/idle-game
     mem_limit: ${JENKINS_AGENT_MEMORY_LIMIT:-1536m}
     mem_reservation: ${JENKINS_AGENT_MEMORY_RESERVATION:-1024m}
     depends_on:

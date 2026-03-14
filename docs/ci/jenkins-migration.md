@@ -5,8 +5,8 @@ This project delegates build/test CI execution to Jenkins.
 ## 1) Start Jenkins (with MCP server plugin)
 
 ```bash
-cp .env.jenkins.example .env.jenkins
-docker compose --env-file .env.jenkins -f docker-compose.jenkins.yml up -d --build
+cp docker/jenkins/.env.jenkins.example docker/jenkins/.env.jenkins
+docker compose --env-file docker/jenkins/.env.jenkins -f docker/jenkins/docker-compose.yml up -d --build
 ```
 
 Jenkins UI: `http://localhost:8081`
@@ -28,7 +28,7 @@ The local Compose profile now defaults to staying under `512MB` total memory for
 - `dind`: `1536m` hard limit, `1024m` reservation
 - Jenkins JVM: `-Xms128m -Xmx256m`
 
-Use `.env.jenkins.example` as the tracked template and keep your actual local values in `.env.jenkins` (already gitignored). Start Jenkins with `--env-file .env.jenkins` so the memory limits and credentials are applied.
+Use `docker/jenkins/.env.jenkins.example` as the tracked template and keep your actual local values in `docker/jenkins/.env.jenkins` (already gitignored). Run the compose command from the repository root with `--env-file docker/jenkins/.env.jenkins` so the memory limits and credentials are applied.
 
 To keep the controller lightweight, Compose also starts a dedicated inbound build agent. The controller runs with `0` executors, while the `agent` service handles checkout, Rust, npm, and Jenkins pipeline shell steps. The Playwright browser container runs through `dind`, so `DIND_MEMORY_LIMIT` / `DIND_MEMORY_RESERVATION` need enough headroom for browser processes even though the controller itself stays under `512MB`.
 

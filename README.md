@@ -68,7 +68,7 @@ GitHub Actions 工作流会自动：
 本项目的编译和测试 CI 现由 Jenkins 执行（发布仍由 GitHub Actions 负责）。
 
 - Jenkins pipeline: `Jenkinsfile`
-- Jenkins 本地安装（含 MCP Server 插件）: `docker-compose.jenkins.yml`
+- Jenkins 本地安装（含 MCP Server 插件）: `docker/jenkins/docker-compose.yml`
 - 配置与使用说明: `docs/ci/jenkins-migration.md`
 
 ## 项目结构
@@ -88,14 +88,16 @@ idle-game/
 │   └── style.css        # 主要样式
 ├── tests/                # Playwright 测试
 ├── index.html            # 主 HTML 文件
-└── TEST_CASES.md         # 测试用例文档
+└── docs/TEST_CASES.md    # 测试用例文档
 ```
 
 ## 文档
 
 - **[设计文档](docs/DESIGN.md)** - 架构、数据结构、核心流程
 - **[开发指引](docs/DEVELOPMENT_GUIDELINES.md)** - 开发准则和最佳实践  
-- **[测试用例](TEST_CASES.md)** - 测试覆盖范围和执行策略
+- **[测试用例](docs/TEST_CASES.md)** - 测试覆盖范围和执行策略
+- **[QA 报告](docs/QA_REPORT.md)** - 近期手动 QA 与自动化验证记录
+- **[更新日志](docs/CHANGELOG.md)** - 历史版本与修复记录
 
 ## 扩展游戏
 

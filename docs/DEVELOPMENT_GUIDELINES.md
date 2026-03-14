@@ -8,7 +8,7 @@
 ## 设计文档位置
 - **设计文档**: `docs/DESIGN.md`
 - **开发指引**: `docs/DEVELOPMENT_GUIDELINES.md`
-- **测试用例文档**: `TEST_CASES.md`
+- **测试用例文档**: `docs/TEST_CASES.md`
 
 ## 测试实践
 - **测试框架**: Playwright (端到端测试)
@@ -17,7 +17,7 @@
 - **测试配置**: `playwright.config.js`
 - **运行命令**: `npm run test` 或 `npx playwright test`
 - **自动服务器**: 配置中包含自动启动Python服务器的功能
-- **测试编写**: 参考 `TEST_CASES.md` 了解详细的测试编写指南
+- **测试编写**: 参考 `docs/TEST_CASES.md` 了解详细的测试编写指南
 
 ### Bug 修复测试流程（强制）
 1. **先新增/更新回归测试**：先写能稳定复现 bug 的测试，再改代码修复。
