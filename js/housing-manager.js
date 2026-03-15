@@ -173,11 +173,25 @@ class HousingManager {
         return t(normalizedKey) || normalizedKey || String(resource || '');
     }
 
+    getCostEntries(cost) {
+        if (!cost) return [];
+        if (cost instanceof Map) {
+            return Array.from(cost.entries());
+        }
+        if (Array.isArray(cost)) {
+            return cost;
+        }
+        if (typeof cost === 'object') {
+            return Object.entries(cost);
+        }
+        return [];
+    }
+
     formatUpgradeCost(cost) {
         if (!cost) return '';
         const parts = [];
-        
-        for (const [resource, amount] of Object.entries(cost)) {
+
+        for (const [resource, amount] of this.getCostEntries(cost)) {
             const resourceName = this.getResourceLabel(resource);
             parts.push(`${this.formatInteger(amount)} ${resourceName}`);
         }
@@ -246,7 +260,7 @@ class HousingManager {
 
         try {
             const resources = this.rustGame.get_resources();
-            for (const [resource, amount] of Object.entries(cost)) {
+            for (const [resource, amount] of this.getCostEntries(cost)) {
                 const current = this.getResourceAmount(resources, resource);
                 if (current < amount) {
                     return false;

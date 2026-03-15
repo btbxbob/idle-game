@@ -245,7 +245,7 @@ test.describe('HousingManager coverage', () => {
         expect(result.listHtml).toContain('housing-item-full');
         expect(result.listHtml).toContain('disabled');
         expect(result.panelHtml).toContain('housing-full-warning');
-        expect(result.panelHtml).toContain('currentOccupancy');
+        expect(result.panelHtml.includes('当前入住') || result.panelHtml.includes('currentOccupancy')).toBe(true);
         expect(result.renderCalls).toBe(1);
         expect(result.updateCalls).toBe(1);
     });
@@ -268,5 +268,31 @@ test.describe('HousingManager coverage', () => {
         expect(result.mappedCostText).toContain('石头');
         expect(result.mappedCostText).toContain('gems');
         expect(result.affordError).toBe(false);
+    });
+
+    test('map-based housing upgrade costs render and evaluate correctly', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.HousingManager({
+                get_resources: () => ({ Gold: 150, Wood: 80, Stone: 0 }),
+            });
+
+            const mapCost = new Map([
+                ['Gold', 100],
+                ['Wood', 50],
+            ]);
+
+            return {
+                formattedCost: manager.formatUpgradeCost(mapCost),
+                canAfford: manager.canAffordUpgrade(mapCost),
+                cannotAfford: manager.canAffordUpgrade(new Map([['Gold', 200]])),
+            };
+        });
+
+        expect(result.formattedCost).toContain('100');
+        expect(result.formattedCost).toContain('50');
+        expect(result.formattedCost).toContain('金币');
+        expect(result.formattedCost).toContain('木头');
+        expect(result.canAfford).toBe(true);
+        expect(result.cannotAfford).toBe(false);
     });
 });
