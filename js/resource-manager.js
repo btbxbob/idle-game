@@ -345,9 +345,6 @@ window.ResourceManager = ResourceManager;
 
 window.updateResourcePanel = function() {
     if (window.resourceManager && typeof window.resourceManager.update === 'function') {
-        const resourcesTab = document.getElementById('tab-resources');
-        if (resourcesTab && resourcesTab.classList.contains('active')) {
-            window.resourceManager.update();
-        }
+        window.resourceManager.update();
     }
 };

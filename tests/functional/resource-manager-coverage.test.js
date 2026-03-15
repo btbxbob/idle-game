@@ -196,6 +196,39 @@ test.describe('ResourceManager branch coverage', () => {
         expect(result.coinsPanelText).toBe('123');
         expect(result.guardNull).toBe(null);
         expect(result.throwResult).toBe(null);
-        expect(result.updateCalls).toBe(1);
+        expect(result.updateCalls).toBe(2);
+    });
+
+    test('header resources keep updating when resources tab is inactive', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const resourcesTab = document.getElementById('tab-resources');
+            const buildingsButton = document.querySelector('.tab-button[data-tab="buildings"]');
+            if (!resourcesTab || !buildingsButton || !window.rustGame || !window.resourceManager) {
+                return { ok: false };
+            }
+
+            window.rustGame.click_action();
+            window.resourceManager.update();
+            const before = document.getElementById('banner-coins')?.textContent || '';
+
+            buildingsButton.click();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            window.rustGame.click_action();
+            window.updateResourcePanel();
+            const after = document.getElementById('banner-coins')?.textContent || '';
+
+            return {
+                ok: true,
+                resourcesActive: resourcesTab.classList.contains('active'),
+                before,
+                after,
+            };
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.resourcesActive).toBe(false);
+        expect(result.before).not.toBe(result.after);
+        expect(result.after).toContain('金币');
     });
 });
