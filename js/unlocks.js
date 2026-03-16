@@ -10,6 +10,7 @@ class UnlockManager {
         if (!this.rustGame || typeof this.rustGame.get_unlocks !== 'function') {
             this.unlocks = [];
             this.progressionState = null;
+            this.updateTabAttention();
             return;
         }
 
@@ -23,6 +24,28 @@ class UnlockManager {
 
         this.progressionState = this.getProgressionState();
         this.updateTabVisibility();
+        this.updateTabAttention();
+    }
+
+    hasUnlocksReady() {
+        return this.unlocks.some((unlock) => {
+            if (!unlock || unlock.unlocked) {
+                return false;
+            }
+
+            const progress = this.checkProgress(unlock.id);
+            return (progress.current || 0) >= (progress.required || 1);
+        });
+    }
+
+    updateTabAttention() {
+        const unlockTabButton = document.querySelector('.tab-button[data-tab="unlocks"]');
+        if (!unlockTabButton) {
+            return;
+        }
+
+        const isActive = unlockTabButton.classList.contains('active');
+        unlockTabButton.classList.toggle('attention', !isActive && this.hasUnlocksReady());
     }
 
     getProgressionState() {
@@ -295,6 +318,7 @@ class UnlockManager {
         }
 
         this.update();
+        this.updateTabAttention();
         this.containerElement.innerHTML = this.renderProgressionSummary();
         this.containerElement.innerHTML += '<div class="unlock-section-label">下一次揭示 / NEXT REVELATION</div>';
 
