@@ -5,6 +5,10 @@
 window.gameInitialized = false;
 
 function formatIntegerDisplay(value) {
+    if (window.NumberFormatter && typeof window.NumberFormatter.formatCompactInteger === 'function') {
+        return window.NumberFormatter.formatCompactInteger(value);
+    }
+
     if (window.NumberFormatter && typeof window.NumberFormatter.formatInteger === 'function') {
         return window.NumberFormatter.formatInteger(value);
     }

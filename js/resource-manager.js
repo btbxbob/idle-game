@@ -241,7 +241,7 @@ class ResourceManager {
 
             const amount = this.getResourceAmount(resources, resourceKey);
             const resourceName = this.i18n ? this.i18n.t(resourceKey) : resourceKey;
-            amountElement.textContent = `${resourceName}: ${this.formatResourceAmount(amount)}`;
+            amountElement.textContent = `${resourceName}: ${this.formatHeaderResourceAmount(amount)}`;
 
             const rateElement = document.getElementById(`banner-${resourceKey}-rate`);
             const cardElement = amountElement.closest('.header-resource-card');
@@ -290,6 +290,14 @@ class ResourceManager {
         }
 
         return Math.floor(Number(amount) || 0).toLocaleString();
+    }
+
+    formatHeaderResourceAmount(amount) {
+        if (window.NumberFormatter && typeof window.NumberFormatter.formatCompactInteger === 'function') {
+            return window.NumberFormatter.formatCompactInteger(amount);
+        }
+
+        return this.formatResourceAmount(amount);
     }
 
     formatRate(rate) {

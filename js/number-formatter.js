@@ -40,11 +40,18 @@
         const absolute = Math.abs(whole);
 
         if (absolute >= PLAIN_THRESHOLD) {
-            return formatScientific(whole, options.significantDigits ?? 1);
+            return formatScientific(whole, options.significantDigits);
         }
 
         return whole.toLocaleString(options.locale || undefined, {
             maximumFractionDigits: 0,
+        });
+    }
+
+    function formatCompactWholeNumber(value, options = {}) {
+        return formatWholeNumber(value, {
+            ...options,
+            significantDigits: options.significantDigits ?? 1,
         });
     }
 
@@ -104,6 +111,7 @@
     window.NumberFormatter = {
         PLAIN_THRESHOLD,
         MAX_SIGNIFICANT_DIGITS,
+        formatCompactInteger: formatCompactWholeNumber,
         formatInteger: formatWholeNumber,
         formatResource: formatWholeNumber,
         formatRate,
