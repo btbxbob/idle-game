@@ -52,10 +52,20 @@ const mcr = MCR({
 });
 
 (async () => {
+  let addedFiles = 0;
+  let skippedEmptyFiles = 0;
+
   for (const file of files) {
     const fullPath = path.join(rawDir, file);
     const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+
+    if (Array.isArray(data) && data.length === 0) {
+      skippedEmptyFiles += 1;
+      continue;
+    }
+
     await mcr.add(data);
+    addedFiles += 1;
   }
   await mcr.generate();
   if (!fs.existsSync(summaryFile)) {
@@ -91,5 +101,8 @@ const mcr = MCR({
   }
 
   console.log('Coverage thresholds passed:', thresholds);
-  console.log(`Merged ${files.length} raw files -> ${outDir}`);
+  if (skippedEmptyFiles > 0) {
+    console.log(`Skipped ${skippedEmptyFiles} empty raw coverage files`);
+  }
+  console.log(`Merged ${addedFiles} raw files -> ${outDir}`);
 })();
