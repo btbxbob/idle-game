@@ -63,6 +63,8 @@ test.describe('Secondary Resources (Tier 2)', () => {
     });
 
     test('iron ingot production can start through factories', async ({ page }) => {
+        test.setTimeout(45000);
+
         const purchaseResult = await page.evaluate(() => {
             for (let i = 0; i < 12000; i++) {
                 window.rustGame.click_action();

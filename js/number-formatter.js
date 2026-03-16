@@ -40,7 +40,7 @@
         const absolute = Math.abs(whole);
 
         if (absolute >= PLAIN_THRESHOLD) {
-            return formatScientific(whole, options.significantDigits);
+            return formatScientific(whole, options.significantDigits ?? 1);
         }
 
         return whole.toLocaleString(options.locale || undefined, {

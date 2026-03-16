@@ -405,7 +405,7 @@ window.updateUnlocksPanel = function() {
 };
 
 window.updateCoinButton = function() {
-    if (!window.rustGame) return;
+    if (!window.rustGame || typeof window.rustGame.get_coins !== 'function') return;
     const coins = window.rustGame.get_coins();
     const coinCount = document.getElementById('coin-count');
     if (coinCount) {
