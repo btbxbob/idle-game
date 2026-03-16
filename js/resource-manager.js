@@ -5,6 +5,8 @@ class ResourceManager {
         this.currentCategory = 'primary';
         this.resourceKeys = this.getAllResourceKeys();
         this.bannerResourceKeys = [...this.resourceKeys, 'maggot', 'corpse'];
+        this.rateHistory = [];
+        this.rateWindowMs = 5000;
     }
 
     getAllResourceKeys() {
@@ -170,6 +172,8 @@ class ResourceManager {
     updateResourceDisplays(resources) {
         if (!resources) return;
 
+        this.recordRateSnapshot(resources);
+
         ['primary', 'secondary', 'advanced'].forEach(category => {
             const panel = document.getElementById(`${category}-resources`);
             if (!panel) return;
@@ -245,22 +249,47 @@ class ResourceManager {
 
             const rateElement = document.getElementById(`banner-${resourceKey}-rate`);
             const cardElement = amountElement.closest('.header-resource-card');
-            const rate = this.getResourceRate(resources, resourceKey);
+            const rate = this.getAverageResourceRate(resourceKey);
 
             if (rateElement) {
-                if (rate !== 0) {
-                    rateElement.textContent = `${this.formatRate(rate)}/s`;
-                    rateElement.style.display = 'block';
-                } else {
-                    rateElement.textContent = '';
-                    rateElement.style.display = 'none';
-                }
+                rateElement.textContent = `${this.formatRate(rate)}/s`;
+                rateElement.classList.toggle('negative', rate < 0);
             }
 
             if (cardElement) {
                 cardElement.style.display = amount !== 0 && this.isResourceRevealed(resourceKey) ? 'grid' : 'none';
             }
         });
+    }
+
+    recordRateSnapshot(resources) {
+        const timestamp = Date.now();
+        const snapshot = { timestamp, values: {} };
+
+        this.bannerResourceKeys.forEach((resourceKey) => {
+            snapshot.values[resourceKey] = Number(this.getResourceAmount(resources, resourceKey)) || 0;
+        });
+
+        this.rateHistory.push(snapshot);
+        this.rateHistory = this.rateHistory.filter((entry) => (timestamp - entry.timestamp) <= this.rateWindowMs);
+    }
+
+    getAverageResourceRate(resourceKey) {
+        if (this.rateHistory.length < 2) {
+            return 0;
+        }
+
+        const latest = this.rateHistory[this.rateHistory.length - 1];
+        const baseline = this.rateHistory[0];
+        const elapsedMs = latest.timestamp - baseline.timestamp;
+
+        if (elapsedMs <= 0) {
+            return 0;
+        }
+
+        const latestValue = Number(latest.values[resourceKey]) || 0;
+        const baselineValue = Number(baseline.values[resourceKey]) || 0;
+        return ((latestValue - baselineValue) / elapsedMs) * 1000;
     }
 
     getResourceRate(resources, key) {
@@ -301,12 +330,13 @@ class ResourceManager {
     }
 
     formatRate(rate) {
+        const normalizedRate = Number(rate) || 0;
+
         if (window.NumberFormatter && typeof window.NumberFormatter.formatRate === 'function') {
-            return window.NumberFormatter.formatRate(rate, { includeSign: true, fractionDigits: 1 });
+            return window.NumberFormatter.formatRate(normalizedRate, { includeSign: true, fractionDigits: 1 });
         }
 
-        const numericRate = Number(rate) || 0;
-        return `${numericRate >= 0 ? '+' : ''}${numericRate.toFixed(1)}`;
+        return `${normalizedRate >= 0 ? '+' : ''}${normalizedRate.toFixed(1)}`;
     }
 
     ensureHeaderCards() {

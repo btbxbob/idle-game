@@ -617,20 +617,79 @@ class TechnologyManager {
     }
 
     getResourceName(resourceType) {
-        const names = {
-            'Gold': '金币', 'Wood': '木头', 'Stone': '石头',
-            'IronOre': '铁矿石', 'CopperOre': '铜矿石', 'AluminumOre': '铝矿石',
-            'Coal': '煤炭', 'Oil': '石油', 'Crystal': '水晶', 'Food': '食物'
+        const resourceKeyMap = {
+            Gold: 'coins',
+            Wood: 'wood',
+            Stone: 'stone',
+            IronOre: 'ironOre',
+            CopperOre: 'copperOre',
+            AluminumOre: 'aluminumOre',
+            Coal: 'coal',
+            Oil: 'oil',
+            Crystal: 'crystal',
+            Food: 'food',
+            IronIngot: 'ironIngot',
+            CopperIngot: 'copperIngot',
+            AluminumIngot: 'aluminumIngot',
+            SteelPlate: 'steelPlate',
+            CopperPlate: 'copperPlate',
+            AluminumPlate: 'aluminumPlate',
+            Glass: 'glass',
+            Plastic: 'plastic',
+            Chemicals: 'chemicals',
+            Fuel: 'fuel',
+            Paper: 'paper',
+            Ink: 'ink',
+            Cloth: 'cloth',
+            Leather: 'leather',
+            Ceramic: 'ceramic',
+            Cement: 'cement',
+            Brick: 'brick',
+            Rebar: 'rebar',
+            Wire: 'wire',
+            Pipe: 'pipe',
+            Valve: 'valve',
+            Gear: 'gear',
+            Bearing: 'bearing',
+            Spring: 'spring',
+            Screw: 'screw',
+            Nut: 'nut',
+            Washer: 'washer',
+            Pump: 'pump',
+            Motor: 'motor',
+            Sensor: 'sensor',
+            CircuitBoard: 'circuitBoard',
+            Capacitor: 'capacitor',
+            Resistor: 'resistor',
+            Diode: 'diode',
+            Transistor: 'transistor',
+            Transformer: 'transformer',
+            Generator: 'generator',
+            Compressor: 'compressor',
+            Battery: 'battery',
+            Microchip: 'microchip',
+            Engine: 'engine',
+            Robot: 'robot',
+            Satellite: 'satellite',
+            Spaceship: 'spaceship',
+            QuantumComputer: 'quantumComputer',
+            Antimatter: 'antimatter',
+            DarkMatter: 'darkMatter',
+            TimeCrystal: 'timeCrystal',
+            Nanobot: 'nanobot',
+            Maggot: 'maggot',
+            Corpse: 'corpse'
         };
-        if (this.i18n && this.i18n.currentLanguage === 'en') {
-            const enNames = {
-                'Gold': 'Gold', 'Wood': 'Wood', 'Stone': 'Stone',
-                'IronOre': 'Iron Ore', 'CopperOre': 'Copper Ore', 'AluminumOre': 'Aluminum Ore',
-                'Coal': 'Coal', 'Oil': 'Oil', 'Crystal': 'Crystal', 'Food': 'Food'
-            };
-            return enNames[resourceType] || resourceType;
+
+        if (this.i18n) {
+            const mappedKey = resourceKeyMap[resourceType] || resourceType;
+            const translated = this.i18n.t(mappedKey);
+            if (translated && translated !== mappedKey) {
+                return translated;
+            }
         }
-        return names[resourceType] || resourceType;
+
+        return resourceType;
     }
 
     getResourceShortName(resourceType) {

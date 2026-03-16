@@ -373,7 +373,7 @@ header {
 
 #banner .resource-item {
     background-color: var(--panel-bg);
-    padding: 4px 6px;
+    padding: 3px 6px;
     border: 1px solid var(--border-color);
     border-radius: 0;
     font-family: 'Courier New', monospace;
@@ -390,13 +390,17 @@ header {
 }
 
 #banner .header-resource-text {
-    display: grid;
-    gap: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
     min-width: 0;
+    width: 100%;
 }
 
 #banner .header-resource-amount {
     font-weight: bold;
+    flex: 1 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -405,7 +409,15 @@ header {
 #banner .header-resource-rate {
     font-size: 9px;
     opacity: 0.85;
+    flex: 0 0 56px;
+    text-align: right;
     white-space: nowrap;
+    margin-left: auto;
+}
+
+#banner .header-resource-rate.negative {
+    color: #c0392b;
+    opacity: 1;
 }
 
 #banner .header-click-card {
@@ -858,8 +870,8 @@ footer {
     #banner .resource-item {
         font-size: 8px;
         padding: 3px 5px;
-        min-height: 38px;
-        min-width: 104px;
+        min-height: 30px;
+        min-width: 112px;
         flex: 0 0 auto;
     }
 
@@ -945,8 +957,8 @@ footer {
     #banner .resource-item {
         font-size: 9px;
         padding: 4px 6px;
-        min-height: 40px;
-        min-width: 108px;
+        min-height: 32px;
+        min-width: 116px;
         flex: 0 0 auto;
     }
     
@@ -2203,9 +2215,10 @@ footer {
 
 .tech-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
     gap: 12px;
     padding: 0;
+    justify-content: center;
 }
 
 .tech-card {

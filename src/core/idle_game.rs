@@ -3,8 +3,7 @@ use crate::state::resource::ResourceType;
 use crate::state::{GameStage, GameState, Statistics};
 use crate::systems::{
     achievement::Achievement, crafting::CraftingRecipe, production, stage,
-    technology::TechnologyTree,
-    unlock::UnlockedFeature,
+    technology::TechnologyTree, unlock::UnlockedFeature,
 };
 use crate::utils::WorkerGenerator;
 use base64::{engine::general_purpose, Engine as _};
@@ -201,7 +200,10 @@ fn production_input_requirements(resource: ResourceType) -> &'static [(ResourceT
             (ResourceType::CopperOre, 10.0),
             (ResourceType::Coal, 6.0),
         ],
-        ResourceType::Microchip => &[(ResourceType::Crystal, 2.0), (ResourceType::CircuitBoard, 2.0)],
+        ResourceType::Microchip => &[
+            (ResourceType::Crystal, 2.0),
+            (ResourceType::CircuitBoard, 2.0),
+        ],
         ResourceType::QuantumComputer => &[
             (ResourceType::Crystal, 5.0),
             (ResourceType::Microchip, 4.0),
@@ -385,8 +387,6 @@ mod normalization_tests {
         assert_eq!(normalize_housing_resource_key("stone"), Some("Stone"));
         assert_eq!(normalize_housing_resource_key("crystal"), None);
     }
-
-
 }
 
 impl IdleGame {
@@ -463,7 +463,7 @@ impl IdleGame {
         }
 
         self.update_production();
-        
+
         // Ensure default workers exist if save is empty (backwards compatibility)
         if self.workers.is_empty() && self.state.borrow().current_stage >= GameStage::Workers {
             self.workers = vec![
@@ -474,13 +474,15 @@ impl IdleGame {
                 Worker::new("高级工匠", "crafting", "擅长高级制作的工匠", "采石场"),
             ];
         }
-        
+
         // Ensure default housing exists if save is empty (backwards compatibility)
         if self.housing_buildings.is_empty() {
             use crate::entities::building::Housing;
-            self.housing_buildings = vec![
-                Housing::new("住房", std::collections::HashMap::from([("Gold".to_string(), 100.0)]), 4),
-            ];
+            self.housing_buildings = vec![Housing::new(
+                "住房",
+                std::collections::HashMap::from([("Gold".to_string(), 100.0)]),
+                4,
+            )];
         }
     }
 }
@@ -726,13 +728,13 @@ impl IdleGame {
                     output_resource: ResourceType::Crystal,
                     count: 0,
                 },
-            Building {
-                name: "农场".to_string(),
-                cost: 30.0,
-                production_rate: 2.0,
-                output_resource: ResourceType::Food,
-                count: 0,
-            },
+                Building {
+                    name: "农场".to_string(),
+                    cost: 30.0,
+                    production_rate: 2.0,
+                    output_resource: ResourceType::Food,
+                    count: 0,
+                },
                 Building {
                     name: "蛆虫工厂".to_string(),
                     cost: 200.0,
@@ -787,13 +789,11 @@ impl IdleGame {
                 factory_building("反物质反应堆", 25000.0, 0.005, ResourceType::Antimatter),
                 factory_building("时间水晶合成器", 28000.0, 0.005, ResourceType::TimeCrystal),
             ],
-            housing_buildings: vec![
-                Housing::new(
-                    "住房",
-                    std::collections::HashMap::from([("Gold".to_string(), 100.0)]),
-                    4,
-                ),
-            ],
+            housing_buildings: vec![Housing::new(
+                "住房",
+                std::collections::HashMap::from([("Gold".to_string(), 100.0)]),
+                4,
+            )],
             workers: vec![],
             population_queue: PopulationQueue::new(),
             last_food_consumption_time: now,
@@ -1327,13 +1327,21 @@ impl IdleGame {
         for h in &self.housing_buildings {
             let obj = js_sys::Object::new();
             let level = h.count.max(1);
-            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("name"), &JsValue::from_str(&h.name));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("name"),
+                &JsValue::from_str(&h.name),
+            );
             let _ = js_sys::Reflect::set(
                 &obj,
                 &JsValue::from_str("capacity"),
                 &JsValue::from_f64((h.capacity * level) as f64),
             );
-            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("level"), &JsValue::from_f64(level as f64));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("level"),
+                &JsValue::from_f64(level as f64),
+            );
             let _ = js_sys::Reflect::set(
                 &obj,
                 &JsValue::from_str("upgradeCost"),
@@ -1360,8 +1368,16 @@ impl IdleGame {
             } else {
                 "空闲"
             };
-            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("id"), &JsValue::from_f64(idx as f64));
-            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("name"), &JsValue::from_str(&worker.name));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("id"),
+                &JsValue::from_f64(idx as f64),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("name"),
+                &JsValue::from_str(&worker.name),
+            );
             let _ = js_sys::Reflect::set(
                 &obj,
                 &JsValue::from_str("gender"),
@@ -1393,9 +1409,21 @@ impl IdleGame {
                 &JsValue::from_str("health"),
                 &JsValue::from_f64((100.0 - worker.hunger).max(0.0)),
             );
-            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("level"), &JsValue::from_f64(worker.level as f64));
-            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("status"), &JsValue::from_str(status));
-            let _ = js_sys::Reflect::set(&obj, &JsValue::from_str("is_hungry"), &JsValue::from_bool(worker.is_hungry));
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("level"),
+                &JsValue::from_f64(worker.level as f64),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("status"),
+                &JsValue::from_str(status),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("is_hungry"),
+                &JsValue::from_bool(worker.is_hungry),
+            );
             list.push(&obj);
         }
         list.into()
@@ -1697,7 +1725,8 @@ impl IdleGame {
         let tech_bonuses = self.technology_tree.calculate_bonuses();
 
         // Get production rates from production system BEFORE borrowing state mutably
-        let production = production::update_production(&self.buildings, &self.workers, &tech_bonuses);
+        let production =
+            production::update_production(&self.buildings, &self.workers, &tech_bonuses);
 
         let (new_coins, new_wood, new_stone, new_last_update_time, elapsed) = {
             let state = self.state.borrow();
@@ -1780,10 +1809,13 @@ impl IdleGame {
                         continue;
                     }
 
-                    let can_produce = input_requirements.iter().all(|(input_resource, amount_per_unit)| {
-                        let required_amount = gain * amount_per_unit;
-                        state.get_resource(*input_resource) + 1e-10 >= required_amount
-                    });
+                    let can_produce =
+                        input_requirements
+                            .iter()
+                            .all(|(input_resource, amount_per_unit)| {
+                                let required_amount = gain * amount_per_unit;
+                                state.get_resource(*input_resource) + 1e-10 >= required_amount
+                            });
 
                     if can_produce {
                         for (input_resource, amount_per_unit) in input_requirements {
@@ -1960,7 +1992,11 @@ impl IdleGame {
         if let Ok(update_func) = update_buildings_result {
             let update_buildings: js_sys::Function = update_func.into();
             let coins = self.get_coins();
-            let _ = update_buildings.call2(&JsValue::NULL, &buildings_serialized, &JsValue::from_f64(coins));
+            let _ = update_buildings.call2(
+                &JsValue::NULL,
+                &buildings_serialized,
+                &JsValue::from_f64(coins),
+            );
         }
     }
 
@@ -2005,7 +2041,11 @@ impl IdleGame {
         if let Ok(update_func) = update_buildings_result {
             let update_buildings: js_sys::Function = update_func.into();
             let coins = self.get_coins();
-            let _ = update_buildings.call2(&JsValue::NULL, &buildings_serialized, &JsValue::from_f64(coins));
+            let _ = update_buildings.call2(
+                &JsValue::NULL,
+                &buildings_serialized,
+                &JsValue::from_f64(coins),
+            );
         }
     }
 
@@ -2028,7 +2068,12 @@ impl IdleGame {
         drop(state);
 
         if next_stage == GameStage::Workers && self.workers.is_empty() {
-            self.workers.push(Worker::new("新工人", "survival", "刚刚加入聚落的幸存者", "农场"));
+            self.workers.push(Worker::new(
+                "新工人",
+                "survival",
+                "刚刚加入聚落的幸存者",
+                "农场",
+            ));
         }
 
         true
@@ -2052,50 +2097,39 @@ impl IdleGame {
     pub fn get_unlock_progress(&self, feature_id: &str) -> JsValue {
         let state = self.state.borrow().clone();
         let statistics = self.statistics.borrow().clone();
-        let current = match feature_id {
-            "stage_workers" => stage::requirement_progress(
-                "workers_stage",
+        let unlocks = stage::visible_unlocks(
+            &state,
+            &statistics,
+            &self.workers,
+            &self.buildings,
+            &self.technology_tree,
+        );
+
+        let progress = if let Some(unlock) = unlocks.iter().find(|unlock| unlock.id == feature_id) {
+            let current = stage::requirement_progress(
+                &unlock.requirement_type,
                 &state,
                 &statistics,
                 &self.workers,
                 &self.technology_tree,
-            ),
-            "stage_maggot" => stage::requirement_progress(
-                "maggot_stage",
-                &state,
-                &statistics,
-                &self.workers,
-                &self.technology_tree,
-            ),
-            "stage_hybrid" => stage::requirement_progress(
-                "hybrid_stage",
-                &state,
-                &statistics,
-                &self.workers,
-                &self.technology_tree,
-            ),
-            "stage_collective" => stage::requirement_progress(
-                "collective_stage",
-                &state,
-                &statistics,
-                &self.workers,
-                &self.technology_tree,
-            ),
-            "coexistence_balance" => stage::requirement_progress(
-                "symbiosis_stability",
-                &state,
-                &statistics,
-                &self.workers,
-                &self.technology_tree,
-            ),
-            "statistics_panel" => (statistics.total_clicks as f64 / 10.0).min(1.0),
-            "achievements_panel" => (statistics.total_clicks as f64 / 25.0).min(1.0),
-            _ => 1.0,
-        };
-        let progress = UnlockProgressView {
-            current,
-            required: 1.0,
-            percentage: current * 100.0,
+            ) * unlock.requirement_value;
+            UnlockProgressView {
+                current,
+                required: unlock.requirement_value,
+                percentage: stage::requirement_progress(
+                    &unlock.requirement_type,
+                    &state,
+                    &statistics,
+                    &self.workers,
+                    &self.technology_tree,
+                ) * 100.0,
+            }
+        } else {
+            UnlockProgressView {
+                current: 0.0,
+                required: 1.0,
+                percentage: 0.0,
+            }
         };
 
         progress
@@ -2619,7 +2653,7 @@ impl IdleGame {
 
         serde_json::to_string(&workers).unwrap_or_else(|_| "[]".to_string())
     }
-    
+
     /// Get the game version
     #[wasm_bindgen]
     pub fn get_version(&self) -> String {
