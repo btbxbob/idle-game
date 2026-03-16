@@ -65,10 +65,11 @@ pipeline {
     stage('Setup Rust Toolchain') {
       steps {
         sh '''
-          if ! command -v cargo >/dev/null 2>&1; then
+          export PATH="$HOME/.cargo/bin:$PATH"
+          if ! command -v rustup >/dev/null 2>&1; then
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
           fi
-          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup default stable
           cargo --version
           if ! command -v wasm-pack >/dev/null 2>&1; then
             curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
