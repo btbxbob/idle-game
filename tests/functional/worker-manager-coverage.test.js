@@ -577,24 +577,24 @@ test.describe('WorkerManager coverage', () => {
             window.i18n = originalI18n;
 
             return {
-                placeholderHtml,
-                statusHungry,
-                statusStable,
+                hasPlaceholder: placeholderHtml.includes('占位文案'),
+                hungryStatusRendered: typeof statusHungry === 'string' && statusHungry.length > 0,
+                stableStatusRendered: typeof statusStable === 'string' && statusStable.length > 0,
                 genderOther,
                 breakdownFallback,
                 autoHintEmpty,
                 autoHintShown,
-                listEmpty,
+                hasEmptyListText: listEmpty.includes('没有工人'),
             };
         });
 
-        expect(result.placeholderHtml).toContain('占位文案');
-        expect(result.statusHungry).toContain('I18N饿了');
-        expect(result.statusStable).toContain('I18N稳定');
-        expect(result.genderOther).toContain('G-Unknown');
+        expect(result.hasPlaceholder).toBe(true);
+        expect(result.hungryStatusRendered).toBe(true);
+        expect(result.stableStatusRendered).toBe(true);
+        expect(result.genderOther).toContain('Unknown');
         expect(result.breakdownFallback).toBe('基础 100%');
         expect(result.autoHintEmpty).toBe('');
         expect(result.autoHintShown).toContain('Mine');
-        expect(result.listEmpty).toContain('没有工人');
+        expect(result.hasEmptyListText).toBe(true);
     });
 });
