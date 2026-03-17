@@ -347,13 +347,14 @@ class TechnologyManager {
         const canResearch = this.canResearch(tech);
         const hasResources = this.hasResources(tech.costs);
         const statusClass = isResearched ? 'researched' : (canResearch ? '' : 'locked');
-        const statusIcon = isResearched ? '✓' : (canResearch ? '○' : '×');
+        const statusIcon = isResearched ? '✓' : '';
 
         card.className = `tech-card ${statusClass}`.trim();
 
         const statusEl = card.querySelector('.tech-status');
         if (statusEl) {
             statusEl.textContent = statusIcon;
+            statusEl.style.display = statusIcon ? '' : 'none';
         }
 
         const effectEl = card.querySelector('.tech-effect');
@@ -392,7 +393,7 @@ class TechnologyManager {
         const costItems = this.sortCosts(costs).map(([resource, amount]) => {
             const hasEnough = this.getResourceValue(resource) >= amount;
             const insufficientClass = !hasEnough ? 'insufficient' : '';
-            return `<span class="tech-cost-item ${insufficientClass}">${this.getResourceShortName(resource)}:${this.formatInteger(amount)}</span>`;
+            return `<span class="tech-cost-item ${insufficientClass}">${this.getResourceName(resource)}: ${this.formatInteger(amount)}</span>`;
         });
 
         return `<div class="tech-costs">${costItems.join('')}</div>`;
@@ -464,14 +465,7 @@ class TechnologyManager {
         const isRecommended = this.getRecommendedTechnologyId() === tech.id && !isResearched;
         
         // Status icon and text
-        let statusIcon = '';
-        if (isResearched) {
-            statusIcon = '✓';
-        } else if (canResearch) {
-            statusIcon = '○';
-        } else {
-            statusIcon = '×';
-        }
+        const statusIcon = isResearched ? '✓' : '';
         
         const costsHtml = this.renderTechCostsHtml(tech.costs);
         const buttonHtml = this.renderTechFooterHtml(tech, t, canResearch, hasResources, isResearched);
@@ -483,7 +477,7 @@ class TechnologyManager {
                         <span class="tech-badge">T${tech.tier || 1}</span>
                         ${this.escapeHtml(tech.name || tech.id)}
                     </span>
-                    <span class="tech-status">${statusIcon}</span>
+                    ${statusIcon ? `<span class="tech-status">${statusIcon}</span>` : ''}
                 </div>
                 <div class="tech-body">
                     ${isRecommended ? '<div class="tech-recommendation">推荐路线</div>' : ''}

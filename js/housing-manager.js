@@ -52,7 +52,12 @@ class HousingManager {
                 }
                 return success;
             } catch (error) {
-                console.error('Failed to upgrade housing:', error);
+                const message = error instanceof Error ? error.message : String(error || '');
+                if (message.includes('Insufficient')) {
+                    console.info('Skipped housing upgrade:', message);
+                } else {
+                    console.error('Failed to upgrade housing:', error);
+                }
                 return false;
             }
         }

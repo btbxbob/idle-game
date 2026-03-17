@@ -516,6 +516,13 @@ header {
 }
 
 /* Main Content with Tabs */
+#main-shell {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 0;
+}
+
 #main-content {
     display: flex;
     flex-direction: column;
@@ -526,6 +533,16 @@ header {
     padding: 20px;
     position: relative;
     z-index: 0;
+}
+
+#objective-sidebar {
+    width: 320px;
+    min-width: 320px;
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.06)), var(--main-bg);
+    overflow-y: auto;
 }
 
 .tab-content {
@@ -2798,19 +2815,19 @@ footer {
 
 #objective-panel-anchor {
     display: none;
-    padding: 14px 18px 0;
+    padding: 18px;
 }
 
 .objective-panel {
     display: grid;
-    gap: 12px;
+    gap: 10px;
     border: 2px solid var(--border-color);
     background:
         radial-gradient(circle at top right, rgba(88, 214, 141, 0.16), transparent 38%),
         linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.07)),
         var(--panel-bg);
     box-shadow: 4px 4px 0 var(--shadow-color);
-    padding: 14px;
+    padding: 12px;
 }
 
 .objective-panel-header {
@@ -2828,7 +2845,7 @@ footer {
 }
 
 .objective-title {
-    font-size: 20px;
+    font-size: 17px;
     font-weight: bold;
     line-height: 1.2;
 }
@@ -2842,14 +2859,14 @@ footer {
 }
 
 .objective-copy {
-    line-height: 1.6;
+    line-height: 1.45;
+    font-size: 13px;
     opacity: 0.9;
 }
 
 .objective-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid;
+    gap: 6px;
 }
 
 .objective-meta span {
@@ -2875,16 +2892,16 @@ footer {
 
 .objective-step-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 8px;
 }
 
 .objective-step {
     border: 1px solid var(--border-color);
     background: rgba(255, 255, 255, 0.44);
-    padding: 10px;
+    padding: 9px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: flex-start;
 }
 
@@ -2897,7 +2914,7 @@ footer {
 }
 
 .objective-step-badge {
-    min-width: 42px;
+    min-width: 38px;
     text-align: center;
     border: 1px solid var(--border-color);
     padding: 3px 6px;
@@ -2905,6 +2922,16 @@ footer {
     letter-spacing: 1px;
     text-transform: uppercase;
     background: rgba(255, 255, 255, 0.55);
+}
+
+.objective-step-name {
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.objective-step-progress {
+    font-size: 11px;
+    opacity: 0.72;
 }
 
 .objective-step.is-current .objective-step-badge {

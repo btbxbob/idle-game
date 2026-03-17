@@ -37,8 +37,6 @@
             <div id="resources"></div>
         </div>
 
-        <div id="objective-panel-anchor"></div>
-        
         <!-- Tab Navigation -->
         <div id="tab-navigation">
             <button type="button" class="tab-button active" data-tab="resources">资源</button>
@@ -55,7 +53,8 @@
         </div>
         
         <!-- Main Content Area with Tabs -->
-        <main id="main-content">
+        <div id="main-shell">
+            <main id="main-content">
             <!-- Resources Tab -->
             <div id="tab-resources" class="tab-content active">
                 <div id="resources-panel">
@@ -286,7 +285,11 @@
                     </div>
                 </div>
             </div>
-        </main>
+            </main>
+            <aside id="objective-sidebar">
+                <div id="objective-panel-anchor"></div>
+            </aside>
+        </div>
         
         <footer>
             <span id="footer-text">使用 Rust 和 WebAssembly 构建的闲置游戏框架</span>
