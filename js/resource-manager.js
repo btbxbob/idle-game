@@ -6,7 +6,7 @@ class ResourceManager {
         this.resourceKeys = this.getAllResourceKeys();
         this.bannerResourceKeys = [...this.resourceKeys, 'maggot', 'corpse'];
         this.rateHistory = [];
-        this.rateWindowMs = 5000;
+        this.rateWindowMs = 10000;
     }
 
     getAllResourceKeys() {
