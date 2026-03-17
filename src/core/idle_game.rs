@@ -58,6 +58,26 @@ struct UnlockProgressView {
     percentage: f64,
 }
 
+#[derive(Serialize)]
+struct ObjectiveStepView {
+    id: String,
+    title: String,
+    description: String,
+    current: f64,
+    required: f64,
+    completed: bool,
+    reward: String,
+    recommended_tab: String,
+}
+
+#[derive(Serialize)]
+struct ObjectiveChainView {
+    active: bool,
+    stage_id: String,
+    current_objective_id: Option<String>,
+    steps: Vec<ObjectiveStepView>,
+}
+
 #[wasm_bindgen]
 pub struct IdleGame {
     state: Rc<RefCell<GameState>>,
@@ -390,6 +410,576 @@ mod normalization_tests {
 }
 
 impl IdleGame {
+    fn mark_objective_step_completed(&mut self, step_id: &str) {
+        let mut state = self.state.borrow_mut();
+        if !state
+            .objective_chain
+            .completed_steps
+            .iter()
+            .any(|completed| completed == step_id)
+        {
+            state
+                .objective_chain
+                .completed_steps
+                .push(step_id.to_string());
+        }
+    }
+
+    fn try_grant_stage_reward(&mut self, stage: GameStage) {
+        if stage != GameStage::Workers {
+            return;
+        }
+
+        let reward_id = "stage_workers";
+        let mut state = self.state.borrow_mut();
+        if state
+            .objective_chain
+            .granted_stage_rewards
+            .iter()
+            .any(|granted| granted == reward_id)
+        {
+            return;
+        }
+
+        state.add_resource(ResourceType::Food, 10.0);
+        state.add_resource(ResourceType::Gold, 30.0);
+        state
+            .objective_chain
+            .granted_stage_rewards
+            .push(reward_id.to_string());
+    }
+
+    fn sync_worker_objective_progress(&mut self) {
+        let current_stage = self.state.borrow().current_stage;
+        if current_stage < GameStage::Workers {
+            return;
+        }
+
+        let farm_count = self
+            .buildings
+            .iter()
+            .find(|building| building.name == "农场")
+            .map(|building| building.count)
+            .unwrap_or(0);
+        let food_ready = self.state.borrow().get_resource(ResourceType::Food) >= 1.0;
+        let assigned_workers = self
+            .workers
+            .iter()
+            .filter(|worker| worker.assigned_building.is_some())
+            .count();
+        let purchased_technologies = self
+            .technology_tree
+            .technologies
+            .values()
+            .filter(|technology| technology.purchased)
+            .count();
+
+        if farm_count >= 1 {
+            self.mark_objective_step_completed("build_farm");
+        }
+        if food_ready {
+            self.mark_objective_step_completed("gain_food");
+        }
+        if assigned_workers >= 1 {
+            self.mark_objective_step_completed("assign_worker");
+        }
+        if purchased_technologies >= 1 {
+            self.mark_objective_step_completed("research_first_tech");
+        }
+    }
+
+    fn refresh_progression_state(&mut self) {
+        let inferred_stage = {
+            let state = self.state.borrow();
+            stage::infer_stage_from_state(&state, &self.workers, &self.technology_tree)
+        };
+
+        let current_stage = {
+            let mut state = self.state.borrow_mut();
+            if state.current_stage < inferred_stage {
+                state.current_stage = inferred_stage;
+            }
+            state.current_stage
+        };
+
+        self.try_grant_stage_reward(current_stage);
+        self.sync_worker_objective_progress();
+    }
+
+    fn get_worker_objective_chain_view(&self) -> ObjectiveChainView {
+        let state = self.state.borrow();
+        if state.current_stage < GameStage::Workers {
+            return ObjectiveChainView {
+                active: false,
+                stage_id: state.current_stage.id().to_string(),
+                current_objective_id: None,
+                steps: Vec::new(),
+            };
+        }
+
+        if state.current_stage >= GameStage::Collective {
+            let dark_matter = state.get_resource(ResourceType::DarkMatter);
+            let spaceships = state.get_resource(ResourceType::Spaceship);
+            let has_collective_awakening = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::CollectiveAwakening);
+            let has_consciousness_upload = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::ConsciousnessUpload);
+
+            let steps = vec![
+                ObjectiveStepView {
+                    id: "awaken_collective".to_string(),
+                    title: "完成统一意识觉醒".to_string(),
+                    description: "让共生体真正进入统一意识，终局扩张才会开启。".to_string(),
+                    current: if has_collective_awakening { 1.0 } else { 0.0 },
+                    required: 1.0,
+                    completed: has_collective_awakening,
+                    reward: "终局网络已激活".to_string(),
+                    recommended_tab: "technology".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "produce_dark_matter".to_string(),
+                    title: "产出第一批暗物质".to_string(),
+                    description: "让黑暗链条真正并入终局资源网络。".to_string(),
+                    current: dark_matter.min(1.0),
+                    required: 1.0,
+                    completed: dark_matter >= 1.0,
+                    reward: "终局资源网络建立".to_string(),
+                    recommended_tab: "resources".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "upload_consciousness".to_string(),
+                    title: "研究意识上传".to_string(),
+                    description: "把个体生产彻底并入统一调度体系。".to_string(),
+                    current: if has_consciousness_upload { 1.0 } else { 0.0 },
+                    required: 1.0,
+                    completed: has_consciousness_upload,
+                    reward: "文明级效率跃迁".to_string(),
+                    recommended_tab: "technology".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "launch_first_ship".to_string(),
+                    title: "建造第一艘太空船".to_string(),
+                    description: "把统一意识投射到文明尺度的远征网络。".to_string(),
+                    current: spaceships.min(1.0),
+                    required: 1.0,
+                    completed: spaceships >= 1.0,
+                    reward: "星际扩张开始".to_string(),
+                    recommended_tab: "buildings".to_string(),
+                },
+            ];
+
+            let current_objective_id = steps
+                .iter()
+                .find(|step| !step.completed)
+                .map(|step| step.id.clone());
+
+            return ObjectiveChainView {
+                active: true,
+                stage_id: state.current_stage.id().to_string(),
+                current_objective_id,
+                steps,
+            };
+        }
+
+        if state.current_stage >= GameStage::Hybrid {
+            let hybrid_population = state.coexistence.hybrid_population;
+            let symbiosis_stability = state.coexistence.symbiosis_stability;
+            let symbiosis_chambers = self
+                .buildings
+                .iter()
+                .find(|building| building.name == "共生培育舱")
+                .map(|building| building.count as f64)
+                .unwrap_or(0.0);
+            let has_hive_mind = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::HiveMindProtocol);
+
+            let steps = vec![
+                ObjectiveStepView {
+                    id: "gain_hybrid_population".to_string(),
+                    title: "获得第一批混合人口".to_string(),
+                    description: "让共生不再只是状态，而成为可用劳动力。".to_string(),
+                    current: hybrid_population.min(1.0),
+                    required: 1.0,
+                    completed: hybrid_population >= 1.0,
+                    reward: "共生劳动力可用".to_string(),
+                    recommended_tab: "lifecycle".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "build_symbiosis_chamber".to_string(),
+                    title: "建造第一座共生培育舱".to_string(),
+                    description: "为混合人口提供稳定扩张的物理载体。".to_string(),
+                    current: symbiosis_chambers.min(1.0),
+                    required: 1.0,
+                    completed: symbiosis_chambers >= 1.0,
+                    reward: "共生体系扩张".to_string(),
+                    recommended_tab: "buildings".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "stabilize_symbiosis".to_string(),
+                    title: "维持共生稳定度".to_string(),
+                    description: "把社会风险控制在可运转范围内。".to_string(),
+                    current: symbiosis_stability.min(55.0),
+                    required: 55.0,
+                    completed: symbiosis_stability >= 55.0,
+                    reward: "秩序暂时稳定".to_string(),
+                    recommended_tab: "lifecycle".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "research_hive_mind".to_string(),
+                    title: "研究蜂巢协议".to_string(),
+                    description: "让共生个体进入共享思维网络，准备终局跃迁。".to_string(),
+                    current: if has_hive_mind { 1.0 } else { 0.0 },
+                    required: 1.0,
+                    completed: has_hive_mind,
+                    reward: "集体意识入口已出现".to_string(),
+                    recommended_tab: "technology".to_string(),
+                },
+            ];
+
+            let current_objective_id = steps
+                .iter()
+                .find(|step| !step.completed)
+                .map(|step| step.id.clone());
+
+            return ObjectiveChainView {
+                active: true,
+                stage_id: state.current_stage.id().to_string(),
+                current_objective_id,
+                steps,
+            };
+        }
+
+        if state.current_stage >= GameStage::Maggot {
+            let maggots = state.get_resource(ResourceType::Maggot);
+            let maggot_factory = self
+                .buildings
+                .iter()
+                .find(|building| building.name == "蛆虫工厂")
+                .map(|building| building.count as f64)
+                .unwrap_or(0.0);
+            let has_maggot_breeding = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::MaggotBreeding);
+            let has_necrotic_recycling = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::NecroticRecycling);
+            let dark_conversion_completed = state.objective_chain.dark_conversion_completed
+                || state
+                    .objective_chain
+                    .completed_steps
+                    .iter()
+                    .any(|value| value == "complete_dark_conversion");
+
+            let steps = vec![
+                ObjectiveStepView {
+                    id: "inspect_decay".to_string(),
+                    title: "查看生命周期异常".to_string(),
+                    description: "先理解聚落正在发生什么，黑暗分支才有意义。".to_string(),
+                    current: 1.0,
+                    required: 1.0,
+                    completed: true,
+                    reward: "异常记录已更新".to_string(),
+                    recommended_tab: "lifecycle".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "gain_maggot".to_string(),
+                    title: "获得第一批蛆虫".to_string(),
+                    description: "让死亡后果第一次转化为可利用的资源。".to_string(),
+                    current: maggots.min(1.0),
+                    required: 1.0,
+                    completed: maggots >= 1.0,
+                    reward: "黑暗资源链出现".to_string(),
+                    recommended_tab: "resources".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "research_maggot_tech".to_string(),
+                    title: "研究首项黑暗科技".to_string(),
+                    description: "用科技把黑暗链条从偶然转向可控扩张。".to_string(),
+                    current: if has_maggot_breeding || has_necrotic_recycling {
+                        1.0
+                    } else {
+                        0.0
+                    },
+                    required: 1.0,
+                    completed: has_maggot_breeding || has_necrotic_recycling,
+                    reward: "共生过渡路线出现".to_string(),
+                    recommended_tab: "technology".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "build_maggot_facility".to_string(),
+                    title: "建造第一座蛆虫工厂".to_string(),
+                    description: "用黑暗科技把偶发尸腐转成稳定生产线。".to_string(),
+                    current: maggot_factory.min(1.0),
+                    required: 1.0,
+                    completed: maggot_factory >= 1.0,
+                    reward: "黑暗加工已开启".to_string(),
+                    recommended_tab: "buildings".to_string(),
+                },
+                ObjectiveStepView {
+                    id: "complete_dark_conversion".to_string(),
+                    title: "完成第一次黑暗转化".to_string(),
+                    description: "让蛆虫第一次被加工成可用产出，完成首轮黑暗闭环。".to_string(),
+                    current: if dark_conversion_completed { 1.0 } else { 0.0 },
+                    required: 1.0,
+                    completed: dark_conversion_completed,
+                    reward: "黑暗闭环成立".to_string(),
+                    recommended_tab: "work".to_string(),
+                },
+            ];
+
+            let current_objective_id = steps
+                .iter()
+                .find(|step| !step.completed)
+                .map(|step| step.id.clone());
+
+            return ObjectiveChainView {
+                active: true,
+                stage_id: state.current_stage.id().to_string(),
+                current_objective_id,
+                steps,
+            };
+        }
+
+        let farm_count = self
+            .buildings
+            .iter()
+            .find(|building| building.name == "农场")
+            .map(|building| building.count as f64)
+            .unwrap_or(0.0);
+        let food_amount = state.get_resource(ResourceType::Food);
+        let assigned_workers = self
+            .workers
+            .iter()
+            .filter(|worker| worker.assigned_building.is_some())
+            .count() as f64;
+        let purchased_technologies = self
+            .technology_tree
+            .technologies
+            .values()
+            .filter(|technology| technology.purchased)
+            .count() as f64;
+        let completed = &state.objective_chain.completed_steps;
+        let is_completed = |step_id: &str| completed.iter().any(|value| value == step_id);
+
+        let steps = vec![
+            ObjectiveStepView {
+                id: "build_farm".to_string(),
+                title: "建造第一座农场".to_string(),
+                description: "先建立稳定的食物来源，工人阶段才能真正运转。".to_string(),
+                current: if is_completed("build_farm") {
+                    1.0
+                } else {
+                    farm_count.min(1.0)
+                },
+                required: 1.0,
+                completed: is_completed("build_farm"),
+                reward: "食物补给 +5".to_string(),
+                recommended_tab: "buildings".to_string(),
+            },
+            ObjectiveStepView {
+                id: "gain_food".to_string(),
+                title: "获得第一份食物".to_string(),
+                description: "让聚落先吃上第一口饭，供养系统才算启动。".to_string(),
+                current: if is_completed("gain_food") {
+                    1.0
+                } else {
+                    food_amount.min(1.0)
+                },
+                required: 1.0,
+                completed: is_completed("gain_food"),
+                reward: "金币补给 +15".to_string(),
+                recommended_tab: "resources".to_string(),
+            },
+            ObjectiveStepView {
+                id: "assign_worker".to_string(),
+                title: "分配第一名工人".to_string(),
+                description: "让第一位工人进入岗位，开始真正的人口驱动产能。".to_string(),
+                current: if is_completed("assign_worker") {
+                    1.0
+                } else {
+                    assigned_workers.min(1.0)
+                },
+                required: 1.0,
+                completed: is_completed("assign_worker"),
+                reward: "效率观察已解锁".to_string(),
+                recommended_tab: "workers".to_string(),
+            },
+            ObjectiveStepView {
+                id: "research_first_tech".to_string(),
+                title: "研究第一项科技".to_string(),
+                description: "用第一项科技把聚落从生存模式推向系统化扩张。".to_string(),
+                current: if is_completed("research_first_tech") {
+                    1.0
+                } else {
+                    purchased_technologies.min(1.0)
+                },
+                required: 1.0,
+                completed: is_completed("research_first_tech"),
+                reward: "新生产线即将展开".to_string(),
+                recommended_tab: "technology".to_string(),
+            },
+        ];
+
+        let current_objective_id = steps
+            .iter()
+            .find(|step| !step.completed)
+            .map(|step| step.id.clone());
+
+        ObjectiveChainView {
+            active: true,
+            stage_id: state.current_stage.id().to_string(),
+            current_objective_id,
+            steps,
+        }
+    }
+
+    fn calculate_worker_efficiency_multiplier(
+        &self,
+        worker_index: usize,
+        building_id: &str,
+    ) -> f64 {
+        if worker_index >= self.workers.len() {
+            return 1.0;
+        }
+
+        let worker = &self.workers[worker_index];
+        self.calculate_worker_efficiency_for(worker, building_id)
+    }
+
+    fn calculate_worker_efficiency_for(&self, worker: &Worker, building_id: &str) -> f64 {
+        let mut efficiency = 1.0;
+
+        if worker.preferences == building_id {
+            efficiency += 0.2;
+        }
+
+        efficiency += (worker.level as f64) * 0.05;
+        efficiency += worker.primary_trait.get_effect().efficiency_bonus;
+        efficiency += worker
+            .secondary_traits
+            .iter()
+            .map(|trait_value| trait_value.get_effect().efficiency_bonus)
+            .sum::<f64>();
+
+        if worker.happiness >= 80.0 {
+            efficiency += 0.10;
+        } else if worker.happiness >= 60.0 {
+            efficiency += 0.05;
+        } else if worker.happiness <= 20.0 {
+            efficiency -= 0.10;
+        } else if worker.happiness <= 35.0 {
+            efficiency -= 0.05;
+        }
+
+        if worker.is_hungry || worker.hunger >= 75.0 {
+            efficiency -= 0.20;
+        } else if worker.hunger >= 40.0 {
+            efficiency -= 0.10;
+        }
+
+        efficiency.max(0.25)
+    }
+
+    fn build_worker_efficiency_breakdown(
+        &self,
+        worker: &Worker,
+        building_id: Option<&str>,
+    ) -> Vec<String> {
+        let mut parts = vec!["基础 100%".to_string()];
+
+        if let Some(target_building) = building_id {
+            if worker.preferences == target_building {
+                parts.push("偏好岗位 +20%".to_string());
+            }
+        }
+
+        let level_bonus = (worker.level as f64) * 5.0;
+        if level_bonus > 0.0 {
+            parts.push(format!("等级加成 +{:.0}%", level_bonus));
+        }
+
+        let primary_bonus = worker.primary_trait.get_effect().efficiency_bonus;
+        if primary_bonus.abs() > f64::EPSILON {
+            parts.push(format!("主特质 {:+.0}%", primary_bonus * 100.0));
+        }
+
+        let secondary_bonus = worker
+            .secondary_traits
+            .iter()
+            .map(|trait_value| trait_value.get_effect().efficiency_bonus)
+            .sum::<f64>();
+        if secondary_bonus.abs() > f64::EPSILON {
+            parts.push(format!("副特质 {:+.0}%", secondary_bonus * 100.0));
+        }
+
+        if worker.happiness >= 80.0 {
+            parts.push("心情高涨 +10%".to_string());
+        } else if worker.happiness >= 60.0 {
+            parts.push("心情稳定 +5%".to_string());
+        } else if worker.happiness <= 20.0 {
+            parts.push("情绪低落 -10%".to_string());
+        } else if worker.happiness <= 35.0 {
+            parts.push("士气不足 -5%".to_string());
+        }
+
+        if worker.is_hungry || worker.hunger >= 75.0 {
+            parts.push("饥饿惩罚 -20%".to_string());
+        } else if worker.hunger >= 40.0 {
+            parts.push("饥饿压力 -10%".to_string());
+        }
+
+        parts
+    }
+
+    fn lifecycle_anomaly_state(&self) -> (&'static str, &'static str) {
+        let hungry_workers = self
+            .workers
+            .iter()
+            .filter(|worker| worker.is_hungry)
+            .count();
+        let corpses = self.state.borrow().get_resource(ResourceType::Corpse);
+        let food = self.state.borrow().get_resource(ResourceType::Food);
+
+        if corpses >= 1.0 || hungry_workers >= 2 {
+            return (
+                "breach",
+                "尸体开始出现不正常的异动，聚落里已经没人愿意靠近储藏区。",
+            );
+        }
+
+        if hungry_workers >= 1 || food <= 0.0 {
+            return (
+                "decay",
+                "饥饿和死亡的气味正在扩散，秩序已经出现肉眼可见的裂缝。",
+            );
+        }
+
+        if food < self.workers.len() as f64 + 1.0 {
+            return (
+                "warning",
+                "空气里开始弥漫紧张和腐败的味道，补给似乎撑不了太久。",
+            );
+        }
+
+        (
+            "stable",
+            "聚落暂时维持住了秩序，但所有人都知道这种平衡并不牢靠。",
+        )
+    }
+
+    fn calculate_assignment_gain(&self, worker_index: usize, building: &Building) -> f64 {
+        if building.count == 0 {
+            return 0.0;
+        }
+
+        let efficiency = self.calculate_worker_efficiency_multiplier(worker_index, &building.name);
+        let base_output = building.production_rate * building.count as f64;
+        (base_output * (efficiency - 1.0)).max(0.0)
+    }
+
     /// Serialize entire game state to SavedGame structure
     pub fn save_game(&self) -> SavedGame {
         SavedGame {
@@ -484,6 +1074,8 @@ impl IdleGame {
                 4,
             )];
         }
+
+        self.refresh_progression_state();
     }
 }
 
@@ -776,16 +1368,16 @@ impl IdleGame {
                 factory_building("钢铁厂", 520.0, 0.06, ResourceType::SteelPlate),
                 factory_building("玻璃厂", 460.0, 0.08, ResourceType::Glass),
                 factory_building("塑料厂", 540.0, 0.08, ResourceType::Plastic),
-                factory_building("电路板厂", 900.0, 0.05, ResourceType::CircuitBoard),
+                factory_building("电路板厂", 760.0, 0.065, ResourceType::CircuitBoard),
                 factory_building("马达厂", 1200.0, 0.04, ResourceType::Motor),
                 factory_building("传感器厂", 1250.0, 0.04, ResourceType::Sensor),
                 factory_building("齿轮厂", 750.0, 0.06, ResourceType::Gear),
-                factory_building("电池厂", 1500.0, 0.04, ResourceType::Battery),
-                factory_building("发电机厂", 2200.0, 0.03, ResourceType::Generator),
-                factory_building("芯片制造厂", 3200.0, 0.03, ResourceType::Microchip),
-                factory_building("量子计算中心", 9000.0, 0.01, ResourceType::QuantumComputer),
+                factory_building("电池厂", 1200.0, 0.05, ResourceType::Battery),
+                factory_building("发电机厂", 1800.0, 0.04, ResourceType::Generator),
+                factory_building("芯片制造厂", 2600.0, 0.04, ResourceType::Microchip),
+                factory_building("量子计算中心", 7000.0, 0.012, ResourceType::QuantumComputer),
                 factory_building("机器人工厂", 5200.0, 0.02, ResourceType::Robot),
-                factory_building("纳米机器人工厂", 12000.0, 0.01, ResourceType::Nanobot),
+                factory_building("纳米机器人工厂", 9000.0, 0.015, ResourceType::Nanobot),
                 factory_building("反物质反应堆", 25000.0, 0.005, ResourceType::Antimatter),
                 factory_building("时间水晶合成器", 28000.0, 0.005, ResourceType::TimeCrystal),
             ],
@@ -882,7 +1474,11 @@ impl IdleGame {
         }
 
         let current_stage = self.state.borrow().current_stage;
-        if current_stage < stage::required_stage_for_building(&self.buildings[index].name) {
+        if !stage::is_building_revealed(
+            &self.buildings[index],
+            current_stage,
+            &self.technology_tree,
+        ) {
             return false;
         }
 
@@ -909,6 +1505,7 @@ impl IdleGame {
             self.check_achievement("building_enthusiast_10");
             self.check_achievement("building_tycoon_50");
 
+            self.refresh_progression_state();
             self.update_production();
             self.update_resources_only();
             self.update_buildings_only();
@@ -1146,18 +1743,10 @@ impl IdleGame {
 
         self.workers[worker_index].assigned_building = Some(building_id.to_string());
 
-        let preference = &self.workers[worker_index].preferences;
-
-        let mut efficiency = 1.0;
-
-        if preference == building_id {
-            efficiency += 0.2;
-        }
-
-        efficiency += (self.workers[worker_index].level as f64) * 0.05;
-
+        let efficiency = self.calculate_worker_efficiency_multiplier(worker_index, building_id);
         self.workers[worker_index].efficiency_multiplier = efficiency;
 
+        self.refresh_progression_state();
         self.update_production();
 
         true
@@ -1180,9 +1769,43 @@ impl IdleGame {
     #[wasm_bindgen]
     pub fn get_workers(&self) -> js_sys::Array {
         let workers_array = js_sys::Array::new();
+        let current_stage = self.state.borrow().current_stage;
 
         for worker in self.workers.iter() {
             let worker_obj = js_sys::Object::new();
+            let assigned_building = worker.assigned_building.as_deref();
+            let base_efficiency = 1.0 + (worker.level as f64) * 0.05;
+            let total_efficiency = assigned_building
+                .map(|building| self.calculate_worker_efficiency_for(worker, building))
+                .unwrap_or(base_efficiency);
+            let breakdown = self.build_worker_efficiency_breakdown(worker, assigned_building);
+
+            let recommended_assignment = if assigned_building.is_none() {
+                self.buildings
+                    .iter()
+                    .filter(|building| {
+                        building.count > 0
+                            && stage::is_building_revealed(
+                                building,
+                                current_stage,
+                                &self.technology_tree,
+                            )
+                    })
+                    .max_by(|a, b| {
+                        let gain_a = a.production_rate
+                            * a.count as f64
+                            * (self.calculate_worker_efficiency_for(worker, &a.name) - 1.0);
+                        let gain_b = b.production_rate
+                            * b.count as f64
+                            * (self.calculate_worker_efficiency_for(worker, &b.name) - 1.0);
+                        gain_a
+                            .partial_cmp(&gain_b)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
+                    .map(|building| building.name.clone())
+            } else {
+                None
+            };
 
             js_sys::Reflect::set(
                 &worker_obj,
@@ -1233,6 +1856,41 @@ impl IdleGame {
                 &worker_obj,
                 &JsValue::from_str("efficiencyMultiplier"),
                 &JsValue::from_f64(worker.efficiency_multiplier),
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("baseEfficiency"),
+                &JsValue::from_f64(base_efficiency),
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("totalEfficiency"),
+                &JsValue::from_f64(total_efficiency),
+            )
+            .unwrap();
+
+            let breakdown_array = js_sys::Array::new();
+            for part in breakdown {
+                breakdown_array.push(&JsValue::from_str(&part));
+            }
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("efficiencyBreakdown"),
+                &breakdown_array,
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("autoAssignmentTarget"),
+                &match recommended_assignment {
+                    Some(ref building) => JsValue::from_str(building),
+                    None => JsValue::NULL,
+                },
             )
             .unwrap();
 
@@ -1308,7 +1966,9 @@ impl IdleGame {
             .buildings
             .iter()
             .enumerate()
-            .filter(|(_, building)| stage::is_building_revealed(building, current_stage))
+            .filter(|(_, building)| {
+                stage::is_building_revealed(building, current_stage, &self.technology_tree)
+            })
             .map(|(index, building)| BuildingView {
                 index,
                 name: building.name.clone(),
@@ -1518,41 +2178,54 @@ impl IdleGame {
     #[wasm_bindgen]
     pub fn assign_worker_auto(&mut self) -> u32 {
         let mut assigned_count = 0u32;
-        let building_names: Vec<String> = self.buildings.iter().map(|b| b.name.clone()).collect();
+        let current_stage = self.state.borrow().current_stage;
+        let candidate_buildings: Vec<String> = self
+            .buildings
+            .iter()
+            .filter(|building| {
+                building.count > 0
+                    && stage::is_building_revealed(building, current_stage, &self.technology_tree)
+            })
+            .map(|building| building.name.clone())
+            .collect();
+
+        if candidate_buildings.is_empty() {
+            return 0;
+        }
 
         for idx in 0..self.workers.len() {
             if self.workers[idx].assigned_building.is_some() {
                 continue;
             }
 
-            // 1) preference exact match
-            let preferred = self.workers[idx].preferences.clone();
-            if building_names.iter().any(|b| b == &preferred) && self.assign_worker(idx, &preferred)
-            {
-                assigned_count += 1;
-                continue;
-            }
+            let mut ranked_buildings: Vec<(String, f64)> = self
+                .buildings
+                .iter()
+                .filter(|building| {
+                    building.count > 0
+                        && stage::is_building_revealed(
+                            building,
+                            current_stage,
+                            &self.technology_tree,
+                        )
+                })
+                .map(|building| {
+                    (
+                        building.name.clone(),
+                        self.calculate_assignment_gain(idx, building),
+                    )
+                })
+                .collect();
 
-            // 2) trait-based fallback
-            let trait_target = match self.workers[idx].primary_trait {
-                crate::entities::worker::Trait::Diligent
-                | crate::entities::worker::Trait::Hardworking
-                | crate::entities::worker::Trait::Efficient => Some("金币矿山"),
-                crate::entities::worker::Trait::Careful
-                | crate::entities::worker::Trait::Persevering => Some("采石场"),
-                _ => None,
-            };
+            ranked_buildings.sort_by(|(name_a, gain_a), (name_b, gain_b)| {
+                gain_b
+                    .partial_cmp(gain_a)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| name_a.cmp(name_b))
+            });
 
-            if let Some(target) = trait_target {
-                if building_names.iter().any(|b| b == target) && self.assign_worker(idx, target) {
-                    assigned_count += 1;
-                    continue;
-                }
-            }
-
-            // 3) first available building
-            if let Some(first_building) = building_names.first() {
-                if self.assign_worker(idx, first_building) {
+            if let Some((best_building, _)) = ranked_buildings.first() {
+                if self.assign_worker(idx, best_building) {
                     assigned_count += 1;
                 }
             }
@@ -1574,17 +2247,7 @@ impl IdleGame {
 
         self.workers[worker_index].assigned_building = Some(building_id.to_string());
 
-        let _skill = &self.workers[worker_index].skills;
-        let preference = &self.workers[worker_index].preferences;
-
-        let mut efficiency = 1.0;
-
-        if preference == building_id {
-            efficiency += 0.2;
-        }
-
-        efficiency += (self.workers[worker_index].level as f64) * 0.05;
-
+        let efficiency = self.calculate_worker_efficiency_multiplier(worker_index, building_id);
         self.workers[worker_index].efficiency_multiplier = efficiency;
 
         self.update_production();
@@ -1607,6 +2270,42 @@ impl IdleGame {
     }
 
     fn update_production(&mut self) {
+        for worker in &mut self.workers {
+            if let Some(assigned_building) = worker.assigned_building.clone() {
+                let mut efficiency = 1.0;
+
+                if worker.preferences == assigned_building {
+                    efficiency += 0.2;
+                }
+
+                efficiency += (worker.level as f64) * 0.05;
+                efficiency += worker.primary_trait.get_effect().efficiency_bonus;
+                efficiency += worker
+                    .secondary_traits
+                    .iter()
+                    .map(|trait_value| trait_value.get_effect().efficiency_bonus)
+                    .sum::<f64>();
+
+                if worker.happiness >= 80.0 {
+                    efficiency += 0.10;
+                } else if worker.happiness >= 60.0 {
+                    efficiency += 0.05;
+                } else if worker.happiness <= 20.0 {
+                    efficiency -= 0.10;
+                } else if worker.happiness <= 35.0 {
+                    efficiency -= 0.05;
+                }
+
+                if worker.is_hungry || worker.hunger >= 75.0 {
+                    efficiency -= 0.20;
+                } else if worker.hunger >= 40.0 {
+                    efficiency -= 0.10;
+                }
+
+                worker.efficiency_multiplier = efficiency.max(0.25);
+            }
+        }
+
         let mut total_cps = 0.0;
         let mut total_wps = 0.0;
         let mut total_sps = 0.0;
@@ -1867,24 +2566,43 @@ impl IdleGame {
                 let mut state = self.state.borrow_mut();
                 crate::systems::decay::produce_maggots(&mut state, now);
 
-                let maggot_gain = self
-                    .buildings
-                    .iter()
-                    .filter(|building| matches!(building.name.as_str(), "蛆虫工厂" | "腐肉育池"))
-                    .map(|building| building.production_rate * building.count as f64)
-                    .sum::<f64>()
-                    * elapsed;
-                if maggot_gain.is_finite() && maggot_gain > 0.0 {
-                    state.add_resource(ResourceType::Maggot, maggot_gain);
-                }
-
-                // Maggot factory: convert maggots into food (10:1 ratio).
                 let maggot_factory_count = self
                     .buildings
                     .iter()
                     .find(|b| b.name == "蛆虫工厂")
                     .map(|b| b.count as f64)
                     .unwrap_or(0.0);
+                let necrotic_pool_count = self
+                    .buildings
+                    .iter()
+                    .find(|b| b.name == "腐肉育池")
+                    .map(|b| b.count as f64)
+                    .unwrap_or(0.0);
+                let symbiosis_chamber_count = self
+                    .buildings
+                    .iter()
+                    .find(|b| b.name == "共生培育舱")
+                    .map(|b| b.count as f64)
+                    .unwrap_or(0.0);
+                let neural_spire_count = self
+                    .buildings
+                    .iter()
+                    .find(|b| b.name == "神经尖塔")
+                    .map(|b| b.count as f64)
+                    .unwrap_or(0.0);
+                let deep_space_hatchery_count = self
+                    .buildings
+                    .iter()
+                    .find(|b| b.name == "深空孵化港")
+                    .map(|b| b.count as f64)
+                    .unwrap_or(0.0);
+
+                let maggot_gain = (maggot_factory_count + (necrotic_pool_count * 0.5)) * elapsed;
+                if maggot_gain.is_finite() && maggot_gain > 0.0 {
+                    state.add_resource(ResourceType::Maggot, maggot_gain);
+                }
+
+                // Maggot factory: convert maggots into food (10:1 ratio).
                 if maggot_factory_count > 0.0 {
                     let max_maggot_process = 10.0 * maggot_factory_count * elapsed;
                     let current_maggot = state.get_resource(ResourceType::Maggot);
@@ -1892,7 +2610,82 @@ impl IdleGame {
                     if process_amount > 0.0 {
                         state.add_resource(ResourceType::Maggot, -process_amount);
                         state.add_resource(ResourceType::Food, process_amount / 10.0);
+                        state.objective_chain.dark_conversion_completed = true;
+                        if !state
+                            .objective_chain
+                            .completed_steps
+                            .iter()
+                            .any(|completed| completed == "complete_dark_conversion")
+                        {
+                            state
+                                .objective_chain
+                                .completed_steps
+                                .push("complete_dark_conversion".to_string());
+                        }
                     }
+                }
+
+                if necrotic_pool_count > 0.0
+                    && self
+                        .technology_tree
+                        .is_unlocked(crate::entities::technology::TechnologyId::NecroticRecycling)
+                {
+                    let current_maggot = state.get_resource(ResourceType::Maggot);
+                    let process_amount = current_maggot
+                        .min(8.0 * necrotic_pool_count * elapsed)
+                        .max(0.0);
+                    if process_amount > 0.0 {
+                        state.add_resource(ResourceType::Maggot, -process_amount);
+                        state.add_resource(ResourceType::Food, process_amount / 16.0);
+                        state.add_resource(ResourceType::Chemicals, process_amount / 8.0);
+                        state.objective_chain.dark_conversion_completed = true;
+                        if !state
+                            .objective_chain
+                            .completed_steps
+                            .iter()
+                            .any(|completed| completed == "complete_dark_conversion")
+                        {
+                            state
+                                .objective_chain
+                                .completed_steps
+                                .push("complete_dark_conversion".to_string());
+                        }
+                    }
+                }
+
+                if symbiosis_chamber_count > 0.0
+                    && self
+                        .technology_tree
+                        .is_unlocked(crate::entities::technology::TechnologyId::SymbioticHosts)
+                {
+                    state.coexistence.hybrid_population = (state.coexistence.hybrid_population
+                        + (symbiosis_chamber_count * 0.015 * elapsed))
+                        .clamp(0.0, 24.0);
+                    state.coexistence.symbiosis_stability = (state.coexistence.symbiosis_stability
+                        + (symbiosis_chamber_count * 0.06 * elapsed))
+                        .clamp(0.0, 100.0);
+                }
+
+                if neural_spire_count > 0.0
+                    && self
+                        .technology_tree
+                        .is_unlocked(crate::entities::technology::TechnologyId::CollectiveAwakening)
+                {
+                    state.add_resource(
+                        ResourceType::DarkMatter,
+                        neural_spire_count * 0.03 * elapsed,
+                    );
+                }
+
+                if deep_space_hatchery_count > 0.0
+                    && self
+                        .technology_tree
+                        .is_unlocked(crate::entities::technology::TechnologyId::ConsciousnessUpload)
+                {
+                    state.add_resource(
+                        ResourceType::Spaceship,
+                        deep_space_hatchery_count * 0.004 * elapsed,
+                    );
                 }
             }
 
@@ -1933,6 +2726,8 @@ impl IdleGame {
                 }
             }
         }
+
+        self.refresh_progression_state();
 
         self.check_achievement("first_coins_100");
         self.check_achievement("wood_collector_1000");
@@ -2076,6 +2871,7 @@ impl IdleGame {
             ));
         }
 
+        self.refresh_progression_state();
         true
     }
 
@@ -2180,6 +2976,12 @@ impl IdleGame {
             hybrid_population: state.coexistence.hybrid_population,
             collective_consciousness: state.coexistence.collective_consciousness,
         };
+        serde_json::to_string(&view).unwrap_or_else(|_| "{}".to_string())
+    }
+
+    #[wasm_bindgen(js_name = getCurrentObjectiveChainJson)]
+    pub fn get_current_objective_chain_json(&self) -> String {
+        let view = self.get_worker_objective_chain_view();
         serde_json::to_string(&view).unwrap_or_else(|_| "{}".to_string())
     }
 
@@ -2499,6 +3301,7 @@ impl IdleGame {
         self.technology_tree
             .research(tech_id)
             .map_err(|e| JsValue::from_str(&e))?;
+        self.refresh_progression_state();
         Ok(true)
     }
 
@@ -2559,20 +3362,28 @@ impl IdleGame {
     pub fn get_work_overview_json(&self) -> String {
         use crate::state::job_stats::{JobStats, WorkOverview};
         use std::collections::HashMap;
-        let mut job_map: HashMap<String, (u32, f64)> = HashMap::new();
+        let mut job_map: HashMap<String, (u32, f64, f64)> = HashMap::new();
         let mut unassigned = 0u32;
         for worker in &self.workers {
             if let Some(ref building) = worker.assigned_building {
-                let entry = job_map.entry(building.clone()).or_insert((0, 0.0));
+                let building_output = self
+                    .buildings
+                    .iter()
+                    .find(|candidate| candidate.name == *building)
+                    .map(|candidate| candidate.production_rate * candidate.count as f64)
+                    .unwrap_or(0.0);
+                let contribution = building_output * (worker.efficiency_multiplier - 1.0).max(0.0);
+                let entry = job_map.entry(building.clone()).or_insert((0, 0.0, 0.0));
                 entry.0 += 1;
                 entry.1 += worker.efficiency_multiplier;
+                entry.2 += contribution;
             } else {
                 unassigned += 1;
             }
         }
         let jobs: Vec<JobStats> = job_map
             .into_iter()
-            .map(|(job_type, (count, total_eff))| JobStats {
+            .map(|(job_type, (count, total_eff, total_output))| JobStats {
                 job_type,
                 worker_count: count,
                 avg_efficiency: if count > 0 {
@@ -2580,7 +3391,7 @@ impl IdleGame {
                 } else {
                     0.0
                 },
-                total_output: total_eff,
+                total_output,
             })
             .collect();
         let total_workers = self.workers.len() as u32;
@@ -2615,12 +3426,15 @@ impl IdleGame {
         let state = self.state.borrow();
         let dark_cycle_revealed = state.current_stage >= GameStage::Maggot;
         let coexistence_revealed = state.current_stage >= GameStage::Hybrid;
+        let (anomaly_level, anomaly_text) = self.lifecycle_anomaly_state();
         let status = serde_json::json!({
             "workers": self.workers.len() as u32,
             "hungry_workers": hungry_workers,
             "queue_workers": self.population_queue.len() as u32,
             "housing_capacity": self.get_housing_capacity_internal(),
             "food": state.get_resource(ResourceType::Food),
+            "anomaly_level": anomaly_level,
+            "anomaly_text": anomaly_text,
             "dark_cycle_revealed": dark_cycle_revealed,
             "coexistence_revealed": coexistence_revealed,
             "corpses": if dark_cycle_revealed { serde_json::Value::from(state.get_resource(ResourceType::Corpse)) } else { serde_json::Value::Null },

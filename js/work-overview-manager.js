@@ -30,7 +30,7 @@ class WorkOverviewManager {
         const maxOutput = jobs.reduce((max, job) => Math.max(max, Number(job.total_output || 0)), 0);
         const rows = jobs
             .slice()
-            .sort((a, b) => Number(b.worker_count || 0) - Number(a.worker_count || 0))
+            .sort((a, b) => Number(b.total_output || 0) - Number(a.total_output || 0))
             .map((j) => {
                 const workerCount = Number(j.worker_count || 0);
                 const avgEfficiency = Number(j.avg_efficiency || 0);

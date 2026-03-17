@@ -38,6 +38,10 @@ class LifecycleManager {
         panel.innerHTML = `
             <div class="lifecycle-overview">
                 <h3>生命周期资源</h3>
+                <div class="lifecycle-anomaly ${this.escapeHtml(s.anomaly_level || 'stable')}">
+                    <strong>异常等级: ${this.formatAnomalyLabel(s.anomaly_level)}</strong>
+                    <span>${this.escapeHtml(s.anomaly_text || '')}</span>
+                </div>
                 <div>工人: ${this.formatInteger(s.workers)}</div>
                 <div>饥饿工人: ${this.formatInteger(s.hungry_workers)}</div>
                 <div>等待队列: ${this.formatInteger(s.queue_workers)}</div>
@@ -82,6 +86,7 @@ class LifecycleManager {
 
         const maggotFactoryCount = this.getMaggotFactoryCount();
         const canProcessNow = maggotFactoryCount > 0 && maggots >= 10;
+        const anomalyBadge = this.formatAnomalyLabel(s.anomaly_level);
         const darkCycleInline = s.dark_cycle_revealed ? `
                     <span>尸体 ${this.formatDecimal(corpses)}</span>
                     <span>蛆虫 ${this.formatDecimal(maggots)} (转化 ${this.formatInteger(maggots / 10)})</span>
@@ -97,10 +102,12 @@ class LifecycleManager {
             <div class="lifecycle-resource-widget compact ${foodWarning ? 'warning' : ''}">
                 <div class="widget-inline">
                     <span class="widget-badge ${foodWarning ? 'danger' : 'ok'}">${foodWarning ? '补给紧张' : '稳定'}</span>
+                    <span class="widget-badge anomaly ${this.escapeHtml(s.anomaly_level || 'stable')}">${anomalyBadge}</span>
                     <span>工人 ${this.formatInteger(workers)}</span>
                     <span class="${hungry > 0 ? 'danger' : ''}">饥饿 ${this.formatInteger(hungry)}</span>
                     <span>队列 ${this.formatInteger(queue)}</span>
                     <span>食物 ${this.formatDecimal(food)} (${this.formatDecimal(foodConsumeRate)}/秒)</span>
+                    <span class="lifecycle-inline-text">${this.escapeHtml(s.anomaly_text || '')}</span>
                     ${darkCycleInline}
                     ${coexistenceInline}
                 </div>
@@ -151,6 +158,28 @@ class LifecycleManager {
         }
 
         return Number(value || 0).toFixed(fractionDigits);
+    }
+
+    formatAnomalyLabel(level) {
+        switch (level) {
+            case 'warning':
+                return '异常预警';
+            case 'decay':
+                return '秩序衰败';
+            case 'breach':
+                return '裂口成形';
+            default:
+                return '暂时稳定';
+        }
+    }
+
+    escapeHtml(value) {
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
     }
 }
 

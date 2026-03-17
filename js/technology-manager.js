@@ -106,6 +106,71 @@ class TechnologyManager {
         }
     }
 
+    getCurrentObjectiveChain() {
+        if (!this.rustGame || typeof this.rustGame.getCurrentObjectiveChainJson !== 'function') {
+            return null;
+        }
+
+        try {
+            return JSON.parse(this.rustGame.getCurrentObjectiveChainJson());
+        } catch (error) {
+            console.error('TechnologyManager: Failed to read objective chain:', error);
+            return null;
+        }
+    }
+
+    getRecommendedTechnologyId() {
+        const objectiveChain = this.getCurrentObjectiveChain();
+        const currentObjectiveId = objectiveChain && objectiveChain.current_objective_id
+            ? objectiveChain.current_objective_id
+            : null;
+        const stageId = objectiveChain && objectiveChain.stage_id ? objectiveChain.stage_id : null;
+
+        if (currentObjectiveId === 'research_first_tech') {
+            if (this.technologies.some((tech) => tech.id === 'BasicAgriculture')) {
+                return 'BasicAgriculture';
+            }
+        }
+
+        if (currentObjectiveId === 'research_maggot_tech') {
+            if (this.technologies.some((tech) => tech.id === 'MaggotBreeding')) {
+                return 'MaggotBreeding';
+            }
+            if (this.technologies.some((tech) => tech.id === 'NecroticRecycling')) {
+                return 'NecroticRecycling';
+            }
+        }
+
+        if (currentObjectiveId === 'research_hive_mind') {
+            if (this.technologies.some((tech) => tech.id === 'HiveMindProtocol')) {
+                return 'HiveMindProtocol';
+            }
+        }
+
+        if (currentObjectiveId === 'upload_consciousness') {
+            if (this.technologies.some((tech) => tech.id === 'ConsciousnessUpload')) {
+                return 'ConsciousnessUpload';
+            }
+        }
+
+        const priority = stageId === 'stage_collective'
+            ? ['CollectiveAwakening', 'ConsciousnessUpload', 'SpaceExploration', 'QuantumComputing']
+            : stageId === 'stage_hybrid'
+                ? ['SymbioticHosts', 'HiveMindProtocol']
+                : stageId === 'stage_maggot'
+                    ? ['MaggotBreeding', 'NecroticRecycling', 'SymbioticHosts']
+                    : ['BasicAgriculture', 'BasicSmelting', 'BasicEngineering', 'BasicChemistry', 'Electronics'];
+
+        const available = this.technologies.filter((tech) => this.canResearch(tech) && !(tech.researched || tech.purchased));
+        for (const techId of priority) {
+            if (available.some((tech) => tech.id === techId)) {
+                return techId;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Main render method - builds tools + card grid
      */
@@ -315,6 +380,8 @@ class TechnologyManager {
         if (footerEl) {
             footerEl.innerHTML = this.renderTechFooterHtml(tech, t, canResearch, hasResources, isResearched);
         }
+
+        card.classList.toggle('recommended', this.getRecommendedTechnologyId() === tech.id && !isResearched);
     }
 
     renderTechCostsHtml(costs) {
@@ -369,7 +436,13 @@ class TechnologyManager {
         });
         
         // Sort by tier then name
+        const recommendedId = this.getRecommendedTechnologyId();
+
         filtered.sort((a, b) => {
+            const recommendedA = a.id === recommendedId ? 1 : 0;
+            const recommendedB = b.id === recommendedId ? 1 : 0;
+            if (recommendedA !== recommendedB) return recommendedB - recommendedA;
+
             const tierA = a.tier || 1;
             const tierB = b.tier || 1;
             if (tierA !== tierB) return tierA - tierB;
@@ -388,6 +461,7 @@ class TechnologyManager {
         const hasResources = this.hasResources(tech.costs);
         const statusClass = isResearched ? 'researched' : (canResearch ? '' : 'locked');
         const effectDesc = this.getEffectDescription(tech);
+        const isRecommended = this.getRecommendedTechnologyId() === tech.id && !isResearched;
         
         // Status icon and text
         let statusIcon = '';
@@ -403,7 +477,7 @@ class TechnologyManager {
         const buttonHtml = this.renderTechFooterHtml(tech, t, canResearch, hasResources, isResearched);
         
         return `
-            <div class="tech-card ${statusClass}" data-tech-id="${tech.id}">
+            <div class="tech-card ${statusClass} ${isRecommended ? 'recommended' : ''}" data-tech-id="${tech.id}">
                 <div class="tech-header">
                     <span class="tech-name">
                         <span class="tech-badge">T${tech.tier || 1}</span>
@@ -412,6 +486,7 @@ class TechnologyManager {
                     <span class="tech-status">${statusIcon}</span>
                 </div>
                 <div class="tech-body">
+                    ${isRecommended ? '<div class="tech-recommendation">推荐路线</div>' : ''}
                     <div class="tech-effect">${this.escapeHtml(effectDesc)}</div>
                     ${costsHtml}
                 </div>

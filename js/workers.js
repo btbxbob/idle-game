@@ -240,6 +240,8 @@ class WorkerManager {
             const hunger = Number(worker.hunger || 0).toFixed(0);
             const hungryText = this.formatStatusLabel(worker);
             const traitInfo = this.getTraitInfo(worker);
+            const efficiencyBreakdown = this.escapeHtml(this.getEfficiencyBreakdown(worker));
+            const autoHint = this.escapeHtml(this.getAutoAssignmentHint(worker));
             html += `
                 <div class="worker-card worker-list-item" onclick="window.workerManager.showAssignmentModal(${worker.__index})">
                     <div class="worker-header worker-item-header">
@@ -272,6 +274,8 @@ class WorkerManager {
                             <span><strong>${t('hunger') || '饥饿'}:</strong> ${hunger}</span>
                             <span><strong>${t('status') || '状态'}:</strong> ${hungryText}</span>
                         </div>
+                        <div class="worker-card-efficiency-detail">${efficiencyBreakdown}</div>
+                        ${autoHint ? `<div class="worker-card-auto-hint">${autoHint}</div>` : ''}
                     </div>
                     <div class="xp-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${xpProgress.toFixed(0)}">
                         <span class="xp-progress-fill" style="width:${xpProgress.toFixed(1)}%"></span>
@@ -346,6 +350,8 @@ class WorkerManager {
         const traitInfo = this.getTraitInfo(worker);
         const assignmentText = this.escapeHtml(worker.assignedBuilding || (t('unassigned') || '未分配'));
         const efficiencyDetail = this.getEfficiencyDetail(worker);
+        const efficiencyBreakdown = this.escapeHtml(this.getEfficiencyBreakdown(worker));
+        const autoHint = this.escapeHtml(this.getAutoAssignmentHint(worker));
 
         const modal = document.createElement('div');
         modal.id = 'worker-assignment-modal';
@@ -382,6 +388,11 @@ class WorkerManager {
                                 <span>${t('efficiency') || '效率'}</span>
                                 <strong>${efficiencyDetail}</strong>
                             </div>
+                            <div class="worker-detail-row-line worker-detail-notes">
+                                <span>${t('efficiency') || '效率来源'}</span>
+                                <strong>${efficiencyBreakdown}</strong>
+                            </div>
+                            ${autoHint ? `<div class="worker-detail-row-line worker-detail-notes"><span>自动建议</span><strong>${autoHint}</strong></div>` : ''}
                         </div>
                         <div class="worker-detail-card">
                             <div class="trait-line">
@@ -534,6 +545,20 @@ class WorkerManager {
         const baseText = `${(base * 100).toFixed(0)}%`;
         const totalText = `${(total * 100).toFixed(0)}%`;
         return `${baseText} → ${totalText}`;
+    }
+
+    getEfficiencyBreakdown(worker) {
+        if (!worker || !Array.isArray(worker.efficiencyBreakdown) || worker.efficiencyBreakdown.length === 0) {
+            return '基础 100%';
+        }
+        return worker.efficiencyBreakdown.join(' / ');
+    }
+
+    getAutoAssignmentHint(worker) {
+        if (!worker || worker.assignedBuilding || !worker.autoAssignmentTarget) {
+            return '';
+        }
+        return `自动建议: ${worker.autoAssignmentTarget}`;
     }
 
     /**

@@ -53,8 +53,34 @@ pub fn required_stage_for_building(building_name: &str) -> GameStage {
     }
 }
 
-pub fn is_building_revealed(building: &Building, current_stage: GameStage) -> bool {
-    current_stage >= required_stage_for_building(&building.name)
+pub fn required_technology_for_building(building_name: &str) -> Option<TechnologyId> {
+    match building_name {
+        "铁锭冶炼厂" | "铜锭冶炼厂" => Some(TechnologyId::BasicSmelting),
+        "化学品厂" => Some(TechnologyId::BasicChemistry),
+        "钢铁厂" | "齿轮厂" => Some(TechnologyId::BasicEngineering),
+        "电路板厂" => Some(TechnologyId::Electronics),
+        "蛆虫工厂" => Some(TechnologyId::MaggotBreeding),
+        "腐肉育池" => Some(TechnologyId::NecroticRecycling),
+        "共生培育舱" => Some(TechnologyId::SymbioticHosts),
+        "神经尖塔" => Some(TechnologyId::CollectiveAwakening),
+        "深空孵化港" => Some(TechnologyId::ConsciousnessUpload),
+        _ => None,
+    }
+}
+
+pub fn is_building_revealed(
+    building: &Building,
+    current_stage: GameStage,
+    tech_tree: &TechnologyTree,
+) -> bool {
+    if current_stage < required_stage_for_building(&building.name) {
+        return false;
+    }
+
+    match required_technology_for_building(&building.name) {
+        Some(tech_id) => tech_tree.is_unlocked(tech_id),
+        None => true,
+    }
 }
 
 pub fn technology_stage(tech_id: TechnologyId) -> GameStage {
@@ -380,12 +406,18 @@ pub fn requirement_progress(
     requirement_type: &str,
     state: &GameState,
     statistics: &Statistics,
-    _workers: &[Worker],
+    workers: &[Worker],
     tech_tree: &TechnologyTree,
 ) -> f64 {
     match requirement_type {
         "workers_stage" => (statistics.buildings_purchased as f64 / 3.0).min(1.0),
-        "maggot_stage" => (state.get_resource(ResourceType::Maggot) / 10.0).min(1.0),
+        "maggot_stage" => {
+            let hungry_workers = workers.iter().filter(|worker| worker.is_hungry).count() as f64;
+            let pressure = (hungry_workers / 2.0).min(1.0);
+            let corpses = (state.get_resource(ResourceType::Corpse) / 1.0).min(1.0);
+            let maggots = (state.get_resource(ResourceType::Maggot) / 1.0).min(1.0);
+            ((pressure + corpses + maggots) / 3.0).min(1.0)
+        }
         "maggot_tech" => {
             if tech_tree.is_unlocked(TechnologyId::MaggotBreeding) {
                 1.0
@@ -455,7 +487,7 @@ pub fn requirement_details(
     requirement_value: f64,
     state: &GameState,
     statistics: &Statistics,
-    _workers: &[Worker],
+    workers: &[Worker],
     tech_tree: &TechnologyTree,
 ) -> RequirementDetails {
     match requirement_type {
@@ -468,12 +500,24 @@ pub fn requirement_details(
             }],
         },
         "maggot_stage" => RequirementDetails {
-            summary: "让黑暗分支显形：需要至少积累 10 点蛆虫资源。".to_string(),
-            lines: vec![RequirementLine {
-                label: "蛆虫".to_string(),
-                current: state.get_resource(ResourceType::Maggot),
-                required: 10.0,
-            }],
+            summary: "黑暗分支来自聚落衰败本身：饥饿、尸体与异动共同推动隐藏阶段显形。".to_string(),
+            lines: vec![
+                RequirementLine {
+                    label: "饥饿工人".to_string(),
+                    current: workers.iter().filter(|worker| worker.is_hungry).count() as f64,
+                    required: 2.0,
+                },
+                RequirementLine {
+                    label: "尸体".to_string(),
+                    current: state.get_resource(ResourceType::Corpse),
+                    required: 1.0,
+                },
+                RequirementLine {
+                    label: "蛆虫异动".to_string(),
+                    current: state.get_resource(ResourceType::Maggot).min(1.0),
+                    required: 1.0,
+                },
+            ],
         },
         "maggot_tech" => RequirementDetails {
             summary: "黑暗生物链不是手动按钮解锁，而是要先研究科技“蛆虫育种”。".to_string(),
@@ -569,6 +613,7 @@ pub fn requirement_details(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entities::Building;
 
     fn stats_with_buildings(buildings: u32) -> Statistics {
         Statistics {
@@ -640,5 +685,57 @@ mod tests {
             &[],
             &tree,
         ));
+    }
+
+    #[test]
+    fn farm_is_visible_in_worker_stage_without_tech_gate() {
+        let building = Building {
+            name: "农场".to_string(),
+            cost: 30.0,
+            production_rate: 2.0,
+            output_resource: ResourceType::Food,
+            count: 0,
+        };
+        let tree = TechnologyTree::new();
+
+        assert!(is_building_revealed(&building, GameStage::Workers, &tree));
+    }
+
+    #[test]
+    fn maggot_factory_requires_maggot_breeding() {
+        let building = Building {
+            name: "蛆虫工厂".to_string(),
+            cost: 200.0,
+            production_rate: 1.0,
+            output_resource: ResourceType::Maggot,
+            count: 0,
+        };
+        let mut tree = TechnologyTree::new();
+
+        assert!(!is_building_revealed(&building, GameStage::Maggot, &tree));
+
+        if let Some(tech) = tree.technologies.get_mut(&TechnologyId::MaggotBreeding) {
+            tech.purchased = true;
+        }
+        tree.unlocked.insert(TechnologyId::MaggotBreeding);
+
+        assert!(is_building_revealed(&building, GameStage::Maggot, &tree));
+    }
+
+    #[test]
+    fn maggot_stage_progress_uses_decay_signals() {
+        let mut state = GameState::default();
+        state.set_resource(ResourceType::Corpse, 1.0);
+        let mut workers = vec![Worker::new("a", "survival", "bg", "农场")];
+        workers[0].is_hungry = true;
+        let progress = requirement_progress(
+            "maggot_stage",
+            &state,
+            &stats_with_buildings(5),
+            &workers,
+            &TechnologyTree::new(),
+        );
+
+        assert!(progress > 0.3);
     }
 }

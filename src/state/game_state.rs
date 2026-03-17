@@ -7,6 +7,16 @@ use std::collections::HashMap;
 /// Current save format version
 pub const SAVE_VERSION: &str = "0.3.0";
 
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct ObjectiveChainState {
+    #[serde(default)]
+    pub completed_steps: Vec<String>,
+    #[serde(default)]
+    pub granted_stage_rewards: Vec<String>,
+    #[serde(default)]
+    pub dark_conversion_completed: bool,
+}
+
 #[derive(Serialize, Clone, Debug)]
 pub struct GameState {
     pub version: String,
@@ -24,6 +34,8 @@ pub struct GameState {
     pub current_stage: GameStage,
     #[serde(default)]
     pub coexistence: CoexistenceState,
+    #[serde(default)]
+    pub objective_chain: ObjectiveChainState,
     #[serde(skip)]
     pub(crate) gold_units: u64,
     #[serde(skip)]
@@ -70,6 +82,7 @@ impl<'de> Deserialize<'de> for GameState {
             prestige_multiplier: Option<f64>,
             current_stage: Option<GameStage>,
             coexistence: Option<CoexistenceState>,
+            objective_chain: Option<ObjectiveChainState>,
         }
 
         let map = HashMap::<String, serde_json::Value>::deserialize(deserializer)?;
@@ -136,6 +149,7 @@ impl<'de> Deserialize<'de> for GameState {
                 prestige_multiplier: new.prestige_multiplier.unwrap_or(1.0),
                 current_stage: new.current_stage.unwrap_or_default(),
                 coexistence: new.coexistence.unwrap_or_default(),
+                objective_chain: new.objective_chain.unwrap_or_default(),
                 gold_units: 0,
                 wood_units: 0,
                 stone_units: 0,
@@ -166,15 +180,12 @@ impl GameState {
     }
 
     fn sync_primary_from_resources(&mut self) {
-        let (gold, gold_carry) = Self::split_primary_amount(
-            *self.resources.get(&ResourceType::Gold).unwrap_or(&0.0),
-        );
-        let (wood, wood_carry) = Self::split_primary_amount(
-            *self.resources.get(&ResourceType::Wood).unwrap_or(&0.0),
-        );
-        let (stone, stone_carry) = Self::split_primary_amount(
-            *self.resources.get(&ResourceType::Stone).unwrap_or(&0.0),
-        );
+        let (gold, gold_carry) =
+            Self::split_primary_amount(*self.resources.get(&ResourceType::Gold).unwrap_or(&0.0));
+        let (wood, wood_carry) =
+            Self::split_primary_amount(*self.resources.get(&ResourceType::Wood).unwrap_or(&0.0));
+        let (stone, stone_carry) =
+            Self::split_primary_amount(*self.resources.get(&ResourceType::Stone).unwrap_or(&0.0));
 
         self.gold_units = gold;
         self.wood_units = wood;
@@ -183,9 +194,12 @@ impl GameState {
         self.wood_carry = wood_carry;
         self.stone_carry = stone_carry;
 
-        self.resources.insert(ResourceType::Gold, self.gold_units as f64);
-        self.resources.insert(ResourceType::Wood, self.wood_units as f64);
-        self.resources.insert(ResourceType::Stone, self.stone_units as f64);
+        self.resources
+            .insert(ResourceType::Gold, self.gold_units as f64);
+        self.resources
+            .insert(ResourceType::Wood, self.wood_units as f64);
+        self.resources
+            .insert(ResourceType::Stone, self.stone_units as f64);
     }
 
     fn set_primary_resource(&mut self, resource: ResourceType, amount: f64) {
@@ -264,6 +278,7 @@ impl GameState {
             prestige_multiplier: 1.0,
             current_stage: GameStage::default(),
             coexistence: CoexistenceState::default(),
+            objective_chain: ObjectiveChainState::default(),
             gold_units: 0,
             wood_units: 0,
             stone_units: 0,
@@ -398,6 +413,7 @@ impl Default for GameState {
             prestige_multiplier: 1.0,
             current_stage: GameStage::default(),
             coexistence: CoexistenceState::default(),
+            objective_chain: ObjectiveChainState::default(),
             gold_units: 0,
             wood_units: 0,
             stone_units: 0,

@@ -131,6 +131,11 @@ async function initWasm() {
             window.unlockManager = new window.UnlockManager(game);
             window.unlockManager.update();
         }
+
+        if (window.ObjectiveManager) {
+            window.objectiveManager = new window.ObjectiveManager(game);
+            window.objectiveManager.update();
+        }
         
         if (window.WorkerManager) {
             window.workerManager = new window.WorkerManager(game);
@@ -169,6 +174,9 @@ async function initWasm() {
         if (window.updateCoinButton) {
             window.updateCoinButton();
         }
+        if (window.updateObjectivePanel) {
+            window.updateObjectivePanel();
+        }
         
         console.log('Idle game initialized successfully!');
         
@@ -199,6 +207,9 @@ function startGameLoop(game) {
         }
         if (window.updateUnlocksPanel) {
             window.updateUnlocksPanel();
+        }
+        if (window.updateObjectivePanel) {
+            window.updateObjectivePanel();
         }
         if (window.updateAchievementsPanel) {
             window.updateAchievementsPanel();

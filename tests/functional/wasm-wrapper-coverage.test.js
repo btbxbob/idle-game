@@ -7,7 +7,7 @@ test.describe('WASM wrapper coverage', () => {
     const pkgDir = path.join(process.cwd(), 'pkg');
 
     const moduleFiles = [
-        'idle_game.v0.6.7.js',
+        'idle_game.v0.7.0.js',
         'idle_game.js',
     ];
 
@@ -17,7 +17,7 @@ test.describe('WASM wrapper coverage', () => {
 
             const moduleUrl = pathToFileURL(path.join(pkgDir, moduleFile)).href;
             const wasmFile = moduleFile
-                .replace('idle_game.v0.6.7.js', 'idle_game_bg.v0.6.7.wasm')
+                .replace('idle_game.v0.7.0.js', 'idle_game_bg.v0.7.0.wasm')
                 .replace('idle_game.js', 'idle_game_bg.wasm');
             const wasmBytes = fs.readFileSync(path.join(pkgDir, wasmFile));
             const mod = await import(moduleUrl);

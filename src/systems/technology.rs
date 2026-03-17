@@ -122,7 +122,11 @@ impl TechnologyTree {
             match &tech.effect {
                 TechnologyEffect::ProductionBonus(resource, bonus) => {
                     // Add to production bonus (compounding)
-                    let current = bonuses.production_bonus.get(resource).copied().unwrap_or(1.0);
+                    let current = bonuses
+                        .production_bonus
+                        .get(resource)
+                        .copied()
+                        .unwrap_or(1.0);
                     bonuses.production_bonus.insert(*resource, current + bonus);
                 }
                 TechnologyEffect::UnlockBuilding(building_type) => {
@@ -240,12 +244,16 @@ impl TechnologyTree {
 
     /// Check if a building type is unlocked
     pub fn is_building_unlocked(&self, building: BuildingType) -> bool {
-        self.calculate_bonuses().unlocked_buildings.contains(&building)
+        self.calculate_bonuses()
+            .unlocked_buildings
+            .contains(&building)
     }
 
     /// Check if a mechanic is enabled
     pub fn is_mechanic_enabled(&self, mechanic: &str) -> bool {
-        self.calculate_bonuses().enabled_mechanics.contains(mechanic)
+        self.calculate_bonuses()
+            .enabled_mechanics
+            .contains(mechanic)
     }
 
     /// Get all unlocked buildings
@@ -704,10 +712,10 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::ComputerTechnology,
                 costs(&[
-                    (ResourceType::Gold, 10000.0),
-                    (ResourceType::Microchip, 200.0),
-                    (ResourceType::CircuitBoard, 500.0),
-                    (ResourceType::Plastic, 400.0),
+                    (ResourceType::Gold, 7000.0),
+                    (ResourceType::Microchip, 120.0),
+                    (ResourceType::CircuitBoard, 260.0),
+                    (ResourceType::Plastic, 180.0),
                 ]),
                 vec![TechnologyId::AdvancedElectronics, TechnologyId::Robotics],
                 TechnologyEffect::UnlockBuilding(BuildingType::ResearchLab),
@@ -721,9 +729,9 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::AITechnology,
                 costs(&[
-                    (ResourceType::Gold, 20000.0),
-                    (ResourceType::Microchip, 500.0),
-                    (ResourceType::QuantumComputer, 10.0),
+                    (ResourceType::Gold, 14000.0),
+                    (ResourceType::Microchip, 260.0),
+                    (ResourceType::QuantumComputer, 4.0),
                 ]),
                 vec![TechnologyId::ComputerTechnology],
                 TechnologyEffect::MechanicChange("ai_assistance".to_string()),
@@ -736,9 +744,9 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::AdvancedAI,
                 costs(&[
-                    (ResourceType::Gold, 50000.0),
-                    (ResourceType::QuantumComputer, 50.0),
-                    (ResourceType::Microchip, 1000.0),
+                    (ResourceType::Gold, 24000.0),
+                    (ResourceType::QuantumComputer, 16.0),
+                    (ResourceType::Microchip, 420.0),
                 ]),
                 vec![TechnologyId::AITechnology],
                 TechnologyEffect::MechanicChange("ai_optimization".to_string()),
@@ -752,9 +760,9 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::Nanotechnology,
                 costs(&[
-                    (ResourceType::Gold, 30000.0),
-                    (ResourceType::Chemicals, 1000.0),
-                    (ResourceType::Microchip, 300.0),
+                    (ResourceType::Gold, 18000.0),
+                    (ResourceType::Chemicals, 420.0),
+                    (ResourceType::Microchip, 160.0),
                 ]),
                 vec![
                     TechnologyId::AdvancedChemistry,
@@ -819,11 +827,11 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::MaggotBreeding,
                 costs(&[
-                    (ResourceType::Gold, 75000.0),
-                    (ResourceType::Food, 2500.0),
-                    (ResourceType::Maggot, 120.0),
+                    (ResourceType::Gold, 1800.0),
+                    (ResourceType::Food, 40.0),
+                    (ResourceType::Maggot, 12.0),
                 ]),
-                vec![TechnologyId::GeneticEngineering],
+                vec![TechnologyId::BasicAgriculture],
                 TechnologyEffect::ProductionBonus(ResourceType::Maggot, 0.75),
                 0.75,
             ),
@@ -834,11 +842,11 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::NecroticRecycling,
                 costs(&[
-                    (ResourceType::Gold, 90000.0),
-                    (ResourceType::Chemicals, 2000.0),
-                    (ResourceType::Maggot, 240.0),
+                    (ResourceType::Gold, 4200.0),
+                    (ResourceType::Chemicals, 60.0),
+                    (ResourceType::Maggot, 40.0),
                 ]),
-                vec![TechnologyId::MaggotBreeding, TechnologyId::Biotechnology],
+                vec![TechnologyId::MaggotBreeding, TechnologyId::BasicChemistry],
                 TechnologyEffect::MechanicChange("necrotic_recycling".to_string()),
                 1.0,
             ),
@@ -849,12 +857,15 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::SymbioticHosts,
                 costs(&[
-                    (ResourceType::Gold, 130000.0),
-                    (ResourceType::Nanobot, 150.0),
-                    (ResourceType::Maggot, 400.0),
-                    (ResourceType::Food, 5000.0),
+                    (ResourceType::Gold, 7200.0),
+                    (ResourceType::CircuitBoard, 45.0),
+                    (ResourceType::Maggot, 90.0),
+                    (ResourceType::Food, 110.0),
                 ]),
-                vec![TechnologyId::NecroticRecycling, TechnologyId::AdvancedNanotech],
+                vec![
+                    TechnologyId::NecroticRecycling,
+                    TechnologyId::BasicEngineering,
+                ],
                 TechnologyEffect::MechanicChange("symbiotic_hosts".to_string()),
                 1.5,
             ),
@@ -865,12 +876,12 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::HiveMindProtocol,
                 costs(&[
-                    (ResourceType::Gold, 240000.0),
-                    (ResourceType::QuantumComputer, 40.0),
-                    (ResourceType::Maggot, 600.0),
-                    (ResourceType::Nanobot, 400.0),
+                    (ResourceType::Gold, 16000.0),
+                    (ResourceType::CircuitBoard, 110.0),
+                    (ResourceType::Maggot, 140.0),
+                    (ResourceType::Battery, 36.0),
                 ]),
-                vec![TechnologyId::SymbioticHosts, TechnologyId::AdvancedAI],
+                vec![TechnologyId::SymbioticHosts, TechnologyId::Electronics],
                 TechnologyEffect::MechanicChange("hive_mind".to_string()),
                 2.0,
             ),
@@ -881,16 +892,12 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::CollectiveAwakening,
                 costs(&[
-                    (ResourceType::Gold, 500000.0),
-                    (ResourceType::DarkMatter, 120.0),
-                    (ResourceType::Nanobot, 900.0),
-                    (ResourceType::Spaceship, 20.0),
+                    (ResourceType::Gold, 42000.0),
+                    (ResourceType::CircuitBoard, 220.0),
+                    (ResourceType::Battery, 80.0),
+                    (ResourceType::Microchip, 180.0),
                 ]),
-                vec![
-                    TechnologyId::HiveMindProtocol,
-                    TechnologyId::ConsciousnessUpload,
-                    TechnologyId::SpaceExploration,
-                ],
+                vec![TechnologyId::HiveMindProtocol, TechnologyId::AdvancedAI],
                 TechnologyEffect::MechanicChange("collective_awakening".to_string()),
                 2.5,
             ),
@@ -917,10 +924,10 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::NuclearEnergy,
                 costs(&[
-                    (ResourceType::Gold, 40000.0),
-                    (ResourceType::SteelPlate, 1000.0),
-                    (ResourceType::Generator, 200.0),
-                    (ResourceType::CircuitBoard, 500.0),
+                    (ResourceType::Gold, 24000.0),
+                    (ResourceType::SteelPlate, 520.0),
+                    (ResourceType::Generator, 90.0),
+                    (ResourceType::CircuitBoard, 220.0),
                 ]),
                 vec![
                     TechnologyId::AdvancedElectronics,
@@ -938,10 +945,9 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::QuantumComputing,
                 costs(&[
-                    (ResourceType::Gold, 100000.0),
-                    (ResourceType::Microchip, 1000.0),
-                    (ResourceType::Crystal, 2000.0),
-                    (ResourceType::Gold, 50000.0),
+                    (ResourceType::Gold, 35000.0),
+                    (ResourceType::Microchip, 450.0),
+                    (ResourceType::Crystal, 900.0),
                 ]),
                 vec![TechnologyId::AdvancedAI, TechnologyId::AdvancedElectronics],
                 TechnologyEffect::UnlockBuilding(BuildingType::QuantumLab),
@@ -954,10 +960,10 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::FusionEnergy,
                 costs(&[
-                    (ResourceType::Gold, 150000.0),
-                    (ResourceType::QuantumComputer, 100.0),
-                    (ResourceType::Generator, 500.0),
-                    (ResourceType::SteelPlate, 2000.0),
+                    (ResourceType::Gold, 60000.0),
+                    (ResourceType::QuantumComputer, 30.0),
+                    (ResourceType::Generator, 180.0),
+                    (ResourceType::SteelPlate, 800.0),
                 ]),
                 vec![TechnologyId::QuantumComputing, TechnologyId::NuclearEnergy],
                 TechnologyEffect::MechanicChange("fusion_power".to_string()),
@@ -985,12 +991,16 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::SpaceExploration,
                 costs(&[
-                    (ResourceType::Gold, 200000.0),
-                    (ResourceType::Spaceship, 100.0),
-                    (ResourceType::QuantumComputer, 150.0),
-                    (ResourceType::SteelPlate, 5000.0),
+                    (ResourceType::Gold, 90000.0),
+                    (ResourceType::Spaceship, 12.0),
+                    (ResourceType::QuantumComputer, 45.0),
+                    (ResourceType::SteelPlate, 1500.0),
                 ]),
-                vec![TechnologyId::AdvancedRobotics, TechnologyId::FusionEnergy],
+                vec![
+                    TechnologyId::CollectiveAwakening,
+                    TechnologyId::ConsciousnessUpload,
+                    TechnologyId::FusionEnergy,
+                ],
                 TechnologyEffect::UnlockBuilding(BuildingType::SpacePort),
                 1.0,
             ),
@@ -1058,12 +1068,16 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::ConsciousnessUpload,
                 costs(&[
-                    (ResourceType::Gold, 5000000.0),
-                    (ResourceType::QuantumComputer, 1000.0),
-                    (ResourceType::Nanobot, 5000.0),
-                    (ResourceType::Microchip, 10000.0),
+                    (ResourceType::Gold, 38000.0),
+                    (ResourceType::QuantumComputer, 6.0),
+                    (ResourceType::Nanobot, 28.0),
+                    (ResourceType::Microchip, 120.0),
                 ]),
-                vec![TechnologyId::AdvancedAI, TechnologyId::GeneticEngineering],
+                vec![
+                    TechnologyId::CollectiveAwakening,
+                    TechnologyId::HiveMindProtocol,
+                    TechnologyId::AdvancedAI,
+                ],
                 TechnologyEffect::MechanicChange("consciousness_upload".to_string()),
                 1.0,
             ),
@@ -1172,11 +1186,11 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::AutoAssignment,
                 costs(&[
-                    (ResourceType::Gold, 15000.0),
-                    (ResourceType::Robot, 50.0),
-                    (ResourceType::CircuitBoard, 200.0),
+                    (ResourceType::Gold, 1200.0),
+                    (ResourceType::IronIngot, 40.0),
+                    (ResourceType::CircuitBoard, 12.0),
                 ]),
-                vec![TechnologyId::Robotics, TechnologyId::CriticalClick],
+                vec![TechnologyId::BasicEngineering, TechnologyId::Electronics],
                 TechnologyEffect::MechanicChange("auto_assignment".to_string()),
                 1.0,
             ),

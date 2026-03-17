@@ -118,6 +118,111 @@ async function unlockMaggotStage(page) {
   return result;
 }
 
+async function importStageSnapshot(page, { stage, resources = {}, coexistence = {}, technologies = [], buildings = {} } = {}) {
+  const result = await page.evaluate(({ stage: targetStage, resources: resourceSeed, coexistence: coexistenceSeed, technologies: technologyIds, buildings: buildingSeed }) => {
+    if (!window.rustGame || !window.rustGame.exportToBase64 || !window.rustGame.importFromBase64) {
+      return { ok: false, reason: 'missing save import/export APIs' };
+    }
+
+    const raw = window.rustGame.exportToBase64();
+    const json = JSON.parse(atob(raw));
+    json.state = json.state || {};
+    json.state.resources = json.state.resources || {};
+    json.state.coexistence = json.state.coexistence || {};
+
+    if (targetStage) {
+      json.state.current_stage = targetStage;
+    }
+
+    for (const [resourceKey, amount] of Object.entries(resourceSeed || {})) {
+      json.state.resources[resourceKey] = amount;
+    }
+
+    for (const [key, value] of Object.entries(coexistenceSeed || {})) {
+      json.state.coexistence[key] = value;
+    }
+
+    json.technology_tree = json.technology_tree || {};
+    json.technology_tree.technologies = json.technology_tree.technologies || {};
+    json.technology_tree.unlocked = Array.isArray(json.technology_tree.unlocked)
+      ? json.technology_tree.unlocked
+      : [];
+
+    for (const techId of technologyIds || []) {
+      if (json.technology_tree.technologies[techId]) {
+        json.technology_tree.technologies[techId].purchased = true;
+      }
+      if (!json.technology_tree.unlocked.includes(techId)) {
+        json.technology_tree.unlocked.push(techId);
+      }
+    }
+
+    if (Array.isArray(json.buildings)) {
+      for (const [buildingName, count] of Object.entries(buildingSeed || {})) {
+        const building = json.buildings.find((item) => item && item.name === buildingName);
+        if (building) {
+          building.count = count;
+        }
+      }
+    }
+
+    window.rustGame.importFromBase64(btoa(JSON.stringify(json)));
+
+    const progressionRaw = typeof window.rustGame.getProgressionStateJson === 'function'
+      ? window.rustGame.getProgressionStateJson()
+      : null;
+    const progression = progressionRaw ? JSON.parse(progressionRaw) : null;
+
+    return {
+      ok: true,
+      stage: progression?.current_stage_id || null,
+    };
+  }, { stage, resources, coexistence, technologies, buildings });
+
+  if (!result.ok) {
+    throw new Error(`Failed to import stage snapshot: ${JSON.stringify(result)}`);
+  }
+
+  return result;
+}
+
+async function unlockHybridStage(page) {
+  await unlockMaggotStage(page);
+
+  return importStageSnapshot(page, {
+    stage: 'Hybrid',
+    resources: {
+      Food: 180,
+      Maggot: 120,
+      Chemicals: 60,
+      DarkMatter: 0,
+      Spaceship: 0,
+    },
+    coexistence: {
+      human_pressure: 24,
+      maggot_influence: 34,
+      symbiosis_stability: 22,
+      hybrid_population: 0,
+      collective_consciousness: 0,
+    },
+  });
+}
+
+async function unlockCollectiveStage(page) {
+  await unlockHybridStage(page);
+
+  return importStageSnapshot(page, {
+    stage: 'Collective',
+    resources: {
+      DarkMatter: 0,
+      Spaceship: 0,
+    },
+    coexistence: {
+      collective_consciousness: 0,
+    },
+  });
+}
+
 async function seedResourcesAndResearch(page, { resources = {}, technologies = [] } = {}) {
   const result = await page.evaluate(({ resources: resourceSeed, technologies: techIds }) => {
     if (!window.rustGame || !window.rustGame.exportToBase64 || !window.rustGame.importFromBase64) {
@@ -190,8 +295,11 @@ async function unlockIndustrialBase(page) {
 }
 
 module.exports = {
+  importStageSnapshot,
   unlockWorkersStage,
   unlockMaggotStage,
+  unlockHybridStage,
+  unlockCollectiveStage,
   seedResourcesAndResearch,
   unlockIndustrialBase,
 };

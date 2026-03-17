@@ -1522,6 +1522,15 @@ footer {
     opacity: 0.9;
 }
 
+.objective-notification {
+    border-color: #58d68d;
+    border-left-color: #58d68d;
+}
+
+.objective-notification .notification-title {
+    color: #58d68d;
+}
+
 /* Responsive adjustments for new components */
 @media (max-width: 375px) {
     .statistic-item,
@@ -2095,6 +2104,27 @@ footer {
     font-size: 12px;
 }
 
+.worker-card-efficiency-detail,
+.worker-card-auto-hint {
+    font-size: 12px;
+    line-height: 1.5;
+    border-top: 1px dashed rgba(0, 0, 0, 0.18);
+    padding-top: 6px;
+}
+
+.worker-card-auto-hint {
+    color: #1f7a46;
+}
+
+.worker-detail-notes {
+    align-items: flex-start;
+}
+
+.worker-detail-notes strong {
+    text-align: right;
+    line-height: 1.45;
+}
+
 .worker-detail-row-stacked {
     align-items: flex-start;
 }
@@ -2251,6 +2281,26 @@ footer {
 
 .tech-card.locked {
     opacity: 0.6;
+}
+
+.tech-card.recommended {
+    box-shadow: 0 0 0 2px rgba(88, 214, 141, 0.35), 3px 3px 0 var(--shadow-color);
+}
+
+.tech-card.recommended .tech-header {
+    border-bottom-color: #58d68d;
+}
+
+.tech-recommendation {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 7px;
+    border: 1px solid #58d68d;
+    background: rgba(88, 214, 141, 0.16);
+    color: #1f7a46;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .tech-card.locked .tech-header {
@@ -2609,6 +2659,57 @@ footer {
     color: #111;
 }
 
+.widget-badge.anomaly.stable {
+    background: rgba(255, 255, 255, 0.45);
+}
+
+.widget-badge.anomaly.warning {
+    background: #f5b041;
+    color: #111;
+}
+
+.widget-badge.anomaly.decay {
+    background: #ec7063;
+    color: #111;
+}
+
+.widget-badge.anomaly.breach {
+    background: #af7ac5;
+    color: #111;
+}
+
+.lifecycle-inline-text {
+    max-width: 380px;
+    white-space: normal;
+    opacity: 0.86;
+}
+
+.lifecycle-overview {
+    display: grid;
+    gap: 8px;
+}
+
+.lifecycle-anomaly {
+    display: grid;
+    gap: 4px;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.24);
+    line-height: 1.5;
+}
+
+.lifecycle-anomaly.warning {
+    border-color: #f5b041;
+}
+
+.lifecycle-anomaly.decay {
+    border-color: #ec7063;
+}
+
+.lifecycle-anomaly.breach {
+    border-color: #af7ac5;
+}
+
 .widget-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(120px, 1fr));
@@ -2693,6 +2794,163 @@ footer {
     padding: 14px;
     position: relative;
     overflow: hidden;
+}
+
+#objective-panel-anchor {
+    display: none;
+    padding: 14px 18px 0;
+}
+
+.objective-panel {
+    display: grid;
+    gap: 12px;
+    border: 2px solid var(--border-color);
+    background:
+        radial-gradient(circle at top right, rgba(88, 214, 141, 0.16), transparent 38%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.07)),
+        var(--panel-bg);
+    box-shadow: 4px 4px 0 var(--shadow-color);
+    padding: 14px;
+}
+
+.objective-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.objective-kicker {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.72;
+}
+
+.objective-title {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.objective-counter {
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.35);
+    padding: 5px 9px;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.objective-copy {
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.objective-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.objective-meta span {
+    border: 1px solid var(--border-color);
+    padding: 4px 8px;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.34);
+}
+
+.objective-progress-bar {
+    height: 10px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.22);
+    overflow: hidden;
+}
+
+.objective-progress-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #58d68d 0%, #2ecc71 100%);
+    transition: width 0.25s ease;
+}
+
+.objective-step-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.objective-step {
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.44);
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.objective-step.is-current {
+    box-shadow: inset 0 0 0 1px #58d68d;
+}
+
+.objective-step.is-complete {
+    opacity: 0.72;
+}
+
+.objective-step-badge {
+    min-width: 42px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    padding: 3px 6px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.objective-step.is-current .objective-step-badge {
+    background: #58d68d;
+    color: #0b2514;
+    border-color: #58d68d;
+}
+
+.objective-step-body {
+    display: grid;
+    gap: 4px;
+}
+
+.objective-step-name {
+    font-weight: bold;
+}
+
+.objective-step-progress {
+    font-size: 12px;
+    opacity: 0.76;
+}
+
+.tab-button.objective-focus {
+    position: relative;
+    box-shadow: 0 0 0 2px rgba(88, 214, 141, 0.35);
+}
+
+.tab-button.objective-focus::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 2px solid #58d68d;
+    pointer-events: none;
+    animation: objectivePulse 1.1s ease-in-out 4;
+}
+
+@keyframes objectivePulse {
+    0%,
+    100% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.95;
+        transform: scale(1.01);
+    }
 }
 
 .progression-summary::before {
