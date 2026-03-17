@@ -603,4 +603,95 @@ test.describe('WorkerManager coverage', () => {
         expect(result.autoHintShown).toContain('Mine');
         expect(result.listEmptyLength).toBeGreaterThan(0);
     });
+
+    test('fallback literals, modal replacement and warning guards execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originalI18n = window.i18n;
+            const originalWarn = console.warn;
+            const warnings = [];
+            console.warn = (...args) => warnings.push(args.map(String).join(' '));
+
+            window.i18n = {
+                t: () => '',
+            };
+
+            const manager = new window.WorkerManager({
+                get_workers: () => [{
+                    name: 'Gamma',
+                    level: 3,
+                    efficiencyMultiplier: 1.15,
+                    totalEfficiency: 1.35,
+                    assignedBuilding: null,
+                    autoAssignmentTarget: 'Mine',
+                    skills: '',
+                    preferences: '',
+                    background: '',
+                    hobbies: [],
+                    primaryTrait: 'Creative',
+                    secondaryTraits: [],
+                    happiness: 55,
+                    hunger: 12,
+                    xp: 8,
+                    xpToNextLevel: 0,
+                }],
+                get_buildings: () => [
+                    { name: 'Farm', count: 2 },
+                    { name: 'Mine', count: 1 },
+                ],
+            });
+
+            manager.renderWorkers();
+            manager.renderToPanel('missing-workers-panel');
+            manager.renderWorkerCards();
+
+            const panel = document.createElement('div');
+            panel.id = 'workers-panel-fallback';
+            document.body.appendChild(panel);
+            manager.renderToPanel('workers-panel-fallback');
+            const panelHtml = panel.innerHTML;
+
+            const existingModal = document.createElement('div');
+            existingModal.id = 'worker-assignment-modal';
+            existingModal.textContent = 'old modal';
+            document.body.appendChild(existingModal);
+
+            manager.showAssignmentModal(0);
+            const modal = document.getElementById('worker-assignment-modal');
+            const modalHtml = modal ? modal.innerHTML : '';
+            const replacedOldModal = modal ? !modal.textContent.includes('old modal') : false;
+            const modalHasShowClass = modal ? modal.classList.contains('show') : false;
+
+            const selectHtml = manager.renderBuildingSelect(0);
+
+            if (modal) {
+                modal.remove();
+            }
+            panel.remove();
+            console.warn = originalWarn;
+            window.i18n = originalI18n;
+
+            return {
+                warnings,
+                panelHtml,
+                modalHtml,
+                replacedOldModal,
+                modalHasShowClass,
+                selectHtml,
+            };
+        });
+
+        expect(result.warnings.some((entry) => entry.includes('workers-list'))).toBe(true);
+        expect(result.warnings.some((entry) => entry.includes('missing-workers-panel'))).toBe(true);
+        expect(result.panelHtml).toContain('工人');
+        expect(result.panelHtml).toContain('总工人');
+        expect(result.panelHtml).toContain('已分配');
+        expect(result.panelHtml).toContain('未分配');
+        expect(result.modalHtml).toContain('分配工人');
+        expect(result.modalHtml).toContain('自动建议');
+        expect(result.modalHtml).toContain('基础 100%');
+        expect(result.replacedOldModal).toBe(true);
+        expect(result.modalHasShowClass).toBe(true);
+        expect(result.selectHtml).toContain('选择建筑');
+        expect(result.selectHtml).toContain('取消分配');
+    });
 });
