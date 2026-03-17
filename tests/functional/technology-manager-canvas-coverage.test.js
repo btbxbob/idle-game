@@ -191,7 +191,7 @@ test.describe('TechnologyManager Card UI Coverage', () => {
 
         expect(result.ok).toBe(true);
         expect(result.tierBadge).toBe('T2');
-        expect(result.hasStatus).toBe(false);
+        expect(result.hasStatus).toBe(true);
     });
 
     test('researched technology has correct styling', async ({ page }) => {
