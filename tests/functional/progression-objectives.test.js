@@ -71,6 +71,7 @@ test.describe('Progression Objectives', () => {
         Stone: 500,
         Coal: 500,
         Oil: 200,
+        IronOre: 200,
         Food: 300,
         Maggot: 120,
         Chemicals: 120,
