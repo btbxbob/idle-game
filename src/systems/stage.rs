@@ -386,7 +386,9 @@ pub fn visible_unlocks(
     }
 
     if state.current_stage >= GameStage::Maggot
-        && buildings.iter().any(|building| building.name == "蛆虫工厂")
+        && buildings
+            .iter()
+            .any(|building| building.name == "蛆虫工厂" && building.count > 0)
     {
         unlocks.push(UnlockedFeature {
             id: "dark_biology".to_string(),

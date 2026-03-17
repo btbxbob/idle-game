@@ -104,11 +104,17 @@ test.describe('UnlockManager coverage', () => {
                 robotDisplay: robotItem ? robotItem.style.display : '',
             };
 
-            document.querySelectorAll('.tab-button').forEach((button) => button.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach((panel) => panel.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach((button) => {
+                button.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach((panel) => {
+                panel.classList.remove('active');
+            });
             if (workersButton) workersButton.classList.add('active');
             if (workersPanel) workersPanel.classList.add('active');
-            document.querySelectorAll('.category-tab-button').forEach((button) => button.classList.remove('active'));
+            document.querySelectorAll('.category-tab-button').forEach((button) => {
+                button.classList.remove('active');
+            });
             if (secondaryButton) secondaryButton.classList.add('active');
 
             manager.progressionState = { current_stage_id: 'stage_genesis' };
@@ -125,17 +131,23 @@ test.describe('UnlockManager coverage', () => {
             const advancedVisible = advancedButton ? advancedButton.style.display !== 'none' : false;
             const robotVisible = robotItem ? robotItem.style.display !== 'none' : false;
 
-            document.querySelectorAll('.tab-button').forEach((button) => button.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach((button) => {
+                button.classList.remove('active');
+            });
             originals.activeButtons.forEach((tab) => {
                 const button = document.querySelector(`.tab-button[data-tab="${tab}"]`);
                 if (button) button.classList.add('active');
             });
-            document.querySelectorAll('.tab-content').forEach((panel) => panel.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach((panel) => {
+                panel.classList.remove('active');
+            });
             originals.activePanels.forEach((panelId) => {
                 const panel = document.getElementById(panelId);
                 if (panel) panel.classList.add('active');
             });
-            document.querySelectorAll('.category-tab-button').forEach((button) => button.classList.remove('active'));
+            document.querySelectorAll('.category-tab-button').forEach((button) => {
+                button.classList.remove('active');
+            });
             if (originals.activeCategory) {
                 const button = document.querySelector(`.category-tab-button[data-category="${originals.activeCategory}"]`);
                 if (button) button.classList.add('active');
@@ -265,5 +277,36 @@ test.describe('UnlockManager coverage', () => {
         expect(result.invalidDetails).toBe(null);
         expect(result.html).toContain('class="disabled"');
         expect(result.html).toContain('disabled=""');
+    });
+
+    test('system unlocks show auto-reveal hint instead of dead unlock button', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.UnlockManager({
+                getUnlockProgress: () => ({ current: 1, required: 1, percentage: 100 }),
+                getUnlockRequirementDetails: () => null,
+                get_unlocks: () => [{
+                    id: 'dark_biology',
+                    name: '黑暗生物链',
+                    unlocked: false,
+                    feature_type: 'system',
+                    requirement_type: 'maggot_tech',
+                }],
+            });
+
+            const panel = document.createElement('div');
+            panel.id = 'unlock-list';
+            document.body.appendChild(panel);
+            manager.containerElement = panel;
+            manager.progressionState = null;
+            manager.renderUnlocks();
+
+            const html = panel.innerHTML;
+            panel.remove();
+
+            return { html };
+        });
+
+        expect(result.html).toContain('满足条件后自动揭示');
+        expect(result.html).not.toContain('unlock-button-0');
     });
 });

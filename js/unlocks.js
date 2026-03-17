@@ -335,6 +335,7 @@ class UnlockManager {
             const requirementDetails = this.getRequirementDetails(unlock.id);
             const progressBarWidth = `${Math.max(0, Math.min(100, progress.percentage || 0))}%`;
             const canUnlock = !unlock.unlocked && (progress.current || 0) >= (progress.required || 1);
+            const actionMarkup = this.renderUnlockAction(unlock, index, canUnlock, unlockText, unlockedText);
             const unlockDiv = document.createElement('div');
             unlockDiv.className = `unlock-feature ${unlock.unlocked ? 'unlocked' : 'locked'} feature-${unlock.feature_type}`;
             unlockDiv.id = `unlock-feature-${index}`;
@@ -355,19 +356,33 @@ class UnlockManager {
                     </div>
                     <span class="progress-text">${this.formatPercent(progress.percentage || 0, 0)}</span>
                 </div>
-                <div class="unlock-action">
-                    ${!unlock.unlocked ? `
-                        <button type="button" id="unlock-button-${index}"
-                                onclick="window.unlockManager.unlock('${unlock.id}')"
-                                ${!canUnlock ? 'disabled class="disabled"' : ''}>
-                            ${unlockText}
-                        </button>
-                    ` : `<span class="unlocked-badge">✓ ${unlockedText}</span>`}
-                </div>
+                <div class="unlock-action">${actionMarkup}</div>
             `;
             unlockDiv.style.setProperty('--unlock-progress', progressBarWidth);
             this.containerElement.appendChild(unlockDiv);
         });
+    }
+
+    isManualUnlock(unlock) {
+        return !!unlock && unlock.feature_type === 'stage';
+    }
+
+    renderUnlockAction(unlock, index, canUnlock, unlockText, unlockedText) {
+        if (unlock.unlocked) {
+            return `<span class="unlocked-badge">✓ ${unlockedText}</span>`;
+        }
+
+        if (this.isManualUnlock(unlock)) {
+            return `
+                <button type="button" id="unlock-button-${index}"
+                        onclick="window.unlockManager.unlock('${unlock.id}')"
+                        ${!canUnlock ? 'disabled class="disabled"' : ''}>
+                    ${unlockText}
+                </button>
+            `;
+        }
+
+        return '<span class="unlock-hint">满足条件后自动揭示</span>';
     }
 
     renderRequirementLines(requirementDetails) {

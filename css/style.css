@@ -3199,6 +3199,11 @@ footer {
     font-weight: bold;
 }
 
+.unlock-hint {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+}
+
 .no-unlocks {
     border: 1px dashed var(--border-color);
     padding: 12px;
