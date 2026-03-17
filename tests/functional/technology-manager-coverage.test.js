@@ -717,7 +717,7 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.removedCosts).toBe(true);
         expect(result.lockedFooter).toContain('locked');
         expect(result.hookCalls).toBe(1);
-        expect(result.notifications).toContain('资源不足');
+        expect(result.notifications).toContain('insufficientResources');
         expect(result.insufficientResult).toBe(false);
         expect(result.genericResult).toBe(false);
         expect(result.errors.some((entry) => entry.includes('Error researching'))).toBe(true);
