@@ -1,5 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
-const { unlockWorkersStage } = require('../fixtures/stage-helpers');
+const { unlockIndustrialBase, unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Resource Production Complete', () => {
     test.beforeEach(async ({ page }) => {
@@ -242,6 +242,8 @@ test.describe('Resource Production Complete', () => {
     });
 
     test('tier 2 and tier 3 resources have corresponding factory buildings', async ({ page }) => {
+        await unlockIndustrialBase(page);
+
         const buildings = await page.evaluate(() => window.rustGame.get_buildings());
         const names = buildings.map((building) => building.name);
         

@@ -16,6 +16,19 @@ trap cleanup EXIT
 
 mkdir -p "${JENKINS_AGENT_WORKDIR}"
 
+seed_toolchain_dir() {
+  local source_dir="$1"
+  local target_dir="$2"
+
+  if [[ -d "${source_dir}" && ! -e "${target_dir}" ]]; then
+    mkdir -p "$(dirname "${target_dir}")"
+    cp -a "${source_dir}" "${target_dir}"
+  fi
+}
+
+seed_toolchain_dir "/home/jenkins/.cargo" "${JENKINS_AGENT_WORKDIR}/.cargo"
+seed_toolchain_dir "/home/jenkins/.rustup" "${JENKINS_AGENT_WORKDIR}/.rustup"
+
 get_crumb() {
   curl -fsS --user "${JENKINS_ADMIN_ID}:${JENKINS_ADMIN_PASSWORD}" \
     -b "${COOKIE_JAR}" \

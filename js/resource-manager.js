@@ -293,12 +293,17 @@ class ResourceManager {
     }
 
     getDisplayResourceRate(resources, resourceKey) {
+        const explicitRate = this.getResourceRate(resources, resourceKey);
+        if (explicitRate !== 0) {
+            return explicitRate;
+        }
+
         const averageRate = this.getAverageResourceRate(resourceKey);
         if (averageRate !== null) {
             return averageRate;
         }
 
-        return this.getResourceRate(resources, resourceKey);
+        return explicitRate;
     }
 
     getResourceRate(resources, key) {

@@ -15,10 +15,10 @@ pipeline {
 
   environment {
     CI = 'true'
-    PATH = "/home/jenkins/.cargo/bin:${env.PATH}"
+    PATH = "/home/jenkins/agent/.cargo/bin:${env.PATH}"
     NPM_CONFIG_CACHE = '/home/jenkins/agent/.cache/npm'
-    CARGO_HOME = '/home/jenkins/.cargo'
-    RUSTUP_HOME = '/home/jenkins/.rustup'
+    CARGO_HOME = '/home/jenkins/agent/.cargo'
+    RUSTUP_HOME = '/home/jenkins/agent/.rustup'
     CARGO_TARGET_DIR = '/home/jenkins/agent/.cache/cargo-target/idle-game'
     PLAYWRIGHT_IMAGE_PRIMARY = 'mcr.microsoft.com/playwright:v1.58.2-jammy'
     PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
@@ -62,7 +62,7 @@ EOF
     stage('Install JS Dependencies') {
       steps {
         sh '''
-          mkdir -p "$NPM_CONFIG_CACHE" "$CARGO_TARGET_DIR"
+          mkdir -p "$NPM_CONFIG_CACHE" "$CARGO_HOME" "$RUSTUP_HOME" "$CARGO_TARGET_DIR"
           if ! command -v node >/dev/null 2>&1; then
             mkdir -p "$HOME/.local"
             curl -fsSL https://nodejs.org/dist/v20.19.5/node-v20.19.5-linux-x64.tar.gz -o /tmp/node.tar.gz
