@@ -547,6 +547,7 @@ test.describe('WorkerManager coverage', () => {
             });
 
             const originalI18n = window.i18n;
+            const originalGetElementById = document.getElementById.bind(document);
             window.i18n = {
                 t: (key) => ({
                     workersPlaceholder: '占位文案',
@@ -560,7 +561,12 @@ test.describe('WorkerManager coverage', () => {
 
             const workersList = document.createElement('div');
             workersList.id = 'workers-list';
-            document.body.appendChild(workersList);
+            document.getElementById = (id) => {
+                if (id === 'workers-list') {
+                    return workersList;
+                }
+                return originalGetElementById(id);
+            };
 
             manager.renderWorkers();
             const placeholderHtml = workersList.innerHTML;
@@ -573,7 +579,7 @@ test.describe('WorkerManager coverage', () => {
             const autoHintShown = manager.getAutoAssignmentHint({ assignedBuilding: null, autoAssignmentTarget: 'Mine' });
             const listEmpty = manager.renderWorkersToList();
 
-            workersList.remove();
+            document.getElementById = originalGetElementById;
             window.i18n = originalI18n;
 
             return {
