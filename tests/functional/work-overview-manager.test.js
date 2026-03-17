@@ -157,4 +157,52 @@ test.describe('WorkOverviewManager coverage', () => {
         expect(result.panelHtml).toContain('暂无分配数据');
         expect(result.panelHtml).toContain('暂无工种分布数据');
     });
+
+    test('formatter integration and full pie branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.WorkOverviewManager({
+                get_work_overview_json: () => JSON.stringify({
+                    total_workers: 4,
+                    unassigned_workers: 0,
+                    total_efficiency: 5,
+                    jobs: [
+                        { job_type: '农夫', worker_count: 2, avg_efficiency: 1.25, total_output: 4.2 },
+                        { job_type: '矿工', worker_count: 2, avg_efficiency: 1.0, total_output: 3.1 }
+                    ]
+                })
+            });
+
+            const originalFormatter = window.NumberFormatter;
+            window.NumberFormatter = {
+                formatDecimal: (value, { fractionDigits }) => `DEC:${Number(value).toFixed(fractionDigits)}`,
+                formatInteger: (value) => `INT:${Math.floor(Number(value) || 0)}`,
+                formatPercent: (value, { fractionDigits }) => `PCT:${Number(value).toFixed(fractionDigits)}`,
+            };
+
+            const panel = document.createElement('div');
+            panel.id = 'work-overview-panel-formatter';
+            document.body.appendChild(panel);
+
+            manager.renderToPanel('work-overview-panel-formatter');
+            const html = panel.innerHTML;
+            const fullPie = manager.buildPieGradient([
+                { worker_count: 2 },
+                { worker_count: 2 }
+            ], 4);
+
+            panel.remove();
+            window.NumberFormatter = originalFormatter;
+
+            return {
+                html,
+                fullPie,
+            };
+        });
+
+        expect(result.html).toContain('INT:4');
+        expect(result.html).toContain('PCT:125.0');
+        expect(result.html).toContain('DEC:4.20');
+        expect(result.fullPie).toContain('conic-gradient');
+        expect(result.fullPie).not.toContain('#777');
+    });
 });

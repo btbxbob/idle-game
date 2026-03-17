@@ -617,4 +617,100 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.eventsBound).toBe('true');
         expect(result.updatedFooter).toContain('tech-research-btn');
     });
+
+    test('card sync, update hook and research error branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originalManager = window.technologyManager;
+            const originalError = console.error;
+            const errors = [];
+            console.error = (...args) => errors.push(args.map(String).join(' '));
+
+            const manager = new window.TechnologyManager(null, { currentLanguage: 'zh-CN', t: (key) => key });
+            manager.getResourceValue = (resource) => ({ Gold: 20, Wood: 1 }[resource] || 0);
+            manager.technologies = [
+                { id: 'dep-tech', name: 'Dep', researched: true, costs: {}, dependencies: [] },
+                { id: 'rec-tech', name: 'Rec', description: 'recommended', tier: 2, researched: false, costs: { Gold: 5 }, dependencies: ['dep-tech'], effect: { UnlockBuilding: 'Lab' } },
+                { id: 'locked-tech', name: 'Locked', description: 'locked', tier: 1, researched: false, costs: {}, dependencies: ['missing-tech'], effect: {} },
+            ];
+
+            const container = document.createElement('div');
+            container.id = 'technology-tree-container';
+            const grid = document.createElement('div');
+            grid.className = 'tech-grid';
+            container.appendChild(grid);
+            document.body.appendChild(container);
+            manager.treeContainer = container;
+
+            const card = document.createElement('div');
+            card.className = 'tech-card';
+            card.setAttribute('data-tech-id', 'rec-tech');
+            card.innerHTML = '<span class="tech-status"></span><div class="tech-effect"></div><div class="tech-body"><div class="tech-costs">old</div></div><div class="tech-footer"></div>';
+            grid.appendChild(card);
+
+            const originalRecommended = manager.getRecommendedTechnologyId.bind(manager);
+            manager.getRecommendedTechnologyId = () => 'rec-tech';
+            manager.updateTechCardElement(card, manager.technologies[1]);
+            const recommendedClass = card.classList.contains('recommended');
+            const footerHtml = card.querySelector('.tech-footer')?.innerHTML || '';
+            const costsHtml = card.querySelector('.tech-costs')?.innerHTML || '';
+
+            manager.updateTechCardElement(card, manager.technologies[2]);
+            const removedCosts = !card.querySelector('.tech-costs');
+            const lockedFooter = card.querySelector('.tech-footer')?.innerHTML || '';
+
+            const tab = document.createElement('div');
+            tab.id = 'tab-technology';
+            tab.className = 'active';
+            document.body.appendChild(tab);
+
+            let hookCalls = 0;
+            manager.update = () => { hookCalls += 1; };
+            window.technologyManager = manager;
+            window.updateTechnologyPanel();
+            tab.className = '';
+            window.updateTechnologyPanel();
+
+            const notifications = [];
+            manager.showNotification = (message) => notifications.push(message);
+            manager.rustGame = {
+                research_technology: () => { throw new Error('cannot afford now'); }
+            };
+            const insufficientResult = manager.researchTechnology('rec-tech');
+
+            manager.rustGame = {
+                research_technology: () => { throw new Error('boom-general'); }
+            };
+            const genericResult = manager.researchTechnology('rec-tech');
+
+            manager.getRecommendedTechnologyId = originalRecommended;
+            container.remove();
+            tab.remove();
+            console.error = originalError;
+            window.technologyManager = originalManager;
+
+            return {
+                recommendedClass,
+                footerHtml,
+                costsHtml,
+                removedCosts,
+                lockedFooter,
+                hookCalls,
+                notifications,
+                insufficientResult,
+                genericResult,
+                errors,
+            };
+        });
+
+        expect(result.recommendedClass).toBe(true);
+        expect(result.footerHtml).toContain('tech-research-btn');
+        expect(result.costsHtml).toContain('Gold');
+        expect(result.removedCosts).toBe(true);
+        expect(result.lockedFooter).toContain('未解锁');
+        expect(result.hookCalls).toBe(1);
+        expect(result.notifications).toContain('资源不足');
+        expect(result.insufficientResult).toBe(false);
+        expect(result.genericResult).toBe(false);
+        expect(result.errors.some((entry) => entry.includes('Error researching'))).toBe(true);
+    });
 });
