@@ -608,6 +608,7 @@ test.describe('WorkerManager coverage', () => {
         const result = await page.evaluate(() => {
             const originalI18n = window.i18n;
             const originalWarn = console.warn;
+            const originalGetElementById = document.getElementById.bind(document);
             const warnings = [];
             console.warn = (...args) => warnings.push(args.map(String).join(' '));
 
@@ -640,7 +641,14 @@ test.describe('WorkerManager coverage', () => {
                 ],
             });
 
+            document.getElementById = (id) => {
+                if (id === 'workers-list') {
+                    return null;
+                }
+                return originalGetElementById(id);
+            };
             manager.renderWorkers();
+            document.getElementById = originalGetElementById;
             manager.renderToPanel('missing-workers-panel');
             manager.renderWorkerCards();
 
@@ -667,6 +675,7 @@ test.describe('WorkerManager coverage', () => {
                 modal.remove();
             }
             panel.remove();
+            document.getElementById = originalGetElementById;
             console.warn = originalWarn;
             window.i18n = originalI18n;
 
