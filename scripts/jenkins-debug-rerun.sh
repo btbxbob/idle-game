@@ -112,9 +112,11 @@ else:
         print(f"- {c.get('className')} :: {c.get('name')} :: {detail}")
 PY
 
-COVERAGE_JSON="$(auth_curl "${JENKINS_URL}/job/${JOB_NAME}/${BUILD_NUMBER}/artifact/coverage-report/e2e-merged/coverage-summary.json" || true)"
-if [[ -n "${COVERAGE_JSON}" ]]; then
-  COVERAGE_JSON_PAYLOAD="${COVERAGE_JSON}" python3 - <<'PY'
+if [[ "${RUN_COVERAGE}" != "true" ]]; then
+  echo "Coverage: skipped (RUN_COVERAGE=false)"
+else
+  COVERAGE_JSON="$(auth_curl "${JENKINS_URL}/job/${JOB_NAME}/${BUILD_NUMBER}/artifact/coverage-report/e2e-merged/coverage-summary.json" || true)"
+  if [[ -n "${COVERAGE_JSON}" ]] && COVERAGE_JSON_PAYLOAD="${COVERAGE_JSON}" python3 - <<'PY'
 import json
 import os
 
@@ -126,8 +128,11 @@ print(f"- statements: {t['statements']['pct']}%")
 print(f"- functions: {t['functions']['pct']}%")
 print(f"- branches: {t['branches']['pct']}%")
 PY
-else
-  echo "Coverage: unavailable (coverage-summary.json not found)"
+  then
+    :
+  else
+    echo "Coverage: unavailable (coverage-summary.json not found)"
+  fi
 fi
 
 if [[ "${RESULT}" != "SUCCESS" ]]; then
