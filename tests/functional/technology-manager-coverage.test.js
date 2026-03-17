@@ -622,6 +622,7 @@ test.describe('TechnologyManager coverage', () => {
         const result = await page.evaluate(() => {
             const originalManager = window.technologyManager;
             const originalError = console.error;
+            const originalGetElementById = document.getElementById.bind(document);
             const errors = [];
             console.error = (...args) => errors.push(args.map(String).join(' '));
 
@@ -662,6 +663,12 @@ test.describe('TechnologyManager coverage', () => {
             tab.id = 'tab-technology';
             tab.className = 'active';
             document.body.appendChild(tab);
+            document.getElementById = (id) => {
+                if (id === 'tab-technology') {
+                    return tab;
+                }
+                return originalGetElementById(id);
+            };
 
             let hookCalls = 0;
             manager.update = () => { hookCalls += 1; };
@@ -685,6 +692,7 @@ test.describe('TechnologyManager coverage', () => {
             manager.getRecommendedTechnologyId = originalRecommended;
             container.remove();
             tab.remove();
+            document.getElementById = originalGetElementById;
             console.error = originalError;
             window.technologyManager = originalManager;
 
