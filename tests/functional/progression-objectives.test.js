@@ -181,14 +181,17 @@ test.describe('Progression Objectives', () => {
 
     const purchase = await page.evaluate(() => {
       const buildings = window.rustGame.get_buildings();
-      const chamberIndex = buildings.findIndex((building) => building.name === '共生培育舱');
-      if (chamberIndex < 0) {
+      const chamber = buildings.find((building) => building.name === '共生培育舱');
+      if (!chamber) {
         return { ok: false, reason: 'missing chamber' };
       }
 
+      const ok = window.rustGame.buy_building(chamber.index);
+      const refreshed = window.rustGame.get_buildings();
+      const refreshedChamber = refreshed.find((building) => building.name === '共生培育舱');
       return {
-        ok: window.rustGame.buy_building(chamberIndex),
-        count: window.rustGame.get_buildings()[chamberIndex].count,
+        ok,
+        count: refreshedChamber ? refreshedChamber.count : 0,
       };
     });
 
@@ -302,15 +305,16 @@ test.describe('Progression Objectives', () => {
 
     const beforeUploadSetup = await page.evaluate(() => {
       const buildings = window.rustGame.get_buildings();
-      const spireIndex = buildings.findIndex((building) => building.name === '神经尖塔');
-      if (spireIndex < 0) {
+      const spire = buildings.find((building) => building.name === '神经尖塔');
+      if (!spire) {
         return { ok: false, reason: 'missing spire' };
       }
 
-      const purchases = [window.rustGame.buy_building(spireIndex), window.rustGame.buy_building(spireIndex)];
+      const purchases = [window.rustGame.buy_building(spire.index), window.rustGame.buy_building(spire.index)];
+      const refreshedSpire = window.rustGame.get_buildings().find((building) => building.name === '神经尖塔');
       return {
         ok: purchases.every(Boolean),
-        count: window.rustGame.get_buildings()[spireIndex].count,
+        count: refreshedSpire ? refreshedSpire.count : 0,
       };
     });
 
@@ -348,23 +352,25 @@ test.describe('Progression Objectives', () => {
 
     const afterUploadSetup = await page.evaluate(() => {
       const buildings = window.rustGame.get_buildings();
-      const spireIndex = buildings.findIndex((building) => building.name === '神经尖塔');
-      const hatcheryIndex = buildings.findIndex((building) => building.name === '深空孵化港');
-      if (spireIndex < 0 || hatcheryIndex < 0) {
+      const spire = buildings.find((building) => building.name === '神经尖塔');
+      const hatchery = buildings.find((building) => building.name === '深空孵化港');
+      if (!spire || !hatchery) {
         return { ok: false, reason: 'missing collective buildings' };
       }
 
       const purchases = [
-        window.rustGame.buy_building(spireIndex),
-        window.rustGame.buy_building(spireIndex),
-        window.rustGame.buy_building(hatcheryIndex),
-        window.rustGame.buy_building(hatcheryIndex),
+        window.rustGame.buy_building(spire.index),
+        window.rustGame.buy_building(spire.index),
+        window.rustGame.buy_building(hatchery.index),
+        window.rustGame.buy_building(hatchery.index),
       ];
       const refreshed = window.rustGame.get_buildings();
+      const refreshedSpire = refreshed.find((building) => building.name === '神经尖塔');
+      const refreshedHatchery = refreshed.find((building) => building.name === '深空孵化港');
       return {
         ok: purchases.every(Boolean),
-        spires: refreshed[spireIndex].count,
-        hatcheries: refreshed[hatcheryIndex].count,
+        spires: refreshedSpire ? refreshedSpire.count : 0,
+        hatcheries: refreshedHatchery ? refreshedHatchery.count : 0,
       };
     });
 
