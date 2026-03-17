@@ -16,6 +16,10 @@ pipeline {
   environment {
     CI = 'true'
     PATH = "/home/jenkins/.cargo/bin:${env.PATH}"
+    NPM_CONFIG_CACHE = '/home/jenkins/agent/.cache/npm'
+    CARGO_HOME = '/home/jenkins/.cargo'
+    RUSTUP_HOME = '/home/jenkins/.rustup'
+    CARGO_TARGET_DIR = '/home/jenkins/agent/.cache/cargo-target/idle-game'
     PLAYWRIGHT_IMAGE_PRIMARY = 'mcr.microsoft.com/playwright:v1.58.2-jammy'
     PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
     PLAYWRIGHT_PULL_TIMEOUT_SECONDS = '30'
@@ -30,8 +34,27 @@ pipeline {
     stage('Checkout') {
       steps {
         sh '''
-          rm -rf ./* ./.??* 2>/dev/null || true
-          cp -a /workspace/idle-game/. .
+          cat > .jenkins-sync-excludes <<'EOF'
+.git/
+node_modules/
+target/
+pkg/
+playwright-report/
+test-results/
+coverage-report/
+.sisyphus/
+__pycache__/
+*.log
+EOF
+
+          if command -v rsync >/dev/null 2>&1; then
+            rsync -a --delete --delete-excluded --exclude-from=.jenkins-sync-excludes /workspace/idle-game/ ./
+          else
+            find . -mindepth 1 -maxdepth 1 ! -name '.jenkins-sync-excludes' -exec rm -rf {} +
+            tar -C /workspace/idle-game --exclude-from=.jenkins-sync-excludes -cf - . | tar -xf -
+          fi
+
+          rm -f .jenkins-sync-excludes
         '''
       }
     }
@@ -39,6 +62,7 @@ pipeline {
     stage('Install JS Dependencies') {
       steps {
         sh '''
+          mkdir -p "$NPM_CONFIG_CACHE" "$CARGO_TARGET_DIR"
           if ! command -v node >/dev/null 2>&1; then
             mkdir -p "$HOME/.local"
             curl -fsSL https://nodejs.org/dist/v20.19.5/node-v20.19.5-linux-x64.tar.gz -o /tmp/node.tar.gz
@@ -48,7 +72,7 @@ pipeline {
           export PATH="$HOME/.local/node/bin:$PATH"
           node --version
           npm --version
-          npm ci
+          npm ci --cache "$NPM_CONFIG_CACHE" --prefer-offline
         '''
       }
     }
@@ -66,6 +90,7 @@ pipeline {
       steps {
         sh '''
           export PATH="$HOME/.cargo/bin:$PATH"
+          mkdir -p "$CARGO_TARGET_DIR"
           if ! command -v rustup >/dev/null 2>&1; then
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
           fi
@@ -101,7 +126,7 @@ pipeline {
       steps {
         sh '''
           export PATH="$HOME/.cargo/bin:$PATH"
-          wasm-pack build --target web --out-dir pkg --release
+          wasm-pack build --target web --out-dir pkg --release --mode no-install
           python3 scripts/version-wasm-assets.py
         '''
       }

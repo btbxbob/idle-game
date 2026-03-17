@@ -12,6 +12,7 @@ RUN echo "deb http://mirrors.aliyun.com/debian/ trixie main contrib non-free non
     ca-certificates \
     git \
     python3 \
+    rsync \
     docker-cli \
     docker.io \
     xz-utils \
@@ -39,6 +40,7 @@ USER root
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable \
     && . /root/.cargo/env \
     && cargo --version \
+    && cargo install wasm-bindgen-cli --version 0.2.108 \
     && curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh \
     && wasm-pack --version \
     && cp -r /root/.cargo /home/jenkins/ \

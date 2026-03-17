@@ -74,6 +74,27 @@ This repository now includes `Jenkinsfile` with these CI stages:
 6. optional Playwright stage (`RUN_PLAYWRIGHT=true` or `RUN_COVERAGE=true`)
 Create a Jenkins Pipeline job pointing to this repository and script path `Jenkinsfile`.
 
+### Checkout speed optimization
+
+The Jenkins `Checkout` stage no longer copies the entire mounted repository with `cp -a`. It now prefers `rsync --delete --delete-excluded` and skips large generated directories such as `node_modules/`, `target/`, `pkg/`, `coverage-report/`, `playwright-report/`, and `test-results/`.
+
+This keeps the agent workspace aligned with the mounted source while avoiding repeated copies of heavy local artifacts that do not belong in CI.
+
+### Dependency cache optimization
+
+The pipeline now also reuses persistent caches inside the Jenkins agent volume:
+
+- npm cache: `/home/jenkins/agent/.cache/npm`
+- Cargo target cache: `/home/jenkins/agent/.cache/cargo-target/idle-game`
+
+`npm ci` now runs with `--cache ... --prefer-offline`, and Rust stages reuse a persistent `CARGO_TARGET_DIR` outside the cleaned workspace. This reduces repeat install/compile time while keeping the checked-out workspace disposable.
+
+### WASM build optimization
+
+The Jenkins agent image now preinstalls a matching `wasm-bindgen-cli` version, and the pipeline runs `wasm-pack build` with `--mode no-install`.
+
+This avoids the per-build `Installing wasm-bindgen...` step inside the WASM stage and makes repeat `Build WASM` runs more predictable.
+
 ### Playwright in Jenkins
 
 When `RUN_PLAYWRIGHT=true`, Jenkins executes:
