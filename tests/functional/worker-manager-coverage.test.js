@@ -469,7 +469,9 @@ test.describe('WorkerManager coverage', () => {
             document.body.appendChild(modal);
             window.workerManager.closeAssignmentModal();
             const hasShowAfterClose = modal.classList.contains('show');
-            scheduled.forEach((fn) => fn());
+            scheduled.forEach((fn) => {
+                fn();
+            });
             const modalStillExists = !!document.getElementById('worker-assignment-modal');
 
             console.error = originalConsoleError;
@@ -536,5 +538,63 @@ test.describe('WorkerManager coverage', () => {
         expect(result.noMethodUpdateLength).toBe(0);
         expect(result.noMethodAssign).toBe(false);
         expect(result.noMethodBuildingsLength).toBe(0);
+    });
+
+    test('status, placeholder and render helper branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.WorkerManager({
+                get_workers: () => [],
+            });
+
+            const originalI18n = window.i18n;
+            window.i18n = {
+                t: (key) => ({
+                    workersPlaceholder: '占位文案',
+                    noWorkers: '没有工人',
+                    stableStatus: '稳定',
+                    hungryStatus: '饥饿',
+                }[key] || key),
+                getWorkerStatusLabel: (isHungry) => (isHungry ? 'I18N饿了' : 'I18N稳定'),
+                getWorkerGenderLabel: (gender) => `G-${gender}`,
+            };
+
+            const workersList = document.createElement('div');
+            workersList.id = 'workers-list';
+            document.body.appendChild(workersList);
+
+            manager.renderWorkers();
+            const placeholderHtml = workersList.innerHTML;
+
+            const statusHungry = manager.formatStatusLabel({ is_hungry: true });
+            const statusStable = manager.formatStatusLabel({ isHungry: false });
+            const genderOther = manager.getGenderLabel('Unknown');
+            const breakdownFallback = manager.getEfficiencyBreakdown(null);
+            const autoHintEmpty = manager.getAutoAssignmentHint({ assignedBuilding: 'Farm', autoAssignmentTarget: 'Mine' });
+            const autoHintShown = manager.getAutoAssignmentHint({ assignedBuilding: null, autoAssignmentTarget: 'Mine' });
+            const listEmpty = manager.renderWorkersToList();
+
+            workersList.remove();
+            window.i18n = originalI18n;
+
+            return {
+                placeholderHtml,
+                statusHungry,
+                statusStable,
+                genderOther,
+                breakdownFallback,
+                autoHintEmpty,
+                autoHintShown,
+                listEmpty,
+            };
+        });
+
+        expect(result.placeholderHtml).toContain('占位文案');
+        expect(result.statusHungry).toContain('I18N饿了');
+        expect(result.statusStable).toContain('I18N稳定');
+        expect(result.genderOther).toContain('G-Unknown');
+        expect(result.breakdownFallback).toBe('基础 100%');
+        expect(result.autoHintEmpty).toBe('');
+        expect(result.autoHintShown).toContain('Mine');
+        expect(result.listEmpty).toContain('没有工人');
     });
 });

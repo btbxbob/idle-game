@@ -481,7 +481,9 @@ test.describe('TechnologyManager coverage', () => {
             manager.showNotification('first');
             manager.showNotification('second');
             const notificationBeforeTimeout = document.getElementById('tech-notification')?.textContent || '';
-            scheduled.forEach((fn) => fn());
+            scheduled.forEach((fn) => {
+                fn();
+            });
             const notificationAfterTimeout = document.getElementById('tech-notification');
 
             window.setTimeout = originalSetTimeout;
@@ -512,5 +514,107 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.notificationAfterTimeout).toBe(false);
         expect(result.knownMechanic).toContain('自动分配');
         expect(result.unknownMechanic).toContain('wild_unknown_mechanic');
+    });
+
+    test('objective recommendation, tool sync and card binding branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.TechnologyManager(null, { currentLanguage: 'zh-CN', t: (key) => key });
+
+            const container = document.createElement('div');
+            container.id = 'technology-tree-container';
+            document.body.appendChild(container);
+            manager.treeContainer = container;
+
+            manager.technologies = [
+                { id: 'BasicAgriculture', name: 'Agriculture', tier: 1, researched: false, costs: {}, dependencies: [] },
+                { id: 'BasicSmelting', name: 'Smelting', tier: 1, researched: false, costs: {}, dependencies: [] },
+                { id: 'NecroticRecycling', name: 'Necrotic', tier: 2, researched: false, costs: {}, dependencies: [] },
+            ];
+
+            manager.rustGame = {
+                getCurrentObjectiveChainJson: () => JSON.stringify({ current_objective_id: 'research_first_tech', stage_id: 'stage_workers' }),
+            };
+            const workerRecommended = manager.getRecommendedTechnologyId();
+
+            manager.rustGame.getCurrentObjectiveChainJson = () => '{bad-json';
+            const badObjective = manager.getCurrentObjectiveChain();
+
+            manager.rustGame.getCurrentObjectiveChainJson = () => JSON.stringify({ current_objective_id: 'research_maggot_tech', stage_id: 'stage_maggot' });
+            const maggotRecommended = manager.getRecommendedTechnologyId();
+
+            let renderCalls = 0;
+            manager.renderTechCards = () => { renderCalls += 1; };
+            manager.renderTools();
+            const toolsEl = container.querySelector('.tech-tools');
+            const search = toolsEl.querySelector('.tech-search');
+            const filter = toolsEl.querySelector('.tech-filter');
+            const hideCheckbox = toolsEl.querySelector('.tech-hide-researched input');
+
+            search.value = 'necro';
+            search.dispatchEvent(new Event('input', { bubbles: true }));
+            filter.value = 'available';
+            filter.dispatchEvent(new Event('change', { bubbles: true }));
+            hideCheckbox.checked = true;
+            hideCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+
+            const toolCount = toolsEl.querySelector('.tech-count')?.textContent || '';
+            manager.syncToolsDisplay();
+
+            const grid = document.createElement('div');
+            grid.className = 'tech-grid';
+            container.appendChild(grid);
+            manager.researchTechnology = (techId) => {
+                manager.__researched = techId;
+                return true;
+            };
+            manager.showTechDetail = (techId) => {
+                manager.__detail = techId;
+            };
+            manager.bindCardEvents(grid);
+            manager.bindCardEvents(grid);
+
+            grid.innerHTML = '<div class="tech-card" data-tech-id="BasicSmelting"><button class="tech-research-btn" data-tech-id="BasicAgriculture">研究</button></div>';
+            grid.querySelector('.tech-research-btn').click();
+            grid.querySelector('.tech-card').click();
+
+            const originalCss = window.CSS;
+            window.CSS = { escape: (value) => String(value) };
+            const card = document.createElement('div');
+            card.className = 'tech-card';
+            card.setAttribute('data-tech-id', 'BasicAgriculture');
+            card.innerHTML = '<span class="tech-status"></span><div class="tech-effect"></div><div class="tech-body"></div><div class="tech-footer"></div>';
+            grid.appendChild(card);
+            manager.syncRenderedCards([{ id: 'BasicAgriculture', name: 'Agriculture', tier: 1, researched: false, costs: { Gold: 5 }, dependencies: [] }]);
+            const updatedFooter = card.querySelector('.tech-footer')?.innerHTML || '';
+            window.CSS = originalCss;
+
+            container.remove();
+
+            return {
+                workerRecommended,
+                badObjective,
+                maggotRecommended,
+                renderCalls,
+                filterState: manager.filterState,
+                toolCount,
+                researchedTechId: manager.__researched,
+                detailTechId: manager.__detail,
+                eventsBound: grid.dataset.techEventsBound,
+                updatedFooter,
+            };
+        });
+
+        expect(result.workerRecommended).toBe('BasicAgriculture');
+        expect(result.badObjective).toBeNull();
+        expect(result.maggotRecommended).toBe('NecroticRecycling');
+        expect(result.renderCalls).toBe(3);
+        expect(result.filterState.query).toBe('necro');
+        expect(result.filterState.filterBy).toBe('available');
+        expect(result.filterState.hideResearched).toBe(true);
+        expect(result.toolCount).toContain('/');
+        expect(result.researchedTechId).toBe('BasicAgriculture');
+        expect(result.detailTechId).toBe('BasicSmelting');
+        expect(result.eventsBound).toBe('true');
+        expect(result.updatedFooter).toContain('tech-research-btn');
     });
 });

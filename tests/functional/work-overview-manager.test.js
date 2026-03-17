@@ -93,4 +93,68 @@ test.describe('WorkOverviewManager coverage', () => {
         expect(rendered.hasPie).toBe(true);
         expect(rendered.escapedScript).toBe(true);
     });
+
+    test('update, pie, palette and formatter fallback branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const manager = new window.WorkOverviewManager(null);
+
+            const nullUpdate = manager.update();
+
+            manager.rustGame = {
+                get_work_overview_json: () => '{bad-json',
+            };
+            const invalidUpdate = manager.update();
+
+            manager.rustGame = {
+                get_work_overview_json: () => JSON.stringify({ total_workers: 2, unassigned_workers: 1, total_efficiency: 2, jobs: [] }),
+            };
+            const validUpdate = manager.update();
+
+            const emptyPie = manager.buildPieGradient([], 0);
+            const partialPie = manager.buildPieGradient([{ worker_count: 1 }, { worker_count: 1 }], 3);
+            const paletteWrapped = manager.getPaletteColor(9);
+
+            const originalFormatter = window.NumberFormatter;
+            delete window.NumberFormatter;
+            const decimalFallback = manager.formatDecimal(12.345, 2);
+            const integerFallback = manager.formatInteger(42.9);
+            const percentFallback = manager.formatPercent(12.345, 0);
+            window.NumberFormatter = originalFormatter;
+
+            let panel = document.getElementById('work-overview-panel');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.id = 'work-overview-panel';
+                document.body.appendChild(panel);
+            }
+
+            manager.renderToPanel('work-overview-panel');
+            const panelHtml = panel.innerHTML;
+
+            return {
+                nullUpdate,
+                invalidUpdate,
+                validTotalWorkers: validUpdate.total_workers,
+                emptyPie,
+                partialPie,
+                paletteWrapped,
+                decimalFallback,
+                integerFallback,
+                percentFallback,
+                panelHtml,
+            };
+        });
+
+        expect(result.nullUpdate).toBeNull();
+        expect(result.invalidUpdate).toBeNull();
+        expect(result.validTotalWorkers).toBe(2);
+        expect(result.emptyPie).toContain('conic-gradient');
+        expect(result.partialPie).toContain('#777');
+        expect(result.paletteWrapped).toBe('#f5b041');
+        expect(result.decimalFallback).toBe('12.35');
+        expect(result.integerFallback).toBe('42');
+        expect(result.percentFallback).toBe('12%');
+        expect(result.panelHtml).toContain('暂无分配数据');
+        expect(result.panelHtml).toContain('暂无工种分布数据');
+    });
 });
