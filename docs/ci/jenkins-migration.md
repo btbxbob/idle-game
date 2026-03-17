@@ -70,9 +70,15 @@ This repository now includes `Jenkinsfile` with these CI stages:
 2. `npm run lint`
 3. `cargo check`
 4. `cargo test`
-5. `wasm-pack build --target web --out-dir pkg --release`
+5. `wasm-pack build --target web --out-dir pkg --release --mode no-install`
 6. optional Playwright stage (`RUN_PLAYWRIGHT=true` or `RUN_COVERAGE=true`)
 Create a Jenkins Pipeline job pointing to this repository and script path `Jenkinsfile`.
+
+### Pipeline source of truth
+
+The local Jenkins controller now ships with `docker/jenkins/init.groovy.d/03-pipeline-job.groovy`, which synchronizes the `idle-game-ci` job definition from `/workspace/idle-game/Jenkinsfile` at startup.
+
+This prevents the local controller from drifting onto a stale inline Pipeline Script stored in `/var/jenkins_home/jobs/idle-game-ci/config.xml`. If the checked-in `Jenkinsfile` changes, rebuild/restart the `jenkins` service so the controller reloads the updated job definition.
 
 ### Checkout speed optimization
 
@@ -95,6 +101,21 @@ The Jenkins agent image now preinstalls a matching `wasm-bindgen-cli` version, a
 
 This avoids the per-build `Installing wasm-bindgen...` step inside the WASM stage and makes repeat `Build WASM` runs more predictable.
 
+### Measured speedup
+
+After re-syncing `idle-game-ci` to the repository `Jenkinsfile`, repeat local builds dropped sharply:
+
+- build `#11`: `275871ms` (`cp -a`, no cache-backed pipeline sync)
+- build `#13`: `310041ms` (still running stale inline Pipeline Script)
+- build `#17`: `64325ms` (synced job, `rsync`, cache reuse, `--mode no-install`)
+
+The biggest change was the WASM stage:
+
+- build `#13`: Rust release compile `27.66s`, `wasm-pack` total `52.09s`
+- build `#17`: Rust release compile `0.04s`, `wasm-pack` total `0.23s`
+
+At this point the main remaining cost is Jenkins pipeline overhead plus checkout/lint/npm work, not Rust/WASM compilation.
+
 ### Playwright in Jenkins
 
 When `RUN_PLAYWRIGHT=true`, Jenkins executes:
@@ -105,7 +126,7 @@ The Jenkins pipeline passes `PW_TEST_WORKERS=2` into the Playwright container by
 
 The pipeline also enables `buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '3'))` so the Jenkins controller keeps only the latest 10 build records and the latest 3 sets of archived artifacts, reducing local disk growth.
 
-VX|- `npx playwright test tests/functional --project=chromium --reporter=line,junit,html`
+- `npx playwright test tests/functional --project=chromium --reporter=line,junit,html`
 - `node scripts/merge-e2e-coverage.js`
 
 By default, only functional tests are run. To include regression tests, set `RUN_REGRESSION_TESTS=true`.
