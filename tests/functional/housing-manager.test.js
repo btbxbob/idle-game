@@ -295,4 +295,102 @@ test.describe('HousingManager coverage', () => {
         expect(result.canAfford).toBe(true);
         expect(result.cannotAfford).toBe(false);
     });
+
+    test('resource helper, formatter and upgrade error branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originalInfo = console.info;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            const infos = [];
+            const errors = [];
+            const warnings = [];
+            console.info = (...args) => infos.push(args.map(String).join(' '));
+            console.error = (...args) => errors.push(args.map(String).join(' '));
+            console.warn = (...args) => warnings.push(args.map(String).join(' '));
+
+            const originalFormatter = window.NumberFormatter;
+            window.NumberFormatter = {
+                formatInteger: (value) => `FMT:${Math.floor(Number(value) || 0)}`,
+            };
+
+            const originalUpdateResourceDisplay = window.updateResourceDisplay;
+            let resourceUpdates = 0;
+            window.updateResourceDisplay = () => { resourceUpdates += 1; };
+
+            const manager = new window.HousingManager({
+                upgrade_housing: () => { throw new Error('Insufficient coins'); },
+                get_resources: () => ({ coins: 20, Gold: 30, wood: 5, Stone: 4, IronOre: 2 }),
+            });
+
+            const insufficientUpgrade = manager.upgradeHousing(0);
+            manager.rustGame.upgrade_housing = () => { throw new Error('boom-upgrade'); };
+            const genericUpgrade = manager.upgradeHousing(1);
+
+            manager.rustGame.upgrade_housing = () => true;
+            const panel = document.createElement('div');
+            panel.id = 'housing-panel';
+            document.body.appendChild(panel);
+            const successUpgrade = manager.upgradeHousing(2);
+
+            manager.renderToPanel('missing-housing-panel');
+
+            const helperValues = {
+                normalizeBlank: manager.normalizeResourceKey(''),
+                normalizeGold: manager.normalizeResourceKey('Gold'),
+                normalizeLowerAlias: manager.normalizeResourceKey('ironore'),
+                normalizeFallback: manager.normalizeResourceKey('CrystalShard'),
+                amountCoins: manager.getResourceAmount({ coins: 7 }, 'Gold'),
+                amountRustMap: manager.getResourceAmount({ Gold: 11 }, 'coins'),
+                amountPascal: manager.getResourceAmount({ Wood: 9 }, 'wood'),
+                amountMissing: manager.getResourceAmount(null, 'Gold'),
+                labelGold: manager.getResourceLabel('Gold'),
+                labelUnknown: manager.getResourceLabel('mysteryResource'),
+                entriesArrayLength: manager.getCostEntries([['coins', 1], ['wood', 2]]).length,
+                entriesInvalidLength: manager.getCostEntries('bad-cost').length,
+                formattedInteger: manager.formatInteger(8.9),
+                arrayCostText: manager.formatUpgradeCost([['coins', 3], ['Stone', 2]]),
+            };
+
+            panel.remove();
+            window.NumberFormatter = originalFormatter;
+            window.updateResourceDisplay = originalUpdateResourceDisplay;
+            console.info = originalInfo;
+            console.error = originalError;
+            console.warn = originalWarn;
+
+            return {
+                insufficientUpgrade,
+                genericUpgrade,
+                successUpgrade,
+                resourceUpdates,
+                infos,
+                errors,
+                warnings,
+                helperValues,
+            };
+        });
+
+        expect(result.insufficientUpgrade).toBe(false);
+        expect(result.genericUpgrade).toBe(false);
+        expect(result.successUpgrade).toBe(true);
+        expect(result.resourceUpdates).toBe(1);
+        expect(result.infos.some((entry) => entry.includes('Skipped housing upgrade'))).toBe(true);
+        expect(result.errors.some((entry) => entry.includes('Failed to upgrade housing'))).toBe(true);
+        expect(result.warnings.some((entry) => entry.includes('missing-housing-panel'))).toBe(true);
+        expect(result.helperValues.normalizeBlank).toBe('');
+        expect(result.helperValues.normalizeGold).toBe('coins');
+        expect(result.helperValues.normalizeLowerAlias).toBe('ironOre');
+        expect(result.helperValues.normalizeFallback).toBe('crystalShard');
+        expect(result.helperValues.amountCoins).toBe(7);
+        expect(result.helperValues.amountRustMap).toBe(11);
+        expect(result.helperValues.amountPascal).toBe(9);
+        expect(result.helperValues.amountMissing).toBe(0);
+        expect(result.helperValues.labelGold).toContain('金');
+        expect(result.helperValues.labelUnknown).toBe('mysteryResource');
+        expect(result.helperValues.entriesArrayLength).toBe(2);
+        expect(result.helperValues.entriesInvalidLength).toBe(0);
+        expect(result.helperValues.formattedInteger).toBe('FMT:8');
+        expect(result.helperValues.arrayCostText).toContain('3');
+        expect(result.helperValues.arrayCostText).toContain('2');
+    });
 });
