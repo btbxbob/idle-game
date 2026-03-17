@@ -249,7 +249,7 @@ class ResourceManager {
 
             const rateElement = document.getElementById(`banner-${resourceKey}-rate`);
             const cardElement = amountElement.closest('.header-resource-card');
-            const rate = this.getAverageResourceRate(resourceKey);
+            const rate = this.getDisplayResourceRate(resources, resourceKey);
 
             if (rateElement) {
                 rateElement.textContent = `${this.formatRate(rate)}/s`;
@@ -276,7 +276,7 @@ class ResourceManager {
 
     getAverageResourceRate(resourceKey) {
         if (this.rateHistory.length < 2) {
-            return 0;
+            return null;
         }
 
         const latest = this.rateHistory[this.rateHistory.length - 1];
@@ -284,12 +284,21 @@ class ResourceManager {
         const elapsedMs = latest.timestamp - baseline.timestamp;
 
         if (elapsedMs <= 0) {
-            return 0;
+            return null;
         }
 
         const latestValue = Number(latest.values[resourceKey]) || 0;
         const baselineValue = Number(baseline.values[resourceKey]) || 0;
         return ((latestValue - baselineValue) / elapsedMs) * 1000;
+    }
+
+    getDisplayResourceRate(resources, resourceKey) {
+        const averageRate = this.getAverageResourceRate(resourceKey);
+        if (averageRate !== null) {
+            return averageRate;
+        }
+
+        return this.getResourceRate(resources, resourceKey);
     }
 
     getResourceRate(resources, key) {
