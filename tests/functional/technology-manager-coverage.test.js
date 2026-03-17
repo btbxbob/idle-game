@@ -704,7 +704,8 @@ test.describe('TechnologyManager coverage', () => {
 
         expect(result.recommendedClass).toBe(true);
         expect(result.footerHtml).toContain('tech-research-btn');
-        expect(result.costsHtml).toContain('Gold');
+        expect(result.costsHtml).toContain('tech-cost-item');
+        expect(result.costsHtml).toContain(':5');
         expect(result.removedCosts).toBe(true);
         expect(result.lockedFooter).toContain('未解锁');
         expect(result.hookCalls).toBe(1);
