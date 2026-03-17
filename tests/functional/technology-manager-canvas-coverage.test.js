@@ -161,7 +161,7 @@ test.describe('TechnologyManager Card UI Coverage', () => {
         expect(result.cardCount).toBe(1);
     });
 
-    test('card shows tier badge and status', async ({ page }) => {
+    test('card shows tier badge without extra status icon when not researched', async ({ page }) => {
         const result = await page.evaluate(() => {
             if (!window.technologyManager) return { ok: false, reason: 'missing manager' };
 
@@ -191,7 +191,7 @@ test.describe('TechnologyManager Card UI Coverage', () => {
 
         expect(result.ok).toBe(true);
         expect(result.tierBadge).toBe('T2');
-        expect(result.hasStatus).toBe(true);
+        expect(result.hasStatus).toBe(false);
     });
 
     test('researched technology has correct styling', async ({ page }) => {
@@ -212,7 +212,7 @@ test.describe('TechnologyManager Card UI Coverage', () => {
 
             const card = container.querySelector('.tech-card');
             const isResearchedClass = card?.classList.contains('researched');
-            const hasStatus = !!card?.querySelector('.tech-status');
+            const statusIcon = card?.querySelector('.tech-status')?.textContent;
 
             container.remove();
 
@@ -224,7 +224,7 @@ test.describe('TechnologyManager Card UI Coverage', () => {
         expect(result.statusIcon).toBe('✓');
     });
 
-    test('locked technology has correct styling', async ({ page }) => {
+    test('locked technology has correct styling without status glyph', async ({ page }) => {
         const result = await page.evaluate(() => {
             if (!window.technologyManager) return { ok: false, reason: 'missing manager' };
 
@@ -242,7 +242,7 @@ test.describe('TechnologyManager Card UI Coverage', () => {
 
             const card = container.querySelector('.tech-card');
             const isLockedClass = card?.classList.contains('locked');
-            const statusIcon = card?.querySelector('.tech-status')?.textContent;
+            const hasStatus = !!card?.querySelector('.tech-status');
 
             container.remove();
 
@@ -251,7 +251,7 @@ test.describe('TechnologyManager Card UI Coverage', () => {
 
         expect(result.ok).toBe(true);
         expect(result.isLockedClass).toBe(true);
-        expect(result.hasStatus).toBe(true);
+        expect(result.hasStatus).toBe(false);
     });
 
     test('update preserves tech card DOM nodes when order is unchanged', async ({ page }) => {

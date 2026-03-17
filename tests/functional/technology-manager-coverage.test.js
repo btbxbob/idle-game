@@ -645,7 +645,7 @@ test.describe('TechnologyManager coverage', () => {
             const card = document.createElement('div');
             card.className = 'tech-card';
             card.setAttribute('data-tech-id', 'rec-tech');
-            card.innerHTML = '<span class="tech-status"></span><div class="tech-effect"></div><div class="tech-body"><div class="tech-costs">old</div></div><div class="tech-footer"></div>';
+            card.innerHTML = '<div class="tech-effect"></div><div class="tech-body"><div class="tech-costs">old</div></div><div class="tech-footer"></div>';
             grid.appendChild(card);
 
             const originalRecommended = manager.getRecommendedTechnologyId.bind(manager);
@@ -654,10 +654,12 @@ test.describe('TechnologyManager coverage', () => {
             const recommendedClass = card.classList.contains('recommended');
             const footerHtml = card.querySelector('.tech-footer')?.innerHTML || '';
             const costsHtml = card.querySelector('.tech-costs')?.innerHTML || '';
+            const statusAfterRecommended = !!card.querySelector('.tech-status');
 
             manager.updateTechCardElement(card, manager.technologies[2]);
             const removedCosts = !card.querySelector('.tech-costs');
             const lockedFooter = card.querySelector('.tech-footer')?.innerHTML || '';
+            const statusAfterLocked = !!card.querySelector('.tech-status');
 
             const tab = document.createElement('div');
             tab.id = 'tab-technology';
@@ -700,8 +702,10 @@ test.describe('TechnologyManager coverage', () => {
                 recommendedClass,
                 footerHtml,
                 costsHtml,
+                statusAfterRecommended,
                 removedCosts,
                 lockedFooter,
+                statusAfterLocked,
                 hookCalls,
                 notifications,
                 insufficientResult,
@@ -714,8 +718,10 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.footerHtml).toContain('tech-research-btn');
         expect(result.costsHtml).toContain('tech-cost-item');
         expect(result.costsHtml).toContain('5');
+        expect(result.statusAfterRecommended).toBe(false);
         expect(result.removedCosts).toBe(true);
         expect(result.lockedFooter).toContain('locked');
+        expect(result.statusAfterLocked).toBe(false);
         expect(result.hookCalls).toBe(1);
         expect(result.notifications).toContain('insufficientResources');
         expect(result.insufficientResult).toBe(false);
