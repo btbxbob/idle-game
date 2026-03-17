@@ -73,6 +73,8 @@ test.describe('Progression Objectives', () => {
         Oil: 200,
         Food: 300,
         Maggot: 120,
+        Chemicals: 120,
+        Corpse: 16,
       },
       technologies: [
         'BasicAgriculture',
@@ -87,12 +89,20 @@ test.describe('Progression Objectives', () => {
 
     const result = await page.evaluate(() => {
       const buildings = window.rustGame.get_buildings();
-      const poolIndex = buildings.findIndex((building) => building.name === '腐肉育池');
-      if (poolIndex < 0) {
+      const pool = buildings.find((building) => building.name === '腐肉育池');
+      if (!pool || !Number.isInteger(pool.index)) {
         return { ok: false, reason: 'pool hidden' };
       }
 
-      window.rustGame.buy_building(poolIndex);
+      window.rustGame.buy_building(pool.index);
+
+      const raw = window.rustGame.exportToBase64();
+      const json = JSON.parse(atob(raw));
+      json.state.resources = json.state.resources || {};
+      json.state.resources.Corpse = Math.max(json.state.resources.Corpse || 0, 16);
+      json.state.last_update_time = Date.now() - 5000;
+      window.rustGame.importFromBase64(btoa(JSON.stringify(json)));
+
       const before = window.rustGame.get_resources();
       window.rustGame.game_loop();
       const after = window.rustGame.get_resources();
@@ -101,11 +111,14 @@ test.describe('Progression Objectives', () => {
         ok: true,
         beforeChemicals: before.Chemicals || 0,
         afterChemicals: after.Chemicals || 0,
+        beforeCorpses: before.Corpse || 0,
+        afterCorpses: after.Corpse || 0,
       };
     });
 
     expect(result.ok).toBe(true);
-    expect(result.afterChemicals).toBeGreaterThanOrEqual(result.beforeChemicals);
+    expect(result.afterChemicals).toBeGreaterThan(result.beforeChemicals);
+    expect(result.afterCorpses).toBeLessThan(result.beforeCorpses);
   });
 
   test('worker auto assignment exposes recommendation context', async ({ page }) => {
