@@ -212,16 +212,16 @@ test.describe('TechnologyManager Card UI Coverage', () => {
 
             const card = container.querySelector('.tech-card');
             const isResearchedClass = card?.classList.contains('researched');
-            const statusIcon = card?.querySelector('.tech-status')?.textContent;
+            const hasStatus = !!card?.querySelector('.tech-status');
 
             container.remove();
 
-            return { ok: true, isResearchedClass, statusIcon };
+            return { ok: true, isResearchedClass, hasStatus };
         });
 
         expect(result.ok).toBe(true);
         expect(result.isResearchedClass).toBe(true);
-        expect(result.statusIcon).toBe('✓');
+        expect(result.hasStatus).toBe(false);
     });
 
     test('locked technology has correct styling without status glyph', async ({ page }) => {
