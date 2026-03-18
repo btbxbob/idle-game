@@ -99,6 +99,79 @@ class WorkerManager {
         return worker.isHungry || worker.is_hungry ? (t('hungryStatus') || '饥饿中') : (t('stableStatus') || '状态稳定');
     }
 
+    getWorkerStateSummary(worker) {
+        const focus = Number(worker.focus || 0).toFixed(0);
+        const fatigue = Number(worker.fatigue || 0).toFixed(0);
+        const stress = Number(worker.stress || 0).toFixed(0);
+        return `专注 ${focus} / 疲劳 ${fatigue} / 压力 ${stress}`;
+    }
+
+    getWorkerLimbSummary(worker) {
+        const missing = Array.isArray(worker.missingLimbs) ? worker.missingLimbs : (Array.isArray(worker.missing_limbs) ? worker.missing_limbs : []);
+        const maggot = Array.isArray(worker.maggotLimbs) ? worker.maggotLimbs : (Array.isArray(worker.maggot_limbs) ? worker.maggot_limbs : []);
+
+        if (missing.length === 0 && maggot.length === 0) {
+            return '肢体完整';
+        }
+
+        const parts = [];
+        if (missing.length > 0) {
+            parts.push(`残疾 ${missing.map((limb) => this.getLimbLabel(limb)).join(' / ')}`);
+        }
+        if (maggot.length > 0) {
+            parts.push(`蛆虫肢体 ${maggot.map((limb) => this.getLimbLabel(limb)).join(' / ')}`);
+        }
+        return parts.join(' / ');
+    }
+
+    getLimbLabel(limb) {
+        const map = {
+            LeftArm: '左手',
+            RightArm: '右手',
+            LeftLeg: '左腿',
+            RightLeg: '右腿',
+            '左手': '左手',
+            '右手': '右手',
+            '左腿': '左腿',
+            '右腿': '右腿',
+        };
+        return map[limb] || String(limb || '未知肢体');
+    }
+
+    performMaggotLimbSurgery(workerIndex) {
+        if (this.rustGame && typeof this.rustGame.perform_maggot_limb_surgery === 'function') {
+            try {
+                return this.rustGame.perform_maggot_limb_surgery(workerIndex);
+            } catch (error) {
+                console.error('Failed to perform maggot limb surgery:', error);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    getBuildingAssignmentState(buildings, workers, currentWorker) {
+        const assignedCounts = new Map();
+        (Array.isArray(workers) ? workers : []).forEach((worker) => {
+            if (!worker || !worker.assignedBuilding) return;
+            assignedCounts.set(worker.assignedBuilding, (assignedCounts.get(worker.assignedBuilding) || 0) + 1);
+        });
+
+        const currentBuilding = currentWorker && currentWorker.assignedBuilding ? currentWorker.assignedBuilding : null;
+
+        return (Array.isArray(buildings) ? buildings : []).map((building) => {
+            const assignedCount = assignedCounts.get(building.name) || 0;
+            const reservedCurrent = currentBuilding === building.name ? 1 : 0;
+            const availableSlots = Math.max(0, Number(building.count || 0) - assignedCount + reservedCurrent);
+            return {
+                ...building,
+                assignedCount,
+                availableSlots,
+                isFull: availableSlots <= 0,
+            };
+        });
+    }
+
     renderWorkers() {
         const container = document.getElementById('workers-list');
         if (!container) {
@@ -176,7 +249,7 @@ class WorkerManager {
             return;
         }
 
-        const confirmed = window.confirm(t('autoAssignConfirm') || '将为未分配工人执行自动分配，是否继续？');
+        const confirmed = window.confirm(t('autoAssignConfirm') || '将重新为全部工人执行自动安排，并优先选择收益最高且有空位的岗位，是否继续？');
         if (!confirmed) return;
 
         try {
@@ -185,7 +258,7 @@ class WorkerManager {
             if (window.updateResourceDisplay) {
                 window.updateResourceDisplay();
             }
-            alert(t('autoAssignSuccess', { count: assignedCount }) || `自动分配完成：成功分配 ${assignedCount} 名工人`);
+            alert(t('autoAssignSuccess', { count: assignedCount }) || `自动安排完成：已为 ${assignedCount} 名工人选择当前最佳岗位`);
         } catch (error) {
             console.error('Auto assignment failed:', error);
             alert(t('autoAssignFailed') || '自动分配失败，请稍后重试');
@@ -239,6 +312,8 @@ class WorkerManager {
             const happiness = Number(worker.happiness || 0).toFixed(0);
             const hunger = Number(worker.hunger || 0).toFixed(0);
             const hungryText = this.formatStatusLabel(worker);
+            const stateSummary = this.escapeHtml(this.getWorkerStateSummary(worker));
+            const limbSummary = this.escapeHtml(this.getWorkerLimbSummary(worker));
             const traitInfo = this.getTraitInfo(worker);
             const efficiencyBreakdown = this.escapeHtml(this.getEfficiencyBreakdown(worker));
             const autoHint = this.escapeHtml(this.getAutoAssignmentHint(worker));
@@ -274,6 +349,12 @@ class WorkerManager {
                             <span><strong>${t('hunger') || '饥饿'}:</strong> ${hunger}</span>
                             <span><strong>${t('status') || '状态'}:</strong> ${hungryText}</span>
                         </div>
+                        <div class="worker-card-status-line worker-card-state-line">
+                            <span><strong>工作状态:</strong> ${stateSummary}</span>
+                        </div>
+                        <div class="worker-card-status-line worker-card-state-line">
+                            <span><strong>肢体状态:</strong> ${limbSummary}</span>
+                        </div>
                         <div class="worker-card-efficiency-detail">${efficiencyBreakdown}</div>
                         ${autoHint ? `<div class="worker-card-auto-hint">${autoHint}</div>` : ''}
                     </div>
@@ -304,9 +385,9 @@ class WorkerManager {
      * @returns {string} HTML for building selection
      */
     renderBuildingSelect(workerIndex) {
-        const buildings = this.getBuildings();
         const workers = this.update();
         const worker = workers[workerIndex];
+        const buildings = this.getBuildingAssignmentState(this.getBuildings(), workers, worker);
         
         if (!worker) {
             return '<option value="">' + (window.i18n ? window.i18n.t('invalidWorker') || '无效工人' : '无效工人') + '</option>';
@@ -317,9 +398,9 @@ class WorkerManager {
         let html = `<option value="">${t('selectBuilding') || '选择建筑'}</option>`;
         html += `<option value="">${t('unassign') || '取消分配'}</option>`;
         
-        buildings.forEach((building, index) => {
+        buildings.forEach((building) => {
             const isSelected = worker.assignedBuilding === building.name;
-            html += `<option value="${building.name}" ${isSelected ? 'selected' : ''}>${building.name} (${building.count})</option>`;
+            html += `<option value="${building.name}" ${isSelected ? 'selected' : ''} ${!isSelected && building.isFull ? 'disabled' : ''}>${building.name} (${building.assignedCount}/${building.count})</option>`;
         });
 
         return html;
@@ -352,6 +433,13 @@ class WorkerManager {
         const efficiencyDetail = this.getEfficiencyDetail(worker);
         const efficiencyBreakdown = this.escapeHtml(this.getEfficiencyBreakdown(worker));
         const autoHint = this.escapeHtml(this.getAutoAssignmentHint(worker));
+        const stateSummary = this.escapeHtml(this.getWorkerStateSummary(worker));
+        const limbSummary = this.escapeHtml(this.getWorkerLimbSummary(worker));
+        const surgeryCost = Number(worker.maggotSurgeryCost || 0).toFixed(0);
+        const surgeryAvailable = Boolean(worker.canMaggotSurgery);
+        const surgeryReason = this.escapeHtml(worker.maggotSurgeryReason || '');
+        const missingLimbs = Array.isArray(worker.missingLimbs) ? worker.missingLimbs : (Array.isArray(worker.missing_limbs) ? worker.missing_limbs : []);
+        const hasMissingLimbs = missingLimbs.length > 0;
 
         const modal = document.createElement('div');
         modal.id = 'worker-assignment-modal';
@@ -392,6 +480,14 @@ class WorkerManager {
                                 <span>${t('efficiency') || '效率来源'}</span>
                                 <strong>${efficiencyBreakdown}</strong>
                             </div>
+                            <div class="worker-detail-row-line worker-detail-notes">
+                                <span>工作状态</span>
+                                <strong>${stateSummary}</strong>
+                            </div>
+                            <div class="worker-detail-row-line worker-detail-notes">
+                                <span>肢体状态</span>
+                                <strong>${limbSummary}</strong>
+                            </div>
                             ${autoHint ? `<div class="worker-detail-row-line worker-detail-notes"><span>自动建议</span><strong>${autoHint}</strong></div>` : ''}
                         </div>
                         <div class="worker-detail-card">
@@ -412,8 +508,16 @@ class WorkerManager {
                         </select>
                     </div>
                     <div class="worker-preview"><span class="preview-label">${t('preference') || '偏好'}:</span> <span class="preview-value">${this.escapeHtml(this.getPreferenceLabel(worker.preferences))}</span></div>
+                    ${hasMissingLimbs ? `
+                        <div class="worker-preview worker-surgery-panel">
+                            <span class="preview-label">蛆虫置换</span>
+                            <span class="preview-value">消耗 ${surgeryCost} 蛆虫，将残缺肢体替换为蛆虫肢体</span>
+                        </div>
+                        ${!surgeryAvailable && surgeryReason ? `<div class="worker-preview worker-surgery-panel"><span class="preview-label">当前条件</span><span class="preview-value">${surgeryReason}</span></div>` : ''}
+                    ` : ''}
                 </div>
                 <div class="modal-footer">
+                    ${hasMissingLimbs ? `<button class="btn btn-secondary" ${surgeryAvailable ? '' : 'disabled'} onclick="window.workerManager.handleMaggotLimbSurgery(${workerIndex})">蛆虫肢体手术</button>` : ''}
                     <button class="btn btn-secondary" onclick="window.workerManager.closeAssignmentModal()">
                         ${t('cancel') || '取消'}
                     </button>
@@ -426,6 +530,38 @@ class WorkerManager {
 
         document.body.appendChild(modal);
         modal.classList.add('show');
+    }
+
+    handleMaggotLimbSurgery(workerIndex) {
+        const workers = this.update();
+        const worker = workers[workerIndex];
+        if (!worker) {
+            return;
+        }
+
+        const cost = Number(worker.maggotSurgeryCost || 0).toFixed(0);
+        const reason = worker.maggotSurgeryReason || '当前无法执行蛆虫肢体手术';
+        if (!worker.canMaggotSurgery) {
+            alert(reason);
+            return;
+        }
+
+        const confirmed = window.confirm(`确认消耗 ${cost} 蛆虫，为 ${worker.name} 执行蛆虫肢体置换手术？`);
+        if (!confirmed) {
+            return;
+        }
+
+        const success = this.performMaggotLimbSurgery(workerIndex);
+        if (!success) {
+            alert(reason || '蛆虫肢体手术失败');
+            return;
+        }
+
+        this.renderWorkers();
+        if (window.updateResourceDisplay) {
+            window.updateResourceDisplay();
+        }
+        this.showAssignmentModal(workerIndex);
     }
 
     getGenderLabel(gender) {
@@ -558,7 +694,7 @@ class WorkerManager {
         if (!worker || worker.assignedBuilding || !worker.autoAssignmentTarget) {
             return '';
         }
-        return `自动建议: ${worker.autoAssignmentTarget}`;
+        return `自动建议: ${worker.autoAssignmentTarget}（按当前状态收益最高）`;
     }
 
     /**

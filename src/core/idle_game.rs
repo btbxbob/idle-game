@@ -1,4 +1,4 @@
-use crate::entities::{Building, Housing, PopulationQueue, Worker};
+use crate::entities::{Building, Hobby, Housing, LimbSlot, PopulationQueue, Trait, Worker};
 use crate::state::resource::ResourceType;
 use crate::state::{GameStage, GameState, Statistics};
 use crate::systems::{
@@ -76,6 +76,15 @@ struct ObjectiveChainView {
     stage_id: String,
     current_objective_id: Option<String>,
     steps: Vec<ObjectiveStepView>,
+}
+
+#[derive(Clone, Copy)]
+struct WorkerJobProfile {
+    labor: f64,
+    precision: f64,
+    cognitive: f64,
+    organic: f64,
+    social: f64,
 }
 
 #[wasm_bindgen]
@@ -410,6 +419,290 @@ mod normalization_tests {
 }
 
 impl IdleGame {
+    fn limb_slot_label(slot: LimbSlot) -> &'static str {
+        match slot {
+            LimbSlot::LeftArm => "左手",
+            LimbSlot::RightArm => "右手",
+            LimbSlot::LeftLeg => "左腿",
+            LimbSlot::RightLeg => "右腿",
+        }
+    }
+
+    fn maggot_limb_surgery_cost(worker: &Worker) -> f64 {
+        worker.missing_limbs.len() as f64 * 15.0
+    }
+
+    fn has_maggot_limb_surgery_unlock(&self) -> bool {
+        self.state.borrow().current_stage >= GameStage::Maggot
+    }
+
+    fn get_maggot_limb_surgery_status(&self, worker: &Worker) -> (bool, f64, Option<String>) {
+        let cost = Self::maggot_limb_surgery_cost(worker);
+        if worker.missing_limbs.is_empty() {
+            return (false, cost, Some("当前没有残缺肢体".to_string()));
+        }
+
+        if !self.has_maggot_limb_surgery_unlock() {
+            return (false, cost, Some("蛆虫阶段尚未解锁肢体置换".to_string()));
+        }
+
+        let available_maggots = self.state.borrow().get_resource(ResourceType::Maggot);
+        if available_maggots + 1e-10 < cost {
+            return (
+                false,
+                cost,
+                Some(format!("蛆虫不足：需要 {:.0}", cost.ceil())),
+            );
+        }
+
+        (true, cost, None)
+    }
+
+    fn worker_job_profile(building_id: &str) -> WorkerJobProfile {
+        match building_id {
+            "金币矿山" | "伐木场" | "采石场" | "铁矿场" | "铜矿场" | "铝矿场" | "煤矿场"
+            | "石油井" | "水晶矿" => WorkerJobProfile {
+                labor: 1.0,
+                precision: 0.2,
+                cognitive: 0.1,
+                organic: 0.0,
+                social: 0.1,
+            },
+            "农场" | "蛆虫工厂" | "腐肉育池" | "共生培育舱" => WorkerJobProfile {
+                labor: 0.4,
+                precision: 0.3,
+                cognitive: 0.2,
+                organic: 1.0,
+                social: 0.5,
+            },
+            "铁锭冶炼厂" | "铜锭冶炼厂" | "钢铁厂" | "玻璃厂" | "塑料厂" | "齿轮厂" | "电池厂"
+            | "发电机厂" | "机器人工厂" => WorkerJobProfile {
+                labor: 0.8,
+                precision: 0.55,
+                cognitive: 0.35,
+                organic: 0.0,
+                social: 0.1,
+            },
+            "化学品厂"
+            | "电路板厂"
+            | "马达厂"
+            | "传感器厂"
+            | "芯片制造厂"
+            | "量子计算中心"
+            | "纳米机器人工厂"
+            | "反物质反应堆"
+            | "时间水晶合成器"
+            | "神经尖塔"
+            | "深空孵化港" => WorkerJobProfile {
+                labor: 0.25,
+                precision: 0.95,
+                cognitive: 1.0,
+                organic: 0.0,
+                social: 0.25,
+            },
+            _ => WorkerJobProfile {
+                labor: 0.35,
+                precision: 0.35,
+                cognitive: 0.35,
+                organic: 0.1,
+                social: 0.2,
+            },
+        }
+    }
+
+    fn count_workers_assigned_to_building(
+        &self,
+        building_id: &str,
+        excluding_worker: Option<usize>,
+    ) -> usize {
+        self.workers
+            .iter()
+            .enumerate()
+            .filter(|(index, worker)| {
+                excluding_worker != Some(*index)
+                    && worker.assigned_building.as_deref() == Some(building_id)
+            })
+            .count()
+    }
+
+    fn building_assignment_capacity(&self, building_id: &str) -> usize {
+        self.buildings
+            .iter()
+            .find(|building| building.name == building_id)
+            .map(|building| building.count as usize)
+            .unwrap_or(0)
+    }
+
+    fn has_assignment_capacity(&self, worker_index: usize, building_id: &str) -> bool {
+        self.count_workers_assigned_to_building(building_id, Some(worker_index))
+            < self.building_assignment_capacity(building_id)
+    }
+
+    fn worker_limb_modifier(&self, worker: &Worker, profile: WorkerJobProfile) -> f64 {
+        let mut modifier = 0.0;
+
+        for limb in &worker.missing_limbs {
+            modifier -= match limb {
+                LimbSlot::LeftArm | LimbSlot::RightArm => {
+                    0.06 + (profile.labor * 0.10) + (profile.precision * 0.16)
+                }
+                LimbSlot::LeftLeg | LimbSlot::RightLeg => {
+                    0.05 + (profile.labor * 0.12)
+                        + (profile.organic * 0.05)
+                        + (profile.social * 0.03)
+                }
+            };
+        }
+
+        for limb in &worker.maggot_limbs {
+            modifier += match limb {
+                LimbSlot::LeftArm | LimbSlot::RightArm => {
+                    (profile.organic * 0.10) + (profile.social * 0.03) - (profile.precision * 0.04)
+                }
+                LimbSlot::LeftLeg | LimbSlot::RightLeg => {
+                    (profile.organic * 0.08) + (profile.labor * 0.03) - (profile.cognitive * 0.02)
+                }
+            };
+        }
+
+        modifier
+    }
+
+    fn worker_job_fit_bonus(
+        &self,
+        worker: &Worker,
+        building_id: &str,
+        profile: WorkerJobProfile,
+    ) -> f64 {
+        let skill = worker.skills.to_lowercase();
+        let background = worker.background.to_lowercase();
+        let mut bonus = 0.0;
+
+        if worker.preferences == building_id {
+            bonus += 0.35;
+        }
+
+        if (skill.contains("min") || skill.contains("石") || skill.contains("矿"))
+            && profile.labor >= 0.8
+        {
+            bonus += 0.14;
+        }
+        if (skill.contains("farm") || skill.contains("food") || skill.contains("survival"))
+            && profile.organic >= 0.8
+        {
+            bonus += 0.14;
+        }
+        if (skill.contains("factory") || skill.contains("craft") || skill.contains("engin"))
+            && profile.precision >= 0.5
+        {
+            bonus += 0.12;
+        }
+        if (skill.contains("research") || skill.contains("tech") || skill.contains("comput"))
+            && profile.cognitive >= 0.8
+        {
+            bonus += 0.14;
+        }
+
+        if (background.contains("工匠")
+            || background.contains("车间")
+            || background.contains("实验"))
+            && profile.precision >= 0.5
+        {
+            bonus += 0.08;
+        }
+        if (background.contains("农") || background.contains("生存") || background.contains("照料"))
+            && profile.organic >= 0.8
+        {
+            bonus += 0.08;
+        }
+
+        for hobby in &worker.hobbies {
+            bonus += match hobby {
+                Hobby::Gardening | Hobby::Cooking if profile.organic >= 0.8 => 0.08,
+                Hobby::Reading | Hobby::Gaming | Hobby::Photography if profile.cognitive >= 0.8 => {
+                    0.07
+                }
+                Hobby::Sports | Hobby::Fishing if profile.labor >= 0.8 => 0.06,
+                Hobby::Music | Hobby::Art if profile.social >= 0.4 || profile.organic >= 0.8 => {
+                    0.05
+                }
+                _ => 0.0,
+            };
+        }
+
+        bonus += match worker.primary_trait {
+            Trait::Careful if profile.precision >= 0.8 => 0.08,
+            Trait::Creative if profile.cognitive >= 0.8 || profile.organic >= 0.8 => 0.08,
+            Trait::Diligent | Trait::Persevering if profile.labor >= 0.8 => 0.08,
+            Trait::Social | Trait::Charismatic if profile.social >= 0.4 => 0.07,
+            Trait::Loner if profile.social >= 0.4 => -0.05,
+            Trait::Clumsy | Trait::Careless if profile.precision >= 0.8 => -0.08,
+            Trait::NightOwl if profile.cognitive >= 0.8 => 0.05,
+            Trait::EarlyBird if profile.organic >= 0.8 || profile.labor >= 0.8 => 0.05,
+            _ => 0.0,
+        };
+
+        bonus
+    }
+
+    fn worker_state_bonus(&self, worker: &Worker, profile: WorkerJobProfile) -> f64 {
+        let happiness_bonus = ((worker.happiness - 50.0) / 50.0)
+            * (0.08 + profile.social * 0.07 + profile.organic * 0.05);
+        let focus_bonus = ((worker.focus - 50.0) / 50.0)
+            * (0.04 + profile.precision * 0.08 + profile.cognitive * 0.1);
+        let fatigue_penalty =
+            (worker.fatigue / 100.0) * (0.05 + profile.labor * 0.18 + profile.precision * 0.05);
+        let stress_penalty =
+            (worker.stress / 100.0) * (0.04 + profile.cognitive * 0.12 + profile.social * 0.08);
+        let hunger_penalty = if worker.is_hungry || worker.hunger >= 75.0 {
+            0.22
+        } else if worker.hunger >= 40.0 {
+            0.11
+        } else {
+            0.0
+        };
+
+        happiness_bonus + focus_bonus - fatigue_penalty - stress_penalty - hunger_penalty
+    }
+
+    fn refresh_worker_state(&mut self, elapsed: f64) {
+        if elapsed <= 0.0 {
+            return;
+        }
+
+        for worker in &mut self.workers {
+            let assigned = worker.assigned_building.clone();
+            if let Some(building_id) = assigned.as_deref() {
+                let profile = Self::worker_job_profile(building_id);
+                let preference_drive = if worker.preferences == building_id {
+                    -0.25
+                } else {
+                    0.2
+                };
+
+                worker.fatigue = (worker.fatigue
+                    + ((0.5 + profile.labor * 1.8 + profile.cognitive * 0.4 + preference_drive)
+                        * elapsed))
+                    .clamp(0.0, 100.0);
+                worker.stress = (worker.stress
+                    + ((0.35 + profile.precision * 0.8 + profile.cognitive * 1.0
+                        - worker.happiness * 0.004)
+                        * elapsed))
+                    .clamp(0.0, 100.0);
+                worker.focus = (worker.focus
+                    + ((0.2 + profile.cognitive * 0.8 + profile.precision * 0.6
+                        - worker.stress * 0.01
+                        - worker.hunger * 0.004)
+                        * elapsed))
+                    .clamp(0.0, 100.0);
+            } else {
+                worker.fatigue = (worker.fatigue - (1.4 * elapsed)).clamp(0.0, 100.0);
+                worker.stress = (worker.stress - (1.1 * elapsed)).clamp(0.0, 100.0);
+                worker.focus = (worker.focus + (0.8 * elapsed)).clamp(0.0, 100.0);
+            }
+        }
+    }
+
     fn mark_objective_step_completed(&mut self, step_id: &str) {
         let mut state = self.state.borrow_mut();
         if !state
@@ -850,36 +1143,18 @@ impl IdleGame {
     }
 
     fn calculate_worker_efficiency_for(&self, worker: &Worker, building_id: &str) -> f64 {
+        let profile = Self::worker_job_profile(building_id);
         let mut efficiency = 1.0;
-
-        if worker.preferences == building_id {
-            efficiency += 0.2;
-        }
-
-        efficiency += (worker.level as f64) * 0.05;
+        efficiency += self.worker_job_fit_bonus(worker, building_id, profile);
+        efficiency += (worker.level as f64) * 0.04;
         efficiency += worker.primary_trait.get_effect().efficiency_bonus;
         efficiency += worker
             .secondary_traits
             .iter()
-            .map(|trait_value| trait_value.get_effect().efficiency_bonus)
+            .map(|trait_value| trait_value.get_effect().efficiency_bonus * 0.5)
             .sum::<f64>();
-
-        if worker.happiness >= 80.0 {
-            efficiency += 0.10;
-        } else if worker.happiness >= 60.0 {
-            efficiency += 0.05;
-        } else if worker.happiness <= 20.0 {
-            efficiency -= 0.10;
-        } else if worker.happiness <= 35.0 {
-            efficiency -= 0.05;
-        }
-
-        if worker.is_hungry || worker.hunger >= 75.0 {
-            efficiency -= 0.20;
-        } else if worker.hunger >= 40.0 {
-            efficiency -= 0.10;
-        }
-
+        efficiency += self.worker_state_bonus(worker, profile);
+        efficiency += self.worker_limb_modifier(worker, profile);
         efficiency.max(0.25)
     }
 
@@ -891,12 +1166,25 @@ impl IdleGame {
         let mut parts = vec!["基础 100%".to_string()];
 
         if let Some(target_building) = building_id {
+            let profile = Self::worker_job_profile(target_building);
             if worker.preferences == target_building {
-                parts.push("偏好岗位 +20%".to_string());
+                parts.push("偏好岗位 +35%".to_string());
+            }
+            let fit_bonus = self.worker_job_fit_bonus(worker, target_building, profile);
+            if fit_bonus.abs() > 0.001 {
+                parts.push(format!("岗位契合 {:+.0}%", fit_bonus * 100.0));
+            }
+            let state_bonus = self.worker_state_bonus(worker, profile);
+            if state_bonus.abs() > 0.001 {
+                parts.push(format!("状态修正 {:+.0}%", state_bonus * 100.0));
+            }
+            let limb_bonus = self.worker_limb_modifier(worker, profile);
+            if limb_bonus.abs() > 0.001 {
+                parts.push(format!("肢体修正 {:+.0}%", limb_bonus * 100.0));
             }
         }
 
-        let level_bonus = (worker.level as f64) * 5.0;
+        let level_bonus = (worker.level as f64) * 4.0;
         if level_bonus > 0.0 {
             parts.push(format!("等级加成 +{:.0}%", level_bonus));
         }
@@ -909,27 +1197,15 @@ impl IdleGame {
         let secondary_bonus = worker
             .secondary_traits
             .iter()
-            .map(|trait_value| trait_value.get_effect().efficiency_bonus)
+            .map(|trait_value| trait_value.get_effect().efficiency_bonus * 0.5)
             .sum::<f64>();
         if secondary_bonus.abs() > f64::EPSILON {
             parts.push(format!("副特质 {:+.0}%", secondary_bonus * 100.0));
         }
 
-        if worker.happiness >= 80.0 {
-            parts.push("心情高涨 +10%".to_string());
-        } else if worker.happiness >= 60.0 {
-            parts.push("心情稳定 +5%".to_string());
-        } else if worker.happiness <= 20.0 {
-            parts.push("情绪低落 -10%".to_string());
-        } else if worker.happiness <= 35.0 {
-            parts.push("士气不足 -5%".to_string());
-        }
-
-        if worker.is_hungry || worker.hunger >= 75.0 {
-            parts.push("饥饿惩罚 -20%".to_string());
-        } else if worker.hunger >= 40.0 {
-            parts.push("饥饿压力 -10%".to_string());
-        }
+        parts.push(format!("专注 {:.0}", worker.focus));
+        parts.push(format!("疲劳 {:.0}", worker.fatigue));
+        parts.push(format!("压力 {:.0}", worker.stress));
 
         parts
     }
@@ -1741,6 +2017,10 @@ impl IdleGame {
             return false;
         }
 
+        if !self.has_assignment_capacity(worker_index, building_id) {
+            return false;
+        }
+
         self.workers[worker_index].assigned_building = Some(building_id.to_string());
 
         let efficiency = self.calculate_worker_efficiency_multiplier(worker_index, building_id);
@@ -1749,6 +2029,50 @@ impl IdleGame {
         self.refresh_progression_state();
         self.update_production();
 
+        true
+    }
+
+    #[wasm_bindgen]
+    pub fn perform_maggot_limb_surgery(&mut self, worker_index: usize) -> bool {
+        if worker_index >= self.workers.len() {
+            return false;
+        }
+
+        let (can_perform, cost, _) =
+            self.get_maggot_limb_surgery_status(&self.workers[worker_index]);
+        if !can_perform {
+            return false;
+        }
+
+        {
+            let mut state = self.state.borrow_mut();
+            state.add_resource(ResourceType::Maggot, -cost);
+        }
+
+        let assigned_building = {
+            let worker = &mut self.workers[worker_index];
+            let replaced_limbs = worker.missing_limbs.clone();
+            worker.missing_limbs.clear();
+            for limb in replaced_limbs {
+                if !worker.maggot_limbs.contains(&limb) {
+                    worker.maggot_limbs.push(limb);
+                }
+            }
+            worker.happiness = (worker.happiness + 6.0).clamp(0.0, 100.0);
+            worker.focus = (worker.focus + 4.0).clamp(0.0, 100.0);
+            worker.fatigue = (worker.fatigue + 10.0).clamp(0.0, 100.0);
+            worker.stress = (worker.stress + 6.0).clamp(0.0, 100.0);
+            worker.assigned_building.clone()
+        };
+
+        if let Some(building_id) = assigned_building {
+            let efficiency =
+                self.calculate_worker_efficiency_multiplier(worker_index, &building_id);
+            self.workers[worker_index].efficiency_multiplier = efficiency;
+        }
+
+        self.refresh_progression_state();
+        self.update_production();
         true
     }
 
@@ -1779,12 +2103,15 @@ impl IdleGame {
                 .map(|building| self.calculate_worker_efficiency_for(worker, building))
                 .unwrap_or(base_efficiency);
             let breakdown = self.build_worker_efficiency_breakdown(worker, assigned_building);
+            let (can_maggot_surgery, maggot_surgery_cost, maggot_surgery_reason) =
+                self.get_maggot_limb_surgery_status(worker);
 
             let recommended_assignment = if assigned_building.is_none() {
                 self.buildings
                     .iter()
                     .filter(|building| {
                         building.count > 0
+                            && self.has_assignment_capacity(usize::MAX, &building.name)
                             && stage::is_building_revealed(
                                 building,
                                 current_stage,
@@ -1953,6 +2280,73 @@ impl IdleGame {
             )
             .unwrap();
 
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("focus"),
+                &JsValue::from_f64(worker.focus),
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("fatigue"),
+                &JsValue::from_f64(worker.fatigue),
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("stress"),
+                &JsValue::from_f64(worker.stress),
+            )
+            .unwrap();
+
+            let missing_limbs = js_sys::Array::new();
+            for limb in &worker.missing_limbs {
+                missing_limbs.push(&JsValue::from_str(Self::limb_slot_label(*limb)));
+            }
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("missingLimbs"),
+                &missing_limbs,
+            )
+            .unwrap();
+
+            let maggot_limbs = js_sys::Array::new();
+            for limb in &worker.maggot_limbs {
+                maggot_limbs.push(&JsValue::from_str(Self::limb_slot_label(*limb)));
+            }
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("maggotLimbs"),
+                &maggot_limbs,
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("canMaggotSurgery"),
+                &JsValue::from_bool(can_maggot_surgery),
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("maggotSurgeryCost"),
+                &JsValue::from_f64(maggot_surgery_cost),
+            )
+            .unwrap();
+
+            js_sys::Reflect::set(
+                &worker_obj,
+                &JsValue::from_str("maggotSurgeryReason"),
+                &match maggot_surgery_reason {
+                    Some(ref reason) => JsValue::from_str(reason),
+                    None => JsValue::NULL,
+                },
+            )
+            .unwrap();
+
             workers_array.push(&worker_obj);
         }
 
@@ -2084,6 +2478,21 @@ impl IdleGame {
                 &JsValue::from_str("is_hungry"),
                 &JsValue::from_bool(worker.is_hungry),
             );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("focus"),
+                &JsValue::from_f64(worker.focus),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("fatigue"),
+                &JsValue::from_f64(worker.fatigue),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("stress"),
+                &JsValue::from_f64(worker.stress),
+            );
             list.push(&obj);
         }
         list.into()
@@ -2102,6 +2511,8 @@ impl IdleGame {
 
         let worker = &self.workers[index];
         let worker_obj = js_sys::Object::new();
+        let (can_maggot_surgery, maggot_surgery_cost, maggot_surgery_reason) =
+            self.get_maggot_limb_surgery_status(worker);
         js_sys::Reflect::set(
             &worker_obj,
             &JsValue::from_str("index"),
@@ -2171,13 +2582,74 @@ impl IdleGame {
             &JsValue::from_f64(worker.hunger),
         )
         .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("focus"),
+            &JsValue::from_f64(worker.focus),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("fatigue"),
+            &JsValue::from_f64(worker.fatigue),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("stress"),
+            &JsValue::from_f64(worker.stress),
+        )
+        .unwrap();
+
+        let missing_limbs = js_sys::Array::new();
+        for limb in &worker.missing_limbs {
+            missing_limbs.push(&JsValue::from_str(Self::limb_slot_label(*limb)));
+        }
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("missingLimbs"),
+            &missing_limbs,
+        )
+        .unwrap();
+
+        let maggot_limbs = js_sys::Array::new();
+        for limb in &worker.maggot_limbs {
+            maggot_limbs.push(&JsValue::from_str(Self::limb_slot_label(*limb)));
+        }
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("maggotLimbs"),
+            &maggot_limbs,
+        )
+        .unwrap();
+
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("canMaggotSurgery"),
+            &JsValue::from_bool(can_maggot_surgery),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("maggotSurgeryCost"),
+            &JsValue::from_f64(maggot_surgery_cost),
+        )
+        .unwrap();
+        js_sys::Reflect::set(
+            &worker_obj,
+            &JsValue::from_str("maggotSurgeryReason"),
+            &match maggot_surgery_reason {
+                Some(ref reason) => JsValue::from_str(reason),
+                None => JsValue::NULL,
+            },
+        )
+        .unwrap();
 
         worker_obj.into()
     }
 
     #[wasm_bindgen]
     pub fn assign_worker_auto(&mut self) -> u32 {
-        let mut assigned_count = 0u32;
         let current_stage = self.state.borrow().current_stage;
         let candidate_buildings: Vec<String> = self
             .buildings
@@ -2193,16 +2665,49 @@ impl IdleGame {
             return 0;
         }
 
-        for idx in 0..self.workers.len() {
-            if self.workers[idx].assigned_building.is_some() {
-                continue;
-            }
+        for worker in &mut self.workers {
+            worker.assigned_building = None;
+            worker.efficiency_multiplier = 1.0;
+        }
 
+        let mut assigned_count = 0u32;
+        let mut remaining_slots: HashMap<String, usize> = self
+            .buildings
+            .iter()
+            .filter(|building| {
+                building.count > 0
+                    && stage::is_building_revealed(building, current_stage, &self.technology_tree)
+            })
+            .map(|building| (building.name.clone(), building.count as usize))
+            .collect();
+
+        let mut worker_order: Vec<(usize, f64)> = (0..self.workers.len())
+            .map(|idx| {
+                let best_gain = self
+                    .buildings
+                    .iter()
+                    .filter(|building| {
+                        building.count > 0
+                            && stage::is_building_revealed(
+                                building,
+                                current_stage,
+                                &self.technology_tree,
+                            )
+                    })
+                    .map(|building| self.calculate_assignment_gain(idx, building))
+                    .fold(0.0, f64::max);
+                (idx, best_gain)
+            })
+            .collect();
+
+        worker_order.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+        for (idx, _) in worker_order {
             let mut ranked_buildings: Vec<(String, f64)> = self
                 .buildings
                 .iter()
                 .filter(|building| {
-                    building.count > 0
+                    remaining_slots.get(&building.name).copied().unwrap_or(0) > 0
                         && stage::is_building_revealed(
                             building,
                             current_stage,
@@ -2226,6 +2731,9 @@ impl IdleGame {
 
             if let Some((best_building, _)) = ranked_buildings.first() {
                 if self.assign_worker(idx, best_building) {
+                    if let Some(slots) = remaining_slots.get_mut(best_building) {
+                        *slots = slots.saturating_sub(1);
+                    }
                     assigned_count += 1;
                 }
             }
@@ -2242,6 +2750,10 @@ impl IdleGame {
 
         let building_exists = self.buildings.iter().any(|b| b.name == building_id);
         if !building_exists {
+            return false;
+        }
+
+        if !self.has_assignment_capacity(worker_index, building_id) {
             return false;
         }
 
@@ -2270,40 +2782,26 @@ impl IdleGame {
     }
 
     fn update_production(&mut self) {
-        for worker in &mut self.workers {
-            if let Some(assigned_building) = worker.assigned_building.clone() {
-                let mut efficiency = 1.0;
+        let updated_efficiencies: Vec<f64> = self
+            .workers
+            .iter()
+            .map(|worker| {
+                worker
+                    .assigned_building
+                    .as_deref()
+                    .map(|assigned_building| {
+                        self.calculate_worker_efficiency_for(worker, assigned_building)
+                    })
+                    .unwrap_or(1.0)
+            })
+            .collect();
 
-                if worker.preferences == assigned_building {
-                    efficiency += 0.2;
-                }
-
-                efficiency += (worker.level as f64) * 0.05;
-                efficiency += worker.primary_trait.get_effect().efficiency_bonus;
-                efficiency += worker
-                    .secondary_traits
-                    .iter()
-                    .map(|trait_value| trait_value.get_effect().efficiency_bonus)
-                    .sum::<f64>();
-
-                if worker.happiness >= 80.0 {
-                    efficiency += 0.10;
-                } else if worker.happiness >= 60.0 {
-                    efficiency += 0.05;
-                } else if worker.happiness <= 20.0 {
-                    efficiency -= 0.10;
-                } else if worker.happiness <= 35.0 {
-                    efficiency -= 0.05;
-                }
-
-                if worker.is_hungry || worker.hunger >= 75.0 {
-                    efficiency -= 0.20;
-                } else if worker.hunger >= 40.0 {
-                    efficiency -= 0.10;
-                }
-
-                worker.efficiency_multiplier = efficiency.max(0.25);
-            }
+        for (worker, efficiency) in self
+            .workers
+            .iter_mut()
+            .zip(updated_efficiencies.into_iter())
+        {
+            worker.efficiency_multiplier = efficiency;
         }
 
         let mut total_cps = 0.0;
@@ -2561,6 +3059,8 @@ impl IdleGame {
                     &mut corpse_decay_time,
                 );
             }
+            self.refresh_worker_state(elapsed);
+            self.update_production();
             // Corpse decay: produce maggots from corpses
             {
                 let mut state = self.state.borrow_mut();

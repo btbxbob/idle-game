@@ -30,6 +30,14 @@ impl Default for Hobby {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum LimbSlot {
+    LeftArm,
+    RightArm,
+    LeftLeg,
+    RightLeg,
+}
+
 /// 特性枚举
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Default)]
 pub enum Trait {
@@ -279,6 +287,16 @@ pub struct Worker {
     pub happiness: f64,
     #[serde(default)]
     pub hunger: f64, // 饥饿度 0-100，0=饱食，100=饿死
+    #[serde(default = "default_focus")]
+    pub focus: f64,
+    #[serde(default = "default_fatigue")]
+    pub fatigue: f64,
+    #[serde(default = "default_stress")]
+    pub stress: f64,
+    #[serde(default)]
+    pub missing_limbs: Vec<LimbSlot>,
+    #[serde(default)]
+    pub maggot_limbs: Vec<LimbSlot>,
     #[serde(default)]
     pub is_hungry: bool, // 是否饥饿
     #[serde(default)]
@@ -287,6 +305,18 @@ pub struct Worker {
 
 fn default_happiness() -> f64 {
     50.0
+}
+
+fn default_focus() -> f64 {
+    55.0
+}
+
+fn default_fatigue() -> f64 {
+    10.0
+}
+
+fn default_stress() -> f64 {
+    15.0
 }
 
 impl Worker {
@@ -308,6 +338,11 @@ impl Worker {
             secondary_traits: Vec::new(),
             happiness: 50.0,
             hunger: 0.0, // 初始不饿
+            focus: default_focus(),
+            fatigue: default_fatigue(),
+            stress: default_stress(),
+            missing_limbs: Vec::new(),
+            maggot_limbs: Vec::new(),
             is_hungry: false,
             starvation_start_time: 0.0,
         }
@@ -340,6 +375,11 @@ impl Worker {
             secondary_traits,
             happiness: 50.0,
             hunger: 0.0, // 初始不饿
+            focus: default_focus(),
+            fatigue: default_fatigue(),
+            stress: default_stress(),
+            missing_limbs: Vec::new(),
+            maggot_limbs: Vec::new(),
             is_hungry: false,
             starvation_start_time: 0.0,
         }

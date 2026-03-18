@@ -1,7 +1,7 @@
 //! Worker generator for automatic worker spawning
 //! Generates random workers with name, gender, hobbies, and traits
 
-use crate::entities::worker::{Gender, Hobby, Trait, Worker};
+use crate::entities::worker::{Gender, Hobby, LimbSlot, Trait, Worker};
 use crate::utils::name_generator::NameGenerator;
 use rand::rng;
 use rand::seq::IndexedRandom;
@@ -11,6 +11,30 @@ use rand::RngExt;
 pub struct WorkerGenerator;
 
 impl WorkerGenerator {
+    fn random_missing_limbs() -> Vec<LimbSlot> {
+        let limb_slots = [
+            LimbSlot::LeftArm,
+            LimbSlot::RightArm,
+            LimbSlot::LeftLeg,
+            LimbSlot::RightLeg,
+        ];
+        let mut rng = rng();
+        let roll = rng.random_range(0..100);
+        let count = if roll < 10 {
+            1
+        } else if roll < 13 {
+            2
+        } else {
+            0
+        };
+
+        if count == 0 {
+            return Vec::new();
+        }
+
+        limb_slots.sample(&mut rng, count).cloned().collect()
+    }
+
     /// Generate random gender
     pub fn random_gender() -> Gender {
         let mut rng = rng();
@@ -134,7 +158,7 @@ impl WorkerGenerator {
         let skill = Self::random_skill();
         let preferences = Self::random_preferences(skill);
 
-        Worker::new_full(
+        let mut worker = Worker::new_full(
             &name,
             skill,
             "新工人",
@@ -143,7 +167,9 @@ impl WorkerGenerator {
             hobbies,
             primary_trait,
             secondary_traits,
-        )
+        );
+        worker.missing_limbs = Self::random_missing_limbs();
+        worker
     }
 }
 
@@ -225,6 +251,15 @@ mod tests {
 
         // XP should start at 0
         assert_eq!(worker.xp, 0.0, "New worker should start with 0 XP");
+
+        assert!(
+            worker.maggot_limbs.is_empty(),
+            "New worker should not start with maggot limbs"
+        );
+        assert!(
+            worker.missing_limbs.len() <= 2,
+            "New worker should have at most 2 missing limbs"
+        );
     }
 
     #[test]

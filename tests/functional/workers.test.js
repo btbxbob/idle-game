@@ -1,5 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
-const { unlockWorkersStage } = require('../fixtures/stage-helpers');
+const { unlockMaggotStage, unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Workers System', () => {
     test.beforeEach(async ({ page }) => {
@@ -90,6 +90,11 @@ test.describe('Workers System', () => {
             expect(firstWorker).toHaveProperty('background');
             expect(firstWorker).toHaveProperty('happiness');
             expect(firstWorker).toHaveProperty('hunger');
+            expect(firstWorker).toHaveProperty('focus');
+            expect(firstWorker).toHaveProperty('fatigue');
+            expect(firstWorker).toHaveProperty('stress');
+            expect(firstWorker).toHaveProperty('missingLimbs');
+            expect(firstWorker).toHaveProperty('maggotLimbs');
 
             expect(typeof firstWorker.happiness).toBe('number');
             expect(typeof firstWorker.hunger).toBe('number');
@@ -97,6 +102,14 @@ test.describe('Workers System', () => {
             expect(firstWorker.happiness).toBeLessThanOrEqual(100);
             expect(firstWorker.hunger).toBeGreaterThanOrEqual(0);
             expect(firstWorker.hunger).toBeLessThanOrEqual(100);
+            expect(firstWorker.focus).toBeGreaterThanOrEqual(0);
+            expect(firstWorker.focus).toBeLessThanOrEqual(100);
+            expect(firstWorker.fatigue).toBeGreaterThanOrEqual(0);
+            expect(firstWorker.fatigue).toBeLessThanOrEqual(100);
+            expect(firstWorker.stress).toBeGreaterThanOrEqual(0);
+            expect(firstWorker.stress).toBeLessThanOrEqual(100);
+            expect(Array.isArray(firstWorker.missingLimbs)).toBe(true);
+            expect(Array.isArray(firstWorker.maggotLimbs)).toBe(true);
 
             const multiplier = firstWorker.efficiency_multiplier || firstWorker.efficiencyMultiplier || 1.0;
             const xpToNextLevel = firstWorker.xp_to_next_level || firstWorker.xpToNextLevel;
@@ -112,7 +125,85 @@ test.describe('Workers System', () => {
             expect(snapshot.details).toHaveProperty('name');
             expect(snapshot.details).toHaveProperty('level');
             expect(snapshot.details).toHaveProperty('skills');
+            expect(snapshot.details).toHaveProperty('missingLimbs');
+            expect(snapshot.details).toHaveProperty('maggotLimbs');
         }
+    });
+
+    test('maggot limb surgery converts missing limbs into maggot limbs', async ({ page }) => {
+        await unlockMaggotStage(page);
+        await page.click('[data-tab="workers"]');
+
+        const result = await page.evaluate(() => {
+            const raw = window.rustGame.exportToBase64();
+            const json = JSON.parse(atob(raw));
+
+            json.state = json.state || {};
+            json.state.current_stage = 'Maggot';
+            json.state.resources = json.state.resources || {};
+            json.state.resources.Maggot = 60;
+
+            if (!Array.isArray(json.workers) || json.workers.length === 0) {
+                return { ok: false, reason: 'missing workers' };
+            }
+
+            json.workers[0].missing_limbs = ['LeftArm', 'RightLeg'];
+            json.workers[0].maggot_limbs = [];
+
+            window.rustGame.importFromBase64(btoa(JSON.stringify(json)));
+
+            const before = window.rustGame.get_workers()[0];
+            const beforeResources = window.rustGame.get_resources();
+            const surgeryResult = window.rustGame.perform_maggot_limb_surgery(0);
+            const after = window.rustGame.get_workers()[0];
+            const afterResources = window.rustGame.get_resources();
+
+            return {
+                ok: true,
+                beforeMissing: before.missingLimbs,
+                beforeMaggot: before.maggotLimbs,
+                surgeryResult,
+                afterMissing: after.missingLimbs,
+                afterMaggot: after.maggotLimbs,
+                beforeMaggotCount: beforeResources.Maggot,
+                afterMaggotCount: afterResources.Maggot,
+                surgeryCost: before.maggotSurgeryCost,
+                canBefore: before.canMaggotSurgery,
+            };
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.canBefore).toBe(true);
+        expect(result.beforeMissing).toEqual(expect.arrayContaining(['左手', '右腿']));
+        expect(result.beforeMaggot).toEqual([]);
+        expect(result.surgeryResult).toBe(true);
+        expect(result.afterMissing).toEqual([]);
+        expect(result.afterMaggot).toEqual(expect.arrayContaining(['左手', '右腿']));
+        expect(result.beforeMaggotCount - result.afterMaggotCount).toBe(result.surgeryCost);
+
+        await page.reload();
+        await page.waitForFunction(() => window.gameInitialized === true);
+        await unlockMaggotStage(page);
+        await page.click('[data-tab="workers"]');
+
+        const modalResult = await page.evaluate(() => {
+            const raw = window.rustGame.exportToBase64();
+            const json = JSON.parse(atob(raw));
+            json.state.current_stage = 'Maggot';
+            json.state.resources = json.state.resources || {};
+            json.state.resources.Maggot = 60;
+            json.workers[0].missing_limbs = ['LeftArm'];
+            json.workers[0].maggot_limbs = [];
+            window.rustGame.importFromBase64(btoa(JSON.stringify(json)));
+            window.workerManager.renderWorkers();
+            window.workerManager.showAssignmentModal(0);
+            return true;
+        });
+
+        expect(modalResult).toBe(true);
+        await expect(page.locator('#worker-assignment-modal')).toContainText('肢体状态');
+        await expect(page.locator('#worker-assignment-modal')).toContainText('蛆虫肢体手术');
+        await expect(page.locator('#worker-assignment-modal')).toContainText('左手');
     });
 
     test('worker assignment and auto-assign flows remain functional', async ({ page }) => {
@@ -185,7 +276,7 @@ test.describe('Workers System', () => {
             calls: window.__autoAssignFlow.calls,
         }));
 
-        expect(cancelState.confirms).toContain('将为未分配工人执行自动分配，是否继续？');
+        expect(cancelState.confirms).toContain('将重新为全部工人执行自动安排，并优先选择收益最高且有空位的岗位，是否继续？');
         expect(cancelState.calls).toBe(0);
         expect(cancelState.alerts).toHaveLength(0);
 
@@ -205,8 +296,42 @@ test.describe('Workers System', () => {
         }));
 
         expect(successState.calls).toBe(1);
-        expect(successState.alerts).toContain('自动分配完成：成功分配 2 名工人');
-        expect(successState.confirms.filter((message) => message === '将为未分配工人执行自动分配，是否继续？')).toHaveLength(2);
+        expect(successState.alerts).toContain('自动安排完成：已为 2 名工人选择当前最佳岗位');
+        expect(successState.confirms.filter((message) => message === '将重新为全部工人执行自动安排，并优先选择收益最高且有空位的岗位，是否继续？')).toHaveLength(2);
+    });
+
+    test('worker assignment respects building slot capacity', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const workers = window.rustGame.get_workers();
+            const buildings = window.rustGame.get_buildings();
+            const singleSlotBuilding = buildings.find((building) => Number(building.count || 0) === 1);
+
+            if (!workers || workers.length < 2 || !singleSlotBuilding) {
+                return { skipped: true };
+            }
+
+            const first = window.rustGame.assign_worker(0, singleSlotBuilding.name);
+            const second = window.rustGame.assign_worker(1, singleSlotBuilding.name);
+            const updatedWorkers = window.rustGame.get_workers();
+            const assignedToBuilding = updatedWorkers.filter((worker) => worker.assignedBuilding === singleSlotBuilding.name).length;
+
+            return {
+                skipped: false,
+                building: singleSlotBuilding.name,
+                first,
+                second,
+                assignedToBuilding,
+                capacity: singleSlotBuilding.count,
+            };
+        });
+
+        if (result.skipped) {
+            test.skip(true, 'No single-slot building available for capacity validation.');
+        }
+
+        expect(result.first).toBe(true);
+        expect(result.second).toBe(false);
+        expect(result.assignedToBuilding).toBe(result.capacity);
     });
 
     test('workers persist after page reload', async ({ page }) => {
