@@ -991,10 +991,10 @@ impl TechnologyTree {
             Technology::new(
                 TechnologyId::SpaceExploration,
                 costs(&[
-                    (ResourceType::Gold, 90000.0),
-                    (ResourceType::Spaceship, 12.0),
-                    (ResourceType::QuantumComputer, 45.0),
-                    (ResourceType::SteelPlate, 1500.0),
+                    (ResourceType::Gold, 65000.0),
+                    (ResourceType::Spaceship, 8.0),
+                    (ResourceType::QuantumComputer, 28.0),
+                    (ResourceType::SteelPlate, 900.0),
                 ]),
                 vec![
                     TechnologyId::CollectiveAwakening,
