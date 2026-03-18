@@ -29,6 +29,44 @@ test.describe('Achievement System', () => {
     expect(achievements[0]).toHaveProperty('unlocked');
   });
 
+  test('WASM achievement exports stay callable and structured', async ({ page }) => {
+    const result = await page.evaluate(() => {
+      const game = window.rustGame;
+      if (!game) {
+        return { ok: false, reason: 'missing rustGame' };
+      }
+
+      const achievements = typeof game.get_achievements === 'function' ? game.get_achievements() : [];
+      const first = achievements[0] || null;
+
+      return {
+        ok: true,
+        hasGetAchievements: typeof game.get_achievements === 'function',
+        hasCheckAchievement: typeof game.check_achievement === 'function',
+        count: achievements.length,
+        first,
+        invalidResult: game.check_achievement('nonexistent_achievement'),
+        validResultType: typeof game.check_achievement('first_coins_100'),
+        followupCount: game.get_achievements().length,
+      };
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.hasGetAchievements).toBe(true);
+    expect(result.hasCheckAchievement).toBe(true);
+    expect(result.count).toBeGreaterThan(0);
+    expect(result.first).toHaveProperty('id');
+    expect(result.first).toHaveProperty('name');
+    expect(result.first).toHaveProperty('description');
+    expect(result.first).toHaveProperty('category');
+    expect(typeof result.first.unlocked).toBe('boolean');
+    expect(typeof result.first.progress).toBe('number');
+    expect(typeof result.first.requirement).toBe('number');
+    expect(result.invalidResult).toBe(false);
+    expect(result.validResultType).toBe('boolean');
+    expect(result.followupCount).toBe(result.count);
+  });
+
   test('clicking updates at least one achievement progress signal', async ({ page }) => {
     const before = await page.evaluate(() =>
       window.rustGame && window.rustGame.get_achievements ? window.rustGame.get_achievements() : []

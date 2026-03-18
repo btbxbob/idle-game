@@ -732,4 +732,151 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.genericResult).toBe(false);
         expect(result.errors.some((entry) => entry.includes('Error researching'))).toBe(true);
     });
+
+    test('card render, filter and modal branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            if (!window.TechnologyManager) {
+                return { ok: false, reason: 'missing manager class' };
+            }
+
+            const container = document.createElement('div');
+            container.id = 'technology-tree-container';
+            document.body.appendChild(container);
+
+            const techStates = [
+                [
+                    { id: 'tech1', name: 'Researched', tier: 1, researched: true, costs: {} },
+                    { id: 'tech2', name: 'Available', tier: 2, researched: false, costs: { Gold: 100 } },
+                    { id: 'tech3', name: 'Locked', tier: 2, researched: false, dependencies: ['missing'], costs: {} },
+                ],
+                [
+                    { id: 'tech1', name: 'Stable Tech', tier: 1, researched: false, costs: { Gold: 10 } },
+                ],
+                [
+                    { id: 'tech1', name: 'Stable Tech', tier: 1, researched: false, costs: { Gold: 10 } },
+                ],
+            ];
+            let stateIndex = 0;
+            let researchedId = null;
+
+            const manager = new window.TechnologyManager({
+                get_technologies: () => techStates[stateIndex],
+                get_resources: () => ({ Gold: 500 }),
+                research_technology: (techId) => {
+                    researchedId = techId;
+                    return true;
+                },
+            }, { t: (key) => key, currentLanguage: 'en' });
+
+            manager.treeContainer = container;
+            manager.initialize();
+
+            const initialTools = !!container.querySelector('.tech-tools');
+            const initialGrid = !!container.querySelector('.tech-grid');
+            const initialCards = container.querySelectorAll('.tech-card').length;
+
+            manager.filterState.hideResearched = true;
+            manager.render();
+            const hideResearchedNames = Array.from(container.querySelectorAll('.tech-card .tech-name')).map((node) => node.textContent || '');
+
+            manager.filterState.hideResearched = false;
+            manager.filterState.filterBy = 'available';
+            manager.render();
+            const availableNames = Array.from(container.querySelectorAll('.tech-card .tech-name')).map((node) => node.textContent || '');
+
+            manager.filterState.filterBy = 'all';
+            manager.filterState.query = 'Available';
+            manager.render();
+            const searchCount = container.querySelectorAll('.tech-card').length;
+
+            manager.filterState.query = '';
+            manager.render();
+            const cards = container.querySelectorAll('.tech-card');
+            const cardStates = Array.from(cards).reduce((acc, card) => {
+                const techId = card.getAttribute('data-tech-id');
+                acc[techId] = {
+                    tierBadge: card.querySelector('.tech-badge')?.textContent || '',
+                    hasStatus: !!card.querySelector('.tech-status'),
+                    researched: card.classList.contains('researched'),
+                    locked: card.classList.contains('locked'),
+                };
+                return acc;
+            }, {});
+
+            stateIndex = 1;
+            manager.update();
+            const firstCard = container.querySelector('.tech-card');
+            firstCard.dataset.probe = 'persist';
+            stateIndex = 2;
+            manager.update();
+            const updatedCard = container.querySelector('.tech-card');
+            const sameNode = updatedCard === firstCard;
+            const probePreserved = updatedCard?.dataset.probe === 'persist';
+
+            const button = container.querySelector('.tech-research-btn');
+            if (button) {
+                button.click();
+            }
+
+            manager.technologies = [
+                { id: 'detail-tech', name: 'Detail Tech', tier: 1, description: 'Test desc', costs: { Gold: 100 } }
+            ];
+            manager.showTechDetail('detail-tech');
+            const modal = document.getElementById('tech-detail-modal');
+            const modalTitle = modal?.querySelector('h3')?.textContent || '';
+            modal?.remove();
+
+            const methods = {
+                renderTree: typeof manager.renderTree === 'function',
+                renderTextBasedTree: typeof manager.renderTextBasedTree === 'function',
+                selectTechnology: typeof manager.selectTechnology === 'function',
+                renderToPanel: typeof manager.renderToPanel === 'function',
+                renderForceDirectedGraph: typeof manager.renderForceDirectedGraph === 'function',
+                startForceSimulation: typeof manager.startForceSimulation === 'function',
+                stopForceSimulation: typeof manager.stopForceSimulation === 'function',
+                updatePhysics: typeof manager.updatePhysics === 'function',
+                setupCanvasEvents: typeof manager.setupCanvasEvents === 'function',
+                selectNode: typeof manager.selectNode === 'function',
+                updateDetailPanel: typeof manager.updateDetailPanel === 'function',
+            };
+
+            container.remove();
+
+            return {
+                ok: true,
+                initialTools,
+                initialGrid,
+                initialCards,
+                hideResearchedNames,
+                availableNames,
+                searchCount,
+                cardStates,
+                sameNode,
+                probePreserved,
+                researchedId,
+                modalTitle,
+                methods,
+            };
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.initialTools).toBe(true);
+        expect(result.initialGrid).toBe(true);
+        expect(result.initialCards).toBe(3);
+        expect(result.hideResearchedNames).toEqual(['Available', 'Locked']);
+        expect(result.availableNames).toEqual(['Available']);
+        expect(result.searchCount).toBe(1);
+        expect(result.cardStates.tech1.tierBadge).toBe('T1');
+        expect(result.cardStates.tech1.hasStatus).toBe(true);
+        expect(result.cardStates.tech1.researched).toBe(true);
+        expect(result.cardStates.tech2.tierBadge).toBe('T2');
+        expect(result.cardStates.tech2.hasStatus).toBe(false);
+        expect(result.cardStates.tech3.locked).toBe(true);
+        expect(result.cardStates.tech3.hasStatus).toBe(false);
+        expect(result.sameNode).toBe(true);
+        expect(result.probePreserved).toBe(true);
+        expect(result.researchedId).toBe('tech1');
+        expect(result.modalTitle).toContain('Detail Tech');
+        expect(Object.values(result.methods).every(Boolean)).toBe(true);
+    });
 });

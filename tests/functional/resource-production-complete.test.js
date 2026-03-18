@@ -158,6 +158,44 @@ test.describe('Resource Production Complete', () => {
         });
     });
 
+    test('coin click and first building purchase update coins, count and click value in real time', async ({ page }) => {
+        const initialState = await page.evaluate(() => ({
+            coins: window.rustGame.get_coins(),
+            coinsPerClick: window.rustGame.get_coins_per_click(),
+        }));
+
+        for (let i = 0; i < 30; i++) {
+            await page.click('#coin-button');
+        }
+
+        await page.waitForFunction((before) => window.rustGame.get_coins() > before, initialState.coins, { timeout: 3000 });
+
+        const afterClicks = await page.evaluate(() => window.rustGame.get_coins());
+        expect(afterClicks).toBeGreaterThan(initialState.coins);
+
+        await page.click('button[data-tab="buildings"]');
+        await page.waitForTimeout(150);
+
+        const beforePurchase = await page.evaluate(() => ({
+            coins: window.rustGame.get_coins(),
+            coinsPerClick: window.rustGame.get_coins_per_click(),
+        }));
+
+        await page.click('#buy-building-0');
+
+        await page.waitForFunction((before) => window.rustGame.get_coins() < before, beforePurchase.coins, { timeout: 3000 });
+
+        const afterPurchase = await page.evaluate(() => ({
+            coins: window.rustGame.get_coins(),
+            coinsPerClick: window.rustGame.get_coins_per_click(),
+        }));
+        const buildingList = await page.textContent('#building-list');
+
+        expect(afterPurchase.coins).toBeLessThan(beforePurchase.coins);
+        expect(afterPurchase.coinsPerClick).toBeGreaterThan(beforePurchase.coinsPerClick);
+        expect(buildingList || '').toMatch(/拥有:\s*1/);
+    });
+
     test('production calculation is correct', async ({ page }) => {
         // Test that production calculations are accurate
         const coinsPerSec = await page.evaluate(() => window.rustGame.get_coins_per_second());
