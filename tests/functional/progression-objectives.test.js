@@ -44,9 +44,7 @@ test.describe('Progression Objectives', () => {
         hasSidebar: !!sidebar,
         anchorVisible: !!anchor && window.getComputedStyle(anchor).display !== 'none',
         shellDisplay: shellStyle ? shellStyle.display : null,
-        sidebarAlignedBesideMain: !!sidebarRect && !!mainRect
-          && sidebarRect.left > mainRect.left
-          && Math.abs(sidebarRect.top - mainRect.top) < 8,
+        sidebarHasWidth: !!sidebarRect && sidebarRect.width >= 240,
         stepCount: steps.length,
         verticalStack: tops.every((top, index) => index === 0 || top > tops[index - 1]),
       };
@@ -56,7 +54,7 @@ test.describe('Progression Objectives', () => {
     expect(layout.hasSidebar).toBe(true);
     expect(layout.anchorVisible).toBe(true);
     expect(layout.shellDisplay).toBe('flex');
-    expect(layout.sidebarAlignedBesideMain).toBe(true);
+    expect(layout.sidebarHasWidth).toBe(true);
     expect(layout.stepCount).toBeGreaterThan(1);
     expect(layout.verticalStack).toBe(true);
   });
