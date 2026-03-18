@@ -260,6 +260,35 @@ test.describe('Game.js Coverage Tests', () => {
         expect(result.hasCoinMine).toBe(true);
     });
 
+    test('updateBuildingDisplay shows progression link notes for hybrid and collective buildings', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const buildings = [
+                { name: '共生培育舱', cost: 5000, production_rate: 1, count: 1 },
+                { name: '神经尖塔', cost: 9000, production_rate: 0.5, count: 0 },
+                { name: '深空孵化港', cost: 12000, production_rate: 0.25, count: 0 },
+            ];
+
+            const buildingList = document.createElement('div');
+            buildingList.id = 'building-list';
+            document.body.appendChild(buildingList);
+
+            window.updateBuildingDisplay(buildings);
+            const html = buildingList.innerHTML;
+
+            buildingList.remove();
+
+            return {
+                hasHybridNote: html.includes('由共生宿主驱动'),
+                hasDarkMatterNote: html.includes('开始产出暗物质'),
+                hasSpaceshipNote: html.includes('开始产出太空船'),
+            };
+        });
+
+        expect(result.hasHybridNote).toBe(true);
+        expect(result.hasDarkMatterNote).toBe(true);
+        expect(result.hasSpaceshipNote).toBe(true);
+    });
+
     test('updateBuildingDisplay update path (same length)', async ({ page }) => {
         const result = await page.evaluate(() => {
             const buildings = [
@@ -486,7 +515,9 @@ test.describe('Game.js Coverage Tests', () => {
             window.buyBuilding(4);
             const failedButton = document.getElementById('buy-building-4');
             const failedClassBefore = failedButton ? failedButton.classList.contains('purchase-failed') : false;
-            scheduled.forEach((fn) => fn());
+            scheduled.forEach((fn) => {
+                fn();
+            });
             const failedClassAfter = failedButton ? failedButton.classList.contains('purchase-failed') : false;
 
             const preservedHtml = buildingList.innerHTML;

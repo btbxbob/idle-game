@@ -134,6 +134,7 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
             const productionRate = building.production_rate || building.productionRate || 0;
             const clickBonus = building.name === '金币矿山' ? Math.floor(building.count || 0) : 0;
             const resourceName = getResourceNameForBuilding(building);
+            const linkNote = getBuildingLinkNote(building);
             const realIndex = Number.isInteger(building.index) ? building.index : index;
 
             let sufficientFunds = true;
@@ -148,6 +149,7 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
                     <strong>${building.name}</strong><br>
                     <small>+${productionRate} ${resourceName}${perSecondText}</small>
                     ${clickBonus > 0 ? `<br><small>+${clickBonus} ${window.i18n ? window.i18n.t('coinsPerClick') : '金币/点击'}</small>` : ''}
+                    ${linkNote ? `<br><small class="building-link-note">${linkNote}</small>` : ''}
                 </div>
                 <div>
                     ${ownedText}: ${building.count}<br>
@@ -222,6 +224,19 @@ function getResourceNameForBuilding(building) {
     
     const resourceKey = buildingResourceMap[buildingName] || 'coins';
     return window.i18n ? window.i18n.t(resourceKey) : resourceKey;
+}
+
+function getBuildingLinkNote(building) {
+    const buildingName = typeof building === 'string' ? building : building?.name;
+    const noteMap = {
+        '蛆虫工厂': '需要蛆虫育种，将尸腐转入黑暗加工链',
+        '腐肉育池': '由坏死回收驱动，产出食物与化学品',
+        '共生培育舱': '由共生宿主驱动，提升混合人口与稳定度',
+        '神经尖塔': '由集体觉醒驱动，开始产出暗物质',
+        '深空孵化港': '由意识上传驱动，开始产出太空船'
+    };
+
+    return noteMap[buildingName] || '';
 }
 
 // Functions called from UI to communicate with Rust/WASM
