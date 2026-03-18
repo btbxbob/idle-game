@@ -1933,6 +1933,15 @@ footer {
     opacity: 0.8;
 }
 
+.tech-linked-item {
+    display: inline-block;
+    margin: 6px 6px 0 0;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.38);
+    font-size: 11px;
+}
+
 .modal-body {
     padding: 20px;
 }

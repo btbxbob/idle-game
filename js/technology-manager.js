@@ -538,6 +538,7 @@ class TechnologyManager {
         const canResearch = this.canResearch(tech);
         const hasResources = this.hasResources(tech.costs);
         const effectDesc = this.getEffectDescription(tech);
+        const linkedFeedback = this.getTechnologyLinkedFeedback(tech);
         
         // Build costs HTML
         let costsHtml = '';
@@ -563,6 +564,13 @@ class TechnologyManager {
                 depsHtml += `<span style="color:${color}">${depResearched ? '✓' : '○'} ${this.escapeHtml(depName)}</span> `;
             });
             depsHtml += '</div>';
+        }
+
+        let linkedHtml = '';
+        if (linkedFeedback.length > 0) {
+            linkedHtml = '<div class="tech-detail-row"><strong>' + (t('linkedSystems') || '联动反馈') + ':</strong><br>';
+            linkedHtml += linkedFeedback.map((item) => `<span class="tech-linked-item">${this.escapeHtml(item)}</span>`).join('');
+            linkedHtml += '</div>';
         }
         
         // Build button HTML
@@ -597,6 +605,7 @@ class TechnologyManager {
                     <div class="tech-detail-row" style="color:#3498db;"><strong>${t('effect') || '效果'}:</strong> ${this.escapeHtml(effectDesc)}</div>
                     ${costsHtml}
                     ${depsHtml}
+                    ${linkedHtml}
                     ${buttonHtml}
                 </div>
             </div>
@@ -826,6 +835,41 @@ class TechnologyManager {
             default:
                 return tech.description || (t('unknownEffect') || '未知效果');
         }
+    }
+
+    getTechnologyLinkedFeedback(tech) {
+        const feedbackMap = {
+            MaggotBreeding: [
+                '解锁建筑：蛆虫工厂',
+                '把尸体腐化转成可控的蛆虫加工链',
+            ],
+            NecroticRecycling: [
+                '解锁建筑：腐肉育池',
+                '让蛆虫进一步转化为食物与化学品',
+            ],
+            SymbioticHosts: [
+                '解锁建筑：共生培育舱',
+                '开始提升混合人口与共生稳定度',
+            ],
+            HiveMindProtocol: [
+                '把混合个体接入共享思维网络',
+                '为集体觉醒与终局资源网络做准备',
+            ],
+            CollectiveAwakening: [
+                '解锁建筑：神经尖塔',
+                '让终局链条开始产出暗物质',
+            ],
+            ConsciousnessUpload: [
+                '解锁建筑：深空孵化港',
+                '让统一意识开始生成太空船',
+            ],
+            SpaceExploration: [
+                '解锁建筑：太空港',
+                '把暗物质与太空船并入远征扩张链',
+            ],
+        };
+
+        return feedbackMap[tech?.id] || [];
     }
 
     formatInteger(value) {

@@ -426,7 +426,7 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.shortUnknown).toBe('Qu');
     });
 
-    test('showTechDetail, notification and mechanic description branches', async ({ page }) => {
+    test('showTechDetail, notification and linked feedback branches', async ({ page }) => {
         const result = await page.evaluate(() => {
             const originalSetTimeout = window.setTimeout;
             const scheduled = [];
@@ -446,7 +446,7 @@ test.describe('TechnologyManager coverage', () => {
             manager.technologies = [
                 { id: 'dep-tech', name: 'Dependency', tier: 1, researched: true, costs: {}, dependencies: [] },
                 {
-                    id: 'target-tech',
+                    id: 'MaggotBreeding',
                     name: 'Target',
                     description: 'Target description',
                     tier: 2,
@@ -461,7 +461,7 @@ test.describe('TechnologyManager coverage', () => {
             manager.showTechDetail('missing-tech');
             const missingModal = document.getElementById('tech-detail-modal');
 
-            manager.showTechDetail('target-tech');
+            manager.showTechDetail('MaggotBreeding');
             const modal = document.getElementById('tech-detail-modal');
             const modalHtml = modal ? modal.innerHTML : '';
             const overlayBefore = !!document.getElementById('tech-detail-modal');
@@ -470,7 +470,7 @@ test.describe('TechnologyManager coverage', () => {
             }
             const overlayAfter = !!document.getElementById('tech-detail-modal');
 
-            manager.showTechDetail('target-tech');
+            manager.showTechDetail('MaggotBreeding');
             const reopenModal = document.getElementById('tech-detail-modal');
             const button = reopenModal ? reopenModal.querySelector('#modal-research-btn') : null;
             if (button) {
@@ -497,6 +497,7 @@ test.describe('TechnologyManager coverage', () => {
                 researchedTechId,
                 notificationBeforeTimeout,
                 notificationAfterTimeout: !!notificationAfterTimeout,
+                linkedFeedback: manager.getTechnologyLinkedFeedback({ id: 'CollectiveAwakening' }),
                 knownMechanic: manager.getMechanicDescription('auto_assignment'),
                 unknownMechanic: manager.getMechanicDescription('wild_unknown_mechanic'),
             };
@@ -508,10 +509,13 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.modalHtml).toContain('Target');
         expect(result.modalHtml).toContain('Dependency');
         expect(result.modalHtml).toContain('unknown-dep');
+        expect(result.modalHtml).toContain('联动反馈');
+        expect(result.modalHtml).toContain('蛆虫工厂');
         expect(result.afterButton).toBe(false);
-        expect(result.researchedTechId).toBe('target-tech');
+        expect(result.researchedTechId).toBe('MaggotBreeding');
         expect(result.notificationBeforeTimeout).toBe('second');
         expect(result.notificationAfterTimeout).toBe(false);
+        expect(result.linkedFeedback).toContain('解锁建筑：神经尖塔');
         expect(result.knownMechanic).toContain('自动分配');
         expect(result.unknownMechanic).toContain('wild_unknown_mechanic');
     });
