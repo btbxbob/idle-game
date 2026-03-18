@@ -37,18 +37,18 @@ Implement the planned progression overhaul after the design phase is complete, s
 - [done] T18 `MaggotBreeding/NecroticRecycling/SymbioticHosts`
 - [done] T19 `蛆虫建筑按科技逐步揭示`
 - [done] T20 `尸体/蛆虫到食物或化学品的黑暗转化闭环`
-- [partial] T21 `蛆虫科技详情与建筑联动反馈`
+- [done] T21 `蛆虫科技详情与建筑联动反馈`
 
 ### Phase 5 - Hybrid Population Framework
 
 - [done] T22 `混合人口状态字段`
 - [done] T23 `人类压力/蛆虫影响/共生稳定度/混合人口`
 - [done] T24 `蛆虫人阶段目标链`
-- [partial] T25 `共生建筑与宿主科技骨架`
+- [done] T25 `共生建筑与宿主科技骨架`
 
 ### Phase 6 - Endgame and Global Balance
 
-- [partial] T26 `终局资源网络骨架`
+- [done] T26 `终局资源网络骨架`
 - [done] T27 `集体意识阶段入口条件`
 - [partial] T28 `全局平衡参数首轮收敛`
 - [partial] T29 `阶段回归测试矩阵`
@@ -62,10 +62,10 @@ Implement the planned progression overhaul after the design phase is complete, s
 ## Current Snapshot
 
 - Completed through the main progression spine from worker -> maggot -> hybrid -> collective
-- Remaining work is concentrated in late-stage polish and validation
+- Remaining work is now concentrated in balance polish and broader validation
 - Highest-priority unfinished item is still `T28`, but the first pacing pass is now underway
 - `T29` now has broad stage-matrix coverage, but could still be split into more stage-focused suites later
-- Most likely follow-up polish areas are `T21`, `T25`, and `T26`
+- Recently completed polish areas include `T21`, `T25`, and `T26`
 
 ## Recommended Build Order
 
