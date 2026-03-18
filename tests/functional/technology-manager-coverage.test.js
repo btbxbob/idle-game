@@ -509,7 +509,7 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.modalHtml).toContain('Target');
         expect(result.modalHtml).toContain('Dependency');
         expect(result.modalHtml).toContain('unknown-dep');
-        expect(result.modalHtml).toContain('联动反馈');
+        expect(result.modalHtml).toContain('linkedSystems');
         expect(result.modalHtml).toContain('蛆虫工厂');
         expect(result.afterButton).toBe(false);
         expect(result.researchedTechId).toBe('MaggotBreeding');
