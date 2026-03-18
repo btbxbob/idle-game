@@ -24,6 +24,41 @@ test.describe('Progression Objectives', () => {
     expect(recommended).toBe('BasicAgriculture');
   });
 
+  test('objective sidebar keeps current goal in a dedicated right rail with vertically stacked steps', async ({ page }) => {
+    await page.goto('http://localhost:8080');
+    await page.waitForFunction(() => window.gameInitialized === true);
+    await unlockWorkersStage(page);
+
+    const layout = await page.evaluate(() => {
+      const shell = document.getElementById('main-shell');
+      const sidebar = document.getElementById('objective-sidebar');
+      const anchor = document.getElementById('objective-panel-anchor');
+      const steps = Array.from(document.querySelectorAll('.objective-step'));
+      const shellStyle = shell ? window.getComputedStyle(shell) : null;
+      const sidebarRect = sidebar ? sidebar.getBoundingClientRect() : null;
+      const mainRect = document.getElementById('main-content')?.getBoundingClientRect() || null;
+      const tops = steps.map((step) => step.getBoundingClientRect().top);
+
+      return {
+        hasShell: !!shell,
+        hasSidebar: !!sidebar,
+        anchorVisible: !!anchor && window.getComputedStyle(anchor).display !== 'none',
+        shellDisplay: shellStyle ? shellStyle.display : null,
+        sidebarRightOfMain: !!sidebarRect && !!mainRect && sidebarRect.left >= mainRect.right - 1,
+        stepCount: steps.length,
+        verticalStack: tops.every((top, index) => index === 0 || top > tops[index - 1]),
+      };
+    });
+
+    expect(layout.hasShell).toBe(true);
+    expect(layout.hasSidebar).toBe(true);
+    expect(layout.anchorVisible).toBe(true);
+    expect(layout.shellDisplay).toBe('flex');
+    expect(layout.sidebarRightOfMain).toBe(true);
+    expect(layout.stepCount).toBeGreaterThan(1);
+    expect(layout.verticalStack).toBe(true);
+  });
+
   test('maggot buildings stay hidden until dark technology is researched', async ({ page }) => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);
@@ -395,6 +430,28 @@ test.describe('Progression Objectives', () => {
     });
 
     expect(afterUpload.afterSpaceship).toBeGreaterThan(afterUpload.beforeSpaceship);
+  });
+
+  test('collective buildings surface visible linkage cues in the buildings tab', async ({ page }) => {
+    await page.goto('http://localhost:8080');
+    await page.waitForFunction(() => window.gameInitialized === true);
+    await unlockCollectiveStage(page);
+
+    await importStageSnapshot(page, {
+      stage: 'Collective',
+      technologies: ['CollectiveAwakening', 'ConsciousnessUpload'],
+      resources: {
+        Gold: 200000,
+      },
+    });
+
+    await page.click('[data-tab="buildings"]');
+
+    const buildingPanel = page.locator('#building-list');
+    await expect(buildingPanel).toContainText('神经尖塔');
+    await expect(buildingPanel).toContainText('由集体觉醒驱动，开始产出暗物质');
+    await expect(buildingPanel).toContainText('深空孵化港');
+    await expect(buildingPanel).toContainText('由意识上传驱动，开始产出太空船');
   });
 
   test('hybrid resource chain grows population and stability when host tech powers chambers', async ({ page }) => {
