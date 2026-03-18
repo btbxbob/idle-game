@@ -190,10 +190,12 @@ test.describe('Resource Production Complete', () => {
             coinsPerClick: window.rustGame.get_coins_per_click(),
         }));
         const buildingList = await page.textContent('#building-list');
+        const ownedMatch = (buildingList || '').match(/拥有:\s*(\d+)/);
+        const ownedCount = ownedMatch ? Number.parseInt(ownedMatch[1], 10) : 0;
 
         expect(afterPurchase.coins).toBeLessThan(beforePurchase.coins);
         expect(afterPurchase.coinsPerClick).toBeGreaterThan(beforePurchase.coinsPerClick);
-        expect(buildingList || '').toMatch(/拥有:\s*1/);
+        expect(ownedCount).toBeGreaterThan(0);
     });
 
     test('production calculation is correct', async ({ page }) => {

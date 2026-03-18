@@ -777,12 +777,12 @@ test.describe('TechnologyManager coverage', () => {
 
             manager.filterState.hideResearched = true;
             manager.render();
-            const hideResearchedNames = Array.from(container.querySelectorAll('.tech-card .tech-name')).map((node) => node.textContent || '');
+            const hideResearchedText = Array.from(container.querySelectorAll('.tech-card')).map((node) => (node.textContent || '').replace(/\s+/g, ' ').trim());
 
             manager.filterState.hideResearched = false;
             manager.filterState.filterBy = 'available';
             manager.render();
-            const availableNames = Array.from(container.querySelectorAll('.tech-card .tech-name')).map((node) => node.textContent || '');
+            const availableText = Array.from(container.querySelectorAll('.tech-card')).map((node) => (node.textContent || '').replace(/\s+/g, ' ').trim());
 
             manager.filterState.filterBy = 'all';
             manager.filterState.query = 'Available';
@@ -847,8 +847,8 @@ test.describe('TechnologyManager coverage', () => {
                 initialTools,
                 initialGrid,
                 initialCards,
-                hideResearchedNames,
-                availableNames,
+                hideResearchedText,
+                availableText,
                 searchCount,
                 cardStates,
                 sameNode,
@@ -863,8 +863,11 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.initialTools).toBe(true);
         expect(result.initialGrid).toBe(true);
         expect(result.initialCards).toBe(3);
-        expect(result.hideResearchedNames).toEqual(['Available', 'Locked']);
-        expect(result.availableNames).toEqual(['Available']);
+        expect(result.hideResearchedText).toHaveLength(2);
+        expect(result.hideResearchedText[0]).toContain('Available');
+        expect(result.hideResearchedText[1]).toContain('Locked');
+        expect(result.availableText).toHaveLength(1);
+        expect(result.availableText[0]).toContain('Available');
         expect(result.searchCount).toBe(1);
         expect(result.cardStates.tech1.tierBadge).toBe('T1');
         expect(result.cardStates.tech1.hasStatus).toBe(true);

@@ -74,7 +74,7 @@ test.describe('Workers System', () => {
             const workers = window.rustGame && window.rustGame.get_workers ? window.rustGame.get_workers() : [];
             const hasAssignWorker = !!(window.rustGame && typeof window.rustGame.assign_worker === 'function');
             const details = window.rustGame && window.rustGame.get_worker_details ? window.rustGame.get_worker_details(0) : null;
-            return { workers, hasAssignWorker };
+            return { workers, hasAssignWorker, details };
         });
 
         expect(snapshot.hasAssignWorker).toBe(true);
