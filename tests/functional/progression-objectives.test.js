@@ -28,11 +28,12 @@ test.describe('Progression Objectives', () => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);
     await unlockWorkersStage(page);
+    await expect(page.locator('.objective-panel')).toBeVisible();
 
     const layout = await page.evaluate(() => {
       const shell = document.getElementById('main-shell');
       const sidebar = document.getElementById('objective-sidebar');
-      const anchor = document.getElementById('objective-panel-anchor');
+      const panel = document.querySelector('.objective-panel');
       const steps = Array.from(document.querySelectorAll('.objective-step'));
       const shellStyle = shell ? window.getComputedStyle(shell) : null;
       const sidebarRect = sidebar ? sidebar.getBoundingClientRect() : null;
@@ -42,7 +43,7 @@ test.describe('Progression Objectives', () => {
       return {
         hasShell: !!shell,
         hasSidebar: !!sidebar,
-        anchorVisible: !!anchor && window.getComputedStyle(anchor).display !== 'none',
+        hasPanel: !!panel,
         shellDisplay: shellStyle ? shellStyle.display : null,
         sidebarHasWidth: !!sidebarRect && sidebarRect.width >= 240,
         stepCount: steps.length,
@@ -52,7 +53,7 @@ test.describe('Progression Objectives', () => {
 
     expect(layout.hasShell).toBe(true);
     expect(layout.hasSidebar).toBe(true);
-    expect(layout.anchorVisible).toBe(true);
+    expect(layout.hasPanel).toBe(true);
     expect(layout.shellDisplay).toBe('flex');
     expect(layout.sidebarHasWidth).toBe(true);
     expect(layout.stepCount).toBeGreaterThan(1);
