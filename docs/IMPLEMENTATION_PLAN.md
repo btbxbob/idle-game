@@ -51,7 +51,7 @@ Implement the planned progression overhaul after the design phase is complete, s
 - [done] T26 `终局资源网络骨架`
 - [done] T27 `集体意识阶段入口条件`
 - [partial] T28 `全局平衡参数首轮收敛`
-- [partial] T29 `阶段回归测试矩阵`
+- [done] T29 `阶段回归测试矩阵`
 
 ## Status Legend
 
@@ -64,7 +64,7 @@ Implement the planned progression overhaul after the design phase is complete, s
 - Completed through the main progression spine from worker -> maggot -> hybrid -> collective
 - Remaining work is now concentrated in balance polish and broader validation
 - Highest-priority unfinished item is still `T28`, but the first pacing pass is now underway
-- `T29` now has broad stage-matrix coverage, but could still be split into more stage-focused suites later
+- `T29` now has broad stage-matrix coverage across progression, resources, and UI linkage flows
 - Recently completed polish areas include `T21`, `T25`, and `T26`
 
 ## Recommended Build Order
