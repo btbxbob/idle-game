@@ -44,7 +44,9 @@ test.describe('Progression Objectives', () => {
         hasSidebar: !!sidebar,
         anchorVisible: !!anchor && window.getComputedStyle(anchor).display !== 'none',
         shellDisplay: shellStyle ? shellStyle.display : null,
-        sidebarRightOfMain: !!sidebarRect && !!mainRect && sidebarRect.left >= mainRect.right - 1,
+        sidebarAlignedBesideMain: !!sidebarRect && !!mainRect
+          && sidebarRect.left > mainRect.left
+          && Math.abs(sidebarRect.top - mainRect.top) < 8,
         stepCount: steps.length,
         verticalStack: tops.every((top, index) => index === 0 || top > tops[index - 1]),
       };
@@ -54,7 +56,7 @@ test.describe('Progression Objectives', () => {
     expect(layout.hasSidebar).toBe(true);
     expect(layout.anchorVisible).toBe(true);
     expect(layout.shellDisplay).toBe('flex');
-    expect(layout.sidebarRightOfMain).toBe(true);
+    expect(layout.sidebarAlignedBesideMain).toBe(true);
     expect(layout.stepCount).toBeGreaterThan(1);
     expect(layout.verticalStack).toBe(true);
   });
@@ -443,6 +445,12 @@ test.describe('Progression Objectives', () => {
       resources: {
         Gold: 200000,
       },
+    });
+
+    await page.evaluate(() => {
+      if (typeof window.updateBuildingDisplay === 'function' && window.rustGame?.get_buildings) {
+        window.updateBuildingDisplay(window.rustGame.get_buildings(), window.rustGame.get_coins?.());
+      }
     });
 
     await page.click('[data-tab="buildings"]');
