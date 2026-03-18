@@ -2566,35 +2566,26 @@ impl IdleGame {
                 let mut state = self.state.borrow_mut();
                 crate::systems::decay::produce_maggots(&mut state, now);
 
-                let maggot_factory_count = self
-                    .buildings
-                    .iter()
-                    .find(|b| b.name == "蛆虫工厂")
-                    .map(|b| b.count as f64)
+                let maggot_factory = self.buildings.iter().find(|b| b.name == "蛆虫工厂");
+                let maggot_factory_count = maggot_factory.map(|b| b.count as f64).unwrap_or(0.0);
+                let necrotic_pool = self.buildings.iter().find(|b| b.name == "腐肉育池");
+                let necrotic_pool_count = necrotic_pool.map(|b| b.count as f64).unwrap_or(0.0);
+                let symbiosis_chamber = self.buildings.iter().find(|b| b.name == "共生培育舱");
+                let symbiosis_chamber_count =
+                    symbiosis_chamber.map(|b| b.count as f64).unwrap_or(0.0);
+                let symbiosis_chamber_output = symbiosis_chamber
+                    .map(|b| b.production_rate * b.count as f64)
                     .unwrap_or(0.0);
-                let necrotic_pool_count = self
-                    .buildings
-                    .iter()
-                    .find(|b| b.name == "腐肉育池")
-                    .map(|b| b.count as f64)
+                let neural_spire = self.buildings.iter().find(|b| b.name == "神经尖塔");
+                let neural_spire_count = neural_spire.map(|b| b.count as f64).unwrap_or(0.0);
+                let neural_spire_output = neural_spire
+                    .map(|b| b.production_rate * b.count as f64)
                     .unwrap_or(0.0);
-                let symbiosis_chamber_count = self
-                    .buildings
-                    .iter()
-                    .find(|b| b.name == "共生培育舱")
-                    .map(|b| b.count as f64)
-                    .unwrap_or(0.0);
-                let neural_spire_count = self
-                    .buildings
-                    .iter()
-                    .find(|b| b.name == "神经尖塔")
-                    .map(|b| b.count as f64)
-                    .unwrap_or(0.0);
-                let deep_space_hatchery_count = self
-                    .buildings
-                    .iter()
-                    .find(|b| b.name == "深空孵化港")
-                    .map(|b| b.count as f64)
+                let deep_space_hatchery = self.buildings.iter().find(|b| b.name == "深空孵化港");
+                let deep_space_hatchery_count =
+                    deep_space_hatchery.map(|b| b.count as f64).unwrap_or(0.0);
+                let deep_space_hatchery_output = deep_space_hatchery
+                    .map(|b| b.production_rate * b.count as f64)
                     .unwrap_or(0.0);
 
                 let maggot_gain = (maggot_factory_count + (necrotic_pool_count * 0.5)) * elapsed;
@@ -2659,10 +2650,10 @@ impl IdleGame {
                         .is_unlocked(crate::entities::technology::TechnologyId::SymbioticHosts)
                 {
                     state.coexistence.hybrid_population = (state.coexistence.hybrid_population
-                        + (symbiosis_chamber_count * 0.015 * elapsed))
+                        + (symbiosis_chamber_output * 0.004 * elapsed))
                         .clamp(0.0, 24.0);
                     state.coexistence.symbiosis_stability = (state.coexistence.symbiosis_stability
-                        + (symbiosis_chamber_count * 0.06 * elapsed))
+                        + (symbiosis_chamber_output * 0.01 * elapsed))
                         .clamp(0.0, 100.0);
                 }
 
@@ -2671,10 +2662,7 @@ impl IdleGame {
                         .technology_tree
                         .is_unlocked(crate::entities::technology::TechnologyId::CollectiveAwakening)
                 {
-                    state.add_resource(
-                        ResourceType::DarkMatter,
-                        neural_spire_count * 0.03 * elapsed,
-                    );
+                    state.add_resource(ResourceType::DarkMatter, neural_spire_output * elapsed);
                 }
 
                 if deep_space_hatchery_count > 0.0
@@ -2684,7 +2672,7 @@ impl IdleGame {
                 {
                     state.add_resource(
                         ResourceType::Spaceship,
-                        deep_space_hatchery_count * 0.004 * elapsed,
+                        deep_space_hatchery_output * elapsed,
                     );
                 }
             }
