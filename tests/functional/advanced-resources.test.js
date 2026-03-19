@@ -1,5 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
-const { seedResourcesAndResearch, unlockAdvancedIndustry, unlockWorkersStage } = require('../fixtures/stage-helpers');
+const { importStageSnapshot, unlockAdvancedIndustry, unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Advanced Resources (Tier 3)', () => {
     test.beforeEach(async ({ page }) => {
@@ -77,7 +77,8 @@ test.describe('Advanced Resources (Tier 3)', () => {
         expect(before.hasQuantumCenter).toBe(false);
         expect(before.hasGeneratorFactory).toBe(false);
 
-        await seedResourcesAndResearch(page, {
+        await importStageSnapshot(page, {
+            stage: 'Collective',
             resources: {
                 Gold: 120000,
                 Wood: 3000,
