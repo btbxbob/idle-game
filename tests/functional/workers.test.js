@@ -41,11 +41,6 @@ test.describe('Workers System', () => {
         const count = await workerCards.count();
         expect(count).toBeGreaterThanOrEqual(1);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/task-32-workers-panel.png',
-            fullPage: false
-        });
-
         console.log('Workers panel displayed successfully');
     });
 
@@ -63,10 +58,6 @@ test.describe('Workers System', () => {
         await expect(page.locator('.xp-progress-bar').first()).toBeVisible();
         await expect(page.locator('.worker-assign-btn').first()).toBeVisible();
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/task-32-worker-card-detail.png',
-            fullPage: false
-        });
     });
 
     test('worker roster data remains internally consistent through WASM APIs', async ({ page }) => {

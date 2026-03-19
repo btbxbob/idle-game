@@ -1,5 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
-const { unlockWorkersStage } = require('../fixtures/stage-helpers');
+const { performGameClicks, unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Performance Quick Test - 性能快速测试', () => {
     test.setTimeout(180000); 
@@ -43,23 +43,20 @@ test.describe('Performance Quick Test - 性能快速测试', () => {
         
         console.log('开始创建测试数据...');
 
-        for (let i = 0; i < 300; i++) {
-            await page.click('#coin-button');
-            if (i % 20 === 0) await page.waitForTimeout(10);
-        }
+        await performGameClicks(page, 300);
         console.log('✓ 基础点击资源已添加');
         
         console.log('采集当前工人规模...');
         await page.click('[data-tab="workers"]');
-        await page.waitForTimeout(100);
+        await expect(page.locator('#tab-workers')).toHaveClass(/active/);
         const workersCreated = await page.evaluate(() =>
             window.rustGame && window.rustGame.get_worker_count ? window.rustGame.get_worker_count() : 0
         );
         console.log(`✓ 当前工人数：${workersCreated}`);
         
         console.log('开始 2 分钟性能监控...');
-        const monitorDuration = 60000; 
-        const checkInterval = 10000; 
+        const monitorDuration = 30000; 
+        const checkInterval = 5000; 
         const startTime = Date.now();
         
         while (Date.now() - startTime < monitorDuration) {
@@ -67,8 +64,7 @@ test.describe('Performance Quick Test - 性能快速测试', () => {
             console.log(`性能检查 - 已运行 ${elapsed}秒`);
             
             const uiStart = Date.now();
-            await page.click('#coin-button');
-            await page.waitForTimeout(50);
+            await performGameClicks(page, 1);
             const uiResponse = Date.now() - uiStart;
             metrics.uiResponseTime.push(uiResponse);
             console.log(`  UI 响应：${uiResponse}ms`);

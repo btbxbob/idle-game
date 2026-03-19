@@ -14,7 +14,6 @@ test.describe('Responsive Layout', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080');
         await page.waitForFunction(() => window.gameInitialized === true);
-        await page.waitForTimeout(500);
     });
 
     test.describe('Mobile - 375px', () => {
@@ -84,8 +83,6 @@ test.describe('Responsive Layout', () => {
                 });
             });
 
-            await page.waitForTimeout(150);
-
             const resourcesOverflow = await page.evaluate(() => {
                 const el = document.querySelector('#banner #resources');
                 const banner = document.querySelector('#banner');
@@ -96,10 +93,6 @@ test.describe('Responsive Layout', () => {
             console.log(`375px: Resource bar horizontal scroll needed: ${resourcesOverflow}`);
             expect(resourcesOverflow).toBe(true);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-mobile-375px-resources.png',
-                fullPage: true
-            });
         });
 
         test('tab buttons wrap or scroll on mobile', async ({ page }) => {
@@ -125,10 +118,6 @@ test.describe('Responsive Layout', () => {
             console.log(`375px: Tab buttons visible: ${tabCount}`);
             expect(tabCount).toBeGreaterThanOrEqual(4);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-mobile-375px-tabs.png',
-                fullPage: true
-            });
         });
 
         test('game container fits mobile screen', async ({ page }) => {
@@ -141,10 +130,6 @@ test.describe('Responsive Layout', () => {
             expect(containerWidth).toBeLessThanOrEqual(375);
             expect(containerWidth).toBeGreaterThan(0);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-mobile-375px-container.png',
-                fullPage: true
-            });
         });
 
         test('all UI elements visible on mobile', async ({ page }) => {
@@ -178,10 +163,6 @@ test.describe('Responsive Layout', () => {
             expect(layoutBroken).toBe(false);
             console.log('375px: Layout does not break');
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-mobile-375px-full.png',
-                fullPage: true
-            });
         });
 
         test('phone layouts keep banner and tab navigation separated', async ({ page }) => {
@@ -192,8 +173,6 @@ test.describe('Responsive Layout', () => {
 
             for (const size of phoneSizes) {
                 await page.setViewportSize({ width: size.width, height: size.height });
-                await page.waitForTimeout(200);
-
                 const banner = page.locator('#banner');
                 const tabNav = page.locator('#tab-navigation');
                 const resources = page.locator('#resources');
@@ -232,10 +211,6 @@ test.describe('Responsive Layout', () => {
 
             console.log(`768px: Resource bar overflow: ${resourcesOverflow}`);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-tablet-768px-resources.png',
-                fullPage: true
-            });
         });
 
         test('tab navigation displays properly on tablet', async ({ page }) => {
@@ -255,10 +230,6 @@ test.describe('Responsive Layout', () => {
             expect(allVisible).toBe(true);
             console.log('768px: All tab buttons visible');
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-tablet-768px-tabs.png',
-                fullPage: true
-            });
         });
 
         test('game container width appropriate for tablet', async ({ page }) => {
@@ -271,10 +242,6 @@ test.describe('Responsive Layout', () => {
             expect(containerWidth).toBeLessThanOrEqual(768);
             expect(containerWidth).toBeGreaterThan(375);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-tablet-768px-container.png',
-                fullPage: true
-            });
         });
 
         test('content layout adjusts for tablet', async ({ page }) => {
@@ -287,10 +254,6 @@ test.describe('Responsive Layout', () => {
 
             console.log(`768px: Main content width: ${contentWidth}`);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-tablet-768px-layout.png',
-                fullPage: true
-            });
         });
     });
 
@@ -350,10 +313,6 @@ test.describe('Responsive Layout', () => {
 
             console.log(`1024px: Resource bar overflow: ${resourcesOverflow}`);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1024px-resources.png',
-                fullPage: true
-            });
         });
 
         test('all tabs visible in one row on small desktop', async ({ page }) => {
@@ -376,10 +335,6 @@ test.describe('Responsive Layout', () => {
             console.log(`1024px: Tab buttons: ${tabCount}`);
             expect(tabCount).toBeGreaterThanOrEqual(4);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1024px-tabs.png',
-                fullPage: true
-            });
         });
 
         test('game container centered on small desktop', async ({ page }) => {
@@ -393,10 +348,6 @@ test.describe('Responsive Layout', () => {
 
             console.log(`1024px: Container centered: ${containerCentered}`);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1024px-centered.png',
-                fullPage: true
-            });
         });
 
         test('layout comfortable on small desktop', async ({ page }) => {
@@ -409,10 +360,6 @@ test.describe('Responsive Layout', () => {
             expect(containerWidth).toBeLessThanOrEqual(1024);
             expect(containerWidth).toBeGreaterThan(768);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1024px-full.png',
-                fullPage: true
-            });
         });
     });
 
@@ -429,10 +376,6 @@ test.describe('Responsive Layout', () => {
             expect(containerWidth).toBeLessThanOrEqual(1400);
             expect(containerWidth).toBeGreaterThan(1024);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1920px-container.png',
-                fullPage: true
-            });
         });
 
         test('all tabs clearly visible on large desktop', async ({ page }) => {
@@ -457,10 +400,6 @@ test.describe('Responsive Layout', () => {
             expect(tabsFit).toBe(true);
             console.log('1920px: All tabs fit comfortably');
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1920px-tabs.png',
-                fullPage: true
-            });
         });
 
         test('resource bar spacious on large desktop', async ({ page }) => {
@@ -473,10 +412,6 @@ test.describe('Responsive Layout', () => {
 
             console.log(`1920px: Resource bar width: ${barWidth}`);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1920px-resources.png',
-                fullPage: true
-            });
         });
 
         test('layout uses available space on large desktop', async ({ page }) => {
@@ -488,10 +423,6 @@ test.describe('Responsive Layout', () => {
             console.log(`1920px: Layout width: ${layoutWidth}px`);
             expect(layoutWidth).toBeGreaterThan(1000);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1920px-full.png',
-                fullPage: true
-            });
         });
 
         test('content centered with margins on large desktop', async ({ page }) => {
@@ -506,10 +437,6 @@ test.describe('Responsive Layout', () => {
 
             console.log(`1920px: Content centered: ${centered}`);
 
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-desktop-1920px-centered.png',
-                fullPage: true
-            });
         });
     });
 
@@ -524,8 +451,6 @@ test.describe('Responsive Layout', () => {
 
             for (const size of screenSizes) {
                 await page.setViewportSize({ width: size.width, height: size.height });
-                await page.waitForTimeout(300);
-
                 const initialTab = await page.evaluate(() => {
                     const active = document.querySelector('.tab-content.active');
                     return active ? active.id : null;
@@ -533,7 +458,7 @@ test.describe('Responsive Layout', () => {
 
                 const firstTabButton = page.locator('.tab-button').first();
                 await firstTabButton.click();
-                await page.waitForTimeout(300);
+                await expect(page.locator('.tab-content.active')).toHaveCount(1);
 
                 const afterTab = await page.evaluate(() => {
                     const active = document.querySelector('.tab-content.active');
@@ -541,11 +466,6 @@ test.describe('Responsive Layout', () => {
                 });
 
                 console.log(`${size.name}: Tab switching works (${initialTab} -> ${afterTab})`);
-
-                await page.screenshot({
-                    path: `.sisyphus/evidence/task-33-cross-${size.name}-tabs.png`,
-                    fullPage: true
-                });
             }
         });
 
@@ -558,12 +478,15 @@ test.describe('Responsive Layout', () => {
 
             for (const size of screenSizes) {
                 await page.setViewportSize({ width: size.width, height: size.height });
-                await page.waitForTimeout(300);
-
                 const initialCoins = await getCoins(page);
                 
                 await page.click('#coin-button');
-                await page.waitForTimeout(200);
+                await page.waitForFunction((before) => {
+                    if (!window.rustGame || typeof window.rustGame.get_coins !== 'function') {
+                        return false;
+                    }
+                    return window.rustGame.get_coins() > before;
+                }, initialCoins, { timeout: 2000 });
 
                 const afterCoins = await getCoins(page);
                 
@@ -601,10 +524,6 @@ test.describe('Responsive Layout', () => {
             }
 
             console.log(`Found ${foundBreakpoints.length}/4 CSS breakpoints`);
-
-            await page.screenshot({
-                path: '.sisyphus/evidence/task-33-breakpoints-css.png'
-            });
         });
     });
 });

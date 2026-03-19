@@ -60,9 +60,6 @@ test.describe('Resource Production Complete', () => {
         // At least some resources should exist
         expect(existingCount).toBeGreaterThan(0);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-all-60-resources.png'
-        });
     });
 
     test('primary resources have production buildings', async ({ page }) => {
@@ -107,9 +104,6 @@ test.describe('Resource Production Complete', () => {
         console.log(`Production check - Wood: ${initialWood} -> ${afterWood}`);
         console.log(`Production check - Stone: ${initialStone} -> ${afterStone}`);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-buildings.png'
-        });
     });
 
     test('building purchase increases resource production', async ({ page }) => {
@@ -150,9 +144,6 @@ test.describe('Resource Production Complete', () => {
             expect(afterCoinsPerSec).toBeGreaterThanOrEqual(midCoinsPerSec);
         }
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-building-purchase.png'
-        });
     });
 
     test('coin click and first building purchase update coins, count and click value in real time', async ({ page }) => {
@@ -210,9 +201,6 @@ test.describe('Resource Production Complete', () => {
         expect(woodPerSec).toBeGreaterThanOrEqual(0);
         expect(stonePerSec).toBeGreaterThanOrEqual(0);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-calculation.png'
-        });
     });
 
     test('resource production continues over time', async ({ page }) => {
@@ -271,9 +259,6 @@ test.describe('Resource Production Complete', () => {
         expect(finalWood).toBeGreaterThanOrEqual(afterWood);
         expect(finalStone).toBeGreaterThanOrEqual(afterStone);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-over-time.png'
-        });
     });
 
     test('tier 2 and tier 3 resources have corresponding factory buildings', async ({ page }) => {
@@ -295,15 +280,12 @@ test.describe('Resource Production Complete', () => {
         
         console.log(`Found ${tier2Factories.length} tier 2 factories and ${tier3Factories.length} tier 3 factories`);
         
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-tier2-tier3-factories.png'
-        });
     });
 
     test('tier 1 resources have buildings for passive production', async ({ page }) => {
         // Navigate to buildings tab
         await page.click('[data-tab="buildings"]');
-        await page.waitForTimeout(500);
+        await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
 
         const tier1Buildings = [
             { name: '金币铸造厂', resource: 'Gold' },
@@ -338,24 +320,18 @@ test.describe('Resource Production Complete', () => {
         expect(foundBuildings).toBeGreaterThan(0);
         console.log(`Found ${foundBuildings} tier 1 production buildings`);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-tier1-buildings.png'
-        });
     });
 
     test('production buildings count affects total output', async ({ page }) => {
         // Click to earn coins
-        for (let i = 0; i < 100; i++) {
-            await page.click('#coin-button');
-        }
-        await page.waitForTimeout(500);
+        await performGameClicks(page, 100);
 
         // Get initial production rate
         const initialProduction = await page.evaluate(() => window.rustGame.get_coins_per_second());
 
         // Navigate to buildings tab
         await page.click('[data-tab="buildings"]');
-        await page.waitForTimeout(500);
+        await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
 
         // Get initial building count
         const initialBuildings = await page.evaluate(() => {
@@ -378,7 +354,16 @@ test.describe('Resource Production Complete', () => {
         if (count > 0) {
             const firstButton = buyButtons.first();
             await firstButton.click();
-            await page.waitForTimeout(500);
+            await page.waitForFunction((before) => {
+                if (!window.rustGame || typeof window.rustGame.get_buildings !== 'function') {
+                    return false;
+                }
+                const buildings = window.rustGame.get_buildings();
+                const total = Array.isArray(buildings)
+                    ? buildings.reduce((sum, building) => sum + (building.count || 0), 0)
+                    : 0;
+                return total >= before;
+            }, initialTotalBuildings, { timeout: 3000 });
 
             // Get updated building count and production
             const afterBuildings = await page.evaluate(() => {
@@ -400,9 +385,6 @@ test.describe('Resource Production Complete', () => {
             expect(afterTotalBuildings >= initialTotalBuildings || afterProduction >= initialProduction).toBe(true);
         }
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-buildings-effect.png'
-        });
     });
 
     test('resource production displays in UI with correct format', async ({ page }) => {
@@ -426,15 +408,12 @@ test.describe('Resource Production Complete', () => {
         expect(uiState.woodName).toContain('木头');
         expect(uiState.stoneName).toContain('石头');
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-display.png'
-        });
     });
 
     test('worker assignment affects resource production', async ({ page }) => {
         // Navigate to workers tab
         await page.click('[data-tab="workers"]');
-        await page.waitForTimeout(500);
+        await expect(page.locator('#tab-workers')).toHaveClass(/active/);
 
         // Check if workers are available
         const workers = await page.evaluate(() => {
@@ -450,9 +429,6 @@ test.describe('Resource Production Complete', () => {
         expect(true).toBe(true);
         console.log('Workers tab accessible');
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-workers.png'
-        });
     });
 
     test('factory production remains the alternative production method', async ({ page }) => {
@@ -467,9 +443,6 @@ test.describe('Resource Production Complete', () => {
 
         expect(factoryCount).toBeGreaterThan(0);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-factory-method.png'
-        });
     });
 
     test('resource storage and retrieval works for all 60 resources', async ({ page }) => {
@@ -518,8 +491,5 @@ test.describe('Resource Production Complete', () => {
         expect(allValid).toBe(true);
         console.log(`All resources checked - Existing: ${existingCount}, Undefined: ${undefinedCount}`);
 
-        await page.screenshot({
-            path: '.sisyphus/evidence/resource-production-storage.png'
-        });
     });
 });
