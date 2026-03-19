@@ -87,6 +87,7 @@ test.describe('Advanced Resources (Tier 3)', () => {
                 Crystal: 1200,
                 IronOre: 1500,
                 CopperOre: 1500,
+                Glass: 300,
                 Plastic: 300,
                 IronIngot: 1200,
                 CopperIngot: 1200,
