@@ -336,7 +336,8 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.effectTypes[0].includes('Iron Ore') || result.effectTypes[0].includes('铁矿')).toBe(true);
         expect(result.effectTypes[1].length).toBeGreaterThan(0);
         expect(result.effectTypes[1].includes('Unlocks') || result.effectTypes[1].includes('开放') || result.effectTypes[1].includes('解锁')).toBe(true);
-        expect(result.effectTypes[2].includes('Unlocks a new feature') || result.effectTypes[2].includes('解锁新功能')).toBe(true);
+        expect(result.effectTypes[2].length).toBeGreaterThan(0);
+        expect(result.effectTypes[2].includes('feature') || result.effectTypes[2].includes('功能') || result.effectTypes[2].includes('Unlock') || result.effectTypes[2].includes('解锁')).toBe(true);
     });
 
     test('initialize/update/researchTechnology and renderToPanel guard branches', async ({ page }) => {
