@@ -183,7 +183,7 @@ class WorkerManager {
         const t = this.getTranslator();
 
         if (workers.length === 0) {
-            container.innerHTML = `<p id="workers-placeholder">${t('workersPlaceholder') || '工人系统将在未来版本中实现'}</p>`;
+            container.innerHTML = `<p id="workers-placeholder">${t('noWorkers') || '没有工人'}</p>`;
             return;
         }
 
@@ -759,7 +759,7 @@ class WorkerManager {
             panel.innerHTML = `
                 <div class="workers-panel">
                     <h3>${t('workers') || '工人'}</h3>
-                    <p class="placeholder">${t('workersPlaceholder') || '工人系统将在未来版本中实现'}</p>
+                    <p class="placeholder">${t('noWorkers') || '没有工人'}</p>
                 </div>
             `;
             return;

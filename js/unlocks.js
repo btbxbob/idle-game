@@ -285,6 +285,76 @@ class UnlockManager {
         }
     }
 
+    t(key, fallback = key, params = {}) {
+        if (!window.i18n || typeof window.i18n.t !== 'function') {
+            return fallback;
+        }
+
+        const translated = window.i18n.t(key, params);
+        return translated === key ? fallback : translated;
+    }
+
+    getUnlockName(unlock) {
+        const fallback = unlock?.name || unlock?.id || '';
+        if (window.i18n && typeof window.i18n.getUnlockName === 'function') {
+            return window.i18n.getUnlockName(unlock?.id, fallback);
+        }
+        return fallback;
+    }
+
+    getLocalizedStageName(stage) {
+        const fallback = stage?.current_stage_name || stage?.current_stage_id || '';
+        if (window.i18n && typeof window.i18n.getStageName === 'function') {
+            return window.i18n.getStageName(stage?.current_stage_id, fallback);
+        }
+        return fallback;
+    }
+
+    getLocalizedStageDescription(stage) {
+        const fallback = stage?.current_stage_description || '';
+        if (window.i18n && typeof window.i18n.getStageDescription === 'function') {
+            return window.i18n.getStageDescription(stage?.current_stage_id, fallback);
+        }
+        return fallback;
+    }
+
+    getLocalizedRequirementDetails(requirementType, requirementValue, requirementDetails) {
+        if (!requirementDetails) {
+            return null;
+        }
+
+        const lineKeyByLabel = {
+            '已购买建筑': 'unlockLine_buildingsPurchased',
+            '饥饿工人': 'unlockLine_hungryWorkers',
+            '尸体': 'unlockLine_corpses',
+            '蛆虫异动': 'unlockLine_maggotActivity',
+            '蛆虫育种': 'unlockLine_maggotBreeding',
+            '黑暗科技准备度': 'unlockLine_darkTechReadiness',
+            '蛆虫影响': 'unlockLine_maggotInfluence',
+            '共生稳定度': 'unlockLine_symbiosisStability',
+            '集体意识': 'unlockLine_collectiveConsciousness',
+            '混合人口': 'unlockLine_hybridPopulation',
+            '关键科技': 'unlockLine_keyTechnology',
+            '总点击次数': 'unlockLine_totalClicks',
+        };
+        const summaryKey = `unlockSummary_${requirementType}`;
+        const summaryFallback = requirementDetails.summary || this.formatRequirement(requirementType);
+        const summaryParams = requirementType === 'total_clicks'
+            ? { count: this.formatInteger(requirementValue || 0) }
+            : {};
+
+        return {
+            ...requirementDetails,
+            summary: this.t(summaryKey, summaryFallback, summaryParams),
+            lines: Array.isArray(requirementDetails.lines)
+                ? requirementDetails.lines.map((line) => ({
+                    ...line,
+                    label: this.t(lineKeyByLabel[line.label], line.label),
+                }))
+                : [],
+        };
+    }
+
     renderProgressionSummary() {
         if (!this.progressionState) {
             return '';
@@ -296,12 +366,32 @@ class UnlockManager {
         const metricCards = [];
 
         if (showCoexistence) {
-            metricCards.push(this.renderMetricCard('人类压力', stage.human_pressure, '人类秩序对异化的反制强度'));
-            metricCards.push(this.renderMetricCard('蛆虫影响', stage.maggot_influence, '腐化生态正在渗透聚落的程度'));
-            metricCards.push(this.renderMetricCard('共生稳定度', stage.symbiosis_stability, '决定混合社会是否还能保持运转'));
-            metricCards.push(this.renderMetricCard('混合人口', stage.hybrid_population, '已经参与生产的蛆虫人规模'));
+            metricCards.push(this.renderMetricCard(
+                this.t('progressionMetric_humanPressure', '人类压力'),
+                stage.human_pressure,
+                this.t('progressionMetric_humanPressureNote', '人类秩序对异化的反制强度')
+            ));
+            metricCards.push(this.renderMetricCard(
+                this.t('progressionMetric_maggotInfluence', '蛆虫影响'),
+                stage.maggot_influence,
+                this.t('progressionMetric_maggotInfluenceNote', '腐化生态正在渗透聚落的程度')
+            ));
+            metricCards.push(this.renderMetricCard(
+                this.t('progressionMetric_symbiosisStability', '共生稳定度'),
+                stage.symbiosis_stability,
+                this.t('progressionMetric_symbiosisStabilityNote', '决定混合社会是否还能保持运转')
+            ));
+            metricCards.push(this.renderMetricCard(
+                this.t('progressionMetric_hybridPopulation', '混合人口'),
+                stage.hybrid_population,
+                this.t('progressionMetric_hybridPopulationNote', '已经参与生产的蛆虫人规模')
+            ));
             if (stage.current_stage_id === 'stage_collective') {
-                metricCards.push(this.renderMetricCard('集体意识', stage.collective_consciousness, '共享思维网络对终局产能的聚合程度'));
+                metricCards.push(this.renderMetricCard(
+                    this.t('progressionMetric_collectiveConsciousness', '集体意识'),
+                    stage.collective_consciousness,
+                    this.t('progressionMetric_collectiveConsciousnessNote', '共享思维网络对终局产能的聚合程度')
+                ));
             }
         }
 
@@ -309,12 +399,12 @@ class UnlockManager {
             <section class="progression-summary ${stageClass}">
                 <div class="progression-summary-header">
                     <div>
-                        <div class="progression-kicker">当前阶段 / ACTIVE DOSSIER</div>
-                        <div class="unlock-title">${stage.current_stage_name}</div>
+                        <div class="progression-kicker">${this.t('progressionKicker', '当前阶段')}</div>
+                        <div class="unlock-title">${this.getLocalizedStageName(stage)}</div>
                     </div>
                     <div class="stage-chip">${this.getStageSequenceLabel(stage.current_stage_id)}</div>
                 </div>
-                <div class="unlock-description progression-lead">${stage.current_stage_description}</div>
+                <div class="unlock-description progression-lead">${this.getLocalizedStageDescription(stage)}</div>
                 <div class="progression-narrative">${this.getStageNarrative(stage.current_stage_id)}</div>
                 ${metricCards.length > 0 ? `<div class="progression-metrics">${metricCards.join('')}</div>` : ''}
             </section>
@@ -332,10 +422,10 @@ class UnlockManager {
         this.update();
         this.updateTabAttention();
         this.containerElement.innerHTML = this.renderProgressionSummary();
-        this.containerElement.innerHTML += '<div class="unlock-section-label">下一次揭示 / NEXT REVELATION</div>';
+        this.containerElement.innerHTML += `<div class="unlock-section-label">${this.t('unlockSectionLabel', '下一次揭示')}</div>`;
 
         if (this.unlocks.length === 0) {
-            this.containerElement.innerHTML += '<p class="no-unlocks">目前没有新的可观测异常，边界暂时保持稳定。</p>';
+            this.containerElement.innerHTML += `<p class="no-unlocks">${this.t('noUnlocksAvailable', '目前没有新的可观测异常，边界暂时保持稳定。')}</p>`;
             return;
         }
 
@@ -344,7 +434,11 @@ class UnlockManager {
 
         this.unlocks.forEach((unlock, index) => {
             const progress = this.checkProgress(unlock.id);
-            const requirementDetails = this.getRequirementDetails(unlock.id);
+            const requirementDetails = this.getLocalizedRequirementDetails(
+                unlock.requirement_type,
+                unlock.requirement_value,
+                this.getRequirementDetails(unlock.id)
+            );
             const progressBarWidth = `${Math.max(0, Math.min(100, progress.percentage || 0))}%`;
             const canUnlock = !unlock.unlocked && (progress.current || 0) >= (progress.required || 1);
             const actionMarkup = this.renderUnlockAction(unlock, index, canUnlock, unlockText, unlockedText);
@@ -356,7 +450,7 @@ class UnlockManager {
                     <div class="unlock-icon">${unlock.unlocked ? '✓' : '>'}</div>
                     <div>
                         <div class="unlock-type-label">${this.getFeatureTypeLabel(unlock.feature_type)}</div>
-                        <div class="unlock-title">${unlock.name}</div>
+                        <div class="unlock-title">${this.getUnlockName(unlock)}</div>
                     </div>
                 </div>
                 <div class="unlock-description">${this.getDescription(unlock.id)}</div>
@@ -394,7 +488,7 @@ class UnlockManager {
             `;
         }
 
-        return '<span class="unlock-hint">满足条件后自动揭示</span>';
+        return `<span class="unlock-hint">${this.t('unlockAutoRevealHint', '满足条件后自动揭示')}</span>`;
     }
 
     renderRequirementLines(requirementDetails) {
@@ -457,14 +551,14 @@ class UnlockManager {
     }
 
     getStageNarrative(stageId) {
-        const narratives = {
+        const fallbackNarratives = {
             stage_genesis: '世界仍旧可被理解为资源与手工劳动的简单叠加，危险还隐藏在结构之后。',
             stage_workers: '聚落已经摆脱纯点击驱动，食物、住房和工人调度开始决定文明是否扩张。',
             stage_maggot: '死亡第一次形成可持续回报，生产不再只是建设，也开始吞食尸体与后果。',
             stage_hybrid: '秩序与腐化被迫共享同一套基础设施，任何失衡都会把社会推向崩塌。',
             stage_collective: '个体边界被持续稀释，意识、繁殖与远征开始围绕同一网络运转。'
         };
-        return narratives[stageId] || narratives.stage_genesis;
+        return this.t(`stageNarrative_${stageId}`, fallbackNarratives[stageId] || fallbackNarratives.stage_genesis);
     }
 
     renderMetricCard(label, value, note) {
@@ -502,35 +596,15 @@ class UnlockManager {
     }
 
     getFeatureTypeLabel(featureType) {
-        const labels = {
-            stage: '阶段跃迁',
-            system: '系统异常',
-            area: '面板揭示'
-        };
-        return labels[featureType] || '揭示项目';
+        return this.t(`unlockFeatureType_${featureType}`, this.t('unlockFeatureType_default', '揭示项目'));
     }
 
     formatRequirement(type) {
-        switch (type) {
-            case 'workers_stage':
-                return '累计购买 3 座建筑';
-            case 'maggot_stage':
-                return '揭示蛆虫阶段';
-            case 'hybrid_stage':
-                return '推进蛆虫人阶段';
-            case 'collective_stage':
-                return '推进集体意识阶段';
-            case 'symbiosis_stability':
-                return '维持共生平衡';
-            case 'total_clicks':
-                return '完成基础点击阈值';
-            default:
-                return '满足当前阶段条件';
-        }
+        return this.t(`unlockRequirement_${type}`, this.t('unlockRequirement_default', '满足当前阶段条件'));
     }
 
     getDescription(featureId) {
-        const descriptions = {
+        const fallbackDescriptions = {
             stage_workers: '基础采集已经无法满足扩张，新的劳动力系统即将开启。',
             stage_maggot: '你发现死亡并非终点，而是另一条生产链的入口。',
             stage_hybrid: '纯粹的人类秩序正在崩塌，共生将成为新的生产法则。',
@@ -541,7 +615,12 @@ class UnlockManager {
             achievements_panel: '成就面板已被揭示，可查看里程碑进度。',
             dark_biology: '黑暗生物链已经形成，相关科技分支可被研究。'
         };
-        return descriptions[featureId] || '新的阶段边界正在显现。';
+
+        if (window.i18n && typeof window.i18n.getUnlockDescription === 'function') {
+            return window.i18n.getUnlockDescription(featureId, fallbackDescriptions[featureId] || this.t('unlockDescription_default', '新的阶段边界正在显现。'));
+        }
+
+        return fallbackDescriptions[featureId] || '新的阶段边界正在显现。';
     }
 }
 

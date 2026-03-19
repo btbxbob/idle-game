@@ -7,6 +7,10 @@ fn default_output_resource() -> ResourceType {
     ResourceType::Gold
 }
 
+fn default_housing_icon() -> String {
+    "🏠".to_string()
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Building {
     pub name: String,
@@ -23,6 +27,12 @@ pub struct Housing {
     pub cost: HashMap<String, f64>,
     pub capacity: u32,
     pub count: u32,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default = "default_housing_icon")]
+    pub icon: String,
+    #[serde(default)]
+    pub required_technology: Option<String>,
 }
 
 impl Housing {
@@ -32,6 +42,28 @@ impl Housing {
             cost,
             capacity,
             count: 0,
+            description: String::new(),
+            icon: default_housing_icon(),
+            required_technology: None,
+        }
+    }
+
+    pub fn with_details(
+        name: &str,
+        cost: HashMap<String, f64>,
+        capacity: u32,
+        description: &str,
+        icon: &str,
+        required_technology: Option<&str>,
+    ) -> Self {
+        Housing {
+            name: name.to_string(),
+            cost,
+            capacity,
+            count: 0,
+            description: description.to_string(),
+            icon: icon.to_string(),
+            required_technology: required_technology.map(|value| value.to_string()),
         }
     }
 
@@ -49,7 +81,6 @@ impl Housing {
         self.count += 1;
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -113,10 +144,10 @@ mod tests {
         assert_eq!(housing.name, "Cottage");
         assert_eq!(housing.capacity, 4);
         assert_eq!(housing.count, 0); // Starts at 0
-        
+
         let coins_cost = housing.cost.get("coins");
         assert_eq!(coins_cost, Some(&100.0));
-        
+
         let wood_cost = housing.cost.get("wood");
         assert_eq!(wood_cost, Some(&50.0));
     }
@@ -136,7 +167,7 @@ mod tests {
     fn test_housing_upgrade_cost_at_level_0() {
         let mut cost = HashMap::new();
         cost.insert("coins".to_string(), 100.0);
-        
+
         let housing = Housing::new("Cottage", cost, 4);
         let upgrade_cost = housing.get_upgrade_cost();
 
@@ -203,14 +234,14 @@ mod tests {
         assert_eq!(cost_l0.get("wood"), Some(&100.0));
 
         housing.upgrade();
-        
+
         // Level 1: 200 * 1.5 = 300 coins, 100 * 1.5 = 150 wood
         let cost_l1 = housing.get_upgrade_cost();
         assert!((cost_l1.get("coins").unwrap() - 300.0).abs() < 0.001);
         assert!((cost_l1.get("wood").unwrap() - 150.0).abs() < 0.001);
 
         housing.upgrade();
-        
+
         // Level 2: 200 * 2.25 = 450 coins, 100 * 2.25 = 225 wood
         let cost_l2 = housing.get_upgrade_cost();
         assert!((cost_l2.get("coins").unwrap() - 450.0).abs() < 0.001);

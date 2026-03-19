@@ -89,7 +89,10 @@ class I18n {
                 'clickToEarnCoins': 'Click to earn coins',
                 
                 // Workers
-                'workersPlaceholder': 'Worker system will be implemented in a future version',
+                'workersPlaceholder': 'Loading worker panel...',
+                'achievementsLoadingPlaceholder': 'Loading achievements panel...',
+                'unlocksLoadingPlaceholder': 'Loading unlock panel...',
+                'housingLoadingPlaceholder': 'Loading housing panel...',
                 'unassigned': 'Unassigned',
                 'assigned': 'Assigned',
                 'level': 'Level',
@@ -114,6 +117,7 @@ class I18n {
                 'totalWorkers': 'Total Workers',
                 'assignedWorkers': 'Assigned',
                 'noWorkers': 'No workers available',
+                'noAchievements': 'No achievement data available yet',
                 'search': 'Search',
                 'available': 'Available',
                 'researched': 'Researched',
@@ -188,13 +192,14 @@ class I18n {
                 'hobby_Fishing': 'Fishing',
                 'hobby_Traveling': 'Traveling',
                 'hobby_Photography': 'Photography',
-                'housingPlaceholder': 'Housing system will be implemented in a future version',
+                'housingPlaceholder': 'Loading housing panel...',
                 'housingLevel': 'Housing Level',
                 'capacity': 'Capacity',
                 'occupants': 'Occupants',
                 'housingUpgradeCost': 'Upgrade Cost',
                 'upgradeHousing': 'Upgrade',
                 'housingManagement': 'Housing Management',
+                'housingCatalogSubtitle': 'Housing now scales with the technology and industrial resource chain.',
                 'housingList': 'Housing Count',
                 'totalCapacity': 'Total Capacity',
                 'currentOccupancy': 'Current Occupancy',
@@ -202,6 +207,10 @@ class I18n {
                 'occupancyRate': 'Occupancy Rate',
                 'housingFullWarning': 'Housing is full. New population will enter the waiting queue.',
                 'bulkUpgradeHousing': 'Bulk Upgrade Housing',
+                'housingAutoPurchase': 'Auto Purchase',
+                'housingAutoPurchaseSummary': 'Auto purchase complete: {count} housing upgrades processed',
+                'housingNoAutoPurchase': 'Not enough resources to auto purchase housing right now',
+                'housingCapacityPerLevel': 'Capacity per Level',
                 'occupancyControl': 'Occupancy Control',
                 'noHousing': 'No housing available',
                 'housingUpgradeFailed': '{count} housing upgrades failed (insufficient resources)',
@@ -275,7 +284,111 @@ class I18n {
                 'achievementCategory_resources': 'Resources',
                 'achievementCategory_buildings': 'Buildings',
                 'achievementCategory_crafting': 'Industry',
-                'achievementCategory_unlocks': 'Unlocks'
+                'achievementCategory_unlocks': 'Unlocks',
+                'unlockSectionLabel': 'Next Revelation',
+                'noUnlocksAvailable': 'No new observable anomalies right now. The perimeter remains stable for the moment.',
+                'unlockAutoRevealHint': 'Automatically reveals when conditions are met',
+                'unlockFeatureType_stage': 'Stage Shift',
+                'unlockFeatureType_system': 'System Anomaly',
+                'unlockFeatureType_area': 'Panel Revelation',
+                'unlockFeatureType_default': 'Revelation Target',
+                'unlockRequirement_workers_stage': 'Buy a total of 3 buildings',
+                'unlockRequirement_maggot_stage': 'Reveal the maggot stage',
+                'unlockRequirement_hybrid_stage': 'Advance the hybrid stage',
+                'unlockRequirement_collective_stage': 'Advance the collective stage',
+                'unlockRequirement_symbiosis_stability': 'Maintain symbiotic balance',
+                'unlockRequirement_total_clicks': 'Reach the basic click threshold',
+                'unlockRequirement_default': 'Meet the current stage requirements',
+                'unlockSummary_workers_stage': 'The worker stage now depends on one requirement only: buy 3 buildings in total.',
+                'unlockSummary_maggot_stage': 'The dark branch emerges from settlement decay itself: hunger, corpses, and maggot activity reveal the hidden stage together.',
+                'unlockSummary_maggot_tech': 'Dark biology is not unlocked with a manual button. Research "Maggot Breeding" first.',
+                'unlockSummary_hybrid_stage': 'The hybrid stage advances through three forces together: dark-tech readiness, maggot influence, and symbiosis stability. Overall progress is their average.',
+                'unlockSummary_collective_stage': 'The collective stage also advances through a three-part average: collective consciousness, hybrid population, and key technology.',
+                'unlockSummary_symbiosis_stability': 'Keep symbiosis stability above the safe line before the system recognizes the balance as sustainable.',
+                'unlockSummary_total_clicks': 'Keep clicking and build up the basics until you reach {count} total clicks.',
+                'unlockLine_buildingsPurchased': 'Buildings Purchased',
+                'unlockLine_hungryWorkers': 'Hungry Workers',
+                'unlockLine_corpses': 'Corpses',
+                'unlockLine_maggotActivity': 'Maggot Activity',
+                'unlockLine_maggotBreeding': 'Maggot Breeding',
+                'unlockLine_darkTechReadiness': 'Dark-Tech Readiness',
+                'unlockLine_maggotInfluence': 'Maggot Influence',
+                'unlockLine_symbiosisStability': 'Symbiosis Stability',
+                'unlockLine_collectiveConsciousness': 'Collective Consciousness',
+                'unlockLine_hybridPopulation': 'Hybrid Population',
+                'unlockLine_keyTechnology': 'Key Technology',
+                'unlockLine_totalClicks': 'Total Clicks',
+                'progressionKicker': 'Active Dossier',
+                'progressionMetric_humanPressure': 'Human Pressure',
+                'progressionMetric_humanPressureNote': 'How strongly human order pushes back against mutation.',
+                'progressionMetric_maggotInfluence': 'Maggot Influence',
+                'progressionMetric_maggotInfluenceNote': 'How deeply the corrupted ecosystem is spreading into the settlement.',
+                'progressionMetric_symbiosisStability': 'Symbiosis Stability',
+                'progressionMetric_symbiosisStabilityNote': 'Determines whether the hybrid society can keep functioning.',
+                'progressionMetric_hybridPopulation': 'Hybrid Population',
+                'progressionMetric_hybridPopulationNote': 'The scale of hybrid workers already active in production.',
+                'progressionMetric_collectiveConsciousness': 'Collective Consciousness',
+                'progressionMetric_collectiveConsciousnessNote': 'How much the shared mind network is concentrating endgame output.',
+                'stage_stage_genesis': 'Genesis Stage',
+                'stage_stage_workers': 'Worker Stage',
+                'stage_stage_maggot': 'Maggot Stage',
+                'stage_stage_hybrid': 'Hybrid Stage',
+                'stage_stage_collective': 'Collective Stage',
+                'stageDescription_stage_genesis': 'Support the earliest resource loop with clicks and basic buildings.',
+                'stageDescription_stage_workers': 'Workers, housing, and food begin to dominate production.',
+                'stageDescription_stage_maggot': 'Corpse corruption reveals a dark biological production chain.',
+                'stageDescription_stage_hybrid': 'Humans and hybrids coexist, and stability becomes the key variable.',
+                'stageDescription_stage_collective': 'Collective consciousness, biotech, and cosmic expansion converge.',
+                'stageNarrative_stage_genesis': 'The world can still be understood as a simple stack of resources and manual labor. The danger remains hidden behind structure.',
+                'stageNarrative_stage_workers': 'The settlement has outgrown pure clicking. Food, housing, and worker logistics now decide whether civilization expands.',
+                'stageNarrative_stage_maggot': 'Death yields sustainable returns for the first time. Production no longer means only construction; it also consumes corpses and consequences.',
+                'stageNarrative_stage_hybrid': 'Order and corruption are forced to share the same infrastructure, and any imbalance can drive society into collapse.',
+                'stageNarrative_stage_collective': 'Individual boundaries keep dissolving. Consciousness, reproduction, and expedition now operate through one network.',
+                'unlockName_stage_workers': 'Worker Stage',
+                'unlockName_stage_maggot': 'Maggot Stage',
+                'unlockName_stage_hybrid': 'Hybrid Stage',
+                'unlockName_stage_collective': 'Collective Stage',
+                'unlockName_coexistence_balance': 'Symbiotic Balance',
+                'unlockName_statistics_panel': 'Statistics Panel',
+                'unlockName_achievements_panel': 'Achievements Panel',
+                'unlockName_workers_tab': 'Workers Panel',
+                'unlockName_dark_biology': 'Dark Biology',
+                'unlockDescription_stage_workers': 'Basic gathering is no longer enough for expansion. A new labor system is about to open.',
+                'unlockDescription_stage_maggot': 'You discover that death is not an ending, but the entrance to another production chain.',
+                'unlockDescription_stage_hybrid': 'Pure human order is collapsing. Symbiosis will become the new production law.',
+                'unlockDescription_stage_collective': 'When individual borders dissolve, consciousness itself drives expansion and expedition.',
+                'unlockDescription_coexistence_balance': 'Keep human pressure and maggot influence within a controllable balance.',
+                'unlockDescription_workers_tab': 'Workers, housing, the work overview, and lifecycle systems are now operating steadily.',
+                'unlockDescription_statistics_panel': 'The statistics panel is now available as a stable observation tool.',
+                'unlockDescription_achievements_panel': 'The achievements panel has been revealed and can now track milestone progress.',
+                'unlockDescription_dark_biology': 'The dark biological chain has formed, and its technology branch can now be researched.',
+                'unlockDescription_default': 'A new stage boundary is coming into view.',
+                'achievementName_click_novice_10': 'Click Novice',
+                'achievementName_click_master_100': 'Click Master',
+                'achievementName_click_legend_1000': 'Click Legend',
+                'achievementName_first_coins_100': 'First Pot of Gold',
+                'achievementName_wood_collector_1000': 'Wood Collector',
+                'achievementName_stone_hoarder_5000': 'Stone Hoarder',
+                'achievementName_first_building': 'First Building',
+                'achievementName_building_enthusiast_10': 'Building Enthusiast',
+                'achievementName_building_tycoon_50': 'Building Tycoon',
+                'achievementName_first_craft': 'First Factory Output',
+                'achievementName_craft_master_100': 'Industry Master',
+                'achievementName_first_unlock': 'First Unlock',
+                'achievementName_progress_master_5': 'Progress Master',
+                'achievementDescription_click_novice_10': 'Click 10 times',
+                'achievementDescription_click_master_100': 'Click 100 times',
+                'achievementDescription_click_legend_1000': 'Click 1,000 times',
+                'achievementDescription_first_coins_100': 'Earn 100 coins',
+                'achievementDescription_wood_collector_1000': 'Collect 1,000 wood',
+                'achievementDescription_stone_hoarder_5000': 'Collect 5,000 stone',
+                'achievementDescription_first_building': 'Buy your first building',
+                'achievementDescription_building_enthusiast_10': 'Buy 10 buildings',
+                'achievementDescription_building_tycoon_50': 'Buy 50 buildings',
+                'achievementDescription_first_craft': 'Produce your first processed resource in a factory',
+                'achievementDescription_craft_master_100': 'Produce 100 processed resources in factories',
+                'achievementDescription_first_unlock': 'Unlock your first achievement',
+                'achievementDescription_progress_master_5': 'Unlock 5 achievements'
             },
             'zh-CN': {
                 // Game title and headers
@@ -363,7 +476,10 @@ class I18n {
                 'clickToEarnCoins': '点击赚取金币',
                 
                 // Workers
-                'workersPlaceholder': '工人系统将在未来版本中实现',
+                'workersPlaceholder': '正在加载工人面板...',
+                'achievementsLoadingPlaceholder': '正在加载成就面板...',
+                'unlocksLoadingPlaceholder': '正在加载解锁面板...',
+                'housingLoadingPlaceholder': '正在加载住房面板...',
                 'unassigned': '未分配',
                 'assigned': '已分配',
                 'level': '等级',
@@ -388,6 +504,7 @@ class I18n {
                 'totalWorkers': '总工人',
                 'assignedWorkers': '已分配',
                 'noWorkers': '没有工人',
+                'noAchievements': '暂无成就数据',
                 'search': '搜索',
                 'available': '可研究',
                 'researched': '已研究',
@@ -462,13 +579,14 @@ class I18n {
                 'hobby_Fishing': '钓鱼',
                 'hobby_Traveling': '旅行',
                 'hobby_Photography': '摄影',
-                'housingPlaceholder': '住房系统将在未来版本中实现',
+                'housingPlaceholder': '正在加载住房面板...',
                 'housingLevel': '住房等级',
                 'capacity': '容量',
                 'occupants': '入住人数',
                 'housingUpgradeCost': '升级所需资源',
                 'upgradeHousing': '升级住房',
                 'housingManagement': '住房管理',
+                'housingCatalogSubtitle': '住房会沿着科技与工业资源链持续升级。',
                 'housingList': '住房数量',
                 'totalCapacity': '总容量',
                 'currentOccupancy': '当前入住',
@@ -476,6 +594,10 @@ class I18n {
                 'occupancyRate': '入住率',
                 'housingFullWarning': '住房容量已满，新增人口将进入等待队列',
                 'bulkUpgradeHousing': '批量升级住房',
+                'housingAutoPurchase': '自动购买',
+                'housingAutoPurchaseSummary': '自动购买完成，共处理 {count} 次住房升级',
+                'housingNoAutoPurchase': '当前资源不足，无法自动购买住房',
+                'housingCapacityPerLevel': '单级容量',
                 'occupancyControl': '入住控制',
                 'noHousing': '暂无住房建筑',
                 'housingUpgradeFailed': '{count} 个住房升级失败（资源不足）',
@@ -549,7 +671,111 @@ class I18n {
                 'achievementCategory_resources': '资源',
                 'achievementCategory_buildings': '建筑',
                 'achievementCategory_crafting': '工业',
-                'achievementCategory_unlocks': '解锁'
+                'achievementCategory_unlocks': '解锁',
+                'unlockSectionLabel': '下一次揭示',
+                'noUnlocksAvailable': '目前没有新的可观测异常，边界暂时保持稳定。',
+                'unlockAutoRevealHint': '满足条件后自动揭示',
+                'unlockFeatureType_stage': '阶段跃迁',
+                'unlockFeatureType_system': '系统异常',
+                'unlockFeatureType_area': '面板揭示',
+                'unlockFeatureType_default': '揭示项目',
+                'unlockRequirement_workers_stage': '累计购买 3 座建筑',
+                'unlockRequirement_maggot_stage': '揭示蛆虫阶段',
+                'unlockRequirement_hybrid_stage': '推进蛆虫人阶段',
+                'unlockRequirement_collective_stage': '推进集体意识阶段',
+                'unlockRequirement_symbiosis_stability': '维持共生平衡',
+                'unlockRequirement_total_clicks': '完成基础点击阈值',
+                'unlockRequirement_default': '满足当前阶段条件',
+                'unlockSummary_workers_stage': '工人阶段现在只看一条条件：累计购买 3 座建筑。',
+                'unlockSummary_maggot_stage': '黑暗分支来自聚落衰败本身：饥饿、尸体与异动共同推动隐藏阶段显形。',
+                'unlockSummary_maggot_tech': '黑暗生物链不是手动按钮解锁，而是要先研究科技“蛆虫育种”。',
+                'unlockSummary_hybrid_stage': '蛆虫人阶段看三项共同推进：黑暗科技准备度、蛆虫影响、共生稳定度。总进度是三项平均值。',
+                'unlockSummary_collective_stage': '集体意识阶段同样按三项平均推进：集体意识、混合人口、关键科技。',
+                'unlockSummary_symbiosis_stability': '把共生稳定度维持在安全线以上，系统才会承认当前平衡可持续。',
+                'unlockSummary_total_clicks': '继续点击并积累基础操作次数，达到 {count} 次。',
+                'unlockLine_buildingsPurchased': '已购买建筑',
+                'unlockLine_hungryWorkers': '饥饿工人',
+                'unlockLine_corpses': '尸体',
+                'unlockLine_maggotActivity': '蛆虫异动',
+                'unlockLine_maggotBreeding': '蛆虫育种',
+                'unlockLine_darkTechReadiness': '黑暗科技准备度',
+                'unlockLine_maggotInfluence': '蛆虫影响',
+                'unlockLine_symbiosisStability': '共生稳定度',
+                'unlockLine_collectiveConsciousness': '集体意识',
+                'unlockLine_hybridPopulation': '混合人口',
+                'unlockLine_keyTechnology': '关键科技',
+                'unlockLine_totalClicks': '总点击次数',
+                'progressionKicker': '当前阶段',
+                'progressionMetric_humanPressure': '人类压力',
+                'progressionMetric_humanPressureNote': '人类秩序对异化的反制强度',
+                'progressionMetric_maggotInfluence': '蛆虫影响',
+                'progressionMetric_maggotInfluenceNote': '腐化生态正在渗透聚落的程度',
+                'progressionMetric_symbiosisStability': '共生稳定度',
+                'progressionMetric_symbiosisStabilityNote': '决定混合社会是否还能保持运转',
+                'progressionMetric_hybridPopulation': '混合人口',
+                'progressionMetric_hybridPopulationNote': '已经参与生产的蛆虫人规模',
+                'progressionMetric_collectiveConsciousness': '集体意识',
+                'progressionMetric_collectiveConsciousnessNote': '共享思维网络对终局产能的聚合程度',
+                'stage_stage_genesis': '初始阶段',
+                'stage_stage_workers': '工人阶段',
+                'stage_stage_maggot': '蛆虫阶段',
+                'stage_stage_hybrid': '蛆虫人阶段',
+                'stage_stage_collective': '集体意识阶段',
+                'stageDescription_stage_genesis': '靠点击与基础建筑撑起最早期资源循环。',
+                'stageDescription_stage_workers': '工人、住房与食物开始主导产能。',
+                'stageDescription_stage_maggot': '尸体腐化揭示黑暗生物生产链。',
+                'stageDescription_stage_hybrid': '人类与蛆虫人共生，稳定度成为核心变量。',
+                'stageDescription_stage_collective': '集体意识、生物科技与宇宙探索汇流。',
+                'stageNarrative_stage_genesis': '世界仍旧可被理解为资源与手工劳动的简单叠加，危险还隐藏在结构之后。',
+                'stageNarrative_stage_workers': '聚落已经摆脱纯点击驱动，食物、住房和工人调度开始决定文明是否扩张。',
+                'stageNarrative_stage_maggot': '死亡第一次形成可持续回报，生产不再只是建设，也开始吞食尸体与后果。',
+                'stageNarrative_stage_hybrid': '秩序与腐化被迫共享同一套基础设施，任何失衡都会把社会推向崩塌。',
+                'stageNarrative_stage_collective': '个体边界被持续稀释，意识、繁殖与远征开始围绕同一网络运转。',
+                'unlockName_stage_workers': '工人阶段',
+                'unlockName_stage_maggot': '蛆虫阶段',
+                'unlockName_stage_hybrid': '蛆虫人阶段',
+                'unlockName_stage_collective': '集体意识阶段',
+                'unlockName_coexistence_balance': '共生平衡',
+                'unlockName_statistics_panel': '统计面板',
+                'unlockName_achievements_panel': '成就面板',
+                'unlockName_workers_tab': '工人面板',
+                'unlockName_dark_biology': '黑暗生物链',
+                'unlockDescription_stage_workers': '基础采集已经无法满足扩张，新的劳动力系统即将开启。',
+                'unlockDescription_stage_maggot': '你发现死亡并非终点，而是另一条生产链的入口。',
+                'unlockDescription_stage_hybrid': '纯粹的人类秩序正在崩塌，共生将成为新的生产法则。',
+                'unlockDescription_stage_collective': '当个体边界溶解，意识将直接驱动远征与扩张。',
+                'unlockDescription_coexistence_balance': '把人类压力与蛆虫影响维持在可控平衡内。',
+                'unlockDescription_workers_tab': '工人、住房、工作总览和生命周期系统已经稳定运转。',
+                'unlockDescription_statistics_panel': '统计面板已成为稳定观测工具。',
+                'unlockDescription_achievements_panel': '成就面板已被揭示，可查看里程碑进度。',
+                'unlockDescription_dark_biology': '黑暗生物链已经形成，相关科技分支可被研究。',
+                'unlockDescription_default': '新的阶段边界正在显现。',
+                'achievementName_click_novice_10': '点击新手',
+                'achievementName_click_master_100': '点击大师',
+                'achievementName_click_legend_1000': '点击传奇',
+                'achievementName_first_coins_100': '第一桶金',
+                'achievementName_wood_collector_1000': '木材收集者',
+                'achievementName_stone_hoarder_5000': '石头囤积者',
+                'achievementName_first_building': '第一座建筑',
+                'achievementName_building_enthusiast_10': '建筑爱好者',
+                'achievementName_building_tycoon_50': '建筑大亨',
+                'achievementName_first_craft': '第一次加工',
+                'achievementName_craft_master_100': '工业大师',
+                'achievementName_first_unlock': '首次解锁',
+                'achievementName_progress_master_5': '进度大师',
+                'achievementDescription_click_novice_10': '点击 10 次',
+                'achievementDescription_click_master_100': '点击 100 次',
+                'achievementDescription_click_legend_1000': '点击 1000 次',
+                'achievementDescription_first_coins_100': '获得 100 金币',
+                'achievementDescription_wood_collector_1000': '获得 1000 木头',
+                'achievementDescription_stone_hoarder_5000': '获得 5000 石头',
+                'achievementDescription_first_building': '购买第一座建筑',
+                'achievementDescription_building_enthusiast_10': '购买 10 座建筑',
+                'achievementDescription_building_tycoon_50': '购买 50 座建筑',
+                'achievementDescription_first_craft': '通过工厂产出第一个加工资源',
+                'achievementDescription_craft_master_100': '通过工厂累计产出 100 个加工资源',
+                'achievementDescription_first_unlock': '解锁第一个成就',
+                'achievementDescription_progress_master_5': '解锁 5 个成就'
             }
         };
     }
@@ -627,7 +853,77 @@ class I18n {
         if (gender === 'Female' || gender === 2) return this.t('female');
         return this.t('otherGender');
     }
-     
+
+    getAchievementName(id, fallback = '') {
+        if (!id) {
+            return fallback;
+        }
+
+        const key = `achievementName_${id}`;
+        const translated = this.t(key);
+        return translated === key ? fallback || id : translated;
+    }
+
+    getAchievementDescription(id, fallback = '') {
+        if (!id) {
+            return fallback;
+        }
+
+        const key = `achievementDescription_${id}`;
+        const translated = this.t(key);
+        return translated === key ? fallback : translated;
+    }
+
+    getUnlockName(id, fallback = '') {
+        if (!id) {
+            return fallback;
+        }
+
+        const key = `unlockName_${id}`;
+        const translated = this.t(key);
+        return translated === key ? fallback || id : translated;
+    }
+
+    getUnlockDescription(id, fallback = '') {
+        if (!id) {
+            return fallback;
+        }
+
+        const key = `unlockDescription_${id}`;
+        const translated = this.t(key);
+        return translated === key ? (fallback || this.t('unlockDescription_default')) : translated;
+    }
+
+    getStageName(stageId, fallback = '') {
+        if (!stageId) {
+            return fallback;
+        }
+
+        const key = `stage_${stageId}`;
+        const translated = this.t(key);
+        return translated === key ? fallback || stageId : translated;
+    }
+
+    getStageDescription(stageId, fallback = '') {
+        if (!stageId) {
+            return fallback;
+        }
+
+        const key = `stageDescription_${stageId}`;
+        const translated = this.t(key);
+        return translated === key ? fallback : translated;
+    }
+
+    getStageNarrative(stageId, fallback = '') {
+        if (!stageId) {
+            return fallback;
+        }
+
+        const key = `stageNarrative_${stageId}`;
+        const translated = this.t(key);
+        return translated === key ? fallback : translated;
+    }
+      
     // Update all translatable elements on the page
     updateAllTranslations() {
         // Update static text elements
@@ -639,9 +935,9 @@ class I18n {
         this.updateElement('footer-text', 'footerText');
         this.updateElement('click-to-earn-coins', 'clickToEarnCoins');
         this.updateElement('workers-placeholder', 'workersPlaceholder');
-        
-        this.updateElement('workers-list', 'noWorkers');
-        
+        this.updateElement('achievements-placeholder', 'achievementsLoadingPlaceholder');
+        this.updateElement('unlocks-placeholder', 'unlocksLoadingPlaceholder');
+
         // Update settings labels
         this.updateLabel('theme-select-setting', 'theme');
         this.updateLabel('language-select-setting', 'language');

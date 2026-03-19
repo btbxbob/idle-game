@@ -530,13 +530,17 @@ header {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
 }
 
 #main-content {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     background-color: var(--main-bg);
     border: 1px solid var(--border-color);
     padding: 20px;
@@ -559,11 +563,13 @@ header {
 .tab-content {
     display: none;
     width: 100%;
+    min-height: 0;
 }
 
 .tab-content.active {
     display: flex;
     flex-direction: column;
+    min-height: 0;
     gap: 20px;
     position: relative;
     z-index: 0;
@@ -2207,6 +2213,7 @@ footer {
     gap: 14px;
     width: 100%;
     min-height: clamp(360px, 60vh, 560px);
+    align-items: stretch;
     position: relative;
     z-index: 0;
 }
@@ -2219,6 +2226,8 @@ footer {
 }
 
 #technology-tree-container {
+    display: flex;
+    flex-direction: column;
     min-height: clamp(360px, 60vh, 560px);
     overflow: hidden;
 }
@@ -2306,9 +2315,14 @@ footer {
 .tech-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+    flex: 1 1 auto;
+    min-height: 0;
     gap: 12px;
     padding: 0;
     justify-content: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tech-card {
@@ -2576,6 +2590,42 @@ footer {
     gap: 12px;
 }
 
+.housing-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.housing-toolbar h4 {
+    margin: 0;
+}
+
+.housing-toolbar-subtitle {
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.8;
+    line-height: 1.5;
+}
+
+.housing-auto-purchase-btn {
+    border: 2px solid var(--border-color);
+    background: linear-gradient(135deg, #1f7a46, #58d68d);
+    color: #fff;
+    box-shadow: 2px 2px 0 var(--shadow-color);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.housing-auto-purchase-btn:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--shadow-color);
+}
+
 .housing-summary {
     display: flex;
     flex-wrap: wrap;
@@ -2615,16 +2665,18 @@ footer {
 
 .housing-list-container {
     display: grid;
-    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
 }
 
 .housing-item {
     border: 2px solid var(--border-color);
     background-color: var(--panel-bg);
     box-shadow: 2px 2px 0 var(--shadow-color);
-    padding: 8px;
+    padding: 12px;
     display: grid;
-    gap: 6px;
+    gap: 10px;
+    align-content: start;
 }
 
 .housing-item-full {
@@ -2632,13 +2684,69 @@ footer {
 }
 
 .housing-item-header,
-.housing-detail-row,
 .housing-item-actions,
 .housing-item-name {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+}
+
+.housing-title-block {
+    display: grid;
+    gap: 4px;
+}
+
+.housing-tech-badge,
+.housing-level-badge,
+.housing-cost-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.06);
+    padding: 3px 7px;
+    font-size: 11px;
+}
+
+.housing-tech-badge {
+    color: #1f7a46;
+    background: rgba(88, 214, 141, 0.16);
+}
+
+.housing-avatar {
+    font-size: 24px;
+}
+
+.housing-description {
+    min-height: 54px;
+    font-size: 12px;
+    line-height: 1.55;
+    opacity: 0.88;
+}
+
+.housing-detail-row {
+    display: grid;
+    gap: 4px;
+}
+
+.housing-detail-row-stacked {
+    align-items: start;
+}
+
+.housing-cost-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.housing-cost-chip.insufficient {
+    border-color: #e74c3c;
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.08);
+}
+
+.housing-occupancy-top {
+    margin-top: 4px;
 }
 
 .btn-upgrade {
@@ -3453,6 +3561,11 @@ footer {
     .tech-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 12px;
+    }
+
+    .housing-toolbar {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 

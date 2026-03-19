@@ -292,13 +292,184 @@ fn calculate_click_power_from_buildings(buildings: &[Building]) -> f64 {
     1.0 + coin_mine_count
 }
 
-fn normalize_housing_resource_key(resource: &str) -> Option<&'static str> {
+fn normalize_housing_resource_key(resource: &str) -> Option<ResourceType> {
     match resource.trim().to_ascii_lowercase().as_str() {
-        "gold" | "coins" | "coin" => Some("Gold"),
-        "wood" => Some("Wood"),
-        "stone" => Some("Stone"),
+        "gold" | "coins" | "coin" => Some(ResourceType::Gold),
+        "wood" => Some(ResourceType::Wood),
+        "stone" => Some(ResourceType::Stone),
+        "ironore" | "iron_ore" => Some(ResourceType::IronOre),
+        "coal" => Some(ResourceType::Coal),
+        "crystal" => Some(ResourceType::Crystal),
+        "food" => Some(ResourceType::Food),
+        "ironingot" | "iron_ingot" => Some(ResourceType::IronIngot),
+        "steelplate" | "steel_plate" => Some(ResourceType::SteelPlate),
+        "glass" => Some(ResourceType::Glass),
+        "plastic" => Some(ResourceType::Plastic),
+        "chemicals" => Some(ResourceType::Chemicals),
+        "gear" => Some(ResourceType::Gear),
+        "wire" => Some(ResourceType::Wire),
+        "motor" => Some(ResourceType::Motor),
+        "battery" => Some(ResourceType::Battery),
+        "circuitboard" | "circuit_board" => Some(ResourceType::CircuitBoard),
+        "sensor" => Some(ResourceType::Sensor),
+        "microchip" => Some(ResourceType::Microchip),
+        "quantumcomputer" | "quantum_computer" => Some(ResourceType::QuantumComputer),
+        "robot" => Some(ResourceType::Robot),
+        "nanobot" => Some(ResourceType::Nanobot),
+        "antimatter" => Some(ResourceType::Antimatter),
+        "timecrystal" | "time_crystal" => Some(ResourceType::TimeCrystal),
         _ => None,
     }
+}
+
+fn housing_cost(entries: &[(&str, f64)]) -> HashMap<String, f64> {
+    entries
+        .iter()
+        .map(|(resource, amount)| ((*resource).to_string(), *amount))
+        .collect()
+}
+
+fn default_housing_catalog() -> Vec<Housing> {
+    vec![
+        Housing::with_details(
+            "棚屋",
+            housing_cost(&[("Gold", 100.0), ("Wood", 35.0)]),
+            4,
+            "用最基础的木料和布片拼出来的临时居所，能先把第一批劳动力安顿下来。",
+            "⛺",
+            None,
+        ),
+        Housing::with_details(
+            "木梁小屋",
+            housing_cost(&[("Gold", 180.0), ("Wood", 90.0), ("Stone", 30.0)]),
+            6,
+            "有了稳定伐木和采石之后，工人终于能住进不那么容易漏风的木屋。",
+            "🪵",
+            Some("BasicLogging"),
+        ),
+        Housing::with_details(
+            "采石宿舍",
+            housing_cost(&[("Gold", 320.0), ("Stone", 120.0), ("IronOre", 50.0)]),
+            8,
+            "石墙和矿梁让宿舍结构更稳，适合矿工和采石工长期驻扎。",
+            "🪨",
+            Some("BasicQuarrying"),
+        ),
+        Housing::with_details(
+            "铸铁公寓",
+            housing_cost(&[("Gold", 520.0), ("IronIngot", 90.0), ("Glass", 40.0)]),
+            12,
+            "冶炼和玻璃工艺成熟后，城市开始出现真正意义上的多层工人公寓。",
+            "🏘️",
+            Some("BasicSmelting"),
+        ),
+        Housing::with_details(
+            "钢骨宿舍塔",
+            housing_cost(&[
+                ("Gold", 900.0),
+                ("SteelPlate", 120.0),
+                ("Gear", 60.0),
+                ("Wire", 60.0),
+            ]),
+            16,
+            "机械工程推动住房垂直扩张，结构件和供能线路让多人宿舍变得可靠。",
+            "🏢",
+            Some("BasicEngineering"),
+        ),
+        Housing::with_details(
+            "聚合物生活舱",
+            housing_cost(&[
+                ("Gold", 1450.0),
+                ("Plastic", 140.0),
+                ("Chemicals", 90.0),
+                ("Glass", 90.0),
+            ]),
+            20,
+            "化工产业让轻量化居住舱变成现实，维护成本更低，扩张速度也更快。",
+            "🧪",
+            Some("AdvancedChemistry"),
+        ),
+        Housing::with_details(
+            "自动化居住穹顶",
+            housing_cost(&[
+                ("Gold", 2400.0),
+                ("CircuitBoard", 120.0),
+                ("Motor", 90.0),
+                ("Battery", 70.0),
+            ]),
+            26,
+            "自动门、能源循环和基础维生系统把住房升级成了半自动化穹顶。",
+            "🔋",
+            Some("Automation"),
+        ),
+        Housing::with_details(
+            "仿生共生巢",
+            housing_cost(&[
+                ("Gold", 4200.0),
+                ("Plastic", 160.0),
+                ("Chemicals", 140.0),
+                ("Robot", 24.0),
+            ]),
+            32,
+            "当生物技术介入住房设计，建筑开始像组织一样自我调节并容纳混合居民。",
+            "🧬",
+            Some("Biotechnology"),
+        ),
+        Housing::with_details(
+            "量子静域居所",
+            housing_cost(&[
+                ("Gold", 7600.0),
+                ("Microchip", 120.0),
+                ("Sensor", 90.0),
+                ("QuantumComputer", 18.0),
+            ]),
+            40,
+            "量子计算接管环境调谐后，整片住宅区可以按居民状态实时优化。",
+            "⚛️",
+            Some("QuantumComputing"),
+        ),
+        Housing::with_details(
+            "星轨方舟",
+            housing_cost(&[
+                ("Gold", 14000.0),
+                ("Nanobot", 90.0),
+                ("TimeCrystal", 24.0),
+                ("Antimatter", 12.0),
+            ]),
+            52,
+            "终局住房不再只是容纳人口，而是让整个群落像航行中的殖民方舟一样持续演化。",
+            "🚀",
+            Some("SpaceExploration"),
+        ),
+    ]
+}
+
+fn merge_loaded_housing_catalog(existing: Vec<Housing>) -> Vec<Housing> {
+    let mut existing_by_name: HashMap<String, Housing> = existing
+        .into_iter()
+        .map(|housing| (housing.name.clone(), housing))
+        .collect();
+
+    let legacy_housing = existing_by_name.remove("住房");
+
+    default_housing_catalog()
+        .into_iter()
+        .map(|mut default_housing| {
+            let matched = existing_by_name.remove(&default_housing.name).or_else(|| {
+                if default_housing.name == "棚屋" {
+                    legacy_housing.clone()
+                } else {
+                    None
+                }
+            });
+
+            if let Some(saved) = matched {
+                default_housing.count = saved.count;
+            }
+
+            default_housing
+        })
+        .collect()
 }
 
 fn clamp_loaded_timestamp(saved_time: f64, now: f64, max_age_ms: f64) -> f64 {
@@ -409,12 +580,39 @@ mod normalization_tests {
 
     #[test]
     fn test_normalize_housing_resource_key() {
-        assert_eq!(normalize_housing_resource_key("coins"), Some("Gold"));
-        assert_eq!(normalize_housing_resource_key("Gold"), Some("Gold"));
-        assert_eq!(normalize_housing_resource_key(" coins "), Some("Gold"));
-        assert_eq!(normalize_housing_resource_key("WOOD"), Some("Wood"));
-        assert_eq!(normalize_housing_resource_key("stone"), Some("Stone"));
-        assert_eq!(normalize_housing_resource_key("crystal"), None);
+        assert_eq!(
+            normalize_housing_resource_key("coins"),
+            Some(ResourceType::Gold)
+        );
+        assert_eq!(
+            normalize_housing_resource_key("Gold"),
+            Some(ResourceType::Gold)
+        );
+        assert_eq!(
+            normalize_housing_resource_key(" coins "),
+            Some(ResourceType::Gold)
+        );
+        assert_eq!(
+            normalize_housing_resource_key("WOOD"),
+            Some(ResourceType::Wood)
+        );
+        assert_eq!(
+            normalize_housing_resource_key("stone"),
+            Some(ResourceType::Stone)
+        );
+        assert_eq!(
+            normalize_housing_resource_key("iron_ingot"),
+            Some(ResourceType::IronIngot)
+        );
+        assert_eq!(
+            normalize_housing_resource_key("QuantumComputer"),
+            Some(ResourceType::QuantumComputer)
+        );
+        assert_eq!(
+            normalize_housing_resource_key("crystal"),
+            Some(ResourceType::Crystal)
+        );
+        assert_eq!(normalize_housing_resource_key("mystery"), None);
     }
 }
 
@@ -1301,7 +1499,7 @@ impl IdleGame {
                 building.output_resource = inferred;
             }
         }
-        self.housing_buildings = saved.housing_buildings;
+        self.housing_buildings = merge_loaded_housing_catalog(saved.housing_buildings);
         self.workers = saved.workers;
         normalize_worker_building_references(&mut self.workers);
         self.population_queue = saved.population_queue;
@@ -1343,12 +1541,7 @@ impl IdleGame {
 
         // Ensure default housing exists if save is empty (backwards compatibility)
         if self.housing_buildings.is_empty() {
-            use crate::entities::building::Housing;
-            self.housing_buildings = vec![Housing::new(
-                "住房",
-                std::collections::HashMap::from([("Gold".to_string(), 100.0)]),
-                4,
-            )];
+            self.housing_buildings = default_housing_catalog();
         }
 
         self.refresh_progression_state();
@@ -1657,11 +1850,7 @@ impl IdleGame {
                 factory_building("反物质反应堆", 25000.0, 0.005, ResourceType::Antimatter),
                 factory_building("时间水晶合成器", 28000.0, 0.005, ResourceType::TimeCrystal),
             ],
-            housing_buildings: vec![Housing::new(
-                "住房",
-                std::collections::HashMap::from([("Gold".to_string(), 100.0)]),
-                4,
-            )],
+            housing_buildings: default_housing_catalog(),
             workers: vec![],
             population_queue: PopulationQueue::new(),
             last_food_consumption_time: now,
@@ -1808,9 +1997,7 @@ impl IdleGame {
             let state = self.state.borrow();
             for (resource, amount) in cost_map.iter() {
                 let current = match normalize_housing_resource_key(resource.as_str()) {
-                    Some("Gold") => state.get_coins(),
-                    Some("Wood") => state.get_wood(),
-                    Some("Stone") => state.get_stone(),
+                    Some(resource_type) => state.get_resource(resource_type),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
                 if current + 1e-10 < *amount {
@@ -1833,9 +2020,7 @@ impl IdleGame {
             let mut state = self.state.borrow_mut();
             for (resource, amount) in cost_map.iter() {
                 match normalize_housing_resource_key(resource.as_str()) {
-                    Some("Gold") => state.spend_coins(*amount),
-                    Some("Wood") => state.spend_wood(*amount),
-                    Some("Stone") => state.spend_stone(*amount),
+                    Some(resource_type) => state.add_resource(resource_type, -*amount),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
             }
@@ -1875,9 +2060,7 @@ impl IdleGame {
             let state = self.state.borrow();
             for (resource, amount) in upgrade_cost.iter() {
                 let current = match normalize_housing_resource_key(resource.as_str()) {
-                    Some("Gold") => state.get_coins(),
-                    Some("Wood") => state.get_wood(),
-                    Some("Stone") => state.get_stone(),
+                    Some(resource_type) => state.get_resource(resource_type),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
                 if current + 1e-10 < *amount {
@@ -1900,9 +2083,7 @@ impl IdleGame {
             let mut state = self.state.borrow_mut();
             for (resource, amount) in upgrade_cost.iter() {
                 match normalize_housing_resource_key(resource.as_str()) {
-                    Some("Gold") => state.spend_coins(*amount),
-                    Some("Wood") => state.spend_wood(*amount),
-                    Some("Stone") => state.spend_stone(*amount),
+                    Some(resource_type) => state.add_resource(resource_type, -*amount),
                     _ => return Err(format!("Unknown resource: {}", resource)),
                 };
             }
@@ -2388,13 +2569,36 @@ impl IdleGame {
             );
             let _ = js_sys::Reflect::set(
                 &obj,
+                &JsValue::from_str("description"),
+                &JsValue::from_str(&h.description),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("icon"),
+                &JsValue::from_str(&h.icon),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
                 &JsValue::from_str("capacity"),
                 &JsValue::from_f64((h.capacity * level) as f64),
             );
             let _ = js_sys::Reflect::set(
                 &obj,
+                &JsValue::from_str("baseCapacity"),
+                &JsValue::from_f64(h.capacity as f64),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
                 &JsValue::from_str("level"),
                 &JsValue::from_f64(level as f64),
+            );
+            let _ = js_sys::Reflect::set(
+                &obj,
+                &JsValue::from_str("requiredTechnology"),
+                &match &h.required_technology {
+                    Some(value) => JsValue::from_str(value),
+                    None => JsValue::NULL,
+                },
             );
             let _ = js_sys::Reflect::set(
                 &obj,

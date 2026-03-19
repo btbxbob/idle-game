@@ -196,9 +196,9 @@ test.describe('HousingManager coverage', () => {
         const result = await page.evaluate(() => {
             const panel = document.getElementById('housing-panel');
             const originalPanelHtml = panel ? panel.innerHTML : '';
-            const buildingsTab = document.getElementById('tab-buildings');
-            const originalBuildingsTabClass = buildingsTab ? buildingsTab.className : '';
-            if (buildingsTab) buildingsTab.className = 'tab-content active';
+            const housingTab = document.getElementById('tab-housing');
+            const originalHousingTabClass = housingTab ? housingTab.className : '';
+            if (housingTab) housingTab.className = 'tab-content active';
 
             const manager = new window.HousingManager({
                 get_housing_capacity: () => 10,
@@ -227,12 +227,12 @@ test.describe('HousingManager coverage', () => {
             let updateCalls = 0;
             window.housingManager = { renderToPanel: () => { updateCalls += 1; } };
             window.updateHousingPanel();
-            if (buildingsTab) buildingsTab.classList.remove('active');
+            if (housingTab) housingTab.classList.remove('active');
             window.updateHousingPanel();
             window.housingManager = originalManager;
 
             if (panel) panel.innerHTML = originalPanelHtml;
-            if (buildingsTab) buildingsTab.className = originalBuildingsTabClass;
+            if (housingTab) housingTab.className = originalHousingTabClass;
 
             return {
                 listHtml,

@@ -121,6 +121,45 @@ class HousingManager {
             AluminumOre: 'aluminumOre',
             aluminumore: 'aluminumOre',
             aluminumOre: 'aluminumOre',
+            IronIngot: 'ironIngot',
+            ironingot: 'ironIngot',
+            ironIngot: 'ironIngot',
+            SteelPlate: 'steelPlate',
+            steelplate: 'steelPlate',
+            steelPlate: 'steelPlate',
+            Glass: 'glass',
+            glass: 'glass',
+            Plastic: 'plastic',
+            plastic: 'plastic',
+            Chemicals: 'chemicals',
+            chemicals: 'chemicals',
+            Gear: 'gear',
+            gear: 'gear',
+            Wire: 'wire',
+            wire: 'wire',
+            Motor: 'motor',
+            motor: 'motor',
+            Battery: 'battery',
+            battery: 'battery',
+            CircuitBoard: 'circuitBoard',
+            circuitboard: 'circuitBoard',
+            circuitBoard: 'circuitBoard',
+            Sensor: 'sensor',
+            sensor: 'sensor',
+            Microchip: 'microchip',
+            microchip: 'microchip',
+            QuantumComputer: 'quantumComputer',
+            quantumcomputer: 'quantumComputer',
+            quantumComputer: 'quantumComputer',
+            Robot: 'robot',
+            robot: 'robot',
+            Nanobot: 'nanobot',
+            nanobot: 'nanobot',
+            Antimatter: 'antimatter',
+            antimatter: 'antimatter',
+            TimeCrystal: 'timeCrystal',
+            timecrystal: 'timeCrystal',
+            timeCrystal: 'timeCrystal',
         };
 
         if (aliases[normalized]) {
@@ -178,6 +217,31 @@ class HousingManager {
         return t(normalizedKey) || normalizedKey || String(resource || '');
     }
 
+    getTechnologyLabel(technologyId) {
+        if (!technologyId) {
+            return '';
+        }
+
+        const language = window.i18n && window.i18n.currentLanguage === 'en' ? 'en' : 'zh-CN';
+        const labels = {
+            BasicLogging: { 'zh-CN': '基础伐木', en: 'Basic Logging' },
+            BasicQuarrying: { 'zh-CN': '基础采石', en: 'Basic Quarrying' },
+            BasicSmelting: { 'zh-CN': '基础冶炼', en: 'Basic Smelting' },
+            BasicEngineering: { 'zh-CN': '基础工程', en: 'Basic Engineering' },
+            AdvancedChemistry: { 'zh-CN': '高级化学', en: 'Advanced Chemistry' },
+            Automation: { 'zh-CN': '自动化', en: 'Automation' },
+            Biotechnology: { 'zh-CN': '生物科技', en: 'Biotechnology' },
+            QuantumComputing: { 'zh-CN': '量子计算', en: 'Quantum Computing' },
+            SpaceExploration: { 'zh-CN': '太空探索', en: 'Space Exploration' },
+        };
+
+        if (labels[technologyId]) {
+            return labels[technologyId][language] || labels[technologyId]['zh-CN'];
+        }
+
+        return String(technologyId).replace(/([a-z])([A-Z])/g, '$1 $2');
+    }
+
     getCostEntries(cost) {
         if (!cost) return [];
         if (cost instanceof Map) {
@@ -204,6 +268,22 @@ class HousingManager {
         return parts.join(', ');
     }
 
+    renderCostChips(cost) {
+        const entries = this.getCostEntries(cost);
+        if (entries.length === 0) {
+            return '';
+        }
+
+        return `<div class="housing-cost-chips">${entries.map(([resource, amount]) => {
+            const affordable = this.canAffordUpgrade([[resource, amount]]);
+            return `
+                <span class="housing-cost-chip ${affordable ? '' : 'insufficient'}">
+                    ${this.formatInteger(amount)} ${this.getResourceLabel(resource)}
+                </span>
+            `;
+        }).join('')}</div>`;
+    }
+
     renderHousingList() {
         const container = document.getElementById('housing-list');
         if (!container) {
@@ -211,11 +291,16 @@ class HousingManager {
             return;
         }
 
-        const housing = this.getHousing();
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        if (!this.rustGame || typeof this.rustGame.get_housing !== 'function') {
+            container.innerHTML = `<p id="housing-placeholder">${t('housingLoadingPlaceholder') || '正在加载住房面板...'}</p>`;
+            return;
+        }
+
+        const housing = this.getHousing();
 
         if (housing.length === 0) {
-            container.innerHTML = `<p id="housing-placeholder">${t('housingPlaceholder') || '住房系统将在未来版本中实现'}</p>`;
+            container.innerHTML = `<p id="housing-placeholder">${t('noHousing') || '暂无住房建筑'}</p>`;
             return;
         }
 
@@ -297,7 +382,15 @@ class HousingManager {
         let html = `
             <div class="housing-panel">
                 <div class="housing-header">
-                    <h4>${t('housingManagement') || '住房管理'}</h4>
+                    <div class="housing-toolbar">
+                        <div>
+                            <h4>${t('housingManagement') || '住房管理'}</h4>
+                            <div class="housing-toolbar-subtitle">${t('housingCatalogSubtitle') || '住房会沿着科技与工业资源链持续升级。'}</div>
+                        </div>
+                        <button type="button" id="housing-auto-purchase" class="housing-auto-purchase-btn" onclick="window.housingManager.handleAutoPurchase()">
+                            ${t('housingAutoPurchase') || '自动购买'}
+                        </button>
+                    </div>
                     ${housing.length > 0 ? `
                         <div class="housing-summary">
                             <span class="summary-item">${t('housingList') || '住房数量'}: ${housing.length}</span>
@@ -310,17 +403,7 @@ class HousingManager {
                             <div class="housing-capacity-bar"><i style="width:${occupancyPercent}%"></i></div>
                         </div>
                         ${isFull ? `<div class="housing-full-warning">${t('housingFullWarning') || '住房容量已满，新增人口将进入等待队列'}</div>` : ''}
-                    ` : ''}
-                </div>
-                ${this.renderHousingToList()}
-                ${housing.length > 0 ? `
-                    <div class="housing-controls">
-                        <div class="bulk-upgrade-section">
-                            <button type="button" id="housing-bulk-upgrade" onclick="window.housingManager.handleBulkUpgrade()">
-                                ${t('bulkUpgradeHousing') || '批量升级住房'}
-                            </button>
-                        </div>
-                        <div class="occupancy-control">
+                        <div class="occupancy-control housing-occupancy-top">
                             <label for="occupancy-slider">${t('occupancyControl') || '入住控制'}:</label>
                             <input 
                                 type="range" 
@@ -332,8 +415,9 @@ class HousingManager {
                             >
                             <span id="occupancy-value">${this.occupancyRate}%</span>
                         </div>
-                    </div>
-                ` : ''}
+                    ` : ''}
+                </div>
+                ${this.renderHousingToList()}
             </div>
         `;
 
@@ -356,32 +440,43 @@ class HousingManager {
             const houseFull = occupants >= house.capacity;
             const upgradeCost = this.formatUpgradeCost(house.upgradeCost);
             const canAfford = this.canAffordUpgrade(house.upgradeCost);
+            const technologyLabel = this.getTechnologyLabel(house.requiredTechnology);
+            const icon = house.icon || '🏠';
 
             html += `
                 <div class="housing-item ${houseFull ? 'housing-item-full' : ''}" id="housing-item-${index}">
                     <div class="housing-item-header">
                         <div class="housing-item-name">
-                            <span class="housing-avatar">🏠</span>
-                            <span class="housing-name-text">${house.name}</span>
-                            <span class="housing-level-badge">${t('level') || '等级'} ${house.level}</span>
+                            <span class="housing-avatar">${icon}</span>
+                            <div class="housing-title-block">
+                                <span class="housing-name-text">${house.name}</span>
+                                <span class="housing-level-badge">${t('level') || '等级'} ${house.level}</span>
+                            </div>
                         </div>
+                        ${technologyLabel ? `<span class="housing-tech-badge">${technologyLabel}</span>` : ''}
                     </div>
                     <div class="housing-item-body">
+                        ${house.description ? `<div class="housing-description">${house.description}</div>` : ''}
+                        <div class="housing-detail-row housing-detail-row-stacked">
+                            <span class="detail-label">${t('housingCapacityPerLevel') || '单级容量'}:</span>
+                            <span class="detail-value">${this.formatInteger(house.baseCapacity || house.capacity)}</span>
+                        </div>
                         <div class="housing-detail-row">
                             <span class="detail-label">${t('capacity') || '容量'}:</span>
-                            <span class="detail-value">${house.capacity}</span>
+                            <span class="detail-value">${this.formatInteger(house.capacity)}</span>
                         </div>
                         <div class="housing-detail-row">
                             <span class="detail-label">${t('occupants') || '入住人数'}:</span>
-                            <span class="detail-value">${occupants}/${house.capacity}</span>
+                            <span class="detail-value">${this.formatInteger(occupants)}/${this.formatInteger(house.capacity)}</span>
                             <div class="occupancy-progress-bar">
                                 <div class="occupancy-progress-fill" style="width: ${houseOccupancyPercent}%"></div>
                             </div>
                         </div>
-                        <div class="housing-detail-row">
+                        <div class="housing-detail-row housing-detail-row-stacked">
                             <span class="detail-label">${t('housingUpgradeCost') || '升级消耗'}:</span>
                             <span class="detail-value upgrade-cost">${upgradeCost}</span>
                         </div>
+                        ${this.renderCostChips(house.upgradeCost)}
                     </div>
                     <div class="housing-item-actions">
                         <button 
@@ -400,17 +495,50 @@ class HousingManager {
         return html;
     }
 
+    handleAutoPurchase() {
+        if (!this.rustGame || typeof this.rustGame.upgrade_housing !== 'function') {
+            return;
+        }
+
+        const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        const housing = this.getHousing();
+        let purchased = 0;
+        let progressed = true;
+
+        while (progressed) {
+            progressed = false;
+
+            for (let index = 0; index < housing.length; index += 1) {
+                try {
+                    const success = this.rustGame.upgrade_housing(index);
+                    if (success) {
+                        purchased += 1;
+                        progressed = true;
+                    }
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error || '');
+                    if (!message.includes('Insufficient')) {
+                        console.error('Failed to auto purchase housing:', error);
+                    }
+                }
+            }
+        }
+
+        this.renderToPanel('housing-panel');
+        if (window.updateResourceDisplay) {
+            window.updateResourceDisplay();
+        }
+
+        if (purchased === 0) {
+            alert(t('housingNoAutoPurchase') || '当前资源不足，无法自动购买住房');
+            return;
+        }
+
+        alert((t('housingAutoPurchaseSummary') || '自动购买完成，共升级 {count} 次住房').replace('{count}', String(purchased)));
+    }
+
     handleBulkUpgrade() {
-        const result = this.bulkUpgrade();
-        
-        if (result.successCount > 0) {
-            console.log(`Bulk upgrade: ${result.successCount}/${result.total} succeeded`);
-        }
-        
-        if (result.failures > 0) {
-            const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
-            alert(t('housingUpgradeFailed', { count: result.failures }) || `${result.failures} 个住房升级失败（资源不足）`);
-        }
+        this.handleAutoPurchase();
     }
 
     handleOccupancyChange(value) {
@@ -423,8 +551,8 @@ window.HousingManager = HousingManager;
 
 window.updateHousingPanel = function() {
     if (window.housingManager && typeof window.housingManager.renderToPanel === 'function') {
-        const buildingsTab = document.getElementById('tab-buildings');
-        if (buildingsTab && buildingsTab.classList.contains('active')) {
+        const housingTab = document.getElementById('tab-housing');
+        if (housingTab && housingTab.classList.contains('active')) {
             window.housingManager.renderToPanel('housing-panel');
         }
     }

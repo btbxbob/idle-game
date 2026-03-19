@@ -19,6 +19,22 @@ class AchievementManager {
         return [];
     }
 
+    getAchievementName(achievement) {
+        const fallback = achievement?.name || achievement?.id || '';
+        if (window.i18n && typeof window.i18n.getAchievementName === 'function') {
+            return window.i18n.getAchievementName(achievement?.id, fallback);
+        }
+        return fallback;
+    }
+
+    getAchievementDescription(achievement) {
+        const fallback = achievement?.description || '';
+        if (window.i18n && typeof window.i18n.getAchievementDescription === 'function') {
+            return window.i18n.getAchievementDescription(achievement?.id, fallback);
+        }
+        return fallback;
+    }
+
     renderAchievements(containerId = 'achievements-list') {
         const container = document.getElementById(containerId);
         if (!container) {
@@ -26,11 +42,16 @@ class AchievementManager {
             return;
         }
 
-        const achievements = this.update();
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
+        if (!this.rustGame || typeof this.rustGame.get_achievements !== 'function') {
+            container.innerHTML = `<p id="achievements-placeholder">${t('achievementsLoadingPlaceholder') || '正在加载成就面板...'}</p>`;
+            return;
+        }
+
+        const achievements = this.update();
 
         if (achievements.length === 0) {
-            container.innerHTML = `<p id="achievements-placeholder">${t('achievementsPlaceholder') || '成就系统将在未来版本中实现'}</p>`;
+            container.innerHTML = `<p id="achievements-placeholder">${t('noAchievements') || '暂无成就数据'}</p>`;
             return;
         }
 
@@ -54,17 +75,19 @@ class AchievementManager {
             categoryAchievements.forEach(achievement => {
                 const isUnlocked = achievement.unlocked;
                 const progressPercent = Math.min(100, (achievement.progress / achievement.requirement) * 100);
+                const achievementName = this.getAchievementName(achievement);
+                const achievementDescription = this.getAchievementDescription(achievement);
                 
                 html += `
                     <div class="achievement-item ${isUnlocked ? 'unlocked' : 'locked'}" 
                          id="achievement-${achievement.id}"
-                         title="${achievement.description}">
+                         title="${achievementDescription}">
                         <div class="achievement-icon">
                             ${isUnlocked ? '🏆' : '🔒'}
                         </div>
                         <div class="achievement-info">
-                            <div class="achievement-name">${achievement.name}</div>
-                            <div class="achievement-description">${achievement.description}</div>
+                            <div class="achievement-name">${achievementName}</div>
+                            <div class="achievement-description">${achievementDescription}</div>
                             ${!isUnlocked ? `
                                 <div class="achievement-progress">
                                     <div class="progress-bar">
@@ -174,8 +197,8 @@ class AchievementManager {
                 <div class="notification-icon">🏆</div>
                 <div class="notification-text">
                     <div class="notification-title">${t('achievementUnlockedTitle') || '成就解锁!'}</div>
-                    <div class="notification-name">${achievement.name}</div>
-                    <div class="notification-description">${achievement.description}</div>
+                    <div class="notification-name">${this.getAchievementName(achievement)}</div>
+                    <div class="notification-description">${this.getAchievementDescription(achievement)}</div>
                 </div>
             </div>
         `;
