@@ -242,6 +242,22 @@ class HousingManager {
         return String(technologyId).replace(/([a-z])([A-Z])/g, '$1 $2');
     }
 
+    getHousingName(housing) {
+        const fallback = housing?.name || '';
+        if (window.i18n && typeof window.i18n.getHousingName === 'function') {
+            return window.i18n.getHousingName(housing?.name, fallback);
+        }
+        return fallback;
+    }
+
+    getHousingDescription(housing) {
+        const fallback = housing?.description || '';
+        if (window.i18n && typeof window.i18n.getHousingDescription === 'function') {
+            return window.i18n.getHousingDescription(housing?.name, fallback);
+        }
+        return fallback;
+    }
+
     getCostEntries(cost) {
         if (!cost) return [];
         if (cost instanceof Map) {
@@ -442,6 +458,8 @@ class HousingManager {
             const canAfford = this.canAffordUpgrade(house.upgradeCost);
             const technologyLabel = this.getTechnologyLabel(house.requiredTechnology);
             const icon = house.icon || '🏠';
+            const housingName = this.getHousingName(house);
+            const housingDescription = this.getHousingDescription(house);
 
             html += `
                 <div class="housing-item ${houseFull ? 'housing-item-full' : ''}" id="housing-item-${index}">
@@ -449,14 +467,14 @@ class HousingManager {
                         <div class="housing-item-name">
                             <span class="housing-avatar">${icon}</span>
                             <div class="housing-title-block">
-                                <span class="housing-name-text">${house.name}</span>
+                                <span class="housing-name-text">${housingName}</span>
                                 <span class="housing-level-badge">${t('level') || '等级'} ${house.level}</span>
                             </div>
                         </div>
                         ${technologyLabel ? `<span class="housing-tech-badge">${technologyLabel}</span>` : ''}
                     </div>
                     <div class="housing-item-body">
-                        ${house.description ? `<div class="housing-description">${house.description}</div>` : ''}
+                        ${housingDescription ? `<div class="housing-description">${housingDescription}</div>` : ''}
                         <div class="housing-detail-row housing-detail-row-stacked">
                             <span class="detail-label">${t('housingCapacityPerLevel') || '单级容量'}:</span>
                             <span class="detail-value">${this.formatInteger(house.baseCapacity || house.capacity)}</span>

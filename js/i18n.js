@@ -214,6 +214,26 @@ class I18n {
                 'occupancyControl': 'Occupancy Control',
                 'noHousing': 'No housing available',
                 'housingUpgradeFailed': '{count} housing upgrades failed (insufficient resources)',
+                'housingName_棚屋': 'Shanty Shelter',
+                'housingName_木梁小屋': 'Timber Cottage',
+                'housingName_采石宿舍': 'Quarry Dormitory',
+                'housingName_铸铁公寓': 'Cast-Iron Apartments',
+                'housingName_钢骨宿舍塔': 'Steelframe Dorm Tower',
+                'housingName_聚合物生活舱': 'Polymer Hab Pod',
+                'housingName_自动化居住穹顶': 'Automated Habitat Dome',
+                'housingName_仿生共生巢': 'Bionic Symbiosis Nest',
+                'housingName_量子静域居所': 'Quantum Quiet-Zone Residence',
+                'housingName_星轨方舟': 'Starrail Ark',
+                'housingDescription_棚屋': 'A temporary shelter stitched together from the earliest timber and fabric scraps, just enough to house the first labor wave.',
+                'housingDescription_木梁小屋': 'Once logging and quarrying stabilize, workers can finally move into timber homes that do not leak at every gust.',
+                'housingDescription_采石宿舍': 'Stone walls and ore braces make this dormitory fit for quarry crews and miners staying on-site for the long haul.',
+                'housingDescription_铸铁公寓': 'After smelting and glassmaking mature, the settlement graduates into true multi-storey worker apartments.',
+                'housingDescription_钢骨宿舍塔': 'Mechanical engineering pushes housing vertical, with structural steel and powered utilities keeping dense dorm life reliable.',
+                'housingDescription_聚合物生活舱': 'Chemical industry unlocks lightweight habitation pods that are cheaper to maintain and much faster to expand.',
+                'housingDescription_自动化居住穹顶': 'Automatic doors, energy loops, and baseline life-support turn housing blocks into semi-automated living domes.',
+                'housingDescription_仿生共生巢': 'As biotechnology enters architecture, the habitat starts regulating itself like an organism and welcoming hybrid residents.',
+                'housingDescription_量子静域居所': 'With quantum tuning managing the environment, the entire district can optimize itself around each resident in real time.',
+                'housingDescription_星轨方舟': 'Endgame housing no longer merely stores population; it carries the whole colony forward like a migrating ark.',
                 
                 // Building/Upgrade labels
                 'cost': 'Cost',
@@ -601,6 +621,26 @@ class I18n {
                 'occupancyControl': '入住控制',
                 'noHousing': '暂无住房建筑',
                 'housingUpgradeFailed': '{count} 个住房升级失败（资源不足）',
+                'housingName_棚屋': '棚屋',
+                'housingName_木梁小屋': '木梁小屋',
+                'housingName_采石宿舍': '采石宿舍',
+                'housingName_铸铁公寓': '铸铁公寓',
+                'housingName_钢骨宿舍塔': '钢骨宿舍塔',
+                'housingName_聚合物生活舱': '聚合物生活舱',
+                'housingName_自动化居住穹顶': '自动化居住穹顶',
+                'housingName_仿生共生巢': '仿生共生巢',
+                'housingName_量子静域居所': '量子静域居所',
+                'housingName_星轨方舟': '星轨方舟',
+                'housingDescription_棚屋': '用最基础的木料和布片拼出来的临时居所，能先把第一批劳动力安顿下来。',
+                'housingDescription_木梁小屋': '有了稳定伐木和采石之后，工人终于能住进不那么容易漏风的木屋。',
+                'housingDescription_采石宿舍': '石墙和矿梁让宿舍结构更稳，适合矿工和采石工长期驻扎。',
+                'housingDescription_铸铁公寓': '冶炼和玻璃工艺成熟后，城市开始出现真正意义上的多层工人公寓。',
+                'housingDescription_钢骨宿舍塔': '机械工程推动住房垂直扩张，结构件和供能线路让多人宿舍变得可靠。',
+                'housingDescription_聚合物生活舱': '化工产业让轻量化居住舱变成现实，维护成本更低，扩张速度也更快。',
+                'housingDescription_自动化居住穹顶': '自动门、能源循环和基础维生系统把住房升级成了半自动化穹顶。',
+                'housingDescription_仿生共生巢': '当生物技术介入住房设计，建筑开始像组织一样自我调节并容纳混合居民。',
+                'housingDescription_量子静域居所': '量子计算接管环境调谐后，整片住宅区可以按居民状态实时优化。',
+                'housingDescription_星轨方舟': '终局住房不再只是容纳人口，而是让整个群落像航行中的殖民方舟一样持续演化。',
                 
                 // Building/Upgrade labels
                 'cost': '花费',
@@ -920,6 +960,26 @@ class I18n {
         }
 
         const key = `stageNarrative_${stageId}`;
+        const translated = this.t(key);
+        return translated === key ? fallback : translated;
+    }
+
+    getHousingName(name, fallback = '') {
+        if (!name) {
+            return fallback;
+        }
+
+        const key = `housingName_${name}`;
+        const translated = this.t(key);
+        return translated === key ? fallback || name : translated;
+    }
+
+    getHousingDescription(name, fallback = '') {
+        if (!name) {
+            return fallback;
+        }
+
+        const key = `housingDescription_${name}`;
         const translated = this.t(key);
         return translated === key ? fallback : translated;
     }
