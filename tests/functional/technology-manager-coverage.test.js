@@ -858,6 +858,11 @@ test.describe('TechnologyManager coverage', () => {
                 return acc;
             }, {});
 
+            const tab = document.createElement('div');
+            tab.id = 'tab-technology';
+            tab.className = 'active';
+            document.body.appendChild(tab);
+
             stateIndex = 1;
             manager.update();
             const firstCard = container.querySelector('.tech-card');
@@ -895,6 +900,7 @@ test.describe('TechnologyManager coverage', () => {
                 updateDetailPanel: typeof manager.updateDetailPanel === 'function',
             };
 
+            tab.remove();
             container.remove();
 
             return {
