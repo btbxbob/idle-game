@@ -250,7 +250,7 @@ class I18n {
                 'theme': 'Theme',
                 'language': 'Language',
                 'simplifiedChinese': 'Simplified Chinese',
-                'englishLanguage': 'English / English',
+                'englishLanguage': 'English',
                 'lightTheme': 'Light Theme',
                 'darkTheme': 'Dark Theme',
                 'gameVersion': 'Game Version',
@@ -408,7 +408,10 @@ class I18n {
                 'achievementDescription_first_craft': 'Produce your first processed resource in a factory',
                 'achievementDescription_craft_master_100': 'Produce 100 processed resources in factories',
                 'achievementDescription_first_unlock': 'Unlock your first achievement',
-                'achievementDescription_progress_master_5': 'Unlock 5 achievements'
+                'achievementDescription_progress_master_5': 'Unlock 5 achievements',
+                'techEffectProductionLabel': 'Production',
+                'techEffectUnlocksLabel': 'Unlocks',
+                'techEffectNewFeature': 'Unlocks a new feature'
             },
             'zh-CN': {
                 // Game title and headers
@@ -815,7 +818,10 @@ class I18n {
                 'achievementDescription_first_craft': '通过工厂产出第一个加工资源',
                 'achievementDescription_craft_master_100': '通过工厂累计产出 100 个加工资源',
                 'achievementDescription_first_unlock': '解锁第一个成就',
-                'achievementDescription_progress_master_5': '解锁 5 个成就'
+                'achievementDescription_progress_master_5': '解锁 5 个成就',
+                'techEffectProductionLabel': '产量',
+                'techEffectUnlocksLabel': '解锁',
+                'techEffectNewFeature': '解锁新功能'
             }
         };
     }

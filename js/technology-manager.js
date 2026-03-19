@@ -1025,6 +1025,9 @@ class TechnologyManager {
 
     getEffectDescription(tech) {
         const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
+        const productionLabel = t('techEffectProductionLabel') || (this.isEnglish() ? 'Production' : '产量');
+        const unlocksLabel = t('techEffectUnlocksLabel') || (this.isEnglish() ? 'Unlocks' : '解锁');
+        const newFeatureLabel = t('techEffectNewFeature') || (this.isEnglish() ? 'Unlocks a new feature' : '解锁新功能');
         
         if (!tech.effect) return this.getTechnologyDescription(tech) || (t('unknownEffect') || '未知效果');
         
@@ -1037,15 +1040,11 @@ class TechnologyManager {
         if (tech.effect.type) {
             switch (tech.effect.type) {
                 case 'ProductionBonus':
-                    return this.isEnglish()
-                        ? `+${this.formatInteger((tech.effect_value || 0) * 100)}% ${this.getResourceName(tech.effect.resource)} Production`
-                        : `+${this.formatInteger((tech.effect_value || 0) * 100)}% ${this.getResourceName(tech.effect.resource)}产量`;
+                    return `+${this.formatInteger((tech.effect_value || 0) * 100)}% ${this.getResourceName(tech.effect.resource)} ${productionLabel}`;
                 case 'UnlockBuilding':
-                    return this.isEnglish()
-                        ? `🏗️ Unlocks: ${this.getBuildingTypeLabel(tech.effect.building_type)}`
-                        : `🏗️ 解锁：${this.getBuildingTypeLabel(tech.effect.building_type)}`;
+                    return `🏗️ ${unlocksLabel}: ${this.getBuildingTypeLabel(tech.effect.building_type)}`;
                 case 'UnlockUI':
-                    return this.isEnglish() ? '🔓 Unlocks a new feature' : '🔓 解锁新功能';
+                    return `🔓 ${newFeatureLabel}`;
                 case 'MechanicChange':
                     return this.getTechnologyDescription({ ...tech, description: tech.effect.description || tech.description || '' })
                         || (this.isEnglish() ? 'Gameplay mechanics updated' : '游戏机制改变');
@@ -1059,19 +1058,15 @@ class TechnologyManager {
                 if (Array.isArray(effectData) && effectData.length >= 2) {
                     const resource = effectData[0];
                     const value = effectData[1];
-                    return this.isEnglish()
-                        ? `+${this.formatInteger(value * 100)}% ${this.getResourceName(resource)} Production`
-                        : `+${this.formatInteger(value * 100)}% ${this.getResourceName(resource)}产量`;
+                    return `+${this.formatInteger(value * 100)}% ${this.getResourceName(resource)} ${productionLabel}`;
                 }
-                return this.isEnglish()
-                    ? `+${this.formatInteger(tech.effect_value * 100)}% Production`
-                    : `+${this.formatInteger(tech.effect_value * 100)}% 产量`;
+                return `+${this.formatInteger(tech.effect_value * 100)}% ${productionLabel}`;
             
             case 'UnlockBuilding':
                 return `🏗️ ${this.getUnlockBuildingText(tech.id, effectData)}`;
             
             case 'UnlockUI':
-                return this.isEnglish() ? '🔓 Unlocks a new feature' : '🔓 解锁新功能';
+                return `🔓 ${newFeatureLabel}`;
             
             case 'MechanicChange':
                 if (typeof effectData === 'string') {
