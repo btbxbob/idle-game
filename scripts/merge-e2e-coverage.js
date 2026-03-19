@@ -38,7 +38,7 @@ if (!files.length) {
 const mcr = MCR({
   name: 'Playwright E2E Coverage (Merged)',
   outputDir: outDir,
-  reports: ['v8', 'json-summary', 'console-summary', 'lcovonly'],
+  reports: ['json-summary', 'console-summary', 'lcovonly'],
   entryFilter: {
     '**/node_modules/**': false,
     '**/*': true

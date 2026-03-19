@@ -1,5 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
-const { unlockAdvancedIndustry, unlockIndustrialBase, unlockWorkersStage } = require('../fixtures/stage-helpers');
+const { performGameClicks, unlockAdvancedIndustry, unlockIndustrialBase, unlockWorkersStage } = require('../fixtures/stage-helpers');
 
 test.describe('Resource Production Complete', () => {
     test.beforeEach(async ({ page }) => {
@@ -73,7 +73,7 @@ test.describe('Resource Production Complete', () => {
 
         // Navigate to buildings tab
         await page.click('[data-tab="buildings"]');
-        await page.waitForTimeout(500);
+        await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
 
         // Check that building buttons exist
         const buyButtons = page.locator('.building-buy-btn, [id^="buy-building-"]');
@@ -121,14 +121,11 @@ test.describe('Resource Production Complete', () => {
         console.log(`Initial production - Coins/sec: ${initialCoinsPerSec}, Wood/sec: ${initialWoodPerSec}, Stone/sec: ${initialStonePerSec}`);
 
         // Click to earn coins for building purchase
-        for (let i = 0; i < 50; i++) {
-            await page.click('#coin-button');
-        }
-        await page.waitForTimeout(500);
+        await performGameClicks(page, 50);
 
         // Navigate to buildings tab
         await page.click('[data-tab="buildings"]');
-        await page.waitForTimeout(500);
+        await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
 
         // Find and buy the first available building
         const buyButtons = page.locator('.building-buy-btn, [id^="buy-building-"]');
@@ -141,7 +138,7 @@ test.describe('Resource Production Complete', () => {
             // Try to buy a building
             const firstButton = buyButtons.first();
             await firstButton.click();
-            await page.waitForTimeout(500);
+            await page.waitForFunction((before) => window.rustGame.get_coins_per_second() >= before, midCoinsPerSec, { timeout: 3000 });
 
             // Get production after purchase
             const afterCoinsPerSec = await page.evaluate(() => window.rustGame.get_coins_per_second());
@@ -164,9 +161,7 @@ test.describe('Resource Production Complete', () => {
             coinsPerClick: window.rustGame.get_coins_per_click(),
         }));
 
-        for (let i = 0; i < 30; i++) {
-            await page.click('#coin-button');
-        }
+        await performGameClicks(page, 30);
 
         await page.waitForFunction((before) => window.rustGame.get_coins() > before, initialState.coins, { timeout: 3000 });
 
@@ -174,7 +169,7 @@ test.describe('Resource Production Complete', () => {
         expect(afterClicks).toBeGreaterThan(initialState.coins);
 
         await page.click('button[data-tab="buildings"]');
-        await page.waitForTimeout(150);
+        await expect(page.locator('#tab-buildings')).toHaveClass(/active/);
 
         const beforePurchase = await page.evaluate(() => ({
             coins: window.rustGame.get_coins(),

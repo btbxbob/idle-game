@@ -6,12 +6,21 @@ const runAllBrowsers = isCI || process.env.PW_ALL_BROWSERS === '1';
 const testPort = Number(process.env.PW_TEST_PORT || '8080');
 const testBaseUrl = `http://localhost:${testPort}`;
 const configuredWorkersRaw = process.env.PW_TEST_WORKERS;
+const configuredRetriesRaw = process.env.PW_TEST_RETRIES;
 
 let configuredWorkers;
 if (configuredWorkersRaw !== undefined && configuredWorkersRaw !== '') {
   configuredWorkers = Number.parseInt(configuredWorkersRaw, 10);
   if (!Number.isInteger(configuredWorkers) || configuredWorkers < 1) {
     throw new Error(`PW_TEST_WORKERS must be a positive integer, got: ${configuredWorkersRaw}`);
+  }
+}
+
+let configuredRetries;
+if (configuredRetriesRaw !== undefined && configuredRetriesRaw !== '') {
+  configuredRetries = Number.parseInt(configuredRetriesRaw, 10);
+  if (!Number.isInteger(configuredRetries) || configuredRetries < 0) {
+    throw new Error(`PW_TEST_RETRIES must be a non-negative integer, got: ${configuredRetriesRaw}`);
   }
 }
 
@@ -26,9 +35,9 @@ module.exports = defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: isCI ? 2 : 0,
+  retries: configuredRetries ?? (isCI ? 1 : 0),
   workers: configuredWorkers ?? (isCI ? 2 : undefined),
-  reporter: process.env.CI ? 'html' : 'line',
+  reporter: 'line',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */

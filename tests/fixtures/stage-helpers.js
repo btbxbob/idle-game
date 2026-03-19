@@ -67,6 +67,30 @@ async function unlockWorkersStage(page) {
   return result;
 }
 
+async function performGameClicks(page, count) {
+  const result = await page.evaluate((clickCount) => {
+    if (!window.rustGame || typeof window.rustGame.click_action !== 'function') {
+      return { ok: false, reason: 'missing click_action' };
+    }
+
+    for (let i = 0; i < clickCount; i += 1) {
+      window.rustGame.click_action();
+    }
+
+    if (typeof window.rustGame.update_ui === 'function') {
+      window.rustGame.update_ui();
+    }
+
+    return { ok: true };
+  }, count);
+
+  if (!result.ok) {
+    throw new Error(`Failed to perform game clicks: ${JSON.stringify(result)}`);
+  }
+
+  return result;
+}
+
 async function unlockMaggotStage(page) {
   await unlockWorkersStage(page);
 
@@ -352,6 +376,7 @@ async function unlockAdvancedIndustry(page) {
 }
 
 module.exports = {
+  performGameClicks,
   importStageSnapshot,
   unlockWorkersStage,
   unlockMaggotStage,

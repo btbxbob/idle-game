@@ -4,12 +4,26 @@ const path = require('path');
 const base = require('@playwright/test');
 
 const RAW_DIR = path.join(__dirname, '..', '..', 'coverage-report', 'raw');
+const shouldCollectCoverage = process.env.RUN_COVERAGE === 'true';
 
 const safeName = (value) => value.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 180);
 
+const normalizeUrl = (value) => String(value || '').replace(/\\/g, '/');
+
+const shouldKeepCoverageEntry = (entry) => {
+  const url = normalizeUrl(entry?.url);
+  if (!url) {
+    return false;
+  }
+
+  return url.includes('/js/')
+    || /\/pkg\/idle_game(\.v[^/]+)?\.js$/i.test(url)
+    || /\/pkg\/idle_game\.js$/i.test(url);
+};
+
 const test = base.test.extend({
   page: async ({ page }, use, testInfo) => {
-    if (testInfo.project.name !== 'chromium') {
+    if (testInfo.project.name !== 'chromium' || !shouldCollectCoverage) {
       await use(page);
       return;
     }
@@ -24,6 +38,10 @@ const test = base.test.extend({
       } catch (_err) {
         jsCoverage = [];
       }
+
+      jsCoverage = Array.isArray(jsCoverage)
+        ? jsCoverage.filter(shouldKeepCoverageEntry)
+        : [];
 
       fs.mkdirSync(RAW_DIR, { recursive: true });
       const fileName = safeName(`${testInfo.project.name}-${testInfo.workerIndex}-${testInfo.repeatEachIndex}-${testInfo.retry}-${testInfo.titlePath.join('__')}.json`);

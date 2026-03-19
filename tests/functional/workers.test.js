@@ -8,7 +8,7 @@ test.describe('Workers System', () => {
         await unlockWorkersStage(page);
         
         await page.click('[data-tab="workers"]');
-        await page.waitForTimeout(500);
+        await expect(page.locator('#tab-workers')).toHaveClass(/active/);
     });
 
     test('workers panel displays correctly', async ({ page }) => {

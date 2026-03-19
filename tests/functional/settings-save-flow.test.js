@@ -1,4 +1,5 @@
 const { test, expect } = require('../fixtures/coverage');
+const { performGameClicks } = require('../fixtures/stage-helpers');
 
 async function openSettings(page) {
   await page.click('button[data-tab="settings"]');
@@ -45,9 +46,7 @@ test.describe('Settings save flow', () => {
     expect(optionLabels.theme).toEqual(['Light Theme', 'Dark Theme']);
     expect(optionLabels.language).toEqual(['Simplified Chinese', 'English']);
 
-    for (let i = 0; i < 8; i += 1) {
-      await page.click('#coin-button');
-    }
+    await performGameClicks(page, 8);
 
     const savedCoins = await getCoins(page);
     expect(savedCoins).toBeGreaterThan(0);
@@ -105,9 +104,7 @@ test.describe('Settings save flow', () => {
       });
     });
 
-    for (let i = 0; i < 6; i += 1) {
-      await page.click('#coin-button');
-    }
+    await performGameClicks(page, 6);
 
     const exportedCoins = await getCoins(page);
     expect(exportedCoins).toBeGreaterThan(0);
@@ -122,9 +119,7 @@ test.describe('Settings save flow', () => {
     const exportAlert = await page.evaluate(() => window.__testAlerts.at(-1));
     expect(exportAlert).toContain('导出成功');
 
-    for (let i = 0; i < 9; i += 1) {
-      await page.click('#coin-button');
-    }
+    await performGameClicks(page, 9);
 
     const changedCoins = await getCoins(page);
     expect(changedCoins).toBeGreaterThan(exportedCoins);
@@ -143,9 +138,7 @@ test.describe('Settings save flow', () => {
     await openSettings(page);
 
     await page.locator('#theme-select-setting').selectOption('dark');
-    for (let i = 0; i < 7; i += 1) {
-      await page.click('#coin-button');
-    }
+    await performGameClicks(page, 7);
     await page.click('#manual-save');
 
     const coinsBeforeReset = await getCoins(page);
@@ -226,9 +219,7 @@ test.describe('Settings save flow', () => {
   test('invalid BASE64 import shows failure alert without overwriting progress', async ({ page }) => {
     await openSettings(page);
 
-    for (let i = 0; i < 5; i += 1) {
-      await page.click('#coin-button');
-    }
+    await performGameClicks(page, 5);
 
     const coinsBeforeImport = await getCoins(page);
     expect(coinsBeforeImport).toBeGreaterThan(0);

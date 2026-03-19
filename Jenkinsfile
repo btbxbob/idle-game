@@ -24,6 +24,7 @@ pipeline {
     PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
     PLAYWRIGHT_PULL_TIMEOUT_SECONDS = '30'
     PW_TEST_WORKERS = '2'
+    PW_TEST_RETRIES = '1'
     E2E_COVERAGE_MIN_LINES = '20'
     E2E_COVERAGE_MIN_STATEMENTS = '20'
     E2E_COVERAGE_MIN_FUNCTIONS = '15'
@@ -192,6 +193,7 @@ EOF
                       -e RUN_COVERAGE=${RUN_COVERAGE} \
                       -e PW_TEST_PORT=8080 \
                       -e PW_TEST_WORKERS=${s.workers} \
+                      -e PW_TEST_RETRIES=${PW_TEST_RETRIES} \
                       -e E2E_COVERAGE_MIN_LINES=${E2E_COVERAGE_MIN_LINES} \
                       -e E2E_COVERAGE_MIN_STATEMENTS=${E2E_COVERAGE_MIN_STATEMENTS} \
                       -e E2E_COVERAGE_MIN_FUNCTIONS=${E2E_COVERAGE_MIN_FUNCTIONS} \
@@ -210,11 +212,11 @@ EOF
                         set +e
                         if [ "${RUN_COVERAGE}" = "true" ]; then
                           PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit-${s.name}.xml \
-                          ./node_modules/.bin/playwright test ${s.testDir} --project=chromium --grep "${s.grep}" --reporter=line,junit,html
+                          ./node_modules/.bin/playwright test ${s.testDir} --project=chromium --grep "${s.grep}" --reporter=line,junit
                           PW_EXIT=\$?
                         else
                           PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit-${s.name}.xml \
-                          ./node_modules/.bin/playwright test ${s.testDir} --project=chromium --grep "${s.grep}" --reporter=line,junit,html
+                          ./node_modules/.bin/playwright test ${s.testDir} --project=chromium --grep "${s.grep}" --reporter=line,junit
                           PW_EXIT=\$?
                         fi
                         set -e
@@ -268,6 +270,7 @@ EOF
                 -e RUN_COVERAGE=${RUN_COVERAGE} \
                 -e PW_TEST_PORT=8080 \
                 -e PW_TEST_WORKERS=${PW_TEST_WORKERS} \
+                -e PW_TEST_RETRIES=${PW_TEST_RETRIES} \
                 -e E2E_COVERAGE_MIN_LINES=${E2E_COVERAGE_MIN_LINES} \
                 -e E2E_COVERAGE_MIN_STATEMENTS=${E2E_COVERAGE_MIN_STATEMENTS} \
                 -e E2E_COVERAGE_MIN_FUNCTIONS=${E2E_COVERAGE_MIN_FUNCTIONS} \
@@ -281,14 +284,14 @@ EOF
                     rm -rf coverage-report/raw coverage-report/e2e-merged
                     set +e
                     PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit.xml \
-                    ./node_modules/.bin/playwright test ${testDirs} --project=chromium --reporter=line,junit,html
+                    ./node_modules/.bin/playwright test ${testDirs} --project=chromium --reporter=line,junit
                     PW_EXIT=\$?
                     set -e
                     node scripts/merge-e2e-coverage.js
                     exit \$PW_EXIT
                   else
                     PLAYWRIGHT_JUNIT_OUTPUT_NAME=test-results/playwright-junit.xml \
-                    ./node_modules/.bin/playwright test ${testDirs} --project=chromium --reporter=line,junit,html
+                    ./node_modules/.bin/playwright test ${testDirs} --project=chromium --reporter=line,junit
                   fi
                 '
             """
