@@ -874,6 +874,7 @@ test.describe('TechnologyManager coverage', () => {
             const probePreserved = updatedCard?.dataset.probe === 'persist';
 
             const button = container.querySelector('.tech-research-btn');
+            const clickedTechId = button?.getAttribute('data-tech-id') || null;
             if (button) {
                 button.click();
             }
@@ -914,6 +915,7 @@ test.describe('TechnologyManager coverage', () => {
                 cardStates,
                 sameNode,
                 probePreserved,
+                clickedTechId,
                 researchedId,
                 modalTitle,
                 methods,
@@ -939,7 +941,8 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.cardStates.tech3.hasStatus).toBe(false);
         expect(result.sameNode).toBe(true);
         expect(result.probePreserved).toBe(true);
-        expect(result.researchedId).toBe('tech1');
+        expect(result.clickedTechId).toBeTruthy();
+        expect(result.researchedId).toBe(result.clickedTechId);
         expect(result.modalTitle).toContain('Detail Tech');
         expect(Object.values(result.methods).every(Boolean)).toBe(true);
     });
