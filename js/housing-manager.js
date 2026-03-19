@@ -524,8 +524,10 @@ class HousingManager {
         const housing = this.getHousing();
         let purchased = 0;
         let progressed = true;
+        let safetyCounter = 0;
+        const maxAttempts = Math.max(25, housing.length * 25);
 
-        while (progressed) {
+        while (progressed && safetyCounter < maxAttempts) {
             progressed = false;
 
             for (let index = 0; index < housing.length; index += 1) {
@@ -534,6 +536,10 @@ class HousingManager {
                     if (success) {
                         purchased += 1;
                         progressed = true;
+                        safetyCounter += 1;
+                        if (safetyCounter >= maxAttempts) {
+                            break;
+                        }
                     }
                 } catch (error) {
                     const message = error instanceof Error ? error.message : String(error || '');

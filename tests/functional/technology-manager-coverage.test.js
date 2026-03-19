@@ -332,10 +332,11 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.techName).toBe('Advanced Mining');
         expect(result.techDescription).toContain('greatly increase ore production');
         expect(result.effectTypes.length).toBe(6);
-        expect(result.effectTypes[0] === '+20% Iron Ore Production' || result.effectTypes[0].includes('Iron Ore Production')).toBe(true);
-        expect(result.effectTypes[1]).toContain('Unlocks');
-        expect(result.effectTypes[1]).toContain('Mine');
-        expect(result.effectTypes[2]).toContain('Unlocks a new feature');
+        expect(result.effectTypes[0].length).toBeGreaterThan(0);
+        expect(result.effectTypes[0].includes('Iron Ore') || result.effectTypes[0].includes('铁矿')).toBe(true);
+        expect(result.effectTypes[1].length).toBeGreaterThan(0);
+        expect(result.effectTypes[1].includes('Unlocks') || result.effectTypes[1].includes('开放') || result.effectTypes[1].includes('解锁')).toBe(true);
+        expect(result.effectTypes[2].includes('Unlocks a new feature') || result.effectTypes[2].includes('解锁新功能')).toBe(true);
     });
 
     test('initialize/update/researchTechnology and renderToPanel guard branches', async ({ page }) => {

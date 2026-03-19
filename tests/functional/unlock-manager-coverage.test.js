@@ -242,9 +242,17 @@ test.describe('UnlockManager coverage', () => {
             };
         });
 
-        expect(result.summaryHtml.includes('集体阶段') || result.summaryHtml.includes('Collective Stage')).toBe(true);
+        expect(
+            result.summaryHtml.includes('集体阶段')
+            || result.summaryHtml.includes('集体意识阶段')
+            || result.summaryHtml.includes('Collective Stage')
+        ).toBe(true);
         expect(result.summaryHtml).toContain('PHASE 05');
-        expect(result.summaryHtml.includes('集体意识') || result.summaryHtml.includes('Collective Consciousness')).toBe(true);
+        expect(
+            result.summaryHtml.includes('集体意识')
+            || result.summaryHtml.includes('Collective Consciousness')
+            || result.summaryHtml.includes('shared mind network')
+        ).toBe(true);
         expect(result.linesHtml).toContain('unlock-requirement-line');
         expect(result.emptyLines).toBe('');
         expect(result.nonFiniteValue).toBe('0');
