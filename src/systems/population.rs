@@ -96,8 +96,8 @@ pub fn check_worker_starvation(
 
 #[cfg(test)]
 mod tests {
-    use crate::entities::worker::{Gender, Hobby, Trait};
     use super::*;
+    use crate::entities::worker::{Gender, Hobby, Trait};
 
     fn create_test_worker() -> Worker {
         Worker {
@@ -116,11 +116,15 @@ mod tests {
             secondary_traits: vec![],
             happiness: 50.0,
             hunger: 0.0,
+            focus: 55.0,
+            fatigue: 10.0,
+            stress: 15.0,
+            missing_limbs: vec![],
+            maggot_limbs: vec![],
             is_hungry: false,
             starvation_start_time: 0.0,
         }
     }
-
 
     #[test]
     fn test_no_food_consumption_before_interval() {
