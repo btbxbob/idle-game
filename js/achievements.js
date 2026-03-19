@@ -22,7 +22,8 @@ class AchievementManager {
     getAchievementName(achievement) {
         const fallback = achievement?.name || achievement?.id || '';
         if (window.i18n && typeof window.i18n.getAchievementName === 'function') {
-            return window.i18n.getAchievementName(achievement?.id, fallback);
+            const translated = window.i18n.getAchievementName(achievement?.id, fallback);
+            return translated || fallback;
         }
         return fallback;
     }
@@ -30,7 +31,8 @@ class AchievementManager {
     getAchievementDescription(achievement) {
         const fallback = achievement?.description || '';
         if (window.i18n && typeof window.i18n.getAchievementDescription === 'function') {
-            return window.i18n.getAchievementDescription(achievement?.id, fallback);
+            const translated = window.i18n.getAchievementDescription(achievement?.id, fallback);
+            return translated || fallback;
         }
         return fallback;
     }

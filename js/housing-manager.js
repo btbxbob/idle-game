@@ -245,7 +245,8 @@ class HousingManager {
     getHousingName(housing) {
         const fallback = housing?.name || '';
         if (window.i18n && typeof window.i18n.getHousingName === 'function') {
-            return window.i18n.getHousingName(housing?.name, fallback);
+            const translated = window.i18n.getHousingName(housing?.name, fallback);
+            return translated || fallback;
         }
         return fallback;
     }
@@ -253,7 +254,8 @@ class HousingManager {
     getHousingDescription(housing) {
         const fallback = housing?.description || '';
         if (window.i18n && typeof window.i18n.getHousingDescription === 'function') {
-            return window.i18n.getHousingDescription(housing?.name, fallback);
+            const translated = window.i18n.getHousingDescription(housing?.name, fallback);
+            return translated || fallback;
         }
         return fallback;
     }

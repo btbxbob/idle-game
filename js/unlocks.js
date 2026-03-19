@@ -291,13 +291,14 @@ class UnlockManager {
         }
 
         const translated = window.i18n.t(key, params);
-        return translated === key ? fallback : translated;
+        return translated === key || translated === '' || translated == null ? fallback : translated;
     }
 
     getUnlockName(unlock) {
         const fallback = unlock?.name || unlock?.id || '';
         if (window.i18n && typeof window.i18n.getUnlockName === 'function') {
-            return window.i18n.getUnlockName(unlock?.id, fallback);
+            const translated = window.i18n.getUnlockName(unlock?.id, fallback);
+            return translated || fallback;
         }
         return fallback;
     }
@@ -305,7 +306,8 @@ class UnlockManager {
     getLocalizedStageName(stage) {
         const fallback = stage?.current_stage_name || stage?.current_stage_id || '';
         if (window.i18n && typeof window.i18n.getStageName === 'function') {
-            return window.i18n.getStageName(stage?.current_stage_id, fallback);
+            const translated = window.i18n.getStageName(stage?.current_stage_id, fallback);
+            return translated || fallback;
         }
         return fallback;
     }
@@ -313,7 +315,8 @@ class UnlockManager {
     getLocalizedStageDescription(stage) {
         const fallback = stage?.current_stage_description || '';
         if (window.i18n && typeof window.i18n.getStageDescription === 'function') {
-            return window.i18n.getStageDescription(stage?.current_stage_id, fallback);
+            const translated = window.i18n.getStageDescription(stage?.current_stage_id, fallback);
+            return translated || fallback;
         }
         return fallback;
     }
@@ -617,7 +620,9 @@ class UnlockManager {
         };
 
         if (window.i18n && typeof window.i18n.getUnlockDescription === 'function') {
-            return window.i18n.getUnlockDescription(featureId, fallbackDescriptions[featureId] || this.t('unlockDescription_default', '新的阶段边界正在显现。'));
+            const fallback = fallbackDescriptions[featureId] || this.t('unlockDescription_default', '新的阶段边界正在显现。');
+            const translated = window.i18n.getUnlockDescription(featureId, fallback);
+            return translated || fallback;
         }
 
         return fallbackDescriptions[featureId] || '新的阶段边界正在显现。';
