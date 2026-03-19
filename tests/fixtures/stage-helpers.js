@@ -294,6 +294,63 @@ async function unlockIndustrialBase(page) {
   });
 }
 
+async function unlockAdvancedIndustry(page) {
+  await unlockCollectiveStage(page);
+
+  return importStageSnapshot(page, {
+    stage: 'Collective',
+    resources: {
+      Gold: 500000,
+      Wood: 5000,
+      Stone: 5000,
+      Coal: 5000,
+      Oil: 3000,
+      Crystal: 3000,
+      IronOre: 5000,
+      CopperOre: 5000,
+      IronIngot: 3000,
+      CopperIngot: 3000,
+      SteelPlate: 3000,
+      Chemicals: 3000,
+      CircuitBoard: 3000,
+      Microchip: 3000,
+      Generator: 800,
+      QuantumComputer: 600,
+      Antimatter: 300,
+      Maggot: 500,
+      Food: 500,
+      Battery: 800,
+      Robot: 500,
+      Nanobot: 500,
+      TimeCrystal: 500,
+      Spaceship: 100,
+      DarkMatter: 100,
+    },
+    technologies: [
+      'BasicMining',
+      'BasicLogging',
+      'BasicQuarrying',
+      'BasicSmelting',
+      'BasicRefining',
+      'BasicChemistry',
+      'BasicEngineering',
+      'Electronics',
+      'AdvancedElectronics',
+      'ComputerTechnology',
+      'Robotics',
+      'Nanotechnology',
+      'RenewableEnergy',
+      'QuantumComputing',
+      'FusionEnergy',
+      'AntimatterEnergy',
+      'TimeManipulation',
+      'CollectiveAwakening',
+      'ConsciousnessUpload',
+      'SpaceExploration',
+    ],
+  });
+}
+
 module.exports = {
   importStageSnapshot,
   unlockWorkersStage,
@@ -302,4 +359,5 @@ module.exports = {
   unlockCollectiveStage,
   seedResourcesAndResearch,
   unlockIndustrialBase,
+  unlockAdvancedIndustry,
 };

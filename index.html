@@ -37,32 +37,33 @@
             <div id="resources"></div>
         </div>
 
-        <!-- Tab Navigation -->
-        <div id="tab-navigation">
-            <button type="button" class="tab-button active" data-tab="resources">资源</button>
-            <button type="button" class="tab-button" data-tab="buildings">建筑</button>
-            <button type="button" class="tab-button" data-tab="workers">工人</button>
-            <button type="button" class="tab-button" data-tab="technology">科技</button>
-            <button type="button" class="tab-button" data-tab="work">工作总览</button>
-            <button type="button" class="tab-button" data-tab="housing">住房</button>
-            <button type="button" class="tab-button" data-tab="lifecycle">生命周期</button>
-            <button type="button" class="tab-button" data-tab="statistics">统计</button>
-            <button type="button" class="tab-button" data-tab="achievements">成就</button>
-            <button type="button" class="tab-button" data-tab="unlocks">解锁</button>
-            <button type="button" class="tab-button" data-tab="settings">设置</button>
-        </div>
-        
         <!-- Main Content Area with Tabs -->
         <div id="main-shell">
-            <main id="main-content">
+            <div id="main-column">
+                <div id="tab-navigation">
+                    <button type="button" class="tab-button active" data-tab="resources">资源</button>
+                    <button type="button" class="tab-button" data-tab="buildings">建筑</button>
+                    <button type="button" class="tab-button" data-tab="workers">工人</button>
+                    <button type="button" class="tab-button" data-tab="technology">科技</button>
+                    <button type="button" class="tab-button" data-tab="work">工作总览</button>
+                    <button type="button" class="tab-button" data-tab="housing">住房</button>
+                    <button type="button" class="tab-button" data-tab="lifecycle">生命周期</button>
+                    <button type="button" class="tab-button" data-tab="statistics">统计</button>
+                    <button type="button" class="tab-button" data-tab="achievements">成就</button>
+                    <button type="button" class="tab-button" data-tab="unlocks">解锁</button>
+                    <button type="button" class="tab-button" data-tab="settings">设置</button>
+                </div>
+                <main id="main-content">
             <!-- Resources Tab -->
             <div id="tab-resources" class="tab-content active">
                 <div id="resources-panel">
                     <!-- Resource Category Tabs -->
                     <div id="resource-category-tabs">
-                        <button type="button" class="category-tab-button active" data-category="primary">初级资源</button>
-                        <button type="button" class="category-tab-button" data-category="secondary">次级资源</button>
-                        <button type="button" class="category-tab-button" data-category="advanced">高级资源</button>
+                        <button type="button" class="category-tab-button active" data-tier="ALL">全部资源</button>
+                        <button type="button" class="category-tab-button" data-tier="TIER1_BASIC">基础资源</button>
+                        <button type="button" class="category-tab-button" data-tier="TIER2_PROCESSED">加工材料</button>
+                        <button type="button" class="category-tab-button" data-tier="TIER3_ADVANCED">高科技</button>
+                        <button type="button" class="category-tab-button" data-tier="SPECIAL">特殊</button>
                     </div>
                     
                     <!-- Primary Resources (10 items) -->
@@ -84,7 +85,7 @@
                                 <span class="resource-amount">0</span>
                             </div>
                             <div class="resource-item" data-resource="ironOre">
-                                <span class="resource-icon">ite</span>
+                                <span class="resource-icon">⛏️</span>
                                 <span class="resource-name"></span>
                                 <span class="resource-amount">0</span>
                             </div>
@@ -124,7 +125,7 @@
                     <!-- Secondary Resources (40 items) -->
                     <div id="secondary-resources" class="resource-panel" style="display:none">
                         <div class="resource-grid">
-                            <div class="resource-item" data-resource="ironIngot"><span class="resource-icon">ite</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="ironIngot"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="copperIngot"><span class="resource-icon">🔶</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="aluminumIngot"><span class="resource-icon">⚪</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="steelPlate"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
@@ -179,6 +180,13 @@
                             <div class="resource-item" data-resource="darkMatter"><span class="resource-icon">🌌</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="timeCrystal"><span class="resource-icon">💎</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="nanobot"><span class="resource-icon">🦠</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                        </div>
+                    </div>
+
+                    <div id="special-resources" class="resource-panel" style="display:none">
+                        <div class="resource-grid">
+                            <div class="resource-item" data-resource="corpse"><span class="resource-icon">🦴</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
+                            <div class="resource-item" data-resource="maggot"><span class="resource-icon">🪱</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                         </div>
                     </div>
                 </div>
@@ -246,28 +254,28 @@
                 <div id="settings">
                     <div id="settings-content">
                         <div class="setting-item">
-                            <label for="theme-select-setting">主题 / Theme:</label>
+                            <label for="theme-select-setting">主题 / Theme</label>
                             <select id="theme-select-setting">
-                                <option value="light">浅色 (Light)</option>
-                                <option value="dark">深色 (Dark)</option>
+                                <option value="light">亮色主题</option>
+                                <option value="dark">暗色主题</option>
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label for="language-select-setting">语言 / Language:</label>
+                            <label for="language-select-setting">语言 / Language</label>
                             <select id="language-select-setting">
                                 <option value="zh-CN">简体中文</option>
-                                <option value="en">English</option>
+                                <option value="en">英语 / English</option>
                             </select>
                         </div>
                         <div class="setting-item">
-                        <label>游戏版本：v0.7.0</label>
+                        <label id="game-version-label">游戏版本：v0.7.0</label>
                         </div>
                         <div class="setting-item">
                             <button type="button" id="reset-game">重置游戏</button>
                         </div>
                         <hr style="margin: 20px 0; border: 1px solid #ccc;">
                         <div class="setting-item">
-                            <h4 style="margin: 10px 0;">保存/加载 Save</h4>
+                            <h4 id="save-load-title" style="margin: 10px 0;">保存/加载游戏</h4>
                         </div>
                         <div class="setting-item">
                             <button type="button" id="manual-save">手动保存</button>
@@ -285,7 +293,8 @@
                     </div>
                 </div>
             </div>
-            </main>
+                </main>
+            </div>
             <aside id="objective-sidebar">
                 <div id="objective-panel-anchor"></div>
             </aside>
@@ -409,7 +418,13 @@
             
             // Language selector in header
             const languageSelect = document.getElementById('language-select');
+            const initialLanguage = localStorage.getItem('gameLanguage') || 'zh-CN';
+            if (window.i18n) {
+                window.i18n.setLanguage(initialLanguage);
+                document.documentElement.lang = initialLanguage;
+            }
             if (languageSelect) {
+                languageSelect.value = initialLanguage;
                 languageSelect.addEventListener('change', function() {
                     const selectedLanguage = this.value;
                     if (window.i18n) {
@@ -424,13 +439,17 @@
             // Language selector in settings
             const languageSelectSetting = document.getElementById('language-select-setting');
             if (languageSelectSetting) {
+                languageSelectSetting.value = initialLanguage;
                 languageSelectSetting.addEventListener('change', function() {
                     const selectedLanguage = this.value;
                     if (window.i18n) {
                         window.i18n.setLanguage(selectedLanguage);
                         window.i18n.updateAllTranslations();
                         // Update both language selectors
-                        document.getElementById('language-select').value = selectedLanguage;
+                        const headerLanguageSelect = document.getElementById('language-select');
+                        if (headerLanguageSelect) {
+                            headerLanguageSelect.value = selectedLanguage;
+                        }
                         document.documentElement.lang = selectedLanguage;
                     }
                 });
@@ -440,10 +459,11 @@
             const resetButton = document.getElementById('reset-game');
             if (resetButton) {
                 resetButton.addEventListener('click', function() {
-                    if (confirm('确定要重置游戏吗？所有进度将丢失！')) {
+                    if (confirm(window.i18n ? window.i18n.t('resetGameConfirm') : '确定要重置游戏吗？所有进度将丢失！')) {
                         // Clear localStorage to reset game progress
                         localStorage.removeItem('idle_game_save');
                         localStorage.removeItem('gameTheme');
+                        localStorage.removeItem('gameLanguage');
                         // Reload the page to start fresh
                         location.reload();
                     }
@@ -458,6 +478,9 @@
                         const versionEl = document.getElementById('version-number');
                         if (versionEl) {
                             versionEl.textContent = 'v' + version;
+                        }
+                        if (window.i18n && typeof window.i18n.updateSettingsVersionLabel === 'function') {
+                            window.i18n.updateSettingsVersionLabel();
                         }
                         return true;
                     } catch (e) {

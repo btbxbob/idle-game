@@ -26,6 +26,52 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.normalText).toContain('Normal');
     });
 
+    test('english language mode localizes technology cards and effects', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            if (!window.technologyManager || !window.i18n) {
+                return { ok: false, reason: 'missing technology manager or i18n' };
+            }
+
+            window.i18n.setLanguage('en');
+            const manager = window.technologyManager;
+            manager.technologies = [{
+                id: 'AdvancedMining',
+                name: '高级采矿',
+                description: '高级采矿技术，大幅提升矿产产量',
+                tier: 1,
+                costs: { Gold: 10 },
+                dependencies: [],
+                purchased: false,
+                researched: false,
+                can_research: true,
+                effect_value: 0.2,
+                effect: { type: 'ProductionBonus', resource: 'IronOre' },
+            }];
+            manager.renderToPanel('technology-panel');
+
+            const card = document.querySelector('.tech-card');
+            const detailName = manager.getTechnologyName(manager.technologies[0]);
+            const detailDescription = manager.getTechnologyDescription(manager.technologies[0]);
+            return {
+                ok: true,
+                language: window.i18n.getCurrentLanguage(),
+                cardCount: document.querySelectorAll('.tech-card').length,
+                firstCardText: (card?.textContent || '').replace(/\s+/g, ' ').trim(),
+                detailName,
+                detailDescription,
+            };
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.language).toBe('en');
+        expect(result.cardCount).toBeGreaterThan(0);
+        expect(result.firstCardText).toContain('Advanced Mining');
+        expect(result.firstCardText).toContain('Iron Ore Production');
+        expect(result.firstCardText).not.toMatch(/[\u4e00-\u9fff]{2,}/);
+        expect(result.detailName).toBe('Advanced Mining');
+        expect(result.detailDescription).toContain('greatly increase ore production');
+    });
+
     test('canResearch branches', async ({ page }) => {
         const result = await page.evaluate(() => {
             if (!window.technologyManager) {
@@ -247,9 +293,11 @@ test.describe('TechnologyManager coverage', () => {
             manager.i18n = { currentLanguage: 'en', t: (key) => key };
             const enName = manager.getResourceName('Gold');
             const fallbackName = manager.getResourceName('Mystery');
+            const techName = manager.getTechnologyName({ id: 'AdvancedMining', name: '高级采矿' });
+            const techDescription = manager.getTechnologyDescription({ id: 'AdvancedMining', description: '高级采矿技术，大幅提升矿产产量' });
 
             const effectTypes = [
-                manager.getEffectDescription({ effect: { type: 'ProductionBonus', resource: 'Gold' }, effect_value: 0.2 }),
+                manager.getEffectDescription({ effect: { type: 'ProductionBonus', resource: 'IronOre' }, effect_value: 0.2 }),
                 manager.getEffectDescription({ effect: { type: 'UnlockBuilding', building_type: 'Mine' }, effect_value: 0 }),
                 manager.getEffectDescription({ effect: { type: 'UnlockUI' }, effect_value: 0 }),
                 manager.getEffectDescription({ effect: { type: 'MechanicChange', description: 'Custom change' }, effect_value: 0 }),
@@ -268,6 +316,8 @@ test.describe('TechnologyManager coverage', () => {
                 zhName,
                 enName,
                 fallbackName,
+                techName,
+                techDescription,
                 effectTypes,
             };
         });
@@ -279,7 +329,12 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.zhName).toContain('金');
         expect(result.enName).toBe('Gold');
         expect(result.fallbackName).toBe('Mystery');
+        expect(result.techName).toBe('Advanced Mining');
+        expect(result.techDescription).toContain('greatly increase ore production');
         expect(result.effectTypes.length).toBe(6);
+        expect(result.effectTypes[0]).toContain('Iron Ore Production');
+        expect(result.effectTypes[1]).toContain('Unlocks: Mine');
+        expect(result.effectTypes[2]).toContain('Unlocks a new feature');
     });
 
     test('initialize/update/researchTechnology and renderToPanel guard branches', async ({ page }) => {

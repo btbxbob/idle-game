@@ -24,7 +24,7 @@ test.describe('Progression Objectives', () => {
     expect(recommended).toBe('BasicAgriculture');
   });
 
-  test('objective sidebar keeps current goal in a dedicated right rail with vertically stacked steps', async ({ page }) => {
+  test('objective sidebar stays on the right while tab content remains below the tab bar', async ({ page }) => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);
     await unlockWorkersStage(page);
@@ -32,30 +32,43 @@ test.describe('Progression Objectives', () => {
 
     const layout = await page.evaluate(() => {
       const shell = document.getElementById('main-shell');
+      const tabNavigation = document.getElementById('tab-navigation');
+      const mainColumn = document.getElementById('main-column');
+      const mainContent = document.getElementById('main-content');
       const sidebar = document.getElementById('objective-sidebar');
       const panel = document.querySelector('.objective-panel');
       const steps = Array.from(document.querySelectorAll('.objective-step'));
       const shellStyle = shell ? window.getComputedStyle(shell) : null;
+      const navRect = tabNavigation ? tabNavigation.getBoundingClientRect() : null;
+      const mainColumnRect = mainColumn ? mainColumn.getBoundingClientRect() : null;
+      const mainRect = mainContent ? mainContent.getBoundingClientRect() : null;
       const sidebarRect = sidebar ? sidebar.getBoundingClientRect() : null;
-      const mainRect = document.getElementById('main-content')?.getBoundingClientRect() || null;
       const tops = steps.map((step) => step.getBoundingClientRect().top);
 
       return {
         hasShell: !!shell,
+        hasTabNavigation: !!tabNavigation,
+        hasMainColumn: !!mainColumn,
         hasSidebar: !!sidebar,
         hasPanel: !!panel,
         shellDisplay: shellStyle ? shellStyle.display : null,
         sidebarHasWidth: !!sidebarRect && sidebarRect.width >= 240,
+        sidebarOnRight: !!sidebarRect && !!mainColumnRect && sidebarRect.left >= mainColumnRect.right - 2,
+        contentBelowTabs: !!mainRect && !!navRect && mainRect.top >= navRect.bottom - 2,
         stepCount: steps.length,
         verticalStack: tops.every((top, index) => index === 0 || top > tops[index - 1]),
       };
     });
 
     expect(layout.hasShell).toBe(true);
+    expect(layout.hasTabNavigation).toBe(true);
+    expect(layout.hasMainColumn).toBe(true);
     expect(layout.hasSidebar).toBe(true);
     expect(layout.hasPanel).toBe(true);
-    expect(layout.shellDisplay).toBe('flex');
+    expect(layout.shellDisplay).toBe('grid');
     expect(layout.sidebarHasWidth).toBe(true);
+    expect(layout.sidebarOnRight).toBe(true);
+    expect(layout.contentBelowTabs).toBe(true);
     expect(layout.stepCount).toBeGreaterThan(1);
     expect(layout.verticalStack).toBe(true);
   });

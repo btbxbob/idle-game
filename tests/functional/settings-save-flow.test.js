@@ -30,6 +30,20 @@ test.describe('Settings save flow', () => {
     await languageSelect.selectOption('en');
     await expect(languageSelect).toHaveValue('en');
     await expect(page.locator('#click-to-earn')).toContainText('Click to earn');
+    await expect(page.locator('label[for="theme-select-setting"]')).toHaveText('Theme / 主题');
+    await expect(page.locator('label[for="language-select-setting"]')).toHaveText('Language / 语言');
+    await expect(page.locator('#save-load-title')).toHaveText('Save/Load Game');
+    await expect(page.locator('#reset-game')).toHaveText('Reset Game');
+    await expect(page.locator('#manual-save')).toHaveText('Manual Save');
+    await expect(page.locator('#export-base64')).toHaveText('Export to BASE64');
+    await expect(page.locator('#import-base64')).toHaveText('Import from BASE64');
+    await expect(page.locator('#import-export-text')).toHaveAttribute('placeholder', 'Paste BASE64 string here...');
+    const optionLabels = await page.evaluate(() => ({
+      theme: Array.from(document.querySelectorAll('#theme-select-setting option')).map((option) => option.textContent),
+      language: Array.from(document.querySelectorAll('#language-select-setting option')).map((option) => option.textContent),
+    }));
+    expect(optionLabels.theme).toEqual(['Light Theme', 'Dark Theme']);
+    expect(optionLabels.language).toEqual(['Simplified Chinese', 'English / English']);
 
     for (let i = 0; i < 8; i += 1) {
       await page.click('#coin-button');
@@ -39,7 +53,7 @@ test.describe('Settings save flow', () => {
     expect(savedCoins).toBeGreaterThan(0);
 
     await page.click('#manual-save');
-    await expect(page.locator('#save-status')).toContainText('已保存');
+    await expect(page.locator('#save-status')).toContainText('Saved');
 
     const hasLocalSave = await page.evaluate(() => Boolean(localStorage.getItem('idle_game_save')));
     expect(hasLocalSave).toBe(true);
@@ -49,9 +63,28 @@ test.describe('Settings save flow', () => {
 
     await expect(page.locator('body')).toHaveClass(/dark-theme/);
     await expect(page.locator('#theme-select-setting')).toHaveValue('dark');
-    await expect.poll(() => page.evaluate(() => window.i18n.getCurrentLanguage())).toBe('zh-CN');
-    await expect(page.locator('#click-to-earn')).toContainText('点击赚取金币');
+    await expect(page.locator('#language-select-setting')).toHaveValue('en');
+    await expect.poll(() => page.evaluate(() => window.i18n.getCurrentLanguage())).toBe('en');
+    await expect(page.locator('#click-to-earn')).toContainText('Click to earn');
     await expect.poll(async () => getCoins(page)).toBe(savedCoins);
+  });
+
+  test('language switching updates settings copy without console errors when header selector is absent', async ({ page }) => {
+    const pageErrors = [];
+    page.on('pageerror', (error) => {
+      pageErrors.push(String(error));
+    });
+
+    await openSettings(page);
+    await page.locator('#language-select-setting').selectOption('en');
+
+    await expect(page.locator('label[for="theme-select-setting"]')).toHaveText('Theme / 主题');
+    await expect(page.locator('label[for="language-select-setting"]')).toHaveText('Language / 语言');
+    await expect(page.locator('#game-version-label')).toContainText('Game Version: v');
+    await expect(page.locator('#save-load-title')).toHaveText('Save/Load Game');
+    await expect(page.locator('#reset-game')).toHaveText('Reset Game');
+
+    expect(pageErrors).toEqual([]);
   });
 
   test('exported BASE64 saves can be imported back to restore game state', async ({ page }) => {

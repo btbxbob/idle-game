@@ -1,29 +1,32 @@
 const { test, expect } = require('../fixtures/coverage');
 const { unlockWorkersStage } = require('../fixtures/stage-helpers');
 
-test('resources tab defaults to primary and removes duplicate title block', async ({ page }) => {
+test('resources tab defaults to all resources and removes duplicate title block', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('http://localhost:8080');
   await page.waitForFunction(() => window.gameInitialized === true);
   await page.waitForTimeout(500);
 
   await expect(page.locator('#tab-resources')).toHaveClass(/active/);
-  await expect(page.locator('#resource-category-tabs .category-tab-button.active')).toHaveAttribute('data-category', 'primary');
+  await expect(page.locator('#resource-category-tabs .category-tab-button.active')).toHaveAttribute('data-tier', 'ALL');
 
   const state = await page.evaluate(() => {
     const panel = document.getElementById('resources-panel');
     const primary = document.getElementById('primary-resources');
     const secondary = document.getElementById('secondary-resources');
+    const special = document.getElementById('special-resources');
     const header = document.getElementById('resources-header');
     const firstChildId = panel && panel.firstElementChild ? panel.firstElementChild.id : null;
     const primaryDisplay = primary ? getComputedStyle(primary).display : '';
     const secondaryDisplay = secondary ? getComputedStyle(secondary).display : '';
-    return { firstChildId, primaryDisplay, secondaryDisplay, hasHeader: Boolean(header) };
+    const specialDisplay = special ? getComputedStyle(special).display : '';
+    return { firstChildId, primaryDisplay, secondaryDisplay, specialDisplay, hasHeader: Boolean(header) };
   });
 
   expect(state.firstChildId).toBe('resource-category-tabs');
   expect(state.primaryDisplay).not.toBe('none');
-  expect(state.secondaryDisplay).toBe('none');
+  expect(state.secondaryDisplay).not.toBe('none');
+  expect(state.specialDisplay).not.toBe('none');
   expect(state.hasHeader).toBe(false);
 });
 

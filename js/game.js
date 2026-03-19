@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.rustGame.saveToLocalStorage();
                     const statusEl = document.getElementById('save-status');
                     if (statusEl) {
-                        statusEl.textContent = '已保存 ✓';
+                        statusEl.textContent = window.i18n ? window.i18n.t('saveSuccess') : '已保存 ✓';
                         setTimeout(() => { statusEl.textContent = ''; }, 3000);
                     }
                     console.log('Game manually saved at', new Date().toLocaleTimeString());
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Manual save failed:', saveError);
                     const statusEl = document.getElementById('save-status');
                     if (statusEl) {
-                        statusEl.textContent = '保存失败 ✗';
+                        statusEl.textContent = window.i18n ? window.i18n.t('saveFailed') : '保存失败 ✗';
                         setTimeout(() => { statusEl.textContent = ''; }, 3000);
                     }
                 }
@@ -326,12 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         textArea.value = base64Str;
                         textArea.select();
                         document.execCommand('copy');
-                        alert('导出成功！已复制到剪贴板。');
+                        alert(window.i18n ? window.i18n.t('exportSuccess') : '导出成功！已复制到剪贴板。');
                     }
                     console.log('Game exported to BASE64 at', new Date().toLocaleTimeString());
                 } catch (exportError) {
                     console.error('Export failed:', exportError);
-                    alert('导出失败：' + exportError.message);
+                    alert(`${window.i18n ? window.i18n.t('exportFailed') : '导出失败'}: ${exportError.message}`);
                 }
             }
         });
@@ -343,18 +343,18 @@ document.addEventListener('DOMContentLoaded', function() {
         importBtn.addEventListener('click', function() {
             const textArea = document.getElementById('import-export-text');
             if (!textArea || !textArea.value.trim()) {
-                alert('请先粘贴 BASE64 字符串。');
+                alert(window.i18n ? window.i18n.t('importEmpty') : '请先粘贴 BASE64 字符串。');
                 return;
             }
             
             if (window.rustGame && typeof window.rustGame.importFromBase64 === 'function') {
-                if (!confirm('导入将覆盖当前游戏进度。确定继续吗？')) {
+                if (!confirm(window.i18n ? window.i18n.t('importConfirm') : '导入将覆盖当前游戏进度。确定继续吗？')) {
                     return;
                 }
                 
                 try {
                     window.rustGame.importFromBase64(textArea.value.trim());
-                    alert('导入成功！游戏已加载。');
+                    alert(window.i18n ? window.i18n.t('importSuccess') : '导入成功！游戏已加载。');
                     console.log('Game imported from BASE64 at', new Date().toLocaleTimeString());
                     
                     // Refresh UI
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } catch (importError) {
                     console.error('Import failed:', importError);
-                    alert('导入失败：' + (importError.message || '无效的 BASE64 字符串'));
+                    alert(`${window.i18n ? window.i18n.t('importFailed') : '导入失败'}: ${importError.message || 'Invalid BASE64 string'}`);
                 }
             }
         });

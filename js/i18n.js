@@ -1,7 +1,7 @@
 // Internationalization system for the idle game
 class I18n {
     constructor() {
-        this.currentLanguage = 'zh-CN'; // Default to Simplified Chinese
+        this.currentLanguage = localStorage.getItem('gameLanguage') || 'zh-CN'; // Default to Simplified Chinese
         this.translations = {
             'en': {
                 // Game title and headers
@@ -220,6 +220,8 @@ class I18n {
                 // Settings
                 'theme': 'Theme',
                 'language': 'Language',
+                'simplifiedChinese': 'Simplified Chinese',
+                'englishLanguage': 'English / English',
                 'lightTheme': 'Light Theme',
                 'darkTheme': 'Dark Theme',
                 'gameVersion': 'Game Version',
@@ -231,8 +233,14 @@ class I18n {
                 'saveSuccess': 'Saved ✓',
                 'saveFailed': 'Save Failed ✗',
                 'exportBase64': 'Export to BASE64',
+                'exportFailed': 'Export failed',
                 'importBase64': 'Import from BASE64',
                 'importExportPlaceholder': 'Paste BASE64 string here...',
+                'allResources': 'All Resources',
+                'basicResources': 'Basic Resources',
+                'processedResources': 'Processed Materials',
+                'advancedResources': 'High Tech',
+                'specialResources': 'Special',
                 'exportSuccess': 'Export successful! Copied to clipboard.',
                 'importConfirm': 'Importing will overwrite current progress. Continue?',
                 'importSuccess': 'Import successful! Game loaded.',
@@ -486,6 +494,8 @@ class I18n {
                 // Settings
                 'theme': '主题',
                 'language': '语言',
+                'simplifiedChinese': '简体中文',
+                'englishLanguage': '英语 / English',
                 'lightTheme': '亮色主题',
                 'darkTheme': '暗色主题',
                 'gameVersion': '游戏版本',
@@ -497,8 +507,14 @@ class I18n {
                 'saveSuccess': '已保存 ✓',
                 'saveFailed': '保存失败 ✗',
                 'exportBase64': '导出为 BASE64',
+                'exportFailed': '导出失败',
                 'importBase64': '从 BASE64 导入',
                 'importExportPlaceholder': '在此粘贴 BASE64 字符串...',
+                'allResources': '全部资源',
+                'basicResources': '基础资源',
+                'processedResources': '加工材料',
+                'advancedResources': '高科技',
+                'specialResources': '特殊',
                 'exportSuccess': '导出成功！已复制到剪贴板。',
                 'importConfirm': '导入将覆盖当前游戏进度。确定继续吗？',
                 'importSuccess': '导入成功！游戏已加载。',
@@ -542,9 +558,19 @@ class I18n {
     setLanguage(language) {
         if (this.translations[language]) {
             this.currentLanguage = language;
+            localStorage.setItem('gameLanguage', language);
             return true;
         }
         return false;
+    }
+
+    translateFor(language, key, params = {}) {
+        const translation = this.translations[language]?.[key] || this.translations.en[key] || key;
+        let result = translation;
+        for (const [param, value] of Object.entries(params)) {
+            result = result.replace(new RegExp(`{${param}}`, 'g'), value);
+        }
+        return result;
     }
     
     // Get translation for a key
@@ -619,7 +645,16 @@ class I18n {
         // Update settings labels
         this.updateLabel('theme-select-setting', 'theme');
         this.updateLabel('language-select-setting', 'language');
-        
+        this.updateElement('reset-game', 'resetGame');
+        this.updateElement('manual-save', 'manualSave');
+        this.updateElement('export-base64', 'exportBase64');
+        this.updateElement('import-base64', 'importBase64');
+        this.updateElement('save-load-title', 'saveLoadTitle');
+        this.updateSettingsVersionLabel();
+        this.updateSettingsOptions();
+        this.updateResourceCategoryTabs();
+        this.updatePlaceholder('import-export-text', 'importExportPlaceholder');
+
         // Update resource displays (these will be handled by resource update functions)
         this.updateResourceDisplays();
     }
@@ -630,9 +665,57 @@ class I18n {
         if (element) {
             const label = element.previousElementSibling;
             if (label && label.tagName === 'LABEL') {
-                label.textContent = this.t(translationKey) + ' / ' + this.t(translationKey, {locale: 'en'});
+                const alternateLanguage = this.currentLanguage === 'en' ? 'zh-CN' : 'en';
+                label.textContent = `${this.t(translationKey)} / ${this.translateFor(alternateLanguage, translationKey)}`;
             }
         }
+    }
+
+    updatePlaceholder(elementId, translationKey) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.placeholder = this.t(translationKey);
+        }
+    }
+
+    updateSettingsVersionLabel() {
+        const element = document.getElementById('game-version-label');
+        const version = document.getElementById('version-number')?.textContent || '...';
+        if (element) {
+            element.textContent = `${this.t('gameVersion')}: ${version.startsWith('v') ? version : `v${version}`}`;
+        }
+    }
+
+    updateSettingsOptions() {
+        const themeSelect = document.getElementById('theme-select-setting');
+        if (themeSelect?.options?.length >= 2) {
+            themeSelect.options[0].textContent = this.t('lightTheme');
+            themeSelect.options[1].textContent = this.t('darkTheme');
+        }
+
+        const languageSelect = document.getElementById('language-select-setting');
+        if (languageSelect?.options?.length >= 2) {
+            languageSelect.options[0].textContent = this.t('simplifiedChinese');
+            languageSelect.options[1].textContent = this.t('englishLanguage');
+        }
+    }
+
+    updateResourceCategoryTabs() {
+        const labels = {
+            ALL: 'allResources',
+            TIER1_BASIC: 'basicResources',
+            TIER2_PROCESSED: 'processedResources',
+            TIER3_ADVANCED: 'advancedResources',
+            SPECIAL: 'specialResources',
+        };
+
+        document.querySelectorAll('#resource-category-tabs .category-tab-button').forEach((button) => {
+            const tier = button.getAttribute('data-tier');
+            const key = labels[tier];
+            if (key) {
+                button.textContent = this.t(key);
+            }
+        });
     }
     
     // Update a specific element with translation

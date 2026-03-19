@@ -2,11 +2,20 @@ class ResourceManager {
     constructor(rustGame, i18n) {
         this.rustGame = rustGame;
         this.i18n = i18n;
-        this.currentCategory = 'primary';
+        this.currentCategory = 'ALL';
         this.resourceKeys = this.getAllResourceKeys();
         this.bannerResourceKeys = [...this.resourceKeys, 'maggot', 'corpse'];
         this.rateHistory = [];
         this.rateWindowMs = 10000;
+    }
+
+    getTierPanels() {
+        return {
+            TIER1_BASIC: 'primary-resources',
+            TIER2_PROCESSED: 'secondary-resources',
+            TIER3_ADVANCED: 'advanced-resources',
+            SPECIAL: 'special-resources',
+        };
     }
 
     getAllResourceKeys() {
@@ -91,13 +100,14 @@ class ResourceManager {
     }
 
     getResourceKeysByCategory(category) {
-        const ranges = {
-            'primary': { start: 0, end: 10 },
-            'secondary': { start: 10, end: 50 },
-            'advanced': { start: 50, end: 60 }
+        const categories = {
+            ALL: [...this.resourceKeys, 'corpse', 'maggot'],
+            TIER1_BASIC: this.resourceKeys.slice(0, 10),
+            TIER2_PROCESSED: this.resourceKeys.slice(10, 50),
+            TIER3_ADVANCED: this.resourceKeys.slice(50, 60),
+            SPECIAL: ['corpse', 'maggot'],
         };
-        const range = ranges[category];
-        return range ? this.resourceKeys.slice(range.start, range.end) : [];
+        return categories[category] || [];
     }
 
     initialize() {
@@ -105,8 +115,8 @@ class ResourceManager {
 
         this.ensureHeaderCards();
 
-        ['primary', 'secondary', 'advanced'].forEach(category => {
-            const panel = document.getElementById(`${category}-resources`);
+        Object.entries(this.getTierPanels()).forEach(([category, panelId]) => {
+            const panel = document.getElementById(panelId);
             if (!panel) return;
 
             const resourceKeys = this.getResourceKeysByCategory(category);
@@ -128,13 +138,13 @@ class ResourceManager {
         });
 
         this.setupCategoryTabs();
-        this.switchCategory('primary');
+        this.switchCategory('ALL');
     }
 
     setupCategoryTabs() {
         document.querySelectorAll('.category-tab-button').forEach(tab => {
             tab.addEventListener('click', () => {
-                const category = tab.getAttribute('data-category');
+                const category = tab.getAttribute('data-tier');
                 if (category) this.switchCategory(category);
             });
         });
@@ -142,12 +152,13 @@ class ResourceManager {
 
     switchCategory(category) {
         document.querySelectorAll('.category-tab-button').forEach(tab => {
-            tab.classList.toggle('active', tab.getAttribute('data-category') === category);
+            tab.classList.toggle('active', tab.getAttribute('data-tier') === category);
         });
 
-        ['primary', 'secondary', 'advanced'].forEach(cat => {
-            const panel = document.getElementById(`${cat}-resources`);
-            if (panel) panel.style.display = cat === category ? 'block' : 'none';
+        Object.entries(this.getTierPanels()).forEach(([tier, panelId]) => {
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+            panel.style.display = category === 'ALL' || tier === category ? 'block' : 'none';
         });
 
         this.currentCategory = category;
@@ -174,8 +185,8 @@ class ResourceManager {
 
         this.recordRateSnapshot(resources);
 
-        ['primary', 'secondary', 'advanced'].forEach(category => {
-            const panel = document.getElementById(`${category}-resources`);
+        Object.values(this.getTierPanels()).forEach((panelId) => {
+            const panel = document.getElementById(panelId);
             if (!panel) return;
 
             panel.querySelectorAll('.resource-item').forEach(element => {

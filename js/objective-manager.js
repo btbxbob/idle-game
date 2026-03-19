@@ -37,14 +37,22 @@ class ObjectiveManager {
             }
         }
 
+        const sidebar = document.getElementById('objective-sidebar');
+
         const chain = this.currentChain;
         if (!chain || !chain.active || !Array.isArray(chain.steps) || chain.steps.length === 0) {
             this.container.innerHTML = '';
             this.container.style.display = 'none';
+            if (sidebar) {
+                sidebar.style.display = 'none';
+            }
             return;
         }
 
         this.container.style.display = 'block';
+        if (sidebar) {
+            sidebar.style.display = 'block';
+        }
 
         const currentStep = chain.steps.find((step) => step && step.id === chain.current_objective_id)
             || chain.steps.find((step) => step && !step.completed)

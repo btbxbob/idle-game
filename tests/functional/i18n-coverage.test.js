@@ -73,8 +73,12 @@ test.describe('I18n coverage', () => {
             const coinDisplay = document.getElementById('coin-display')?.textContent || '';
             const themeLabelText = themeLabel.textContent || '';
             const languageLabelText = languageLabel.textContent || '';
+            const resetText = document.getElementById('reset-game')?.textContent || '';
+            const saveLoadTitle = document.getElementById('save-load-title')?.textContent || '';
 
-            createdNodes.forEach((node) => node.remove());
+            createdNodes.forEach((node) => {
+                node.remove();
+            });
 
             return {
                 ok: true,
@@ -98,6 +102,8 @@ test.describe('I18n coverage', () => {
                 coinDisplay,
                 themeLabelText,
                 languageLabelText,
+                resetText,
+                saveLoadTitle,
             };
         });
 
@@ -119,7 +125,9 @@ test.describe('I18n coverage', () => {
         expect(result.spsText).toBe('石头/秒：0.0');
         expect(result.cpcText).toBe('金币/点击：0.0');
         expect(result.coinDisplay).toBe('0');
-        expect(result.themeLabelText).toContain('主题 / 主题');
-        expect(result.languageLabelText).toContain('语言 / 语言');
+        expect(result.themeLabelText).toBe('主题 / Theme');
+        expect(result.languageLabelText).toBe('语言 / Language');
+        expect(result.resetText).toBe('重置游戏');
+        expect(result.saveLoadTitle).toBe('保存/加载游戏');
     });
 });

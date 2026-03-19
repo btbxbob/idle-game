@@ -106,6 +106,144 @@ class TechnologyManager {
         }
     }
 
+    isEnglish() {
+        return this.i18n && this.i18n.currentLanguage === 'en';
+    }
+
+    getTechnologyName(tech) {
+        const techId = tech && tech.id ? String(tech.id) : '';
+        if (!this.isEnglish()) {
+            return tech && tech.name ? tech.name : techId;
+        }
+
+        const names = {
+            BasicMining: 'Basic Mining',
+            AdvancedMining: 'Advanced Mining',
+            BasicLogging: 'Basic Logging',
+            AdvancedLogging: 'Advanced Logging',
+            BasicQuarrying: 'Basic Quarrying',
+            AdvancedQuarrying: 'Advanced Quarrying',
+            BasicSmelting: 'Basic Smelting',
+            AdvancedSmelting: 'Advanced Smelting',
+            BasicAgriculture: 'Basic Agriculture',
+            AdvancedAgriculture: 'Advanced Agriculture',
+            BasicRefining: 'Basic Refining',
+            AdvancedRefining: 'Advanced Refining',
+            BasicChemistry: 'Basic Chemistry',
+            AdvancedChemistry: 'Advanced Chemistry',
+            BasicEngineering: 'Basic Engineering',
+            MassProduction: 'Mass Production',
+            Automation: 'Automation',
+            Robotics: 'Robotics',
+            AdvancedRobotics: 'Advanced Robotics',
+            Electronics: 'Electronics',
+            AdvancedElectronics: 'Advanced Electronics',
+            ComputerTechnology: 'Computer Technology',
+            AITechnology: 'AI Technology',
+            AdvancedAI: 'Advanced AI',
+            Nanotechnology: 'Nanotechnology',
+            AdvancedNanotech: 'Advanced Nanotechnology',
+            Biotechnology: 'Biotechnology',
+            GeneticEngineering: 'Genetic Engineering',
+            MaggotBreeding: 'Maggot Breeding',
+            NecroticRecycling: 'Necrotic Recycling',
+            SymbioticHosts: 'Symbiotic Hosts',
+            HiveMindProtocol: 'Hive Mind Protocol',
+            CollectiveAwakening: 'Collective Awakening',
+            RenewableEnergy: 'Renewable Energy',
+            NuclearEnergy: 'Nuclear Energy',
+            QuantumComputing: 'Quantum Computing',
+            FusionEnergy: 'Fusion Energy',
+            AntimatterEnergy: 'Antimatter Energy',
+            SpaceExploration: 'Space Exploration',
+            Terraforming: 'Terraforming',
+            TimeManipulation: 'Time Manipulation',
+            DimensionalTravel: 'Dimensional Travel',
+            ConsciousnessUpload: 'Consciousness Upload',
+            Immortality: 'Immortality',
+            Godhood: 'Godhood',
+            ClickEfficiency: 'Click Efficiency',
+            ResourceBoost: 'Resource Boost',
+            ProductionMultiplier: 'Production Multiplier',
+            CostReduction: 'Cost Reduction',
+            CriticalClick: 'Critical Click',
+            AutoAssignment: 'Auto Assignment',
+            Prestige: 'Prestige',
+            Legacy: 'Legacy',
+            Ascension: 'Ascension',
+            Omniscience: 'Omniscience',
+        };
+
+        return names[techId] || techId || (tech && tech.name) || '';
+    }
+
+    getTechnologyDescription(tech) {
+        const techId = tech && tech.id ? String(tech.id) : '';
+        if (!this.isEnglish()) {
+            return tech && tech.description ? tech.description : '';
+        }
+
+        const descriptions = {
+            BasicMining: 'Unlocks basic mining methods and improves ore gathering efficiency.',
+            AdvancedMining: 'Advanced mining methods that greatly increase ore production.',
+            BasicLogging: 'Unlocks basic logging techniques and improves wood gathering efficiency.',
+            AdvancedLogging: 'Advanced logging methods that greatly increase wood production.',
+            BasicQuarrying: 'Unlocks basic quarrying and improves stone gathering efficiency.',
+            AdvancedQuarrying: 'Advanced quarrying methods that greatly increase stone production.',
+            BasicSmelting: 'Unlocks basic smelting and improves metal output.',
+            AdvancedSmelting: 'Advanced smelting methods that greatly increase metal output.',
+            BasicAgriculture: 'Unlocks basic agriculture and improves food production.',
+            AdvancedAgriculture: 'Advanced agriculture that greatly increases food output.',
+            BasicRefining: 'Unlocks basic refining and improves refining efficiency.',
+            AdvancedRefining: 'Advanced refining methods that greatly improve refining efficiency.',
+            BasicChemistry: 'Unlocks basic chemistry and improves chemical output.',
+            AdvancedChemistry: 'Advanced chemistry that greatly increases chemical output.',
+            BasicEngineering: 'Unlocks basic engineering and improves component output.',
+            MassProduction: 'Industrial-scale production methods that improve all output.',
+            Automation: 'Automated workflows that reduce manual labor requirements.',
+            Robotics: 'Industrial robotics that deepen automation.',
+            AdvancedRobotics: 'Advanced robotics that push production toward full automation.',
+            Electronics: 'Electronics research that opens electronic component production.',
+            AdvancedElectronics: 'Advanced electronics that unlock higher-end circuit work.',
+            ComputerTechnology: 'Computer systems research that unlocks computing infrastructure.',
+            AITechnology: 'Artificial intelligence research that unlocks AI systems.',
+            AdvancedAI: 'Advanced AI research that unlocks stronger AI capabilities.',
+            Nanotechnology: 'Nanotechnology research that unlocks nanoscale manufacturing.',
+            AdvancedNanotech: 'Advanced nanotechnology that unlocks molecular assembly.',
+            Biotechnology: 'Biotechnology research that unlocks bioengineering.',
+            GeneticEngineering: 'Genetic engineering that unlocks gene editing.',
+            MaggotBreeding: 'Establishes a dark breeding line around corpses and maggots.',
+            NecroticRecycling: 'Recycles necrotic tissue back into food and chemical loops.',
+            SymbioticHosts: 'Builds a controllable symbiosis between human hosts and maggot ecology.',
+            HiveMindProtocol: 'Links hybrid individuals into a shared thought network.',
+            CollectiveAwakening: 'Pushes the symbiotic whole into unified consciousness and expansion.',
+            RenewableEnergy: 'Renewable energy research that unlocks cleaner power.',
+            NuclearEnergy: 'Nuclear energy research that unlocks reactor technology.',
+            QuantumComputing: 'Quantum computing research that unlocks quantum systems.',
+            FusionEnergy: 'Fusion energy research that unlocks near-limitless power.',
+            AntimatterEnergy: 'Antimatter energy research that unlocks extreme power density.',
+            SpaceExploration: 'Space exploration research that unlocks interstellar expansion.',
+            Terraforming: 'Terraforming research that unlocks planetary reshaping.',
+            TimeManipulation: 'Time manipulation research that unlocks temporal acceleration.',
+            DimensionalTravel: 'Dimensional travel research that unlocks parallel-realm access.',
+            ConsciousnessUpload: 'Consciousness upload research that unlocks digital immortality.',
+            Immortality: 'Immortality research that unlocks bodily eternal life.',
+            Godhood: 'God-tier research that unlocks near-divine abilities.',
+            ClickEfficiency: 'Improves the reward from every click.',
+            ResourceBoost: 'Temporarily boosts all resource production.',
+            ProductionMultiplier: 'Permanently increases total production multipliers.',
+            CostReduction: 'Reduces the cost of purchases across the board.',
+            CriticalClick: 'Unlocks critical clicks.',
+            AutoAssignment: 'Unlocks automatic worker assignment.',
+            Prestige: 'Unlocks the prestige system.',
+            Legacy: 'Unlocks the legacy bonus system.',
+            Ascension: 'Unlocks the ascension system.',
+            Omniscience: 'Unlocks the omniscience system.',
+        };
+
+        return descriptions[techId] || tech.description || '';
+    }
+
     getCurrentObjectiveChain() {
         if (!this.rustGame || typeof this.rustGame.getCurrentObjectiveChainJson !== 'function') {
             return null;
@@ -357,6 +495,11 @@ class TechnologyManager {
             statusEl.style.display = statusIcon ? '' : 'none';
         }
 
+        const nameEl = card.querySelector('.tech-name');
+        if (nameEl) {
+            nameEl.innerHTML = `<span class="tech-badge">T${tech.tier || 1}</span>${this.escapeHtml(this.getTechnologyName(tech))}`;
+        }
+
         const effectEl = card.querySelector('.tech-effect');
         if (effectEl) {
             effectEl.textContent = this.getEffectDescription(tech);
@@ -380,6 +523,11 @@ class TechnologyManager {
         const footerEl = card.querySelector('.tech-footer');
         if (footerEl) {
             footerEl.innerHTML = this.renderTechFooterHtml(tech, t, canResearch, hasResources, isResearched);
+        }
+
+        const recommendationEl = card.querySelector('.tech-recommendation');
+        if (recommendationEl) {
+            recommendationEl.textContent = this.isEnglish() ? 'Recommended Route' : '推荐路线';
         }
 
         card.classList.toggle('recommended', this.getRecommendedTechnologyId() === tech.id && !isResearched);
@@ -429,7 +577,7 @@ class TechnologyManager {
             
             // Filter by search query
             if (query) {
-                const searchStr = `${tech.name || ''} ${tech.description || ''} ${this.getEffectDescription(tech)}`.toLowerCase();
+            const searchStr = `${this.getTechnologyName(tech)} ${this.getTechnologyDescription(tech)} ${this.getEffectDescription(tech)}`.toLowerCase();
                 if (!searchStr.includes(query)) return false;
             }
             
@@ -447,7 +595,7 @@ class TechnologyManager {
             const tierA = a.tier || 1;
             const tierB = b.tier || 1;
             if (tierA !== tierB) return tierA - tierB;
-            return String(a.name || '').localeCompare(String(b.name || ''));
+            return this.getTechnologyName(a).localeCompare(this.getTechnologyName(b));
         });
         
         return filtered;
@@ -475,7 +623,7 @@ class TechnologyManager {
                 <div class="tech-header">
                     <span class="tech-name">
                         <span class="tech-badge">T${tech.tier || 1}</span>
-                        ${this.escapeHtml(tech.name || tech.id)}
+                        ${this.escapeHtml(this.getTechnologyName(tech))}
                     </span>
                     ${statusIcon ? `<span class="tech-status">${statusIcon}</span>` : ''}
                 </div>
@@ -558,7 +706,7 @@ class TechnologyManager {
             depsHtml = '<div class="tech-detail-row"><strong>' + (t('dependencies') || '前置科技') + ':</strong><br>';
             tech.dependencies.forEach(depId => {
                 const depTech = this.technologies.find(t => t.id === depId);
-                const depName = depTech ? depTech.name : depId;
+                const depName = depTech ? this.getTechnologyName(depTech) : depId;
                 const depResearched = depTech && (depTech.researched || depTech.purchased);
                 const color = depResearched ? '#27ae60' : '#e74c3c';
                 depsHtml += `<span style="color:${color}">${depResearched ? '✓' : '○'} ${this.escapeHtml(depName)}</span> `;
@@ -591,7 +739,7 @@ class TechnologyManager {
         modal.innerHTML = `
             <div class="modal-content" style="max-width:400px;">
                 <div class="modal-header">
-                    <h3>${this.escapeHtml(tech.name || tech.id)}</h3>
+                    <h3>${this.escapeHtml(this.getTechnologyName(tech))}</h3>
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body" style="padding:15px;">
@@ -601,7 +749,7 @@ class TechnologyManager {
                             ${isResearched ? (t('researched') || '已研究') : (canResearch ? (t('available') || '可研究') : (t('locked') || '未解锁'))}
                         </span>
                     </div>
-                    <p style="margin:10px 0;color:#666;font-size:12px;">${this.escapeHtml(tech.description || '')}</p>
+                    <p style="margin:10px 0;color:#666;font-size:12px;">${this.escapeHtml(this.getTechnologyDescription(tech))}</p>
                     <div class="tech-detail-row" style="color:#3498db;"><strong>${t('effect') || '效果'}:</strong> ${this.escapeHtml(effectDesc)}</div>
                     ${costsHtml}
                     ${depsHtml}
@@ -779,6 +927,73 @@ class TechnologyManager {
         return shortNames[resourceType] || resourceType.substring(0, 2);
     }
 
+    getBuildingTypeLabel(buildingType) {
+        const labels = this.isEnglish() ? {
+            Mine: 'Mine',
+            LumberMill: 'Lumber Mill',
+            Quarry: 'Quarry',
+            OilRig: 'Oil Rig',
+            Farm: 'Farm',
+            Smelter: 'Smelting Line',
+            Refinery: 'Refining Line',
+            Factory: 'Industrial Assembly Line',
+            ChemicalPlant: 'Chemical Plant',
+            PowerPlant: 'Power Facility',
+            ChipFab: 'Chip Fabrication Line',
+            ResearchLab: 'Research Lab',
+            SpacePort: 'Spaceport',
+            QuantumLab: 'Quantum Computing Center',
+            NaniteFactory: 'Nanite Factory',
+        } : {
+            Mine: '矿井',
+            LumberMill: '锯木厂',
+            Quarry: '采石场',
+            OilRig: '石油钻井',
+            Farm: '农场',
+            Smelter: '冶炼产线',
+            Refinery: '精炼产线',
+            Factory: '工业装配产线',
+            ChemicalPlant: '化学品厂',
+            PowerPlant: '发电设施',
+            ChipFab: '芯片制造产线',
+            ResearchLab: '研究实验室',
+            SpacePort: '太空港',
+            QuantumLab: '量子计算中心',
+            NaniteFactory: '纳米工厂',
+        };
+
+        return labels[buildingType] || buildingType || '未知建筑';
+    }
+
+    getUnlockBuildingText(techId, buildingType) {
+        const buildingLabel = this.getBuildingTypeLabel(buildingType);
+        const unlockCopy = this.isEnglish() ? {
+            BasicAgriculture: 'Stabilizes the farm line and improves food supply.',
+            BasicSmelting: 'Unlocks iron and copper smelting lines.',
+            BasicRefining: 'Unlocks refining lines.',
+            BasicChemistry: 'Unlocks the chemical plant.',
+            BasicEngineering: 'Unlocks baseline industrial assembly lines.',
+            Electronics: 'Unlocks circuit board and chip fabrication lines.',
+            ComputerTechnology: 'Unlocks the research lab.',
+            RenewableEnergy: 'Unlocks power generation facilities.',
+            QuantumComputing: 'Unlocks the quantum computing center.',
+            SpaceExploration: 'Unlocks space expedition infrastructure.',
+        } : {
+            BasicAgriculture: '稳定农场产线并强化食物供给',
+            BasicSmelting: '开放铁锭冶炼厂与铜锭冶炼厂',
+            BasicRefining: '开放精炼相关产线',
+            BasicChemistry: '开放化学品厂',
+            BasicEngineering: '开放基础工业装配产线',
+            Electronics: '开放电路板与芯片制造产线',
+            ComputerTechnology: '开放研究实验室',
+            RenewableEnergy: '开放发电设施',
+            QuantumComputing: '开放量子计算中心',
+            SpaceExploration: '开放太空远征设施',
+        };
+
+        return unlockCopy[techId] || (this.isEnglish() ? `Unlocks: ${buildingLabel}` : `研究后开放：${buildingLabel}`);
+    }
+
     sortCosts(costs) {
         if (!costs || typeof costs !== 'object') return [];
         
@@ -803,42 +1018,135 @@ class TechnologyManager {
     getEffectDescription(tech) {
         const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
         
-        if (!tech.effect) return tech.description || (t('unknownEffect') || '未知效果');
+        if (!tech.effect) return this.getTechnologyDescription(tech) || (t('unknownEffect') || '未知效果');
         
         const effectKeys = Object.keys(tech.effect);
-        if (effectKeys.length === 0) return tech.description || (t('unknownEffect') || '未知效果');
+        if (effectKeys.length === 0) return this.getTechnologyDescription(tech) || (t('unknownEffect') || '未知效果');
         
         const effectType = effectKeys[0];
         const effectData = tech.effect[effectType];
-        
+
+        if (tech.effect.type) {
+            switch (tech.effect.type) {
+                case 'ProductionBonus':
+                    return this.isEnglish()
+                        ? `+${this.formatInteger((tech.effect_value || 0) * 100)}% ${this.getResourceName(tech.effect.resource)} Production`
+                        : `+${this.formatInteger((tech.effect_value || 0) * 100)}% ${this.getResourceName(tech.effect.resource)}产量`;
+                case 'UnlockBuilding':
+                    return this.isEnglish()
+                        ? `🏗️ Unlocks: ${this.getBuildingTypeLabel(tech.effect.building_type)}`
+                        : `🏗️ 解锁：${this.getBuildingTypeLabel(tech.effect.building_type)}`;
+                case 'UnlockUI':
+                    return this.isEnglish() ? '🔓 Unlocks a new feature' : '🔓 解锁新功能';
+                case 'MechanicChange':
+                    return this.getTechnologyDescription({ ...tech, description: tech.effect.description || tech.description || '' })
+                        || (this.isEnglish() ? 'Gameplay mechanics updated' : '游戏机制改变');
+                default:
+                    return this.getTechnologyDescription(tech) || (t('unknownEffect') || '未知效果');
+            }
+        }
+
         switch (effectType) {
             case 'ProductionBonus':
                 if (Array.isArray(effectData) && effectData.length >= 2) {
                     const resource = effectData[0];
                     const value = effectData[1];
-                    return `+${this.formatInteger(value * 100)}% ${this.getResourceName(resource)} 产量`;
+                    return this.isEnglish()
+                        ? `+${this.formatInteger(value * 100)}% ${this.getResourceName(resource)} Production`
+                        : `+${this.formatInteger(value * 100)}% ${this.getResourceName(resource)}产量`;
                 }
-                return `+${this.formatInteger(tech.effect_value * 100)}% 产量`;
+                return this.isEnglish()
+                    ? `+${this.formatInteger(tech.effect_value * 100)}% Production`
+                    : `+${this.formatInteger(tech.effect_value * 100)}% 产量`;
             
             case 'UnlockBuilding':
-                return `🏗️ 解锁: ${effectData || '未知建筑'}`;
+                return `🏗️ ${this.getUnlockBuildingText(tech.id, effectData)}`;
             
             case 'UnlockUI':
-                return '🔓 解锁新功能';
+                return this.isEnglish() ? '🔓 Unlocks a new feature' : '🔓 解锁新功能';
             
             case 'MechanicChange':
                 if (typeof effectData === 'string') {
                     return this.getMechanicDescription(effectData);
                 }
-                return tech.description || '游戏机制改变';
+                return this.getTechnologyDescription(tech) || (this.isEnglish() ? 'Gameplay mechanics updated' : '游戏机制改变');
             
             default:
-                return tech.description || (t('unknownEffect') || '未知效果');
+                return this.getTechnologyDescription(tech) || (t('unknownEffect') || '未知效果');
         }
     }
 
     getTechnologyLinkedFeedback(tech) {
-        const feedbackMap = {
+        const feedbackMap = this.isEnglish() ? {
+            BasicSmelting: [
+                'Linked buildings: Iron Ingot Smelter, Copper Ingot Smelter',
+                'Connects ore gathering to the metal smelting chain.',
+            ],
+            BasicChemistry: [
+                'Linked building: Chemical Plant',
+                'Pushes oil and coal into chemical processing.',
+            ],
+            BasicEngineering: [
+                'Linked buildings: Steel Works, Glassworks, Plastic Plant, Gear Works',
+                'Moves the economy from raw materials into industrial components.',
+            ],
+            Electronics: [
+                'Linked buildings: Circuit Board Plant, Chip Fabrication Plant',
+                'Pushes the industrial chain into electronics manufacturing.',
+            ],
+            MaggotBreeding: [
+                'Unlocks: Maggot Factory',
+                'Turns corpse decay into a controllable maggot processing chain.',
+            ],
+            NecroticRecycling: [
+                'Unlocks: Necrotic Brood Pool',
+                'Pushes maggots further into food and chemical conversion.',
+            ],
+            SymbioticHosts: [
+                'Unlocks: Symbiotic Growth Chamber',
+                'Begins raising hybrid population and symbiosis stability.',
+            ],
+            HiveMindProtocol: [
+                'Links hybrid bodies into a shared thought network.',
+                'Prepares the endgame mind web and resource lattice.',
+            ],
+            CollectiveAwakening: [
+                'Unlocks: Neural Spire',
+                'Starts the endgame dark matter chain.',
+            ],
+            RenewableEnergy: [
+                'Linked building: Generator Plant',
+                'Lets the energy chain break away from handcraft pacing.',
+            ],
+            QuantumComputing: [
+                'Linked building: Quantum Computing Center',
+                'Feeds advanced computation into the endgame research chain.',
+            ],
+            ConsciousnessUpload: [
+                'Unlocks: Deep Space Hatchery',
+                'Lets unified consciousness begin producing starships.',
+            ],
+            SpaceExploration: [
+                'Unlocks: Spaceport',
+                'Brings dark matter and ships into the expedition chain.',
+            ],
+        } : {
+            BasicSmelting: [
+                '关联建筑：铁锭冶炼厂、铜锭冶炼厂',
+                '把矿石采集正式接入金属冶炼链',
+            ],
+            BasicChemistry: [
+                '关联建筑：化学品厂',
+                '让石油与煤炭进入化工加工流程',
+            ],
+            BasicEngineering: [
+                '关联建筑：钢铁厂、玻璃厂、塑料厂、齿轮厂',
+                '让工业装配从原料阶段过渡到部件阶段',
+            ],
+            Electronics: [
+                '关联建筑：电路板厂、芯片制造厂',
+                '把工业链推进到电子制造阶段',
+            ],
             MaggotBreeding: [
                 '解锁建筑：蛆虫工厂',
                 '把尸体腐化转成可控的蛆虫加工链',
@@ -858,6 +1166,14 @@ class TechnologyManager {
             CollectiveAwakening: [
                 '解锁建筑：神经尖塔',
                 '让终局链条开始产出暗物质',
+            ],
+            RenewableEnergy: [
+                '关联建筑：发电机厂',
+                '让能源链条正式脱离基础手工业节奏',
+            ],
+            QuantumComputing: [
+                '关联建筑：量子计算中心',
+                '让高阶计算资源进入终局研究链',
             ],
             ConsciousnessUpload: [
                 '解锁建筑：深空孵化港',
@@ -881,7 +1197,31 @@ class TechnologyManager {
     }
 
     getMechanicDescription(mechanic) {
-        const descriptions = {
+        const descriptions = this.isEnglish() ? {
+            'auto_production': '🤖 Automated Production',
+            'full_automation': '⚙️ Full Automation',
+            'ai_assistance': '🤖 AI Assistance',
+            'ai_optimization': '🧠 AI Optimization',
+            'molecular_assembly': '🔬 Molecular Assembly',
+            'genetic_optimization': '🧬 Genetic Optimization',
+            'nuclear_power': '⚡ Nuclear Power',
+            'fusion_power': '☀️ Fusion Energy',
+            'terraforming': '🌍 Terraforming',
+            'time_manipulation': '⏰ Time Manipulation',
+            'dimensional_travel': '🌌 Dimensional Travel',
+            'consciousness_upload': '🧠 Consciousness Upload',
+            'immortality': '✨ Immortality',
+            'godhood': '🌟 Godhood',
+            'click_efficiency': '👆 Click Efficiency',
+            'resource_boost': '💎 Resource Boost',
+            'production_multiplier': '📈 Production Multiplier',
+            'cost_reduction': '💰 Cost Reduction',
+            'critical_click': '💥 Critical Click',
+            'auto_assignment': '👥 Auto Assignment',
+            'legacy_bonus': '👑 Legacy Bonus',
+            'ascension': '🚀 Ascension',
+            'omniscience': '👁️ Omniscience'
+        } : {
             'auto_production': '🤖 自动化生产',
             'full_automation': '⚙️ 全自动化',
             'ai_assistance': '🤖 AI助手',

@@ -184,10 +184,12 @@ class UnlockManager {
         });
 
         const categories = [
-            { button: document.querySelector('.category-tab-button[data-category="primary"]'), panel: document.getElementById('primary-resources') },
-            { button: document.querySelector('.category-tab-button[data-category="secondary"]'), panel: document.getElementById('secondary-resources') },
-            { button: document.querySelector('.category-tab-button[data-category="advanced"]'), panel: document.getElementById('advanced-resources') }
+            { tier: 'TIER1_BASIC', button: document.querySelector('.category-tab-button[data-tier="TIER1_BASIC"]'), panel: document.getElementById('primary-resources') },
+            { tier: 'TIER2_PROCESSED', button: document.querySelector('.category-tab-button[data-tier="TIER2_PROCESSED"]'), panel: document.getElementById('secondary-resources') },
+            { tier: 'TIER3_ADVANCED', button: document.querySelector('.category-tab-button[data-tier="TIER3_ADVANCED"]'), panel: document.getElementById('advanced-resources') },
+            { tier: 'SPECIAL', button: document.querySelector('.category-tab-button[data-tier="SPECIAL"]'), panel: document.getElementById('special-resources') }
         ];
+        const allButton = document.querySelector('.category-tab-button[data-tier="ALL"]');
 
         categories.forEach(({ button, panel }) => {
             if (!button || !panel) {
@@ -201,9 +203,13 @@ class UnlockManager {
             }
         });
 
+        if (allButton) {
+            allButton.style.display = categories.some(({ button }) => button && button.style.display !== 'none') ? '' : 'none';
+        }
+
         const activeCategoryButton = document.querySelector('.category-tab-button.active');
         if (activeCategoryButton && activeCategoryButton.style.display === 'none') {
-            const primaryButton = document.querySelector('.category-tab-button[data-category="primary"]');
+            const fallbackButton = allButton || document.querySelector('.category-tab-button[data-tier="TIER1_BASIC"]');
             const primaryPanel = document.getElementById('primary-resources');
             document.querySelectorAll('.category-tab-button').forEach((button) => {
                 button.classList.remove('active');
@@ -213,10 +219,16 @@ class UnlockManager {
                     panel.style.display = 'none';
                 }
             });
-            if (primaryButton) {
-                primaryButton.classList.add('active');
+            if (fallbackButton) {
+                fallbackButton.classList.add('active');
             }
-            if (primaryPanel) {
+            if (fallbackButton === allButton) {
+                categories.forEach(({ panel }) => {
+                    if (panel && Array.from(panel.querySelectorAll('.resource-item')).some((item) => item.style.display !== 'none')) {
+                        panel.style.display = '';
+                    }
+                });
+            } else if (primaryPanel) {
                 primaryPanel.style.display = '';
             }
         }

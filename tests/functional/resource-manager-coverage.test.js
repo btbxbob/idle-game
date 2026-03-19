@@ -30,9 +30,11 @@ test.describe('ResourceManager branch coverage', () => {
                 { t: (key) => `T_${key}` }
             );
 
-            const keysPrimary = manager.getResourceKeysByCategory('primary').length;
-            const keysSecondary = manager.getResourceKeysByCategory('secondary').length;
-            const keysAdvanced = manager.getResourceKeysByCategory('advanced').length;
+            const keysPrimary = manager.getResourceKeysByCategory('TIER1_BASIC').length;
+            const keysSecondary = manager.getResourceKeysByCategory('TIER2_PROCESSED').length;
+            const keysAdvanced = manager.getResourceKeysByCategory('TIER3_ADVANCED').length;
+            const keysSpecial = manager.getResourceKeysByCategory('SPECIAL').length;
+            const keysAll = manager.getResourceKeysByCategory('ALL').length;
             const keysUnknown = manager.getResourceKeysByCategory('unknown').length;
             const totalKeys = manager.resourceKeys.length;
 
@@ -60,6 +62,8 @@ test.describe('ResourceManager branch coverage', () => {
                 keysPrimary,
                 keysSecondary,
                 keysAdvanced,
+                keysSpecial,
+                keysAll,
                 keysUnknown,
                 totalKeys,
                 exact,
@@ -80,6 +84,8 @@ test.describe('ResourceManager branch coverage', () => {
         expect(result.keysPrimary).toBe(10);
         expect(result.keysSecondary).toBe(40);
         expect(result.keysAdvanced).toBe(result.totalKeys - 50);
+        expect(result.keysSpecial).toBe(2);
+        expect(result.keysAll).toBe(result.totalKeys + 2);
         expect(result.keysUnknown).toBe(0);
         expect(result.keysPrimary + result.keysSecondary + result.keysAdvanced).toBe(result.totalKeys);
         expect(result.exact).toBe(12);
@@ -103,9 +109,10 @@ test.describe('ResourceManager branch coverage', () => {
 
             const panelPrimary = document.getElementById('primary-resources');
             const panelSecondary = document.getElementById('secondary-resources');
-            const tabSecondary = document.querySelector('.category-tab-button[data-category="secondary"]');
+            const panelSpecial = document.getElementById('special-resources');
+            const tabSecondary = document.querySelector('.category-tab-button[data-tier="TIER2_PROCESSED"]');
 
-            if (!panelPrimary || !panelSecondary || !tabSecondary) {
+            if (!panelPrimary || !panelSecondary || !panelSpecial || !tabSecondary) {
                 return { ok: false, reason: 'missing resource DOM structure' };
             }
 
@@ -121,7 +128,7 @@ test.describe('ResourceManager branch coverage', () => {
             );
 
             manager.initialize();
-            manager.switchCategory('secondary');
+            manager.switchCategory('TIER2_PROCESSED');
 
             const bannerCoinsEl = document.getElementById('banner-coins');
             const bannerCoinsRateEl = document.getElementById('banner-coins-rate');
@@ -130,6 +137,7 @@ test.describe('ResourceManager branch coverage', () => {
             const currentCategory = manager.currentCategory;
             const primaryDisplay = panelPrimary.style.display;
             const secondaryDisplay = panelSecondary.style.display;
+            const specialDisplay = panelSpecial.style.display;
             const bannerCoinsText = bannerCoinsEl ? bannerCoinsEl.textContent || '' : '';
             const bannerCoinsRateText = bannerCoinsRateEl ? bannerCoinsRateEl.textContent || '' : '';
             const coinsPanelText = coinsPanelAmount ? coinsPanelAmount.textContent || '' : '';
@@ -178,6 +186,7 @@ test.describe('ResourceManager branch coverage', () => {
                 currentCategory,
                 primaryDisplay,
                 secondaryDisplay,
+                specialDisplay,
                 bannerCoinsText,
                 bannerCoinsRateText,
                 coinsPanelText,
@@ -188,9 +197,10 @@ test.describe('ResourceManager branch coverage', () => {
         });
 
         expect(result.ok).toBe(true);
-        expect(result.currentCategory).toBe('secondary');
+        expect(result.currentCategory).toBe('TIER2_PROCESSED');
         expect(result.primaryDisplay).toBe('none');
         expect(result.secondaryDisplay).toBe('block');
+        expect(result.specialDisplay).toBe('none');
         expect(result.bannerCoinsText).toContain('TXT_coins');
         expect(result.bannerCoinsRateText).toContain('+2.7/s');
         expect(result.coinsPanelText).toBe('123');

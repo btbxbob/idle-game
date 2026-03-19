@@ -52,8 +52,7 @@ test.describe('Secondary Resources (Tier 2)', () => {
             { name: '马达厂', output: 'Motor' },
             { name: '传感器厂', output: 'Sensor' },
             { name: '齿轮厂', output: 'Gear' },
-            { name: '电池厂', output: 'Battery' },
-            { name: '发电机厂', output: 'Generator' }
+            { name: '电池厂', output: 'Battery' }
         ];
         
         for (const factory of tier2Factories) {

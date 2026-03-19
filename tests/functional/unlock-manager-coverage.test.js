@@ -79,29 +79,37 @@ test.describe('UnlockManager coverage', () => {
             const resourcesButton = document.querySelector('.tab-button[data-tab="resources"]');
             const workersButton = document.querySelector('.tab-button[data-tab="workers"]');
             const workersPanel = document.getElementById('tab-workers');
-            const primaryButton = document.querySelector('.category-tab-button[data-category="primary"]');
-            const secondaryButton = document.querySelector('.category-tab-button[data-category="secondary"]');
-            const advancedButton = document.querySelector('.category-tab-button[data-category="advanced"]');
+            const allButton = document.querySelector('.category-tab-button[data-tier="ALL"]');
+            const primaryButton = document.querySelector('.category-tab-button[data-tier="TIER1_BASIC"]');
+            const secondaryButton = document.querySelector('.category-tab-button[data-tier="TIER2_PROCESSED"]');
+            const advancedButton = document.querySelector('.category-tab-button[data-tier="TIER3_ADVANCED"]');
+            const specialButton = document.querySelector('.category-tab-button[data-tier="SPECIAL"]');
             const primaryPanel = document.getElementById('primary-resources');
             const secondaryPanel = document.getElementById('secondary-resources');
             const advancedPanel = document.getElementById('advanced-resources');
+            const specialPanel = document.getElementById('special-resources');
             const ironOreItem = document.querySelector('.resource-panel .resource-item[data-resource="ironOre"]');
             const robotItem = advancedPanel ? advancedPanel.querySelector('[data-resource="robot"]') : null;
+            const corpseItem = specialPanel ? specialPanel.querySelector('[data-resource="corpse"]') : null;
 
             const originals = {
                 activeButtons: Array.from(document.querySelectorAll('.tab-button.active')).map((button) => button.getAttribute('data-tab')),
                 activePanels: Array.from(document.querySelectorAll('.tab-content.active')).map((panel) => panel.id),
-                activeCategory: document.querySelector('.category-tab-button.active')?.dataset.category || null,
+                activeTier: document.querySelector('.category-tab-button.active')?.dataset.tier || null,
                 workersButtonDisplay: workersButton ? workersButton.style.display : '',
                 workersPanelDisplay: workersPanel ? workersPanel.style.display : '',
                 resourcesButtonDisplay: resourcesButton ? resourcesButton.style.display : '',
+                allButtonDisplay: allButton ? allButton.style.display : '',
                 secondaryButtonDisplay: secondaryButton ? secondaryButton.style.display : '',
                 advancedButtonDisplay: advancedButton ? advancedButton.style.display : '',
+                specialButtonDisplay: specialButton ? specialButton.style.display : '',
                 primaryPanelDisplay: primaryPanel ? primaryPanel.style.display : '',
                 secondaryPanelDisplay: secondaryPanel ? secondaryPanel.style.display : '',
                 advancedPanelDisplay: advancedPanel ? advancedPanel.style.display : '',
+                specialPanelDisplay: specialPanel ? specialPanel.style.display : '',
                 ironOreDisplay: ironOreItem ? ironOreItem.style.display : '',
                 robotDisplay: robotItem ? robotItem.style.display : '',
+                corpseDisplay: corpseItem ? corpseItem.style.display : '',
             };
 
             document.querySelectorAll('.tab-button').forEach((button) => {
@@ -125,11 +133,13 @@ test.describe('UnlockManager coverage', () => {
             const workersPanelHidden = workersPanel ? workersPanel.style.display === 'none' : false;
             const ironOreHidden = ironOreItem ? ironOreItem.style.display === 'none' : false;
             const secondaryHidden = secondaryButton ? secondaryButton.style.display === 'none' : false;
-            const primaryActive = primaryButton ? primaryButton.classList.contains('active') : false;
+            const allActive = allButton ? allButton.classList.contains('active') : false;
 
             manager.updateResourceVisibility('stage_collective');
             const advancedVisible = advancedButton ? advancedButton.style.display !== 'none' : false;
             const robotVisible = robotItem ? robotItem.style.display !== 'none' : false;
+            const specialVisible = specialButton ? specialButton.style.display !== 'none' : false;
+            const corpseVisible = corpseItem ? corpseItem.style.display !== 'none' : false;
 
             document.querySelectorAll('.tab-button').forEach((button) => {
                 button.classList.remove('active');
@@ -148,20 +158,24 @@ test.describe('UnlockManager coverage', () => {
             document.querySelectorAll('.category-tab-button').forEach((button) => {
                 button.classList.remove('active');
             });
-            if (originals.activeCategory) {
-                const button = document.querySelector(`.category-tab-button[data-category="${originals.activeCategory}"]`);
+            if (originals.activeTier) {
+                const button = document.querySelector(`.category-tab-button[data-tier="${originals.activeTier}"]`);
                 if (button) button.classList.add('active');
             }
             if (workersButton) workersButton.style.display = originals.workersButtonDisplay;
             if (workersPanel) workersPanel.style.display = originals.workersPanelDisplay;
             if (resourcesButton) resourcesButton.style.display = originals.resourcesButtonDisplay;
+            if (allButton) allButton.style.display = originals.allButtonDisplay;
             if (secondaryButton) secondaryButton.style.display = originals.secondaryButtonDisplay;
             if (advancedButton) advancedButton.style.display = originals.advancedButtonDisplay;
+            if (specialButton) specialButton.style.display = originals.specialButtonDisplay;
             if (primaryPanel) primaryPanel.style.display = originals.primaryPanelDisplay;
             if (secondaryPanel) secondaryPanel.style.display = originals.secondaryPanelDisplay;
             if (advancedPanel) advancedPanel.style.display = originals.advancedPanelDisplay;
+            if (specialPanel) specialPanel.style.display = originals.specialPanelDisplay;
             if (ironOreItem) ironOreItem.style.display = originals.ironOreDisplay;
             if (robotItem) robotItem.style.display = originals.robotDisplay;
+            if (corpseItem) corpseItem.style.display = originals.corpseDisplay;
 
             return {
                 workersButtonHidden,
@@ -169,9 +183,11 @@ test.describe('UnlockManager coverage', () => {
                 workersPanelHidden,
                 ironOreHidden,
                 secondaryHidden,
-                primaryActive,
+                allActive,
                 advancedVisible,
                 robotVisible,
+                specialVisible,
+                corpseVisible,
             };
         });
 
@@ -180,9 +196,11 @@ test.describe('UnlockManager coverage', () => {
         expect(result.workersPanelHidden).toBe(true);
         expect(result.ironOreHidden).toBe(true);
         expect(result.secondaryHidden).toBe(true);
-        expect(result.primaryActive).toBe(false);
+        expect(result.allActive).toBe(true);
         expect(result.advancedVisible).toBe(true);
         expect(result.robotVisible).toBe(true);
+        expect(result.specialVisible).toBe(true);
+        expect(result.corpseVisible).toBe(true);
     });
 
     test('progression summary, requirement lines and label helper branches', async ({ page }) => {

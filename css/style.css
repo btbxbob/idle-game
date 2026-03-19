@@ -441,7 +441,6 @@ header {
     background-color: var(--panel-bg);
     border-bottom: 2px solid var(--border-color);
     padding: 0;
-    margin-top: 2px;
     position: relative;
     height: 38px;
     min-height: 38px;
@@ -451,6 +450,8 @@ header {
     scrollbar-width: none;
     -ms-overflow-style: none;
     z-index: 5;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 #tab-navigation::-webkit-scrollbar {
@@ -517,10 +518,18 @@ header {
 
 /* Main Content with Tabs */
 #main-shell {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
     flex: 1 1 auto;
     min-height: 0;
     gap: 0;
+    margin-top: 2px;
+}
+
+#main-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 #main-content {
@@ -536,13 +545,15 @@ header {
 }
 
 #objective-sidebar {
-    width: 320px;
-    min-width: 320px;
-    border-top: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    display: none;
+    width: 340px;
+    min-width: 340px;
+    justify-self: stretch;
+    border-left: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.06)), var(--main-bg);
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .tab-content {
@@ -1002,7 +1013,23 @@ footer {
         min-height: 38px;
         max-height: 38px;
     }
-    
+
+    #main-shell {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #objective-sidebar {
+        width: 100%;
+        min-width: 0;
+        border-left: 2px solid var(--border-color);
+        border-right: 2px solid var(--border-color);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    #objective-panel-anchor {
+        padding: 10px;
+    }
+
     #main-content {
         padding: 10px;
         overflow-y: auto;
@@ -2831,7 +2858,7 @@ footer {
 
 #objective-panel-anchor {
     display: none;
-    padding: 18px;
+    padding: 10px;
 }
 
 .objective-panel {
