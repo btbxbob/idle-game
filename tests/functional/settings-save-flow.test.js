@@ -43,7 +43,7 @@ test.describe('Settings save flow', () => {
       language: Array.from(document.querySelectorAll('#language-select-setting option')).map((option) => option.textContent),
     }));
     expect(optionLabels.theme).toEqual(['Light Theme', 'Dark Theme']);
-    expect(optionLabels.language).toEqual(['Simplified Chinese', 'English / English']);
+    expect(optionLabels.language).toEqual(['Simplified Chinese', 'English']);
 
     for (let i = 0; i < 8; i += 1) {
       await page.click('#coin-button');

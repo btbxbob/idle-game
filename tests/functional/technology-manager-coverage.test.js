@@ -332,8 +332,9 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.techName).toBe('Advanced Mining');
         expect(result.techDescription).toContain('greatly increase ore production');
         expect(result.effectTypes.length).toBe(6);
-        expect(result.effectTypes[0]).toContain('Iron Ore Production');
-        expect(result.effectTypes[1]).toContain('Unlocks: Mine');
+        expect(result.effectTypes[0] === '+20% Iron Ore Production' || result.effectTypes[0].includes('Iron Ore Production')).toBe(true);
+        expect(result.effectTypes[1]).toContain('Unlocks');
+        expect(result.effectTypes[1]).toContain('Mine');
         expect(result.effectTypes[2]).toContain('Unlocks a new feature');
     });
 

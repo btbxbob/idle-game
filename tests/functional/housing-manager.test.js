@@ -14,9 +14,13 @@ test.describe('HousingManager coverage', () => {
 
             const resources = { Gold: 9999, Wood: 9999, Stone: 9999 };
             const sampleHousing = [{
-                name: '小屋',
+                name: '棚屋',
                 level: 1,
                 capacity: 10,
+                baseCapacity: 10,
+                description: '测试住房',
+                icon: '🏠',
+                requiredTechnology: 'BasicLogging',
                 upgradeCost: { gold: 100, wood: 50 }
             }];
 
@@ -60,7 +64,8 @@ test.describe('HousingManager coverage', () => {
                 listLength: list.length,
                 canAfford,
                 upgraded,
-                renderedListContainsItem: renderedList.includes('housing-item')
+                renderedListContainsItem: renderedList.includes('housing-item'),
+                renderedListContainsTech: renderedList.includes('Basic Logging') || renderedList.includes('基础伐木')
             };
         });
 
@@ -72,6 +77,7 @@ test.describe('HousingManager coverage', () => {
         expect(result.canAfford).toBe(true);
         expect(result.upgraded).toBe(true);
         expect(result.renderedListContainsItem).toBe(true);
+        expect(result.renderedListContainsTech).toBe(true);
     });
 
     test('fallback, affordability and occupancy clamp branches', async ({ page }) => {
@@ -158,8 +164,8 @@ test.describe('HousingManager coverage', () => {
 
             const manager = new window.HousingManager({
                 get_housing: () => [
-                    { name: '小屋A', level: 1, capacity: 5, upgradeCost: { coins: 10 } },
-                    { name: '小屋B', level: 1, capacity: 6, upgradeCost: { coins: 10 } },
+                    { name: '棚屋', level: 1, capacity: 5, baseCapacity: 5, upgradeCost: { coins: 10 } },
+                    { name: '木梁小屋', level: 1, capacity: 6, baseCapacity: 6, upgradeCost: { coins: 10 } },
                 ],
                 upgrade_housing: () => false,
                 get_resources: () => ({ Gold: 0 }),
@@ -216,7 +222,7 @@ test.describe('HousingManager coverage', () => {
             const panelHtml = panel ? panel.innerHTML : '';
 
             const fallbackManager = new window.HousingManager({
-                get_housing: () => [{ name: '回退小屋', level: 1, capacity: 4, upgradeCost: { coins: 1 } }],
+                get_housing: () => [{ name: '棚屋', level: 1, capacity: 4, baseCapacity: 4, upgradeCost: { coins: 1 } }],
                 get_resources: () => ({ Gold: 10, Wood: 0, Stone: 0 }),
             });
             let renderCalls = 0;

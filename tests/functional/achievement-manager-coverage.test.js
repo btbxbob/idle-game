@@ -169,7 +169,11 @@ test.describe('AchievementManager coverage', () => {
         expect(result.renderedCategories).toBe(2);
         expect(result.progressText).toContain('3 / 10');
         expect(result.unlockedTimeText.length).toBeGreaterThan(0);
-        expect(result.placeholderText === 'achievementsPlaceholder' || result.placeholderText.includes('成就系统')).toBe(true);
+        expect(
+            result.placeholderText === 'achievementsPlaceholder'
+            || result.placeholderText.includes('暂无成就数据')
+            || result.placeholderText.includes('No achievement data available yet')
+        ).toBe(true);
         expect(result.categoryEn).toBe('Clicks');
         expect(result.categoryZh).toBe('资源');
         expect(result.unknownCategory).toBe('mystery');

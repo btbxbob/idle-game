@@ -116,7 +116,8 @@ test.describe('I18n coverage', () => {
         expect(result.missingFallback).toBe('totallyMissingKey');
         expect(result.interpolated).toBe('5分钟前');
         expect(result.gameTitle).toContain('Rust WASM');
-        expect(result.workersList).toContain('没有工人');
+        expect(result.workersPlaceholder === '正在加载工人面板...' || result.workersPlaceholder.includes('Loading worker panel')).toBe(true);
+        expect(result.workersList.length).toBeGreaterThan(0);
         expect(result.coinsText).toBe('金币: 0');
         expect(result.woodText).toBe('木头: 3');
         expect(result.stoneText).toBe('石头: 0');

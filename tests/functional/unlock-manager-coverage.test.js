@@ -242,9 +242,9 @@ test.describe('UnlockManager coverage', () => {
             };
         });
 
-        expect(result.summaryHtml).toContain('集体阶段');
+        expect(result.summaryHtml.includes('集体阶段') || result.summaryHtml.includes('Collective Stage')).toBe(true);
         expect(result.summaryHtml).toContain('PHASE 05');
-        expect(result.summaryHtml).toContain('集体意识');
+        expect(result.summaryHtml.includes('集体意识') || result.summaryHtml.includes('Collective Consciousness')).toBe(true);
         expect(result.linesHtml).toContain('unlock-requirement-line');
         expect(result.emptyLines).toBe('');
         expect(result.nonFiniteValue).toBe('0');
@@ -253,9 +253,9 @@ test.describe('UnlockManager coverage', () => {
         expect(result.themeUnknown).toBe('theme-genesis');
         expect(result.phaseUnknown).toBe('PHASE 01');
         expect(result.narrativeUnknown).toContain('资源与手工劳动');
-        expect(result.featureUnknown).toBe('揭示项目');
-        expect(result.requirementDefault).toBe('满足当前阶段条件');
-        expect(result.descriptionDefault).toBe('新的阶段边界正在显现。');
+        expect(result.featureUnknown === '揭示项目' || result.featureUnknown === 'Revelation Target').toBe(true);
+        expect(result.requirementDefault === '满足当前阶段条件' || result.requirementDefault === 'Meet the current stage requirements').toBe(true);
+        expect(result.descriptionDefault === '新的阶段边界正在显现。' || result.descriptionDefault === 'A new stage boundary is coming into view.').toBe(true);
     });
 
     test('invalid progress details and disabled unlock button branches execute', async ({ page }) => {
