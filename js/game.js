@@ -29,6 +29,12 @@ function formatCoinButtonValue(value) {
     return formatIntegerDisplay(value);
 }
 
+function getLocalizedErrorSeparator() {
+    return window.i18n && typeof window.i18n.getCurrentLanguage === 'function' && window.i18n.getCurrentLanguage() === 'en'
+        ? ': '
+        : '：';
+}
+
 // Function that will be called from Rust/WASM to update UI
 window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, woodPerSecond, stonePerSecond, coinsPerClick) {
     // Use i18n system to update resource displays
@@ -331,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Game exported to BASE64 at', new Date().toLocaleTimeString());
                 } catch (exportError) {
                     console.error('Export failed:', exportError);
-                    alert(`${window.i18n ? window.i18n.t('exportFailed') : '导出失败'}: ${exportError.message}`);
+                    alert(`${window.i18n ? window.i18n.t('exportFailed') : '导出失败'}${getLocalizedErrorSeparator()}${exportError.message}`);
                 }
             }
         });
@@ -363,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } catch (importError) {
                     console.error('Import failed:', importError);
-                    alert(`${window.i18n ? window.i18n.t('importFailed') : '导入失败'}: ${importError.message || 'Invalid BASE64 string'}`);
+                    alert(`${window.i18n ? window.i18n.t('importFailed') : '导入失败'}${getLocalizedErrorSeparator()}${importError.message || 'Invalid BASE64 string'}`);
                 }
             }
         });

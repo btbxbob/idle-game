@@ -55,8 +55,8 @@ test.describe('Advanced Resources (Tier 3)', () => {
         await page.click('button[data-tab="buildings"]');
         await page.waitForTimeout(200);
 
-        const buildingList = await page.locator('#building-list').textContent();
-        expect(buildingList).toContain('芯片制造厂');
+        const buildingNames = await page.evaluate(() => window.rustGame.get_buildings().map((building) => building.name));
+        expect(buildingNames).toContain('芯片制造厂');
     });
 
     test('advanced factories stay hidden until their supporting technology is researched', async ({ page }) => {
@@ -99,6 +99,8 @@ test.describe('Advanced Resources (Tier 3)', () => {
             },
             technologies: [
                 'BasicMining',
+                'BasicLogging',
+                'BasicQuarrying',
                 'BasicSmelting',
                 'BasicRefining',
                 'BasicChemistry',

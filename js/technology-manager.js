@@ -174,7 +174,15 @@ class TechnologyManager {
             Omniscience: 'Omniscience',
         };
 
-        return names[techId] || techId || (tech && tech.name) || '';
+        return names[techId] || (tech && tech.name) || techId || '';
+    }
+
+    humanizeIdentifier(value) {
+        const text = value == null ? '' : String(value);
+        if (!text || text.includes(' ')) {
+            return text;
+        }
+        return text.replace(/([a-z])([A-Z])/g, '$1 $2');
     }
 
     getTechnologyDescription(tech) {
@@ -915,7 +923,7 @@ class TechnologyManager {
             }
         }
 
-        return resourceType;
+        return this.isEnglish() ? this.humanizeIdentifier(resourceType) : resourceType;
     }
 
     getResourceShortName(resourceType) {

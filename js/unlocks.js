@@ -208,7 +208,7 @@ class UnlockManager {
         }
 
         const activeCategoryButton = document.querySelector('.category-tab-button.active');
-        if (activeCategoryButton && activeCategoryButton.style.display === 'none') {
+        if (!activeCategoryButton || activeCategoryButton.style.display === 'none') {
             const fallbackButton = allButton || document.querySelector('.category-tab-button[data-tier="TIER1_BASIC"]');
             const primaryPanel = document.getElementById('primary-resources');
             document.querySelectorAll('.category-tab-button').forEach((button) => {

@@ -327,7 +327,7 @@ test.describe('Workers System', () => {
             calls: window.__autoAssignFlow.calls,
         }));
 
-        expect(cancelState.confirms).toContain('将为未分配工人执行自动分配，是否继续？');
+        expect(cancelState.confirms).toContain('将重新为全部工人执行自动安排，并优先选择效率最高且仍有空位的岗位，是否继续？');
         expect(cancelState.calls).toBe(0);
         expect(cancelState.alerts).toHaveLength(0);
 
@@ -347,8 +347,8 @@ test.describe('Workers System', () => {
         }));
 
         expect(successState.calls).toBe(1);
-        expect(successState.alerts).toContain('自动分配完成：成功分配 2 名工人');
-        expect(successState.confirms.filter((message) => message === '将为未分配工人执行自动分配，是否继续？')).toHaveLength(2);
+        expect(successState.alerts).toContain('自动安排完成：已为 2 名工人选择当前最佳且仍有空位的岗位');
+        expect(successState.confirms.filter((message) => message === '将重新为全部工人执行自动安排，并优先选择效率最高且仍有空位的岗位，是否继续？')).toHaveLength(2);
     });
 
     test('worker assignment respects building slot capacity', async ({ page }) => {
