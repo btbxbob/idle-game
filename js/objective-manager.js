@@ -40,7 +40,12 @@ class ObjectiveManager {
         const sidebar = document.getElementById('objective-sidebar');
 
         const chain = this.currentChain;
-        if (!chain || !chain.active || !Array.isArray(chain.steps) || chain.steps.length === 0) {
+        const allCompleted = !!chain
+            && Array.isArray(chain.steps)
+            && chain.steps.length > 0
+            && chain.steps.every((step) => step && step.completed);
+
+        if (!chain || !chain.active || !Array.isArray(chain.steps) || chain.steps.length === 0 || allCompleted) {
             this.container.innerHTML = '';
             this.container.style.display = 'none';
             if (sidebar) {

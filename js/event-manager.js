@@ -6,6 +6,7 @@ class EventManager {
         this.detailCache = new Map();
         this.observer = null;
         this.tickerRenderKey = '';
+        this.logRenderKey = '';
     }
 
     t(key, fallback = key) {
@@ -182,10 +183,27 @@ class EventManager {
 
         if (reset) {
             this.loadedCount = 0;
+            this.logRenderKey = '';
         }
 
         const total = this.getEventLogCount();
         const targetCount = append ? this.loadedCount + this.pageSize : (this.loadedCount || this.pageSize);
+        const languageKey = this.isEnglish() ? 'en' : 'zh';
+        const renderKey = `${languageKey}|${total}|${targetCount}|${append ? 'append' : 'steady'}`;
+
+        if (!reset && !append && this.logRenderKey === renderKey) {
+            if (meta) {
+                meta.textContent = `${this.loadedCount}/${total}`;
+            }
+
+            if (loadMore) {
+                const hasMore = this.loadedCount < total;
+                loadMore.disabled = !hasMore;
+                loadMore.textContent = hasMore ? this.t('eventLoadMore', 'Load Older Reports') : this.t('eventNoMore', 'No older reports');
+            }
+            return;
+        }
+
         const batch = this.getEventSummaries(0, Math.min(targetCount, total || this.pageSize));
 
         if (reset || !append) {
@@ -210,6 +228,8 @@ class EventManager {
             loadMore.disabled = !hasMore;
             loadMore.textContent = hasMore ? this.t('eventLoadMore', 'Load Older Reports') : this.t('eventNoMore', 'No older reports');
         }
+
+        this.logRenderKey = `${languageKey}|${total}|${this.loadedCount}|steady`;
     }
 
     renderEventShell(event, featured = false) {
@@ -233,7 +253,7 @@ class EventManager {
                     <div class="event-news-interview pending">
                         <div class="event-news-interview-label">${this.escapeHtml(this.t('eventInterviewLabel', 'Worker Interview'))}</div>
                         <div class="event-news-interview-name">${this.escapeHtml(workerName)}${workerTrait ? ` · ${this.escapeHtml(workerTrait)}` : ''}</div>
-                        <blockquote class="skeleton-line short"></blockquote>
+                        <blockquote class="event-news-interview-placeholder"></blockquote>
                     </div>
                 ` : ''}
             </article>

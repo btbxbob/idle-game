@@ -1,6 +1,6 @@
 {
   "name": "idle-game-tests",
-  "version": "0.8.2",
+  "version": "0.8.6",
   "description": "Playwright tests for idle game",
   "scripts": {
     "test": "playwright test",

@@ -2971,17 +2971,40 @@ footer {
 .event-news-body {
     line-height: 1.8;
     white-space: pre-wrap;
+    column-count: 2;
+    column-gap: 28px;
+    column-rule: 1px solid rgba(0, 0, 0, 0.08);
+    text-align: justify;
+    orphans: 2;
+    widows: 2;
 }
 
 .event-news-interview {
     display: grid;
     gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
     padding-top: 10px;
     border-top: 1px dashed var(--border-color);
 }
 
 .event-news-interview.pending blockquote {
     min-height: 0.95em;
+    animation: none !important;
+    background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.event-news-interview-placeholder {
+    display: block;
+    width: 58%;
+    min-height: 0.95em;
+    border-radius: 999px;
+    background-color: rgba(0, 0, 0, 0.08);
+    animation: none !important;
+    transition: none !important;
+    background-image: none !important;
 }
 
 .event-news-interview-label {
@@ -2992,16 +3015,35 @@ footer {
 }
 
 .event-news-interview-name {
+    display: block;
+    width: 100%;
+    max-width: 100%;
     font-size: 12px;
     font-weight: bold;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .event-news-interview blockquote {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    animation: none !important;
+    transition: none !important;
+    background-image: none !important;
     margin: 0;
     padding-left: 12px;
     border-left: 3px solid var(--border-color);
     line-height: 1.7;
     opacity: 0.88;
+    min-width: 0;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 #event-log-load-more {
@@ -3810,6 +3852,12 @@ footer {
 
     .event-news-time {
         margin-left: 0;
+    }
+
+    .event-news-body {
+        column-count: 1;
+        column-gap: 0;
+        column-rule: 0;
     }
 
     .event-ticker-item {
