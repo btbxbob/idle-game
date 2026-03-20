@@ -11,7 +11,7 @@ pipeline {
     booleanParam(name: 'RUN_COVERAGE', defaultValue: false, description: 'Run Playwright e2e coverage check in Jenkins')
     booleanParam(name: 'PW_PARALLEL_CONTAINERS', defaultValue: false, description: 'Run functional tests in 2 parallel containers')
     booleanParam(name: 'RUN_REGRESSION_TESTS', defaultValue: false, description: 'Include regression tests (only when not using parallel containers)')
-    string(name: 'PW_TEST_WORKERS', defaultValue: '2', description: 'Playwright worker count for single-container runs (positive integer)')
+    string(name: 'PW_TEST_WORKERS', defaultValue: '4', description: 'Playwright worker count for single-container runs (positive integer)')
   }
 
   environment {
@@ -24,7 +24,7 @@ pipeline {
     PLAYWRIGHT_IMAGE_PRIMARY = 'mcr.microsoft.com/playwright:v1.58.2-jammy'
     PLAYWRIGHT_IMAGE_MIRROR = 'mcr.azure.cn/playwright:v1.58.2-jammy'
     PLAYWRIGHT_PULL_TIMEOUT_SECONDS = '30'
-    PW_TEST_WORKERS = '2'
+    PW_TEST_WORKERS = '4'
     PW_TEST_RETRIES = '1'
     E2E_COVERAGE_MIN_LINES = '20'
     E2E_COVERAGE_MIN_STATEMENTS = '20'
