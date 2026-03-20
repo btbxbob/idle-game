@@ -37,8 +37,9 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
-class ReusableTCPServer(socketserver.TCPServer):
+class ReusableTCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
+    daemon_threads = True
 
 
 def main():
@@ -62,6 +63,7 @@ def main():
         print(f"Navigate to http://localhost:{port} to play the game")
 
     with ReusableTCPServer(("", port), QuietHandler) as httpd:
+        print(f"Serving files from {os.getcwd()} with threaded HTTP handling")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
