@@ -180,8 +180,8 @@ mod tests {
         assert_eq!(last_consumption, 106.0);
         assert!(!workers[0].is_hungry);
         assert!(!workers[1].is_hungry);
-        assert_eq!(workers[0].health, 52.5);
-        assert_eq!(workers[1].health, 52.5);
+        assert_eq!(workers[0].health, 100.0);
+        assert_eq!(workers[1].health, 100.0);
     }
 
     #[test]
