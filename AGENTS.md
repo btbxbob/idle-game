@@ -222,6 +222,10 @@ wasm-pack build --target web --out-dir pkg --dev
 strings pkg/idle_game_bg.wasm | grep "0\.6\."  # Should output: 0.6.7
 ```
 
+Important:
+- If gameplay or UI changes are not appearing in the browser, bump the runtime version and update the `index.html` cache-busting query strings before rebuilding.
+- In practice, version bumps are the reliable way to force the browser to load fresh JS/WASM assets after runtime changes.
+
 ### 3. Verify & Commit
 ```bash
 python3 server.py

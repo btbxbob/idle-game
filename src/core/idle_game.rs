@@ -2,7 +2,7 @@ use crate::entities::{Building, Hobby, Housing, LimbSlot, PopulationQueue, Trait
 use crate::state::resource::ResourceType;
 use crate::state::{GameStage, GameState, Statistics};
 use crate::systems::{
-    achievement::Achievement, crafting::CraftingRecipe, production, stage,
+    achievement::Achievement, crafting::CraftingRecipe, event, production, stage,
     technology::TechnologyTree, unlock::UnlockedFeature,
 };
 use crate::utils::WorkerGenerator;
@@ -940,7 +940,7 @@ impl IdleGame {
             .push(reward_id.to_string());
     }
 
-    fn sync_worker_objective_progress(&mut self) {
+    fn sync_objective_progress(&mut self) {
         let current_stage = self.state.borrow().current_stage;
         if current_stage < GameStage::Workers {
             return;
@@ -977,6 +977,89 @@ impl IdleGame {
         if purchased_technologies >= 1 {
             self.mark_objective_step_completed("research_first_tech");
         }
+
+        if current_stage >= GameStage::Maggot {
+            let maggots_ready = self.state.borrow().get_resource(ResourceType::Maggot) >= 1.0;
+            let maggot_factory_count = self
+                .buildings
+                .iter()
+                .find(|building| building.name == "蛆虫工厂")
+                .map(|building| building.count)
+                .unwrap_or(0);
+            let has_maggot_breeding = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::MaggotBreeding);
+            let has_necrotic_recycling = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::NecroticRecycling);
+
+            if maggots_ready {
+                self.mark_objective_step_completed("gain_maggot");
+            }
+            if has_maggot_breeding || has_necrotic_recycling {
+                self.mark_objective_step_completed("research_maggot_tech");
+            }
+            if maggot_factory_count >= 1 {
+                self.mark_objective_step_completed("build_maggot_facility");
+            }
+        }
+
+        if current_stage >= GameStage::Hybrid {
+            let (hybrid_population, symbiosis_stability) = {
+                let state = self.state.borrow();
+                (
+                    state.coexistence.hybrid_population,
+                    state.coexistence.symbiosis_stability,
+                )
+            };
+            let symbiosis_chambers = self
+                .buildings
+                .iter()
+                .find(|building| building.name == "共生培育舱")
+                .map(|building| building.count)
+                .unwrap_or(0);
+            let has_hive_mind = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::HiveMindProtocol);
+
+            if hybrid_population >= 1.0 {
+                self.mark_objective_step_completed("gain_hybrid_population");
+            }
+            if symbiosis_chambers >= 1 {
+                self.mark_objective_step_completed("build_symbiosis_chamber");
+            }
+            if symbiosis_stability >= 55.0 {
+                self.mark_objective_step_completed("stabilize_symbiosis");
+            }
+            if has_hive_mind {
+                self.mark_objective_step_completed("research_hive_mind");
+            }
+        }
+
+        if current_stage >= GameStage::Collective {
+            let dark_matter_ready =
+                self.state.borrow().get_resource(ResourceType::DarkMatter) >= 1.0;
+            let spaceships_ready = self.state.borrow().get_resource(ResourceType::Spaceship) >= 1.0;
+            let has_collective_awakening = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::CollectiveAwakening);
+            let has_consciousness_upload = self
+                .technology_tree
+                .is_unlocked(crate::entities::technology::TechnologyId::ConsciousnessUpload);
+
+            if has_collective_awakening {
+                self.mark_objective_step_completed("awaken_collective");
+            }
+            if dark_matter_ready {
+                self.mark_objective_step_completed("produce_dark_matter");
+            }
+            if has_consciousness_upload {
+                self.mark_objective_step_completed("upload_consciousness");
+            }
+            if spaceships_ready {
+                self.mark_objective_step_completed("launch_first_ship");
+            }
+        }
     }
 
     fn refresh_progression_state(&mut self) {
@@ -994,7 +1077,7 @@ impl IdleGame {
         };
 
         self.try_grant_stage_reward(current_stage);
-        self.sync_worker_objective_progress();
+        self.sync_objective_progress();
     }
 
     fn get_worker_objective_chain_view(&self) -> ObjectiveChainView {
@@ -1011,6 +1094,8 @@ impl IdleGame {
         if state.current_stage >= GameStage::Collective {
             let dark_matter = state.get_resource(ResourceType::DarkMatter);
             let spaceships = state.get_resource(ResourceType::Spaceship);
+            let completed = &state.objective_chain.completed_steps;
+            let is_completed = |step_id: &str| completed.iter().any(|value| value == step_id);
             let has_collective_awakening = self
                 .technology_tree
                 .is_unlocked(crate::entities::technology::TechnologyId::CollectiveAwakening);
@@ -1023,9 +1108,13 @@ impl IdleGame {
                     id: "awaken_collective".to_string(),
                     title: "完成统一意识觉醒".to_string(),
                     description: "让共生体真正进入统一意识，终局扩张才会开启。".to_string(),
-                    current: if has_collective_awakening { 1.0 } else { 0.0 },
+                    current: if is_completed("awaken_collective") || has_collective_awakening {
+                        1.0
+                    } else {
+                        0.0
+                    },
                     required: 1.0,
-                    completed: has_collective_awakening,
+                    completed: is_completed("awaken_collective") || has_collective_awakening,
                     reward: "终局网络已激活".to_string(),
                     recommended_tab: "technology".to_string(),
                 },
@@ -1033,9 +1122,13 @@ impl IdleGame {
                     id: "produce_dark_matter".to_string(),
                     title: "产出第一批暗物质".to_string(),
                     description: "让黑暗链条真正并入终局资源网络。".to_string(),
-                    current: dark_matter.min(1.0),
+                    current: if is_completed("produce_dark_matter") {
+                        1.0
+                    } else {
+                        dark_matter.min(1.0)
+                    },
                     required: 1.0,
-                    completed: dark_matter >= 1.0,
+                    completed: is_completed("produce_dark_matter"),
                     reward: "终局资源网络建立".to_string(),
                     recommended_tab: "resources".to_string(),
                 },
@@ -1043,9 +1136,13 @@ impl IdleGame {
                     id: "upload_consciousness".to_string(),
                     title: "研究意识上传".to_string(),
                     description: "把个体生产彻底并入统一调度体系。".to_string(),
-                    current: if has_consciousness_upload { 1.0 } else { 0.0 },
+                    current: if is_completed("upload_consciousness") || has_consciousness_upload {
+                        1.0
+                    } else {
+                        0.0
+                    },
                     required: 1.0,
-                    completed: has_consciousness_upload,
+                    completed: is_completed("upload_consciousness") || has_consciousness_upload,
                     reward: "文明级效率跃迁".to_string(),
                     recommended_tab: "technology".to_string(),
                 },
@@ -1053,9 +1150,13 @@ impl IdleGame {
                     id: "launch_first_ship".to_string(),
                     title: "建造第一艘太空船".to_string(),
                     description: "把统一意识投射到文明尺度的远征网络。".to_string(),
-                    current: spaceships.min(1.0),
+                    current: if is_completed("launch_first_ship") {
+                        1.0
+                    } else {
+                        spaceships.min(1.0)
+                    },
                     required: 1.0,
-                    completed: spaceships >= 1.0,
+                    completed: is_completed("launch_first_ship"),
                     reward: "星际扩张开始".to_string(),
                     recommended_tab: "buildings".to_string(),
                 },
@@ -1077,6 +1178,8 @@ impl IdleGame {
         if state.current_stage >= GameStage::Hybrid {
             let hybrid_population = state.coexistence.hybrid_population;
             let symbiosis_stability = state.coexistence.symbiosis_stability;
+            let completed = &state.objective_chain.completed_steps;
+            let is_completed = |step_id: &str| completed.iter().any(|value| value == step_id);
             let symbiosis_chambers = self
                 .buildings
                 .iter()
@@ -1092,9 +1195,13 @@ impl IdleGame {
                     id: "gain_hybrid_population".to_string(),
                     title: "获得第一批混合人口".to_string(),
                     description: "让共生不再只是状态，而成为可用劳动力。".to_string(),
-                    current: hybrid_population.min(1.0),
+                    current: if is_completed("gain_hybrid_population") {
+                        1.0
+                    } else {
+                        hybrid_population.min(1.0)
+                    },
                     required: 1.0,
-                    completed: hybrid_population >= 1.0,
+                    completed: is_completed("gain_hybrid_population"),
                     reward: "共生劳动力可用".to_string(),
                     recommended_tab: "lifecycle".to_string(),
                 },
@@ -1102,9 +1209,13 @@ impl IdleGame {
                     id: "build_symbiosis_chamber".to_string(),
                     title: "建造第一座共生培育舱".to_string(),
                     description: "为混合人口提供稳定扩张的物理载体。".to_string(),
-                    current: symbiosis_chambers.min(1.0),
+                    current: if is_completed("build_symbiosis_chamber") {
+                        1.0
+                    } else {
+                        symbiosis_chambers.min(1.0)
+                    },
                     required: 1.0,
-                    completed: symbiosis_chambers >= 1.0,
+                    completed: is_completed("build_symbiosis_chamber"),
                     reward: "共生体系扩张".to_string(),
                     recommended_tab: "buildings".to_string(),
                 },
@@ -1112,9 +1223,13 @@ impl IdleGame {
                     id: "stabilize_symbiosis".to_string(),
                     title: "维持共生稳定度".to_string(),
                     description: "把社会风险控制在可运转范围内。".to_string(),
-                    current: symbiosis_stability.min(55.0),
+                    current: if is_completed("stabilize_symbiosis") {
+                        55.0
+                    } else {
+                        symbiosis_stability.min(55.0)
+                    },
                     required: 55.0,
-                    completed: symbiosis_stability >= 55.0,
+                    completed: is_completed("stabilize_symbiosis"),
                     reward: "秩序暂时稳定".to_string(),
                     recommended_tab: "lifecycle".to_string(),
                 },
@@ -1122,9 +1237,13 @@ impl IdleGame {
                     id: "research_hive_mind".to_string(),
                     title: "研究蜂巢协议".to_string(),
                     description: "让共生个体进入共享思维网络，准备终局跃迁。".to_string(),
-                    current: if has_hive_mind { 1.0 } else { 0.0 },
+                    current: if is_completed("research_hive_mind") || has_hive_mind {
+                        1.0
+                    } else {
+                        0.0
+                    },
                     required: 1.0,
-                    completed: has_hive_mind,
+                    completed: is_completed("research_hive_mind") || has_hive_mind,
                     reward: "集体意识入口已出现".to_string(),
                     recommended_tab: "technology".to_string(),
                 },
@@ -1145,6 +1264,8 @@ impl IdleGame {
 
         if state.current_stage >= GameStage::Maggot {
             let maggots = state.get_resource(ResourceType::Maggot);
+            let completed = &state.objective_chain.completed_steps;
+            let is_completed = |step_id: &str| completed.iter().any(|value| value == step_id);
             let maggot_factory = self
                 .buildings
                 .iter()
@@ -1179,9 +1300,13 @@ impl IdleGame {
                     id: "gain_maggot".to_string(),
                     title: "获得第一批蛆虫".to_string(),
                     description: "让死亡后果第一次转化为可利用的资源。".to_string(),
-                    current: maggots.min(1.0),
+                    current: if is_completed("gain_maggot") {
+                        1.0
+                    } else {
+                        maggots.min(1.0)
+                    },
                     required: 1.0,
-                    completed: maggots >= 1.0,
+                    completed: is_completed("gain_maggot"),
                     reward: "黑暗资源链出现".to_string(),
                     recommended_tab: "resources".to_string(),
                 },
@@ -1189,13 +1314,18 @@ impl IdleGame {
                     id: "research_maggot_tech".to_string(),
                     title: "研究首项黑暗科技".to_string(),
                     description: "用科技把黑暗链条从偶然转向可控扩张。".to_string(),
-                    current: if has_maggot_breeding || has_necrotic_recycling {
+                    current: if is_completed("research_maggot_tech")
+                        || has_maggot_breeding
+                        || has_necrotic_recycling
+                    {
                         1.0
                     } else {
                         0.0
                     },
                     required: 1.0,
-                    completed: has_maggot_breeding || has_necrotic_recycling,
+                    completed: is_completed("research_maggot_tech")
+                        || has_maggot_breeding
+                        || has_necrotic_recycling,
                     reward: "共生过渡路线出现".to_string(),
                     recommended_tab: "technology".to_string(),
                 },
@@ -1203,9 +1333,13 @@ impl IdleGame {
                     id: "build_maggot_facility".to_string(),
                     title: "建造第一座蛆虫工厂".to_string(),
                     description: "用黑暗科技把偶发尸腐转成稳定生产线。".to_string(),
-                    current: maggot_factory.min(1.0),
+                    current: if is_completed("build_maggot_facility") {
+                        1.0
+                    } else {
+                        maggot_factory.min(1.0)
+                    },
                     required: 1.0,
-                    completed: maggot_factory >= 1.0,
+                    completed: is_completed("build_maggot_facility"),
                     reward: "黑暗加工已开启".to_string(),
                     recommended_tab: "buildings".to_string(),
                 },
@@ -2703,6 +2837,102 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn get_event_log_count(&self) -> usize {
+        self.state.borrow().event_journal.entries.len()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_event_log_summaries(&self, offset: usize, limit: usize) -> JsValue {
+        let state = self.state.borrow();
+        let entries = &state.event_journal.entries;
+        if entries.is_empty() || limit == 0 {
+            return js_sys::Array::new().into();
+        }
+
+        let newest_first: Vec<_> = entries
+            .iter()
+            .rev()
+            .skip(offset)
+            .take(limit)
+            .map(event::summarize_event_entry)
+            .collect();
+        serde_wasm_bindgen::to_value(&newest_first).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen]
+    pub fn get_event_log_detail(&self, event_id: u32) -> JsValue {
+        let state = self.state.borrow();
+        let rendered = state
+            .event_journal
+            .entries
+            .iter()
+            .find(|entry| entry.event_id == event_id)
+            .and_then(event::render_event_entry);
+
+        serde_wasm_bindgen::to_value(&rendered).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen]
+    pub fn get_breaking_event_titles(&self, limit: usize) -> JsValue {
+        let items = js_sys::Array::new();
+        if limit == 0 {
+            return items.into();
+        }
+
+        let state = self.state.borrow();
+        for entry in state
+            .event_journal
+            .entries
+            .iter()
+            .rev()
+            .filter(|entry| entry.is_breaking)
+            .take(limit)
+        {
+            if let Some(rendered) = event::render_event_entry(entry) {
+                let obj = js_sys::Object::new();
+                let _ = js_sys::Reflect::set(
+                    &obj,
+                    &JsValue::from_str("eventId"),
+                    &JsValue::from_f64(rendered.event_id as f64),
+                );
+                let _ = js_sys::Reflect::set(
+                    &obj,
+                    &JsValue::from_str("category"),
+                    &JsValue::from_str(&rendered.category),
+                );
+                let _ = js_sys::Reflect::set(
+                    &obj,
+                    &JsValue::from_str("impact"),
+                    &JsValue::from_str(&rendered.impact),
+                );
+                let _ = js_sys::Reflect::set(
+                    &obj,
+                    &JsValue::from_str("headlineZh"),
+                    &JsValue::from_str(&rendered.headline_zh),
+                );
+                let _ = js_sys::Reflect::set(
+                    &obj,
+                    &JsValue::from_str("headlineEn"),
+                    &JsValue::from_str(&rendered.headline_en),
+                );
+                let _ = js_sys::Reflect::set(
+                    &obj,
+                    &JsValue::from_str("timestamp"),
+                    &JsValue::from_f64(rendered.timestamp),
+                );
+                items.push(&obj);
+            }
+        }
+
+        items.into()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_event_catalog_capacity(&self) -> usize {
+        event::catalog_capacity()
+    }
+
+    #[wasm_bindgen]
     pub fn get_worker_count(&self) -> u32 {
         self.workers.len() as u32
     }
@@ -3416,6 +3646,17 @@ impl IdleGame {
                         state.add_resource(ResourceType::DarkMatter, dark_bonus * elapsed);
                     }
                 }
+            }
+
+            {
+                let mut state = self.state.borrow_mut();
+                let _ = event::maybe_generate_event(
+                    &mut state,
+                    &self.workers,
+                    &self.buildings,
+                    &self.technology_tree,
+                    now,
+                );
             }
         }
 

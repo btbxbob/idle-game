@@ -140,6 +140,7 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
             const productionRate = building.production_rate || building.productionRate || 0;
             const clickBonus = building.name === '金币矿山' ? Math.floor(building.count || 0) : 0;
             const resourceName = getResourceNameForBuilding(building);
+            const consumptionNote = getBuildingConsumptionNote(building);
             const linkNote = getBuildingLinkNote(building);
             const realIndex = Number.isInteger(building.index) ? building.index : index;
 
@@ -155,6 +156,7 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
                     <strong>${building.name}</strong><br>
                     <small>+${productionRate} ${resourceName}${perSecondText}</small>
                     ${clickBonus > 0 ? `<br><small>+${clickBonus} ${window.i18n ? window.i18n.t('coinsPerClick') : '金币/点击'}</small>` : ''}
+                    ${consumptionNote ? `<br><small class="building-consumption-note">${consumptionNote}</small>` : ''}
                     ${linkNote ? `<br><small class="building-link-note">${linkNote}</small>` : ''}
                 </div>
                 <div>
@@ -243,6 +245,66 @@ function getBuildingLinkNote(building) {
     };
 
     return noteMap[buildingName] || '';
+}
+
+function getBuildingConsumptionNote(building) {
+    const outputResource = building && typeof building === 'object'
+        ? (building.output_resource || building.outputResource || null)
+        : null;
+
+    if (!outputResource) {
+        return '';
+    }
+
+    const requirements = getProductionInputRequirements(outputResource);
+    if (!requirements.length) {
+        return '';
+    }
+
+    const consumesLabel = window.i18n ? window.i18n.t('consumes') : 'Consumes';
+    const perOutputLabel = window.i18n ? window.i18n.t('perOutputUnit') : 'per 1 output';
+    const formattedRequirements = requirements.map(([resource, amount]) => {
+        const resourceLabel = getResourceLabel(resource);
+        return `${resourceLabel} x${formatRateDisplay(amount)}`;
+    }).join(', ');
+
+    return `${consumesLabel}: ${formattedRequirements} (${perOutputLabel})`;
+}
+
+function getResourceLabel(resource) {
+    if (!resource) {
+        return '';
+    }
+
+    const normalizedKey = resource.charAt(0).toLowerCase() + resource.slice(1);
+    return window.i18n ? window.i18n.t(normalizedKey) : normalizedKey;
+}
+
+function getProductionInputRequirements(outputResource) {
+    const requirementsMap = {
+        IronIngot: [['IronOre', 10]],
+        CopperIngot: [['CopperOre', 10]],
+        Chemicals: [['Oil', 4], ['Coal', 2]],
+        SteelPlate: [['IronOre', 12], ['Coal', 3]],
+        Glass: [['Stone', 8], ['Coal', 1]],
+        Plastic: [['Oil', 5], ['Coal', 1]],
+        CircuitBoard: [['CopperOre', 12], ['Oil', 2], ['Crystal', 1]],
+        Motor: [['IronOre', 8], ['CopperOre', 4], ['Coal', 2]],
+        Sensor: [['Crystal', 3], ['CopperOre', 6], ['Oil', 2]],
+        Gear: [['IronOre', 6], ['Coal', 2]],
+        Battery: [['Coal', 5], ['Oil', 3], ['Crystal', 1]],
+        Generator: [['IronOre', 16], ['CopperOre', 10], ['Coal', 6]],
+        Microchip: [['Crystal', 2], ['CircuitBoard', 2]],
+        QuantumComputer: [['Crystal', 5], ['Microchip', 4], ['CircuitBoard', 3]],
+        Robot: [['Crystal', 2], ['SteelPlate', 4], ['Motor', 2], ['Sensor', 2]],
+        Nanobot: [['Oil', 5], ['Microchip', 2], ['Chemicals', 4]],
+        Antimatter: [['Crystal', 20], ['QuantumComputer', 3], ['Chemicals', 10]],
+        TimeCrystal: [['Crystal', 40], ['Microchip', 10], ['QuantumComputer', 2]],
+        DarkMatter: [['Crystal', 50], ['Microchip', 6], ['QuantumComputer', 2]],
+        Spaceship: [['Crystal', 80], ['SteelPlate', 20], ['Microchip', 10], ['Generator', 4]],
+    };
+
+    return requirementsMap[outputResource] || [];
 }
 
 // Functions called from UI to communicate with Rust/WASM

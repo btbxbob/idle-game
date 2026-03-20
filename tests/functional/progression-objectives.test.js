@@ -145,6 +145,41 @@ test.describe('Progression Objectives', () => {
     expect(stepOrder.indexOf('research_maggot_tech')).toBeLessThan(stepOrder.indexOf('build_maggot_facility'));
   });
 
+  test('gain maggot objective stays completed after maggots are later spent', async ({ page }) => {
+    await page.goto('http://localhost:8080');
+    await page.waitForFunction(() => window.gameInitialized === true);
+    await unlockMaggotStage(page);
+
+    const stateAfterGain = await page.evaluate(() => {
+      window.rustGame.add_resource('Maggot', 5);
+      const chain = JSON.parse(window.rustGame.getCurrentObjectiveChainJson());
+      const step = chain.steps.find((entry) => entry.id === 'gain_maggot');
+      return {
+        completed: step ? step.completed : false,
+        current: step ? step.current : 0,
+      };
+    });
+
+    expect(stateAfterGain.completed).toBe(true);
+    expect(stateAfterGain.current).toBe(1);
+
+    const stateAfterSpend = await page.evaluate(() => {
+      const current = window.rustGame.get_resource_amount('Maggot');
+      if (current > 0) {
+        window.rustGame.add_resource('Maggot', -current);
+      }
+      const chain = JSON.parse(window.rustGame.getCurrentObjectiveChainJson());
+      const step = chain.steps.find((entry) => entry.id === 'gain_maggot');
+      return {
+        completed: step ? step.completed : false,
+        current: step ? step.current : 0,
+      };
+    });
+
+    expect(stateAfterSpend.completed).toBe(true);
+    expect(stateAfterSpend.current).toBe(1);
+  });
+
   test('collective objective chain requires consciousness upload before first ship launch', async ({ page }) => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);

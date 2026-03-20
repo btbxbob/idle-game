@@ -1,3 +1,4 @@
+use crate::state::event::EventJournalState;
 use crate::state::resource::ResourceType;
 use crate::state::stage::{CoexistenceState, GameStage};
 use serde::de;
@@ -36,6 +37,8 @@ pub struct GameState {
     pub coexistence: CoexistenceState,
     #[serde(default)]
     pub objective_chain: ObjectiveChainState,
+    #[serde(default)]
+    pub event_journal: EventJournalState,
     #[serde(skip)]
     pub(crate) gold_units: u64,
     #[serde(skip)]
@@ -83,6 +86,7 @@ impl<'de> Deserialize<'de> for GameState {
             current_stage: Option<GameStage>,
             coexistence: Option<CoexistenceState>,
             objective_chain: Option<ObjectiveChainState>,
+            event_journal: Option<EventJournalState>,
         }
 
         let map = HashMap::<String, serde_json::Value>::deserialize(deserializer)?;
@@ -150,6 +154,7 @@ impl<'de> Deserialize<'de> for GameState {
                 current_stage: new.current_stage.unwrap_or_default(),
                 coexistence: new.coexistence.unwrap_or_default(),
                 objective_chain: new.objective_chain.unwrap_or_default(),
+                event_journal: new.event_journal.unwrap_or_default(),
                 gold_units: 0,
                 wood_units: 0,
                 stone_units: 0,
@@ -279,6 +284,7 @@ impl GameState {
             current_stage: GameStage::default(),
             coexistence: CoexistenceState::default(),
             objective_chain: ObjectiveChainState::default(),
+            event_journal: EventJournalState::default(),
             gold_units: 0,
             wood_units: 0,
             stone_units: 0,
@@ -414,6 +420,7 @@ impl Default for GameState {
             current_stage: GameStage::default(),
             coexistence: CoexistenceState::default(),
             objective_chain: ObjectiveChainState::default(),
+            event_journal: EventJournalState::default(),
             gold_units: 0,
             wood_units: 0,
             stone_units: 0,

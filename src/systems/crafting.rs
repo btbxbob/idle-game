@@ -655,8 +655,16 @@ mod tests {
     #[test]
     fn test_get_default_recipes_count() {
         let recipes = CraftingRecipe::get_default_recipes();
-        assert!(recipes.len() >= 60, "Expected at least 60 recipes, got {}", recipes.len());
-        assert!(recipes.len() <= 70, "Expected at most 70 recipes, got {}", recipes.len());
+        assert!(
+            recipes.len() >= 60,
+            "Expected at least 60 recipes, got {}",
+            recipes.len()
+        );
+        assert!(
+            recipes.len() <= 70,
+            "Expected at most 70 recipes, got {}",
+            recipes.len()
+        );
     }
 
     #[test]
@@ -690,13 +698,25 @@ mod tests {
     #[test]
     fn test_advanced_recipes_locked() {
         let recipes = CraftingRecipe::get_default_recipes();
-        let iron_ore_to_iron_ingot = recipes.iter().find(|r| r.id == "iron_ore_to_iron_ingot").unwrap();
+        let iron_ore_to_iron_ingot = recipes
+            .iter()
+            .find(|r| r.id == "iron_ore_to_iron_ingot")
+            .unwrap();
         assert!(iron_ore_to_iron_ingot.unlocked);
-        let copper_ore_to_copper_ingot = recipes.iter().find(|r| r.id == "copper_ore_to_copper_ingot").unwrap();
+        let copper_ore_to_copper_ingot = recipes
+            .iter()
+            .find(|r| r.id == "copper_ore_to_copper_ingot")
+            .unwrap();
         assert!(!copper_ore_to_copper_ingot.unlocked);
-        let aluminum_ore_to_aluminum_ingot = recipes.iter().find(|r| r.id == "aluminum_ore_to_aluminum_ingot").unwrap();
+        let aluminum_ore_to_aluminum_ingot = recipes
+            .iter()
+            .find(|r| r.id == "aluminum_ore_to_aluminum_ingot")
+            .unwrap();
         assert!(!aluminum_ore_to_aluminum_ingot.unlocked);
-        let iron_ingot_to_steel_plate = recipes.iter().find(|r| r.id == "iron_ingot_to_steel_plate").unwrap();
+        let iron_ingot_to_steel_plate = recipes
+            .iter()
+            .find(|r| r.id == "iron_ingot_to_steel_plate")
+            .unwrap();
         assert!(!iron_ingot_to_steel_plate.unlocked);
     }
 
@@ -729,12 +749,20 @@ mod tests {
     fn test_recipe_name_localization_chinese() {
         let recipes = CraftingRecipe::get_default_recipes();
         for recipe in &recipes {
-            assert!(!recipe.name.is_empty(), "Recipe {} should have a name", recipe.id);
+            assert!(
+                !recipe.name.is_empty(),
+                "Recipe {} should have a name",
+                recipe.id
+            );
             let has_chinese = recipe.name.chars().any(|c| {
                 let code = c as u32;
                 (0x4E00..=0x9FFF).contains(&code) || (0x3400..=0x4DBF).contains(&code)
             });
-            assert!(has_chinese, "Recipe '{}' should have Chinese localization", recipe.name);
+            assert!(
+                has_chinese,
+                "Recipe '{}' should have Chinese localization",
+                recipe.name
+            );
         }
     }
 

@@ -87,9 +87,9 @@ mod tests {
     #[test]
     fn test_check_progress_clicks_unlocks() {
         let mut achievement = create_achievement("click_novice_10", 10.0, "clicks");
-        
+
         let result = achievement.check_progress(10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
         assert!(achievement.unlock_timestamp.is_some());
@@ -99,9 +99,9 @@ mod tests {
     #[test]
     fn test_check_progress_clicks_not_met() {
         let mut achievement = create_achievement("click_novice_10", 10.0, "clicks");
-        
+
         let result = achievement.check_progress(5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        
+
         assert!(!result);
         assert!(!achievement.unlocked);
         assert_eq!(achievement.progress, 5.0);
@@ -110,9 +110,9 @@ mod tests {
     #[test]
     fn test_check_progress_first_coins_100() {
         let mut achievement = create_achievement("first_coins_100", 100.0, "resources");
-        
+
         let result = achievement.check_progress(0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
         assert_eq!(achievement.progress, 150.0);
@@ -121,9 +121,9 @@ mod tests {
     #[test]
     fn test_check_progress_wood_collector_1000() {
         let mut achievement = create_achievement("wood_collector_1000", 1000.0, "resources");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 1200.0, 0.0, 0.0, 0.0, 0.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
         assert_eq!(achievement.progress, 1200.0);
@@ -132,9 +132,9 @@ mod tests {
     #[test]
     fn test_check_progress_stone_hoarder_5000() {
         let mut achievement = create_achievement("stone_hoarder_5000", 5000.0, "resources");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 0.0, 6000.0, 0.0, 0.0, 0.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
         assert_eq!(achievement.progress, 6000.0);
@@ -143,9 +143,9 @@ mod tests {
     #[test]
     fn test_check_progress_resources_not_met() {
         let mut achievement = create_achievement("first_coins_100", 100.0, "resources");
-        
+
         let result = achievement.check_progress(0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        
+
         assert!(!result);
         assert!(!achievement.unlocked);
         assert_eq!(achievement.progress, 50.0);
@@ -154,9 +154,9 @@ mod tests {
     #[test]
     fn test_check_progress_buildings_unlocks() {
         let mut achievement = create_achievement("first_building", 1.0, "buildings");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
         assert_eq!(achievement.progress, 5.0);
@@ -165,9 +165,9 @@ mod tests {
     #[test]
     fn test_check_progress_buildings_not_met() {
         let mut achievement = create_achievement("first_building", 5.0, "buildings");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0);
-        
+
         assert!(!result);
         assert!(!achievement.unlocked);
         assert_eq!(achievement.progress, 2.0);
@@ -176,9 +176,9 @@ mod tests {
     #[test]
     fn test_check_progress_crafting_unlocks() {
         let mut achievement = create_achievement("first_craft", 1.0, "crafting");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 0.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
         assert_eq!(achievement.progress, 10.0);
@@ -187,9 +187,9 @@ mod tests {
     #[test]
     fn test_check_progress_crafting_not_met() {
         let mut achievement = create_achievement("first_craft", 5.0, "crafting");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0);
-        
+
         assert!(!result);
         assert!(!achievement.unlocked);
         assert_eq!(achievement.progress, 2.0);
@@ -198,9 +198,9 @@ mod tests {
     #[test]
     fn test_check_progress_unlocks_unlocks() {
         let mut achievement = create_achievement("first_unlock", 1.0, "unlocks");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
         assert_eq!(achievement.progress, 3.0);
@@ -209,9 +209,9 @@ mod tests {
     #[test]
     fn test_check_progress_unlocks_not_met() {
         let mut achievement = create_achievement("progress_master_5", 5.0, "unlocks");
-        
+
         let result = achievement.check_progress(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0);
-        
+
         assert!(!result);
         assert!(!achievement.unlocked);
         assert_eq!(achievement.progress, 2.0);
@@ -229,9 +229,9 @@ mod tests {
             requirement: 10.0,
             category: "clicks".to_string(),
         };
-        
+
         let result = achievement.check_progress(5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        
+
         assert!(result);
         assert!(achievement.unlocked);
     }
@@ -239,9 +239,9 @@ mod tests {
     #[test]
     fn test_check_progress_unknown_category() {
         let mut achievement = create_achievement("unknown", 10.0, "unknown_category");
-        
+
         let result = achievement.check_progress(100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0);
-        
+
         assert!(!result);
         assert!(!achievement.unlocked);
         assert_eq!(achievement.progress, 0.0);

@@ -16,12 +16,8 @@ body {
 
 /* 2. ASCII 边框字符装饰 */
 #game-container::before {
-    content: "╔════════════════════════════════════════════════════════════════════════╗";
-    display: block;
-    font-family: 'Courier New', monospace;
-    color: var(--border-color);
-    padding: 5px 0;
-    text-align: center;
+    content: none;
+    display: none;
 }
 
 #game-container::after {

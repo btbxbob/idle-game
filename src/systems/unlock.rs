@@ -91,7 +91,10 @@ mod tests {
     #[test]
     fn test_progress_master_5_feature() {
         let features = UnlockedFeature::get_default_features();
-        let progress_master = features.iter().find(|f| f.id == "progress_master_5").unwrap();
+        let progress_master = features
+            .iter()
+            .find(|f| f.id == "progress_master_5")
+            .unwrap();
 
         assert_eq!(progress_master.name, "进度大师");
         assert_eq!(progress_master.feature_type, "achievement");
@@ -103,7 +106,10 @@ mod tests {
     #[test]
     fn test_unlock_building_1_feature() {
         let features = UnlockedFeature::get_default_features();
-        let unlock_building_1 = features.iter().find(|f| f.id == "unlock_building_1").unwrap();
+        let unlock_building_1 = features
+            .iter()
+            .find(|f| f.id == "unlock_building_1")
+            .unwrap();
 
         assert_eq!(unlock_building_1.name, "建筑解锁 1");
         assert_eq!(unlock_building_1.feature_type, "building");
@@ -115,7 +121,10 @@ mod tests {
     #[test]
     fn test_unlock_building_2_feature() {
         let features = UnlockedFeature::get_default_features();
-        let unlock_building_2 = features.iter().find(|f| f.id == "unlock_building_2").unwrap();
+        let unlock_building_2 = features
+            .iter()
+            .find(|f| f.id == "unlock_building_2")
+            .unwrap();
 
         assert_eq!(unlock_building_2.name, "建筑解锁 2");
         assert_eq!(unlock_building_2.feature_type, "building");
@@ -141,8 +150,16 @@ mod tests {
         let features = UnlockedFeature::get_default_features();
 
         for feature in &features {
-            assert_eq!(feature.unlocked, false, "Feature {} should start locked", feature.id);
-            assert_eq!(feature.unlock_timestamp, None, "Feature {} should have no timestamp", feature.id);
+            assert_eq!(
+                feature.unlocked, false,
+                "Feature {} should start locked",
+                feature.id
+            );
+            assert_eq!(
+                feature.unlock_timestamp, None,
+                "Feature {} should have no timestamp",
+                feature.id
+            );
         }
     }
 
@@ -174,9 +191,18 @@ mod tests {
     fn test_feature_types() {
         let features = UnlockedFeature::get_default_features();
 
-        let achievement_count = features.iter().filter(|f| f.feature_type == "achievement").count();
-        let building_count = features.iter().filter(|f| f.feature_type == "building").count();
-        let system_count = features.iter().filter(|f| f.feature_type == "system").count();
+        let achievement_count = features
+            .iter()
+            .filter(|f| f.feature_type == "achievement")
+            .count();
+        let building_count = features
+            .iter()
+            .filter(|f| f.feature_type == "building")
+            .count();
+        let system_count = features
+            .iter()
+            .filter(|f| f.feature_type == "system")
+            .count();
 
         assert_eq!(achievement_count, 2);
         assert_eq!(building_count, 2);
@@ -187,9 +213,18 @@ mod tests {
     fn test_requirement_types() {
         let features = UnlockedFeature::get_default_features();
 
-        let total_clicks_count = features.iter().filter(|f| f.requirement_type == "total_clicks").count();
-        let buildings_owned_count = features.iter().filter(|f| f.requirement_type == "buildings_owned").count();
-        let total_coins_count = features.iter().filter(|f| f.requirement_type == "total_coins").count();
+        let total_clicks_count = features
+            .iter()
+            .filter(|f| f.requirement_type == "total_clicks")
+            .count();
+        let buildings_owned_count = features
+            .iter()
+            .filter(|f| f.requirement_type == "buildings_owned")
+            .count();
+        let total_coins_count = features
+            .iter()
+            .filter(|f| f.requirement_type == "total_coins")
+            .count();
 
         assert_eq!(total_clicks_count, 2);
         assert_eq!(buildings_owned_count, 2);

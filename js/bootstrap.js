@@ -156,6 +156,10 @@ async function initWasm() {
         if (window.LifecycleManager) {
             window.lifecycleManager = new window.LifecycleManager(game);
         }
+
+        if (window.EventManager) {
+            window.eventManager = new window.EventManager(game);
+        }
         
         if (window.ResourceManager && window.i18n) {
             window.resourceManager = new window.ResourceManager(game, window.i18n);
@@ -176,6 +180,9 @@ async function initWasm() {
         }
         if (window.updateObjectivePanel) {
             window.updateObjectivePanel();
+        }
+        if (window.updateEventPanel) {
+            window.updateEventPanel(true);
         }
         
         console.log('Idle game initialized successfully!');
@@ -225,6 +232,9 @@ function startGameLoop(game) {
         }
         if (window.updateLifecyclePanel) {
             window.updateLifecyclePanel();
+        }
+        if (window.updateEventPanel) {
+            window.updateEventPanel(false);
         }
     }, 1000);
     

@@ -108,15 +108,19 @@ pub fn calculate_production(
 
     let base_production = building.production_rate * building.count as f64;
     let worker_bonus = get_worker_bonus_for_building(workers, &building.name);
-    
+
     // Apply technology bonuses
-    let tech_bonus = tech_bonuses.production_bonus.get(&resource).copied().unwrap_or(1.0);
+    let tech_bonus = tech_bonuses
+        .production_bonus
+        .get(&resource)
+        .copied()
+        .unwrap_or(1.0);
     let global_multiplier = if tech_bonuses.production_multiplier > 0.0 {
         tech_bonuses.production_multiplier
     } else {
         1.0 // Default to no multiplier if not set
     };
-    
+
     let boosted_production = base_production * worker_bonus * tech_bonus * global_multiplier;
 
     if boosted_production.is_finite() && boosted_production >= 0.0 {
@@ -351,7 +355,8 @@ mod tests {
         let workers = create_test_workers();
         let bonuses = default_bonuses();
 
-        let food_per_second = calculate_production(&buildings, &workers, ResourceType::Food, &bonuses);
+        let food_per_second =
+            calculate_production(&buildings, &workers, ResourceType::Food, &bonuses);
         assert!(
             food_per_second >= 2.0,
             "food production should support 10 workers baseline, got {}",
@@ -461,22 +466,38 @@ pub fn update_production(
     production[2] = calculate_production(buildings, workers, ResourceType::Stone, tech_bonuses);
     production[3] = calculate_production(buildings, workers, ResourceType::IronOre, tech_bonuses);
     production[4] = calculate_production(buildings, workers, ResourceType::CopperOre, tech_bonuses);
-    production[5] = calculate_production(buildings, workers, ResourceType::AluminumOre, tech_bonuses);
+    production[5] =
+        calculate_production(buildings, workers, ResourceType::AluminumOre, tech_bonuses);
     production[6] = calculate_production(buildings, workers, ResourceType::Coal, tech_bonuses);
     production[7] = calculate_production(buildings, workers, ResourceType::Oil, tech_bonuses);
     production[8] = calculate_production(buildings, workers, ResourceType::Crystal, tech_bonuses);
     production[9] = calculate_production(buildings, workers, ResourceType::Food, tech_bonuses);
 
     // Tier 2: Processed Resources (10-49)
-    production[10] = calculate_production(buildings, workers, ResourceType::IronIngot, tech_bonuses);
-    production[11] = calculate_production(buildings, workers, ResourceType::CopperIngot, tech_bonuses);
-    production[12] = calculate_production(buildings, workers, ResourceType::AluminumIngot, tech_bonuses);
-    production[13] = calculate_production(buildings, workers, ResourceType::SteelPlate, tech_bonuses);
-    production[14] = calculate_production(buildings, workers, ResourceType::CopperPlate, tech_bonuses);
-    production[15] = calculate_production(buildings, workers, ResourceType::AluminumPlate, tech_bonuses);
+    production[10] =
+        calculate_production(buildings, workers, ResourceType::IronIngot, tech_bonuses);
+    production[11] =
+        calculate_production(buildings, workers, ResourceType::CopperIngot, tech_bonuses);
+    production[12] = calculate_production(
+        buildings,
+        workers,
+        ResourceType::AluminumIngot,
+        tech_bonuses,
+    );
+    production[13] =
+        calculate_production(buildings, workers, ResourceType::SteelPlate, tech_bonuses);
+    production[14] =
+        calculate_production(buildings, workers, ResourceType::CopperPlate, tech_bonuses);
+    production[15] = calculate_production(
+        buildings,
+        workers,
+        ResourceType::AluminumPlate,
+        tech_bonuses,
+    );
     production[16] = calculate_production(buildings, workers, ResourceType::Glass, tech_bonuses);
     production[17] = calculate_production(buildings, workers, ResourceType::Plastic, tech_bonuses);
-    production[18] = calculate_production(buildings, workers, ResourceType::Chemicals, tech_bonuses);
+    production[18] =
+        calculate_production(buildings, workers, ResourceType::Chemicals, tech_bonuses);
     production[19] = calculate_production(buildings, workers, ResourceType::Fuel, tech_bonuses);
     production[20] = calculate_production(buildings, workers, ResourceType::Paper, tech_bonuses);
     production[21] = calculate_production(buildings, workers, ResourceType::Ink, tech_bonuses);
@@ -498,26 +519,43 @@ pub fn update_production(
     production[37] = calculate_production(buildings, workers, ResourceType::Pump, tech_bonuses);
     production[38] = calculate_production(buildings, workers, ResourceType::Motor, tech_bonuses);
     production[39] = calculate_production(buildings, workers, ResourceType::Sensor, tech_bonuses);
-    production[40] = calculate_production(buildings, workers, ResourceType::CircuitBoard, tech_bonuses);
-    production[41] = calculate_production(buildings, workers, ResourceType::Capacitor, tech_bonuses);
+    production[40] =
+        calculate_production(buildings, workers, ResourceType::CircuitBoard, tech_bonuses);
+    production[41] =
+        calculate_production(buildings, workers, ResourceType::Capacitor, tech_bonuses);
     production[42] = calculate_production(buildings, workers, ResourceType::Resistor, tech_bonuses);
     production[43] = calculate_production(buildings, workers, ResourceType::Diode, tech_bonuses);
-    production[44] = calculate_production(buildings, workers, ResourceType::Transistor, tech_bonuses);
-    production[45] = calculate_production(buildings, workers, ResourceType::Transformer, tech_bonuses);
-    production[46] = calculate_production(buildings, workers, ResourceType::Generator, tech_bonuses);
-    production[47] = calculate_production(buildings, workers, ResourceType::Compressor, tech_bonuses);
+    production[44] =
+        calculate_production(buildings, workers, ResourceType::Transistor, tech_bonuses);
+    production[45] =
+        calculate_production(buildings, workers, ResourceType::Transformer, tech_bonuses);
+    production[46] =
+        calculate_production(buildings, workers, ResourceType::Generator, tech_bonuses);
+    production[47] =
+        calculate_production(buildings, workers, ResourceType::Compressor, tech_bonuses);
     production[48] = calculate_production(buildings, workers, ResourceType::Battery, tech_bonuses);
 
     // Tier 3: High-Tech Resources (49-58)
-    production[49] = calculate_production(buildings, workers, ResourceType::Microchip, tech_bonuses);
+    production[49] =
+        calculate_production(buildings, workers, ResourceType::Microchip, tech_bonuses);
     production[50] = calculate_production(buildings, workers, ResourceType::Engine, tech_bonuses);
     production[51] = calculate_production(buildings, workers, ResourceType::Robot, tech_bonuses);
-    production[52] = calculate_production(buildings, workers, ResourceType::Satellite, tech_bonuses);
-    production[53] = calculate_production(buildings, workers, ResourceType::Spaceship, tech_bonuses);
-    production[54] = calculate_production(buildings, workers, ResourceType::QuantumComputer, tech_bonuses);
-    production[55] = calculate_production(buildings, workers, ResourceType::Antimatter, tech_bonuses);
-    production[56] = calculate_production(buildings, workers, ResourceType::DarkMatter, tech_bonuses);
-    production[57] = calculate_production(buildings, workers, ResourceType::TimeCrystal, tech_bonuses);
+    production[52] =
+        calculate_production(buildings, workers, ResourceType::Satellite, tech_bonuses);
+    production[53] =
+        calculate_production(buildings, workers, ResourceType::Spaceship, tech_bonuses);
+    production[54] = calculate_production(
+        buildings,
+        workers,
+        ResourceType::QuantumComputer,
+        tech_bonuses,
+    );
+    production[55] =
+        calculate_production(buildings, workers, ResourceType::Antimatter, tech_bonuses);
+    production[56] =
+        calculate_production(buildings, workers, ResourceType::DarkMatter, tech_bonuses);
+    production[57] =
+        calculate_production(buildings, workers, ResourceType::TimeCrystal, tech_bonuses);
     production[58] = calculate_production(buildings, workers, ResourceType::Nanobot, tech_bonuses);
 
     // Special Resources (59-60) - no production
@@ -527,10 +565,7 @@ pub fn update_production(
 }
 
 /// Legacy function - returns (coins, wood, stone) for backward compatibility
-pub fn update_production_legacy(
-    buildings: &[Building],
-    workers: &[Worker],
-) -> (f64, f64, f64) {
+pub fn update_production_legacy(buildings: &[Building], workers: &[Worker]) -> (f64, f64, f64) {
     let tech_bonuses = default_tech_bonuses();
     let production = update_production(buildings, workers, &tech_bonuses);
     (production[0], production[1], production[2])

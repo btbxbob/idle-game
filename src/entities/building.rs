@@ -11,6 +11,14 @@ fn default_housing_icon() -> String {
     "🏠".to_string()
 }
 
+fn housing_cost_growth(resource: &str) -> f64 {
+    if resource.eq_ignore_ascii_case("gold") || resource.eq_ignore_ascii_case("coins") {
+        1.0025
+    } else {
+        1.5
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Building {
     pub name: String,
@@ -68,10 +76,9 @@ impl Housing {
     }
 
     pub fn get_upgrade_cost(&self) -> HashMap<String, f64> {
-        // Upgrade cost scales with level: base_cost * 1.5^(count)
         let mut upgrade_cost = HashMap::new();
-        let multiplier = 1.5_f64.powi(self.count as i32);
         for (resource, &base_amount) in self.cost.iter() {
+            let multiplier = housing_cost_growth(resource).powi(self.count as i32);
             upgrade_cost.insert(resource.clone(), base_amount * multiplier);
         }
         upgrade_cost
@@ -185,8 +192,7 @@ mod tests {
 
         let upgrade_cost = housing.get_upgrade_cost();
 
-        // At level 1, multiplier is 1.5^1 = 1.5
-        assert_eq!(upgrade_cost.get("coins"), Some(&150.0));
+        assert!((upgrade_cost.get("coins").unwrap() - 100.25).abs() < 0.001);
     }
 
     #[test]
@@ -200,8 +206,7 @@ mod tests {
 
         let upgrade_cost = housing.get_upgrade_cost();
 
-        // At level 2, multiplier is 1.5^2 = 2.25
-        assert!((upgrade_cost.get("coins").unwrap() - 225.0).abs() < 0.001);
+        assert!((upgrade_cost.get("coins").unwrap() - 100.500625).abs() < 0.001);
     }
 
     #[test]
@@ -216,8 +221,7 @@ mod tests {
 
         let upgrade_cost = housing.get_upgrade_cost();
 
-        // At level 3, multiplier is 1.5^3 = 3.375
-        assert!((upgrade_cost.get("coins").unwrap() - 337.5).abs() < 0.001);
+        assert!((upgrade_cost.get("coins").unwrap() - 100.7518765625).abs() < 0.001);
     }
 
     #[test]
@@ -235,17 +239,26 @@ mod tests {
 
         housing.upgrade();
 
-        // Level 1: 200 * 1.5 = 300 coins, 100 * 1.5 = 150 wood
         let cost_l1 = housing.get_upgrade_cost();
-        assert!((cost_l1.get("coins").unwrap() - 300.0).abs() < 0.001);
+        assert!((cost_l1.get("coins").unwrap() - 200.5).abs() < 0.001);
         assert!((cost_l1.get("wood").unwrap() - 150.0).abs() < 0.001);
 
         housing.upgrade();
 
-        // Level 2: 200 * 2.25 = 450 coins, 100 * 2.25 = 225 wood
         let cost_l2 = housing.get_upgrade_cost();
-        assert!((cost_l2.get("coins").unwrap() - 450.0).abs() < 0.001);
+        assert!((cost_l2.get("coins").unwrap() - 201.00125).abs() < 0.001);
         assert!((cost_l2.get("wood").unwrap() - 225.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_housing_coin_scaling_targets_longer_progression() {
+        let base_cost = 100.0;
+        let total_to_level_10: f64 = (0..10).map(|level| base_cost * 1.5_f64.powi(level)).sum();
+        let total_to_level_100: f64 = (0..100)
+            .map(|level| base_cost * housing_cost_growth("coins").powi(level))
+            .sum();
+
+        assert!((total_to_level_100 - total_to_level_10).abs() < 50.0);
     }
 
     #[test]

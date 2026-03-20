@@ -237,6 +237,8 @@ class I18n {
                 
                 // Building/Upgrade labels
                 'cost': 'Cost',
+                'consumes': 'Consumes',
+                'perOutputUnit': 'per 1 output',
                 'owned': 'Owned',
                 'buy': 'Buy',
                 'craft': 'Craft',
@@ -282,7 +284,32 @@ class I18n {
                 'clickFormat': '{resource}/click: {amount}',
                 
                 // Statistics
+                'resourcesTab': 'Resources',
+                'buildingsTab': 'Buildings',
+                'workersTab': 'Workers',
+                'technologyTab': 'Technology',
+                'workTab': 'Work Overview',
+                'housingTab': 'Housing',
+                'lifecycleTab': 'Lifecycle',
                 'statisticsTab': 'Statistics',
+                'achievementsTab': 'Achievements',
+                'unlocksTab': 'Unlocks',
+                'settingsTab': 'Settings',
+                'eventsTab': 'Logs',
+                'eventTickerLabel': 'Breaking',
+                'eventLogTitle': 'Settlement Newswire',
+                'eventLogSubtitle': 'Newest reports rise to the top; older dispatches sink into the archive below.',
+                'eventLoadMore': 'Load Older Reports',
+                'eventNoMore': 'No older reports',
+                'eventEmpty': 'No event coverage yet',
+                'eventInterviewLabel': 'Worker Interview',
+                'eventImpact_flavor': 'Flavor',
+                'eventImpact_effective': 'Effective',
+                'eventCategory_survival_crisis': 'Survival Crisis',
+                'eventCategory_dark_conversion': 'Dark Conversion',
+                'eventCategory_industrial_progress': 'Industrial Progress',
+                'eventCategory_social_mutation': 'Social Mutation',
+                'eventCategory_endgame_sign': 'Endgame Sign',
                 'gameStats': 'Game Statistics',
                 'progressStats': 'Progress Statistics',
                 'totalClicks': 'Total Clicks',
@@ -647,6 +674,8 @@ class I18n {
                 
                 // Building/Upgrade labels
                 'cost': '花费',
+                'consumes': '消耗',
+                'perOutputUnit': '每产出 1 单位',
                 'owned': '拥有',
                 'buy': '购买',
                 'craft': '合成',
@@ -692,7 +721,32 @@ class I18n {
                 'clickFormat': '{resource}/点击：{amount}',
                 
                 // Statistics
+                'resourcesTab': '资源',
+                'buildingsTab': '建筑',
+                'workersTab': '工人',
+                'technologyTab': '科技',
+                'workTab': '工作总览',
+                'housingTab': '住房',
+                'lifecycleTab': '生命周期',
                 'statisticsTab': '统计',
+                'achievementsTab': '成就',
+                'unlocksTab': '解锁',
+                'settingsTab': '设置',
+                'eventsTab': '日志',
+                'eventTickerLabel': '紧急事件',
+                'eventLogTitle': '聚落新闻流',
+                'eventLogSubtitle': '越上面的报道越新，越下面的稿件越旧，完整正文仅针对已发生事件加载。',
+                'eventLoadMore': '加载更早报道',
+                'eventNoMore': '没有更早的报道了',
+                'eventEmpty': '暂时还没有事件报道',
+                'eventInterviewLabel': '工人采访',
+                'eventImpact_flavor': '现场报道',
+                'eventImpact_effective': '异常影响',
+                'eventCategory_survival_crisis': '生存危机',
+                'eventCategory_dark_conversion': '黑暗转化',
+                'eventCategory_industrial_progress': '工业进展',
+                'eventCategory_social_mutation': '社会异变',
+                'eventCategory_endgame_sign': '终局征兆',
                 'gameStats': '游戏统计',
                 'progressStats': '进度统计',
                 'totalClicks': '总点击次数',
@@ -1003,6 +1057,9 @@ class I18n {
         this.updateElement('workers-placeholder', 'workersPlaceholder');
         this.updateElement('achievements-placeholder', 'achievementsLoadingPlaceholder');
         this.updateElement('unlocks-placeholder', 'unlocksLoadingPlaceholder');
+        this.updateElement('event-log-title', 'eventLogTitle');
+        this.updateElement('event-log-subtitle', 'eventLogSubtitle');
+        this.updateElement('event-log-load-more', 'eventLoadMore');
 
         // Update settings labels
         this.updateLabel('theme-select-setting', 'theme');
@@ -1014,11 +1071,16 @@ class I18n {
         this.updateElement('save-load-title', 'saveLoadTitle');
         this.updateSettingsVersionLabel();
         this.updateSettingsOptions();
+        this.updateTabButtons();
         this.updateResourceCategoryTabs();
         this.updatePlaceholder('import-export-text', 'importExportPlaceholder');
 
         // Update resource displays (these will be handled by resource update functions)
         this.updateResourceDisplays();
+
+        if (window.updateEventPanel) {
+            window.updateEventPanel(true);
+        }
     }
     
     // Update a label element
@@ -1060,6 +1122,31 @@ class I18n {
             languageSelect.options[0].textContent = this.t('simplifiedChinese');
             languageSelect.options[1].textContent = this.t('englishLanguage');
         }
+    }
+
+    updateTabButtons() {
+        const tabKeyMap = {
+            resources: 'resourcesTab',
+            buildings: 'buildingsTab',
+            workers: 'workersTab',
+            technology: 'technologyTab',
+            work: 'workTab',
+            housing: 'housingTab',
+            lifecycle: 'lifecycleTab',
+            statistics: 'statisticsTab',
+            achievements: 'achievementsTab',
+            unlocks: 'unlocksTab',
+            events: 'eventsTab',
+            settings: 'settingsTab'
+        };
+
+        document.querySelectorAll('.tab-button').forEach((button) => {
+            const tabName = button.getAttribute('data-tab');
+            const key = tabKeyMap[tabName];
+            if (key) {
+                button.textContent = this.t(key);
+            }
+        });
     }
 
     updateResourceCategoryTabs() {

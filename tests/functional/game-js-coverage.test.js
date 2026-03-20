@@ -289,6 +289,34 @@ test.describe('Game.js Coverage Tests', () => {
         expect(result.hasSpaceshipNote).toBe(true);
     });
 
+    test('updateBuildingDisplay shows consumption notes for processing buildings', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const buildings = [
+                { name: '铁锭冶炼厂', cost: 220, production_rate: 0.1, count: 1, output_resource: 'IronIngot' },
+                { name: '量子计算中心', cost: 7000, production_rate: 0.012, count: 1, output_resource: 'QuantumComputer' },
+            ];
+
+            const buildingList = document.createElement('div');
+            buildingList.id = 'building-list';
+            document.body.appendChild(buildingList);
+
+            window.updateBuildingDisplay(buildings);
+            const html = buildingList.innerHTML;
+
+            buildingList.remove();
+
+            return {
+                hasConsumeLabel: html.includes('消耗'),
+                hasIronOreHint: html.includes('铁矿') || html.includes('ironOre'),
+                hasQuantumHint: html.includes('量子计算中心') && (html.includes('芯片') || html.includes('microchip')),
+            };
+        });
+
+        expect(result.hasConsumeLabel).toBe(true);
+        expect(result.hasIronOreHint).toBe(true);
+        expect(result.hasQuantumHint).toBe(true);
+    });
+
     test('updateBuildingDisplay update path (same length)', async ({ page }) => {
         const result = await page.evaluate(() => {
             const buildings = [
