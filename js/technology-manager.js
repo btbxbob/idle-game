@@ -880,7 +880,6 @@ class TechnologyManager {
             Cement: 'cement',
             Brick: 'brick',
             Rebar: 'rebar',
-            Wire: 'wire',
             Pipe: 'pipe',
             Valve: 'valve',
             Gear: 'gear',

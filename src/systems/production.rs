@@ -52,7 +52,6 @@ fn legacy_building_aliases(resource: ResourceType) -> &'static [&'static str] {
         ResourceType::Cement => &["水泥厂"],
         ResourceType::Brick => &["砖厂"],
         ResourceType::Rebar => &["钢筋厂"],
-        ResourceType::Wire => &["电线厂"],
         ResourceType::Pipe => &["管道厂"],
         ResourceType::Valve => &["阀门厂"],
         ResourceType::Gear => &["齿轮厂"],
@@ -507,7 +506,6 @@ pub fn update_production(
     production[25] = calculate_production(buildings, workers, ResourceType::Cement, tech_bonuses);
     production[26] = calculate_production(buildings, workers, ResourceType::Brick, tech_bonuses);
     production[27] = calculate_production(buildings, workers, ResourceType::Rebar, tech_bonuses);
-    production[28] = calculate_production(buildings, workers, ResourceType::Wire, tech_bonuses);
     production[29] = calculate_production(buildings, workers, ResourceType::Pipe, tech_bonuses);
     production[30] = calculate_production(buildings, workers, ResourceType::Valve, tech_bonuses);
     production[31] = calculate_production(buildings, workers, ResourceType::Gear, tech_bonuses);

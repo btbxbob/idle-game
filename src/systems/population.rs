@@ -2,9 +2,9 @@ use crate::entities::Worker;
 use crate::state::resource::ResourceType;
 use std::collections::HashMap;
 
-const FOOD_CONSUMPTION_INTERVAL: f64 = 5.0;
-const FOOD_PER_WORKER: f64 = 1.0;
-const STARVATION_DEATH_THRESHOLD: f64 = 30.0;
+const FOOD_CONSUMPTION_INTERVAL: f64 = 4.0;
+const FOOD_PER_WORKER: f64 = 1.25;
+const STARVATION_DEATH_THRESHOLD: f64 = 18.0;
 
 pub fn consume_food_for_workers(
     workers: &mut [Worker],
@@ -31,12 +31,16 @@ pub fn consume_food_for_workers(
         for worker in workers.iter_mut() {
             worker.is_hungry = false;
             worker.starvation_start_time = 0.0;
+            worker.hunger = (worker.hunger - 25.0).clamp(0.0, 100.0);
+            worker.health = (worker.health + 2.5).clamp(0.0, 100.0);
+            worker.happiness = (worker.happiness + 0.8).clamp(0.0, 100.0);
         }
     } else {
         resources.insert(ResourceType::Food, 0.0);
 
         for worker in workers.iter_mut() {
             worker.is_hungry = true;
+            worker.hunger = (worker.hunger + 20.0).clamp(0.0, 100.0);
             if worker.starvation_start_time == 0.0 {
                 worker.starvation_start_time = current_time;
             }
@@ -65,6 +69,15 @@ pub fn check_worker_starvation_deaths(
     let mut indices_to_remove: Vec<usize> = Vec::new();
 
     for (idx, worker) in workers.iter_mut().enumerate() {
+        if worker.happiness <= 0.0 || worker.health <= 0.0 {
+            let current_corpses = *resources.get(&ResourceType::Corpse).unwrap_or(&0.0);
+            resources.insert(ResourceType::Corpse, current_corpses + 1.0);
+            *corpse_decay_time = current_time;
+            indices_to_remove.push(idx);
+            deaths += 1;
+            continue;
+        }
+
         if worker.is_hungry {
             let starvation_duration = get_starvation_duration(worker, current_time);
             if starvation_duration >= STARVATION_DEATH_THRESHOLD {
@@ -115,6 +128,7 @@ mod tests {
             primary_trait: Trait::Diligent,
             secondary_traits: vec![],
             happiness: 50.0,
+            health: 100.0,
             hunger: 0.0,
             focus: 55.0,
             fatigue: 10.0,

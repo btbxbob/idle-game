@@ -46,7 +46,7 @@ pub fn required_stage_for_building(building_name: &str) -> GameStage {
         | "纳米机器人工厂"
         | "反物质反应堆"
         | "时间水晶合成器" => GameStage::Workers,
-        "蛆虫工厂" | "腐肉育池" => GameStage::Maggot,
+        "腐食育蛆槽" | "蛆虫工厂" | "腐肉育池" => GameStage::Maggot,
         "共生培育舱" => GameStage::Hybrid,
         "神经尖塔" | "深空孵化港" => GameStage::Collective,
         _ => GameStage::Collective,
@@ -65,7 +65,6 @@ pub fn required_technology_for_building(building_name: &str) -> Option<Technolog
         "纳米机器人工厂" => Some(TechnologyId::Nanotechnology),
         "反物质反应堆" => Some(TechnologyId::AntimatterEnergy),
         "时间水晶合成器" => Some(TechnologyId::TimeManipulation),
-        "蛆虫工厂" => Some(TechnologyId::MaggotBreeding),
         "腐肉育池" => Some(TechnologyId::NecroticRecycling),
         "共生培育舱" => Some(TechnologyId::SymbioticHosts),
         "神经尖塔" => Some(TechnologyId::CollectiveAwakening),

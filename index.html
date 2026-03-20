@@ -145,7 +145,6 @@
                             <div class="resource-item" data-resource="cement"><span class="resource-icon">🧱</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="brick"><span class="resource-icon">🧱</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="rebar"><span class="resource-icon">🔩</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
-                            <div class="resource-item" data-resource="wire"><span class="resource-icon">🔌</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="pipe"><span class="resource-icon">🚿</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="valve"><span class="resource-icon">⚙️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
                             <div class="resource-item" data-resource="gear"><span class="resource-icon">⚙️</span><span class="resource-name"></span><span class="resource-amount">0</span></div>
@@ -365,8 +364,6 @@
                         window.achievementsManager.renderAchievements();
                     } else if (tabName === 'statistics' && window.statisticsManager) {
                         window.statisticsManager.renderToPanel('tab-statistics');
-                    } else if (tabName === 'crafting' && window.craftingManager) {
-                        window.craftingManager.renderRecipes();
                     } else if (tabName === 'unlocks' && window.unlockManager) {
                         window.unlockManager.renderUnlocks();
                     } else if (tabName === 'events' && window.eventManager) {

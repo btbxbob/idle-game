@@ -223,6 +223,7 @@ function getResourceNameForBuilding(building) {
         '纳米机器人工厂': 'nanobot',
         '反物质反应堆': 'antimatter',
         '时间水晶合成器': 'timeCrystal',
+        '腐食育蛆槽': 'maggot',
         '蛆虫工厂': 'maggot',
         '腐肉育池': 'maggot',
         '共生培育舱': 'food',
@@ -237,7 +238,8 @@ function getResourceNameForBuilding(building) {
 function getBuildingLinkNote(building) {
     const buildingName = typeof building === 'string' ? building : building?.name;
     const noteMap = {
-        '蛆虫工厂': '需要蛆虫育种，将尸腐转入黑暗加工链',
+        '腐食育蛆槽': '在蛆虫阶段开放，把过剩食物稳定转成蛆虫',
+        '蛆虫工厂': '进入黑暗阶段后可直接建造，负责稳定培养蛆虫',
         '腐肉育池': '由坏死回收驱动，产出食物与化学品',
         '共生培育舱': '由共生宿主驱动，提升混合人口与稳定度',
         '神经尖塔': '由集体觉醒驱动，开始产出暗物质',

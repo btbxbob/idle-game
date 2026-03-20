@@ -25,8 +25,8 @@ export const ResourceTiers = {
   ],
 
   /**
-   * Tier 2: Processed Resources (40)
-   * Secondary resources crafted from Tier 1 materials
+   * Tier 2: Processed Resources (39)
+   * Secondary resources produced from Tier 1 materials
    */
   TIER2_PROCESSED: [
     // Metal Ingots (3)
@@ -57,8 +57,7 @@ export const ResourceTiers = {
     'Brick',
     'Rebar',
     
-    // Basic Components (6)
-    'Wire',
+    // Basic Components (5)
     'Pipe',
     'Valve',
     'Gear',
@@ -208,7 +207,6 @@ export const ResourceCategories = {
    * Electronic Components
    */
   ELECTRONICS: [
-    'Wire',
     'CircuitBoard',
     'Capacitor',
     'Resistor',

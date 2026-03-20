@@ -11,7 +11,7 @@ pub enum ResourceTier {
     Advanced,  // 高级资源 (Premium)
 }
 
-/// All 60 resource types in the game
+/// All 59 resource types in the game
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ResourceType {
     // ========== Tier 1: Basic Resources (10) ==========
@@ -45,7 +45,6 @@ pub enum ResourceType {
     Cement,        // 水泥
     Brick,         // 砖块
     Rebar,         // 钢筋
-    Wire,          // 电线
     Pipe,          // 管道
     Valve,         // 阀门
     Gear,          // 齿轮
@@ -119,7 +118,6 @@ impl ResourceType {
             ResourceType::Cement => "水泥",
             ResourceType::Brick => "砖块",
             ResourceType::Rebar => "钢筋",
-            ResourceType::Wire => "电线",
             ResourceType::Pipe => "管道",
             ResourceType::Valve => "阀门",
             ResourceType::Gear => "齿轮",
@@ -207,7 +205,6 @@ impl ResourceType {
             | ResourceType::Cement
             | ResourceType::Brick
             | ResourceType::Rebar
-            | ResourceType::Wire
             | ResourceType::Pipe
             | ResourceType::Valve
             | ResourceType::Gear
@@ -289,7 +286,6 @@ impl ResourceType {
             ResourceType::Cement => "#A9A9A9",        // Dark Gray
             ResourceType::Brick => "#B22222",         // Firebrick
             ResourceType::Rebar => "#696969",         // Dim Gray
-            ResourceType::Wire => "#FFA500",          // Orange
             ResourceType::Pipe => "#778899",          // Light Slate Gray
             ResourceType::Valve => "#4682B4",         // Steel Blue
             ResourceType::Gear => "#708090",          // Slate Gray
@@ -338,9 +334,9 @@ mod tests {
     fn test_resource_count() {
         // Count all variants by checking tier distribution
         let tier1_count = 10; // Gold, Wood, Stone, IronOre, CopperOre, AluminumOre, Coal, Oil, Crystal, Food
-        let tier2_count = 40; // IronIngot through Battery
+        let tier2_count = 39; // IronIngot through Battery
         let tier3_count = 10; // Microchip through Nanobot
-        assert_eq!(tier1_count + tier2_count + tier3_count, 60);
+        assert_eq!(tier1_count + tier2_count + tier3_count, 59);
     }
 
     #[test]
@@ -377,7 +373,6 @@ mod tests {
         assert_eq!(ResourceType::Cement.tier(), 2);
         assert_eq!(ResourceType::Brick.tier(), 2);
         assert_eq!(ResourceType::Rebar.tier(), 2);
-        assert_eq!(ResourceType::Wire.tier(), 2);
         assert_eq!(ResourceType::Pipe.tier(), 2);
         assert_eq!(ResourceType::Valve.tier(), 2);
         assert_eq!(ResourceType::Gear.tier(), 2);
@@ -488,7 +483,6 @@ mod tests {
             ResourceType::Cement,
             ResourceType::Brick,
             ResourceType::Rebar,
-            ResourceType::Wire,
             ResourceType::Pipe,
             ResourceType::Valve,
             ResourceType::Gear,
@@ -618,7 +612,6 @@ mod tests {
             ResourceType::Cement,
             ResourceType::Brick,
             ResourceType::Rebar,
-            ResourceType::Wire,
             ResourceType::Pipe,
             ResourceType::Valve,
             ResourceType::Gear,

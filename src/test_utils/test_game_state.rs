@@ -2,7 +2,7 @@ use crate::entities::{Building, Gender, Trait, Worker};
 
 use crate::state::resource::ResourceType;
 use crate::state::Statistics;
-use crate::systems::{Achievement, CraftingRecipe, UnlockedFeature};
+use crate::systems::{Achievement, UnlockedFeature};
 
 #[cfg(test)]
 #[derive(Clone)]
@@ -28,7 +28,6 @@ pub struct TestGameState {
     upgrades: Vec<Upgrade>,
     buildings: Vec<Building>,
     achievements: Vec<Achievement>,
-    crafting_recipes: Vec<CraftingRecipe>,
     unlocked_features: Vec<UnlockedFeature>,
     statistics: Statistics,
     workers: Vec<Worker>,
@@ -285,62 +284,6 @@ impl TestGameState {
                     category: "unlocks".to_string(),
                 },
             ],
-            crafting_recipes: vec![
-                CraftingRecipe {
-                    id: "coins_to_wood".to_string(),
-                    name: "金币换木材".to_string(),
-                    input_resource: ResourceType::Gold,
-                    input_amount: 100.0,
-                    output_resource: ResourceType::Wood,
-                    output_amount: 10.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "wood_to_coins".to_string(),
-                    name: "木材换金币".to_string(),
-                    input_resource: ResourceType::Wood,
-                    input_amount: 10.0,
-                    output_resource: ResourceType::Gold,
-                    output_amount: 100.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "coins_to_stone".to_string(),
-                    name: "金币换石头".to_string(),
-                    input_resource: ResourceType::Gold,
-                    input_amount: 100.0,
-                    output_resource: ResourceType::Stone,
-                    output_amount: 1.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "stone_to_coins".to_string(),
-                    name: "石头换金币".to_string(),
-                    input_resource: ResourceType::Stone,
-                    input_amount: 1.0,
-                    output_resource: ResourceType::Gold,
-                    output_amount: 100.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "wood_to_stone".to_string(),
-                    name: "木材换石头".to_string(),
-                    input_resource: ResourceType::Wood,
-                    input_amount: 10.0,
-                    output_resource: ResourceType::Stone,
-                    output_amount: 1.0,
-                    unlocked: true,
-                },
-                CraftingRecipe {
-                    id: "stone_to_wood".to_string(),
-                    name: "石头换木材".to_string(),
-                    input_resource: ResourceType::Stone,
-                    input_amount: 1.0,
-                    output_resource: ResourceType::Wood,
-                    output_amount: 10.0,
-                    unlocked: true,
-                },
-            ],
             unlocked_features: vec![
                 UnlockedFeature {
                     id: "workers_tab".to_string(),
@@ -404,6 +347,7 @@ impl TestGameState {
                     primary_trait: Trait::default(),
                     secondary_traits: Vec::new(),
                     happiness: 50.0,
+                    health: 100.0,
                     hunger: 0.0,
                     focus: 55.0,
                     fatigue: 10.0,
@@ -428,6 +372,7 @@ impl TestGameState {
                     primary_trait: Trait::default(),
                     secondary_traits: Vec::new(),
                     happiness: 50.0,
+                    health: 100.0,
                     hunger: 0.0,
                     focus: 55.0,
                     fatigue: 10.0,
@@ -452,6 +397,7 @@ impl TestGameState {
                     primary_trait: Trait::default(),
                     secondary_traits: Vec::new(),
                     happiness: 50.0,
+                    health: 100.0,
                     hunger: 0.0,
                     focus: 55.0,
                     fatigue: 10.0,
@@ -476,10 +422,6 @@ impl TestGameState {
     }
 
     #[cfg(test)]
-    pub fn get_crafting_recipes(&self) -> Vec<CraftingRecipe> {
-        self.crafting_recipes.clone()
-    }
-
     #[cfg(test)]
     pub fn get_unlocks(&self) -> Vec<UnlockedFeature> {
         self.unlocked_features.clone()
@@ -565,41 +507,6 @@ impl TestGameState {
         feature.unlocked = true;
         feature.unlock_timestamp = Some(0.0); // Use 0.0 for tests instead of Date::now()
         true
-    }
-
-    pub fn craft_resource(&mut self, recipe_id: &str) -> bool {
-        let recipe = match self.crafting_recipes.iter().find(|r| r.id == recipe_id) {
-            Some(r) => r.clone(),
-            None => return false,
-        };
-
-        let input_amount = match recipe.input_resource {
-            ResourceType::Gold => self.coins,
-            ResourceType::Wood => self.wood,
-            ResourceType::Stone => self.stone,
-            _ => return false,
-        };
-
-        if input_amount + 1e-10 >= recipe.input_amount {
-            match recipe.input_resource {
-                ResourceType::Gold => self.coins -= recipe.input_amount,
-                ResourceType::Wood => self.wood -= recipe.input_amount,
-                ResourceType::Stone => self.stone -= recipe.input_amount,
-                _ => return false,
-            }
-
-            match recipe.output_resource {
-                ResourceType::Gold => self.coins += recipe.output_amount,
-                ResourceType::Wood => self.wood += recipe.output_amount,
-                ResourceType::Stone => self.stone += recipe.output_amount,
-                _ => return false,
-            }
-
-            self.statistics.total_resources_crafted += 1;
-            true
-        } else {
-            false
-        }
     }
 
     pub fn click_action(&mut self) {
@@ -1053,85 +960,6 @@ mod tests {
 
         let unlocked2 = game.check_achievement("click_novice_10");
         assert_eq!(unlocked2, true);
-    }
-
-    #[test]
-    fn test_get_crafting_recipes() {
-        let game = TestGameState::new();
-        let recipes = game.get_crafting_recipes();
-
-        assert_eq!(recipes.len(), 6);
-
-        assert_eq!(recipes[0].id, "coins_to_wood");
-        assert_eq!(recipes[0].input_resource, ResourceType::Gold);
-        assert_eq!(recipes[0].input_amount, 100.0);
-        assert_eq!(recipes[0].output_resource, ResourceType::Wood);
-        assert_eq!(recipes[0].output_amount, 10.0);
-
-        assert_eq!(recipes[1].id, "wood_to_coins");
-        assert_eq!(recipes[1].input_resource, ResourceType::Wood);
-        assert_eq!(recipes[1].input_amount, 10.0);
-        assert_eq!(recipes[1].output_resource, ResourceType::Gold);
-        assert_eq!(recipes[1].output_amount, 100.0);
-
-        assert_eq!(recipes[2].id, "coins_to_stone");
-        assert_eq!(recipes[2].input_resource, ResourceType::Gold);
-        assert_eq!(recipes[2].input_amount, 100.0);
-        assert_eq!(recipes[2].output_resource, ResourceType::Stone);
-        assert_eq!(recipes[2].output_amount, 1.0);
-
-        assert_eq!(recipes[3].id, "stone_to_coins");
-        assert_eq!(recipes[3].input_resource, ResourceType::Stone);
-        assert_eq!(recipes[3].input_amount, 1.0);
-        assert_eq!(recipes[3].output_resource, ResourceType::Gold);
-        assert_eq!(recipes[3].output_amount, 100.0);
-
-        assert_eq!(recipes[4].id, "wood_to_stone");
-        assert_eq!(recipes[4].input_resource, ResourceType::Wood);
-        assert_eq!(recipes[4].input_amount, 10.0);
-        assert_eq!(recipes[4].output_resource, ResourceType::Stone);
-        assert_eq!(recipes[4].output_amount, 1.0);
-
-        assert_eq!(recipes[5].id, "stone_to_wood");
-        assert_eq!(recipes[5].input_resource, ResourceType::Stone);
-        assert_eq!(recipes[5].input_amount, 1.0);
-        assert_eq!(recipes[5].output_resource, ResourceType::Wood);
-        assert_eq!(recipes[5].output_amount, 10.0);
-    }
-
-    #[test]
-    fn test_craft_resource_success() {
-        let mut game = TestGameState::new();
-        game.coins = 200.0;
-        game.wood = 0.0;
-
-        let wood_before = game.get_wood();
-        let result = game.craft_resource("coins_to_wood");
-
-        assert_eq!(result, true);
-        assert_eq!(game.get_coins(), 100.0);
-        assert_eq!(game.get_wood(), wood_before + 10.0);
-
-        let stats = game.get_statistics();
-        assert_eq!(stats.total_resources_crafted, 1);
-    }
-
-    #[test]
-    fn test_craft_resource_insufficient() {
-        let mut game = TestGameState::new();
-        game.coins = 50.0;
-        game.wood = 0.0;
-
-        let coins_before = game.get_coins();
-        let wood_before = game.get_wood();
-        let result = game.craft_resource("coins_to_wood");
-
-        assert_eq!(result, false);
-        assert_eq!(game.get_coins(), coins_before);
-        assert_eq!(game.get_wood(), wood_before);
-
-        let stats = game.get_statistics();
-        assert_eq!(stats.total_resources_crafted, 0);
     }
 
     #[test]

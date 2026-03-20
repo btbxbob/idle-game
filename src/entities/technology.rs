@@ -221,7 +221,9 @@ impl TechnologyId {
             TechnologyId::Biotechnology => "生物技术，解锁生物工程",
             TechnologyId::GeneticEngineering => "基因工程，解锁基因编辑",
             TechnologyId::MaggotBreeding => "以尸体和蛆虫为样本建立黑暗育种线",
-            TechnologyId::NecroticRecycling => "将坏死组织重新并入食物与化学循环",
+            TechnologyId::NecroticRecycling => {
+                "将坏死组织重新并入食物与化学循环，并让食蛆逐渐变成可承受的日常摄入"
+            }
             TechnologyId::SymbioticHosts => "让人类宿主与蛆虫生态形成可控共生",
             TechnologyId::HiveMindProtocol => "将混合个体连接进共享思维网络",
             TechnologyId::CollectiveAwakening => "让整个共生体迈入统一意识与远征时代",

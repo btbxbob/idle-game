@@ -285,6 +285,8 @@ pub struct Worker {
     pub secondary_traits: Vec<Trait>,
     #[serde(default = "default_happiness")]
     pub happiness: f64,
+    #[serde(default = "default_health")]
+    pub health: f64,
     #[serde(default)]
     pub hunger: f64, // 饥饿度 0-100，0=饱食，100=饿死
     #[serde(default = "default_focus")]
@@ -305,6 +307,10 @@ pub struct Worker {
 
 fn default_happiness() -> f64 {
     50.0
+}
+
+fn default_health() -> f64 {
+    100.0
 }
 
 fn default_focus() -> f64 {
@@ -337,6 +343,7 @@ impl Worker {
             primary_trait: Trait::default(),
             secondary_traits: Vec::new(),
             happiness: 50.0,
+            health: default_health(),
             hunger: 0.0, // 初始不饿
             focus: default_focus(),
             fatigue: default_fatigue(),
@@ -374,6 +381,7 @@ impl Worker {
             primary_trait,
             secondary_traits,
             happiness: 50.0,
+            health: default_health(),
             hunger: 0.0, // 初始不饿
             focus: default_focus(),
             fatigue: default_fatigue(),

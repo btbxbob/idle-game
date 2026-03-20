@@ -1,4 +1,4 @@
-use crate::entities::{Building, Trait, Worker};
+use crate::entities::{Building, LimbSlot, Trait, Worker};
 use crate::state::{
     EventCategory, EventImpact, EventLogEntry, EventSnapshot, GameStage, GameState, ResourceType,
 };
@@ -2069,6 +2069,7 @@ pub fn render_event_entry(entry: &EventLogEntry) -> Option<RenderedEventLogEntry
             },
             secondary_traits: vec![],
             happiness: 50.0,
+            health: 100.0,
             hunger: 0.0,
             focus: 50.0,
             fatigue: 0.0,
@@ -2113,19 +2114,76 @@ pub fn render_event_entry(entry: &EventLogEntry) -> Option<RenderedEventLogEntry
     })
 }
 
-fn apply_effect(effect: EventEffect, state: &mut GameState) {
+fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) {
+    let limb_slots = [
+        LimbSlot::LeftArm,
+        LimbSlot::RightArm,
+        LimbSlot::LeftLeg,
+        LimbSlot::RightLeg,
+    ];
+    let mut local_rng = rng();
+
+    for _ in 0..injury_count {
+        let candidates: Vec<usize> = workers
+            .iter()
+            .enumerate()
+            .filter(|(_, worker)| worker.missing_limbs.len() < limb_slots.len())
+            .map(|(index, _)| index)
+            .collect();
+        let Some(&worker_index) = candidates.choose(&mut local_rng) else {
+            break;
+        };
+
+        let available_limbs: Vec<LimbSlot> = limb_slots
+            .iter()
+            .copied()
+            .filter(|limb| !workers[worker_index].missing_limbs.contains(limb))
+            .collect();
+        let Some(&lost_limb) = available_limbs.choose(&mut local_rng) else {
+            continue;
+        };
+
+        workers[worker_index].missing_limbs.push(lost_limb);
+        workers[worker_index].health = (workers[worker_index].health - 25.0).clamp(0.0, 100.0);
+        workers[worker_index].happiness =
+            (workers[worker_index].happiness - 10.0).clamp(0.0, 100.0);
+        workers[worker_index].stress = (workers[worker_index].stress + 18.0).clamp(0.0, 100.0);
+        workers[worker_index].fatigue = (workers[worker_index].fatigue + 12.0).clamp(0.0, 100.0);
+    }
+}
+
+fn kill_random_workers(workers: &mut Vec<Worker>, death_count: usize) {
+    let mut local_rng = rng();
+    for _ in 0..death_count.min(workers.len()) {
+        let candidates: Vec<usize> = (0..workers.len()).collect();
+        let Some(&worker_index) = candidates.choose(&mut local_rng) else {
+            break;
+        };
+        workers.remove(worker_index);
+    }
+}
+
+fn apply_effect(effect: EventEffect, state: &mut GameState, workers: &mut Vec<Worker>) {
     match effect {
         EventEffect::None => {}
-        EventEffect::AddCorpse(amount) => state.add_resource(ResourceType::Corpse, amount),
+        EventEffect::AddCorpse(amount) => {
+            state.add_resource(ResourceType::Corpse, amount);
+            kill_random_workers(workers, amount.floor() as usize);
+            injure_random_workers(workers, 1);
+        }
         EventEffect::AddMaggot(amount) => state.add_resource(ResourceType::Maggot, amount),
         EventEffect::AddCorpseAndMaggot { corpse, maggot } => {
             state.add_resource(ResourceType::Corpse, corpse);
             state.add_resource(ResourceType::Maggot, maggot);
+            kill_random_workers(workers, corpse.floor() as usize);
+            injure_random_workers(workers, 1);
         }
         EventEffect::ReduceFoodAndAddCorpse { food, corpse } => {
             let current_food = state.get_resource(ResourceType::Food);
             state.set_resource(ResourceType::Food, (current_food - food).max(0.0));
             state.add_resource(ResourceType::Corpse, corpse);
+            kill_random_workers(workers, corpse.floor() as usize);
+            injure_random_workers(workers, 1);
         }
     }
 }
@@ -2181,7 +2239,7 @@ fn select_scenario(
 
 pub fn maybe_generate_event(
     state: &mut GameState,
-    workers: &[Worker],
+    workers: &mut Vec<Worker>,
     buildings: &[Building],
     tech_tree: &TechnologyTree,
     now: f64,
@@ -2194,12 +2252,13 @@ pub fn maybe_generate_event(
     let seed = select_scenario(state, tech_tree, &ctx)?;
     let variant = (state.event_journal.total_events_generated as usize + seed.id.len())
         % REPORT_VARIANT_COUNT;
+
+    apply_effect(seed.effect, state, workers);
+
     let worker = {
         let mut local_rng = rng();
         workers.choose(&mut local_rng)
     };
-
-    apply_effect(seed.effect, state);
 
     let entry = EventLogEntry {
         event_id: state.event_journal.total_events_generated + 1,
@@ -2242,6 +2301,7 @@ mod tests {
             primary_trait: Trait::Diligent,
             secondary_traits: vec![],
             happiness: 50.0,
+            health: 100.0,
             hunger: 0.0,
             focus: 50.0,
             fatigue: 0.0,
@@ -2266,11 +2326,11 @@ mod tests {
         state.current_stage = GameStage::Workers;
         state.set_resource(ResourceType::Food, 40.0);
         state.event_journal.total_events_generated = 4;
-        let workers = vec![sample_worker()];
+        let mut workers = vec![sample_worker()];
 
         let event = maybe_generate_event(
             &mut state,
-            &workers,
+            &mut workers,
             &[],
             &TechnologyTree::default(),
             60_000.0,

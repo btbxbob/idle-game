@@ -135,8 +135,6 @@ class HousingManager {
             chemicals: 'chemicals',
             Gear: 'gear',
             gear: 'gear',
-            Wire: 'wire',
-            wire: 'wire',
             Motor: 'motor',
             motor: 'motor',
             Battery: 'battery',

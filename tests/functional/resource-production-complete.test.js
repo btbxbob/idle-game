@@ -15,7 +15,7 @@ test.describe('Resource Production Complete', () => {
                     'Coal', 'Oil', 'Crystal', 'Food', 'Water', 'Electricity'],
             tier2: ['IronIngot', 'CopperIngot', 'AluminumIngot', 'SteelPlate', 'CopperPlate',
                     'AluminumPlate', 'Glass', 'Plastic', 'Chemicals', 'Fuel', 'Paper', 'Ink',
-                    'Cloth', 'Leather', 'Ceramic', 'Cement', 'Brick', 'Rebar', 'Wire', 'Pipe',
+                    'Cloth', 'Leather', 'Ceramic', 'Cement', 'Brick', 'Rebar', 'Pipe',
                     'Valve', 'Gear', 'Bearing', 'Spring', 'Screw', 'Nut', 'Washer', 'Pump',
                     'Motor', 'Sensor', 'CircuitBoard', 'Capacitor', 'Resistor', 'Diode',
                     'Transistor', 'Transformer', 'Generator', 'Compressor', 'Battery'],
@@ -54,8 +54,8 @@ test.describe('Resource Production Complete', () => {
             }
         }
 
-        expect(verifiedCount).toBe(61);
-        console.log(`Total resources checked: ${verifiedCount}/61 (existing: ${existingCount}, undefined: ${undefinedCount})`);
+        expect(verifiedCount).toBe(60);
+        console.log(`Total resources checked: ${verifiedCount}/60 (existing: ${existingCount}, undefined: ${undefinedCount})`);
         
         // At least some resources should exist
         expect(existingCount).toBeGreaterThan(0);
@@ -452,7 +452,7 @@ test.describe('Resource Production Complete', () => {
             'Coal', 'Oil', 'Crystal', 'Food', 'Water', 'Electricity',
             'IronIngot', 'CopperIngot', 'AluminumIngot', 'SteelPlate', 'CopperPlate',
             'AluminumPlate', 'Glass', 'Plastic', 'Chemicals', 'Fuel', 'Paper', 'Ink',
-            'Cloth', 'Leather', 'Ceramic', 'Cement', 'Brick', 'Rebar', 'Wire', 'Pipe',
+            'Cloth', 'Leather', 'Ceramic', 'Cement', 'Brick', 'Rebar', 'Pipe',
             'Valve', 'Gear', 'Bearing', 'Spring', 'Screw', 'Nut', 'Washer', 'Pump',
             'Motor', 'Sensor', 'CircuitBoard', 'Capacitor', 'Resistor', 'Diode',
             'Transistor', 'Transformer', 'Generator', 'Compressor', 'Battery',

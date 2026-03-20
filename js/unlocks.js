@@ -136,7 +136,6 @@ class UnlockManager {
             cement: 'stage_hybrid',
             brick: 'stage_hybrid',
             rebar: 'stage_hybrid',
-            wire: 'stage_workers',
             pipe: 'stage_hybrid',
             valve: 'stage_hybrid',
             gear: 'stage_hybrid',

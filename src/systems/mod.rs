@@ -1,5 +1,4 @@
 pub mod achievement;
-pub mod crafting;
 pub mod decay;
 pub mod event;
 pub mod event_data;
@@ -10,7 +9,6 @@ pub mod technology;
 pub mod unlock;
 
 pub use achievement::Achievement;
-pub use crafting::CraftingRecipe;
 pub use decay::{CorpseInfo, CORPSE_DECAY_TIME_SECONDS, MAGGOTS_PER_CORPSE};
 pub use event::{
     catalog_capacity as event_catalog_capacity, maybe_generate_event, render_event_entry,

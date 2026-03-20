@@ -2,8 +2,8 @@ use crate::entities::{Building, Hobby, Housing, LimbSlot, PopulationQueue, Trait
 use crate::state::resource::ResourceType;
 use crate::state::{GameStage, GameState, Statistics};
 use crate::systems::{
-    achievement::Achievement, crafting::CraftingRecipe, event, production, stage,
-    technology::TechnologyTree, unlock::UnlockedFeature,
+    achievement::Achievement, event, production, stage, technology::TechnologyTree,
+    unlock::UnlockedFeature,
 };
 use crate::utils::WorkerGenerator;
 use base64::{engine::general_purpose, Engine as _};
@@ -120,8 +120,9 @@ pub struct SavedGame {
     #[serde(default)]
     pub population_queue: PopulationQueue,
     pub achievements: Vec<Achievement>,
-    #[serde(default)]
-    pub crafting_recipes: Vec<CraftingRecipe>,
+    #[serde(default, alias = "crafting_recipes")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub legacy_crafting_recipes: Vec<serde_json::Value>,
     pub unlocked_features: Vec<UnlockedFeature>,
     #[serde(default)]
     pub technology_tree: TechnologyTree,
@@ -163,7 +164,7 @@ fn infer_output_resource_from_building_name(building_name: &str) -> ResourceType
         "纳米机器人工厂" => ResourceType::Nanobot,
         "反物质反应堆" => ResourceType::Antimatter,
         "时间水晶合成器" => ResourceType::TimeCrystal,
-        "蛆虫工厂" | "腐肉育池" => ResourceType::Maggot,
+        "腐食育蛆槽" | "蛆虫工厂" | "腐肉育池" => ResourceType::Maggot,
         "共生培育舱" => ResourceType::Food,
         "神经尖塔" => ResourceType::DarkMatter,
         "深空孵化港" => ResourceType::Spaceship,
@@ -307,7 +308,6 @@ fn normalize_housing_resource_key(resource: &str) -> Option<ResourceType> {
         "plastic" => Some(ResourceType::Plastic),
         "chemicals" => Some(ResourceType::Chemicals),
         "gear" => Some(ResourceType::Gear),
-        "wire" => Some(ResourceType::Wire),
         "motor" => Some(ResourceType::Motor),
         "battery" => Some(ResourceType::Battery),
         "circuitboard" | "circuit_board" => Some(ResourceType::CircuitBoard),
@@ -369,7 +369,7 @@ fn default_housing_catalog() -> Vec<Housing> {
                 ("Gold", 900.0),
                 ("SteelPlate", 120.0),
                 ("Gear", 60.0),
-                ("Wire", 60.0),
+                ("IronIngot", 80.0),
             ]),
             16,
             "机械工程推动住房垂直扩张，结构件和供能线路让多人宿舍变得可靠。",
@@ -522,7 +522,6 @@ fn production_resource_slots() -> &'static [(ResourceType, usize)] {
         (ResourceType::Cement, 25),
         (ResourceType::Brick, 26),
         (ResourceType::Rebar, 27),
-        (ResourceType::Wire, 28),
         (ResourceType::Pipe, 29),
         (ResourceType::Valve, 30),
         (ResourceType::Gear, 31),
@@ -666,13 +665,15 @@ impl IdleGame {
                 organic: 0.0,
                 social: 0.1,
             },
-            "农场" | "蛆虫工厂" | "腐肉育池" | "共生培育舱" => WorkerJobProfile {
-                labor: 0.4,
-                precision: 0.3,
-                cognitive: 0.2,
-                organic: 1.0,
-                social: 0.5,
-            },
+            "农场" | "腐食育蛆槽" | "蛆虫工厂" | "腐肉育池" | "共生培育舱" => {
+                WorkerJobProfile {
+                    labor: 0.4,
+                    precision: 0.3,
+                    cognitive: 0.2,
+                    organic: 1.0,
+                    social: 0.5,
+                }
+            }
             "铁锭冶炼厂" | "铜锭冶炼厂" | "钢铁厂" | "玻璃厂" | "塑料厂" | "齿轮厂" | "电池厂"
             | "发电机厂" | "机器人工厂" => WorkerJobProfile {
                 labor: 0.8,
@@ -1598,7 +1599,7 @@ impl IdleGame {
             workers: self.workers.clone(),
             population_queue: self.population_queue.clone(),
             achievements: self.achievements.clone(),
-            crafting_recipes: vec![],
+            legacy_crafting_recipes: vec![],
             unlocked_features: self.unlocked_features.clone(),
             technology_tree: self.technology_tree.clone(),
             last_food_consumption_time: self.last_food_consumption_time,
@@ -1928,6 +1929,13 @@ impl IdleGame {
                     cost: 30.0,
                     production_rate: 2.0,
                     output_resource: ResourceType::Food,
+                    count: 0,
+                },
+                Building {
+                    name: "腐食育蛆槽".to_string(),
+                    cost: 160.0,
+                    production_rate: 0.5,
+                    output_resource: ResourceType::Maggot,
                     count: 0,
                 },
                 Building {
@@ -2799,7 +2807,7 @@ impl IdleGame {
             let _ = js_sys::Reflect::set(
                 &obj,
                 &JsValue::from_str("health"),
-                &JsValue::from_f64((100.0 - worker.hunger).max(0.0)),
+                &JsValue::from_f64(worker.health.clamp(0.0, 100.0)),
             );
             let _ = js_sys::Reflect::set(
                 &obj,
@@ -3485,6 +3493,47 @@ impl IdleGame {
                     &mut last_consumption,
                 );
                 self.last_food_consumption_time = last_consumption;
+
+                if state.current_stage >= GameStage::Maggot {
+                    let safe_maggot_diet = self
+                        .technology_tree
+                        .is_unlocked(crate::entities::technology::TechnologyId::NecroticRecycling);
+                    let mut available_maggots = state.get_resource(ResourceType::Maggot);
+                    let mut corpse_gain = 0.0;
+                    let mut indices_to_remove = Vec::new();
+
+                    for (idx, worker) in self.workers.iter_mut().enumerate() {
+                        if !worker.is_hungry || available_maggots < 1.0 {
+                            continue;
+                        }
+
+                        available_maggots -= 1.0;
+                        worker.is_hungry = false;
+                        worker.starvation_start_time = 0.0;
+                        worker.hunger = (worker.hunger - 35.0).clamp(0.0, 100.0);
+
+                        if !safe_maggot_diet {
+                            worker.happiness = (worker.happiness - 10.0).clamp(0.0, 100.0);
+                            worker.health = (worker.health - 14.0).clamp(0.0, 100.0);
+                            worker.stress = (worker.stress + 6.0).clamp(0.0, 100.0);
+                            worker.focus = (worker.focus - 4.0).clamp(0.0, 100.0);
+                        }
+
+                        if worker.happiness <= 0.0 || worker.health <= 0.0 {
+                            indices_to_remove.push(idx);
+                            corpse_gain += 1.0;
+                        }
+                    }
+
+                    state.set_resource(ResourceType::Maggot, available_maggots);
+                    if corpse_gain > 0.0 {
+                        state.add_resource(ResourceType::Corpse, corpse_gain);
+                    }
+                    for idx in indices_to_remove.into_iter().rev() {
+                        self.workers.remove(idx);
+                    }
+                }
+
                 let mut corpse_decay_time = 0.0;
                 let _deaths = crate::systems::population::check_worker_starvation_deaths(
                     &mut self.workers,
@@ -3500,6 +3549,8 @@ impl IdleGame {
                 let mut state = self.state.borrow_mut();
                 crate::systems::decay::produce_maggots(&mut state, now);
 
+                let larva_trough = self.buildings.iter().find(|b| b.name == "腐食育蛆槽");
+                let larva_trough_count = larva_trough.map(|b| b.count as f64).unwrap_or(0.0);
                 let maggot_factory = self.buildings.iter().find(|b| b.name == "蛆虫工厂");
                 let maggot_factory_count = maggot_factory.map(|b| b.count as f64).unwrap_or(0.0);
                 let necrotic_pool = self.buildings.iter().find(|b| b.name == "腐肉育池");
@@ -3522,31 +3573,43 @@ impl IdleGame {
                     .map(|b| b.production_rate * b.count as f64)
                     .unwrap_or(0.0);
 
+                let current_food = state.get_resource(ResourceType::Food);
+                let spoilable_food = (current_food - 120.0).max(0.0);
+                if spoilable_food > 0.0 {
+                    let spoiled_food = (spoilable_food * 0.015 * elapsed).min(6.0 * elapsed);
+                    if spoiled_food.is_finite() && spoiled_food > 0.0 {
+                        state.add_resource(ResourceType::Food, -spoiled_food);
+                        state.add_resource(ResourceType::Maggot, spoiled_food / 4.0);
+                    }
+                }
+
+                if larva_trough_count > 0.0 {
+                    let available_food = state.get_resource(ResourceType::Food);
+                    let max_food_process = 3.0 * larva_trough_count * elapsed;
+                    let process_amount = available_food.min(max_food_process).max(0.0);
+                    if process_amount > 0.0 {
+                        state.add_resource(ResourceType::Food, -process_amount);
+                        state.add_resource(ResourceType::Maggot, process_amount / 2.0);
+                    }
+                }
+
                 let maggot_gain = (maggot_factory_count + (necrotic_pool_count * 0.5)) * elapsed;
                 if maggot_gain.is_finite() && maggot_gain > 0.0 {
                     state.add_resource(ResourceType::Maggot, maggot_gain);
                 }
 
-                // Maggot factory: convert maggots into food (10:1 ratio).
                 if maggot_factory_count > 0.0 {
-                    let max_maggot_process = 10.0 * maggot_factory_count * elapsed;
-                    let current_maggot = state.get_resource(ResourceType::Maggot);
-                    let process_amount = current_maggot.min(max_maggot_process).max(0.0);
-                    if process_amount > 0.0 {
-                        state.add_resource(ResourceType::Maggot, -process_amount);
-                        state.add_resource(ResourceType::Food, process_amount / 10.0);
-                        state.objective_chain.dark_conversion_completed = true;
-                        if !state
+                    state.objective_chain.dark_conversion_completed = true;
+                    if !state
+                        .objective_chain
+                        .completed_steps
+                        .iter()
+                        .any(|completed| completed == "complete_dark_conversion")
+                    {
+                        state
                             .objective_chain
                             .completed_steps
-                            .iter()
-                            .any(|completed| completed == "complete_dark_conversion")
-                        {
-                            state
-                                .objective_chain
-                                .completed_steps
-                                .push("complete_dark_conversion".to_string());
-                        }
+                            .push("complete_dark_conversion".to_string());
                     }
                 }
 
@@ -3652,7 +3715,7 @@ impl IdleGame {
                 let mut state = self.state.borrow_mut();
                 let _ = event::maybe_generate_event(
                     &mut state,
-                    &self.workers,
+                    &mut self.workers,
                     &self.buildings,
                     &self.technology_tree,
                     now,
