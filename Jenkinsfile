@@ -11,6 +11,7 @@ pipeline {
     booleanParam(name: 'RUN_COVERAGE', defaultValue: false, description: 'Run Playwright e2e coverage check in Jenkins')
     booleanParam(name: 'PW_PARALLEL_CONTAINERS', defaultValue: false, description: 'Run functional tests in 2 parallel containers')
     booleanParam(name: 'RUN_REGRESSION_TESTS', defaultValue: false, description: 'Include regression tests (only when not using parallel containers)')
+    string(name: 'PW_TEST_WORKERS', defaultValue: '2', description: 'Playwright worker count for single-container runs (positive integer)')
   }
 
   environment {
@@ -169,6 +170,11 @@ EOF
       }
       steps {
         script {
+          def singleContainerWorkers = params.PW_TEST_WORKERS?.trim() ?: '2'
+          if (!(singleContainerWorkers ==~ /[1-9]\d*/)) {
+            error("PW_TEST_WORKERS must be a positive integer, got: ${params.PW_TEST_WORKERS}")
+          }
+
           if (params.PW_PARALLEL_CONTAINERS) {
             // Multi-container parallel mode: split functional tests into 2 containers (alphabetically)
             // Regression tests run separately if requested
@@ -269,7 +275,7 @@ EOF
                 -e CI=true \
                 -e RUN_COVERAGE=${RUN_COVERAGE} \
                 -e PW_TEST_PORT=8080 \
-                -e PW_TEST_WORKERS=${PW_TEST_WORKERS} \
+                -e PW_TEST_WORKERS=${singleContainerWorkers} \
                 -e PW_TEST_RETRIES=${PW_TEST_RETRIES} \
                 -e E2E_COVERAGE_MIN_LINES=${E2E_COVERAGE_MIN_LINES} \
                 -e E2E_COVERAGE_MIN_STATEMENTS=${E2E_COVERAGE_MIN_STATEMENTS} \
