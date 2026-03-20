@@ -2,12 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { test, expect } = require('../fixtures/coverage');
+const packageJson = require('../../package.json');
 
 test.describe('WASM wrapper coverage', () => {
     const pkgDir = path.join(process.cwd(), 'pkg');
+    const runtimeVersion = packageJson.version;
 
     const moduleFiles = [
-        'idle_game.v0.7.0.js',
+        `idle_game.v${runtimeVersion}.js`,
         'idle_game.js',
     ];
 
@@ -17,7 +19,7 @@ test.describe('WASM wrapper coverage', () => {
 
             const moduleUrl = pathToFileURL(path.join(pkgDir, moduleFile)).href;
             const wasmFile = moduleFile
-                .replace('idle_game.v0.7.0.js', 'idle_game_bg.v0.7.0.wasm')
+                .replace(`idle_game.v${runtimeVersion}.js`, `idle_game_bg.v${runtimeVersion}.wasm`)
                 .replace('idle_game.js', 'idle_game_bg.wasm');
             const wasmBytes = fs.readFileSync(path.join(pkgDir, wasmFile));
             const mod = await import(moduleUrl);
@@ -62,7 +64,9 @@ test.describe('WASM wrapper coverage', () => {
                 ['getProgressionStateJson', () => game.getProgressionStateJson()],
                 ['getUnlockProgress', () => game.getUnlockProgress('stage_workers')],
                 ['check_achievement', () => game.check_achievement('first_click')],
-            ].forEach(([label, fn]) => capture(label, fn, result.movedErrors));
+            ].forEach(([label, fn]) => {
+                capture(label, fn, result.movedErrors);
+            });
 
             expect(typeof result.beforeFreeCoins).toBe('number');
             expect(result.beforeFreeBuildings).toBe(true);

@@ -62,7 +62,7 @@ class UnlockManager {
 
     updateTabVisibility() {
         const stageId = this.progressionState ? this.progressionState.current_stage_id : 'stage_genesis';
-        const visibleTabs = new Set(['resources', 'buildings', 'unlocks', 'settings']);
+        const visibleTabs = new Set(['resources', 'buildings', 'unlocks', 'events', 'settings']);
 
         if (stageId !== 'stage_genesis') {
             ['workers', 'technology', 'work', 'housing', 'lifecycle', 'statistics', 'achievements'].forEach((tab) => {

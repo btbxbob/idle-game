@@ -55,7 +55,7 @@ test.describe('Tab structure and navigation', () => {
     await expect(page.locator('#tab-unlocks')).toHaveCount(1);
     await expect(page.locator('#tab-crafting')).toHaveCount(0);
 
-    expect(await page.locator('.tab-content').count()).toBe(11);
+    expect(await page.locator('.tab-content').count()).toBe(12);
 
     await workersButton.click();
     await expect(page.locator('.tab-button.active')).toHaveText('工人');

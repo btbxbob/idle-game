@@ -151,7 +151,11 @@ test.describe('Progression Objectives', () => {
     await unlockMaggotStage(page);
 
     const stateAfterGain = await page.evaluate(() => {
-      window.rustGame.add_resource('Maggot', 5);
+      const raw = window.rustGame.exportToBase64();
+      const json = JSON.parse(atob(raw));
+      json.state.resources = json.state.resources || {};
+      json.state.resources.Maggot = 5;
+      window.rustGame.importFromBase64(btoa(JSON.stringify(json)));
       const chain = JSON.parse(window.rustGame.getCurrentObjectiveChainJson());
       const step = chain.steps.find((entry) => entry.id === 'gain_maggot');
       return {
@@ -164,10 +168,11 @@ test.describe('Progression Objectives', () => {
     expect(stateAfterGain.current).toBe(1);
 
     const stateAfterSpend = await page.evaluate(() => {
-      const current = window.rustGame.get_resource_amount('Maggot');
-      if (current > 0) {
-        window.rustGame.add_resource('Maggot', -current);
-      }
+      const raw = window.rustGame.exportToBase64();
+      const json = JSON.parse(atob(raw));
+      json.state.resources = json.state.resources || {};
+      json.state.resources.Maggot = 0;
+      window.rustGame.importFromBase64(btoa(JSON.stringify(json)));
       const chain = JSON.parse(window.rustGame.getCurrentObjectiveChainJson());
       const step = chain.steps.find((entry) => entry.id === 'gain_maggot');
       return {
