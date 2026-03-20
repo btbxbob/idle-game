@@ -709,7 +709,7 @@ mod tests {
     }
 
     #[test]
-    fn maggot_factory_requires_maggot_breeding() {
+    fn maggot_factory_is_revealed_in_maggot_stage() {
         let building = Building {
             name: "蛆虫工厂".to_string(),
             cost: 200.0,
@@ -717,14 +717,7 @@ mod tests {
             output_resource: ResourceType::Maggot,
             count: 0,
         };
-        let mut tree = TechnologyTree::new();
-
-        assert!(!is_building_revealed(&building, GameStage::Maggot, &tree));
-
-        if let Some(tech) = tree.technologies.get_mut(&TechnologyId::MaggotBreeding) {
-            tech.purchased = true;
-        }
-        tree.unlocked.insert(TechnologyId::MaggotBreeding);
+        let tree = TechnologyTree::new();
 
         assert!(is_building_revealed(&building, GameStage::Maggot, &tree));
     }

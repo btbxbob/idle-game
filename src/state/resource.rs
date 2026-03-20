@@ -645,7 +645,7 @@ mod tests {
         }
 
         assert_eq!(tier1_count, 10);
-        assert_eq!(tier2_count, 39); // 39 tier 2 resources listed (special: Corpse, Maggot not counted)
+        assert_eq!(tier2_count, 38); // 38 tier 2 resources listed (special: Corpse, Maggot not counted)
         assert_eq!(tier3_count, 10);
     }
 

@@ -176,10 +176,12 @@ mod tests {
         );
 
         assert_eq!(hungry, 0);
-        assert_eq!(*resources.get(&ResourceType::Food).unwrap(), 8.0);
+        assert_eq!(*resources.get(&ResourceType::Food).unwrap(), 7.5);
         assert_eq!(last_consumption, 106.0);
         assert!(!workers[0].is_hungry);
         assert!(!workers[1].is_hungry);
+        assert_eq!(workers[0].health, 52.5);
+        assert_eq!(workers[1].health, 52.5);
     }
 
     #[test]
@@ -223,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_worker_death_after_30_seconds_starvation() {
+    fn test_worker_death_after_starvation_threshold() {
         let mut workers = vec![create_test_worker()];
         let mut resources = HashMap::new();
         resources.insert(ResourceType::Food, 0.0);
@@ -239,7 +241,7 @@ mod tests {
         let deaths = check_worker_starvation_deaths(
             &mut workers,
             &mut resources,
-            129.0,
+            117.0,
             &mut corpse_decay_time,
         );
         assert_eq!(deaths, 0);
@@ -248,13 +250,13 @@ mod tests {
         let deaths = check_worker_starvation_deaths(
             &mut workers,
             &mut resources,
-            130.0,
+            118.0,
             &mut corpse_decay_time,
         );
         assert_eq!(deaths, 1);
         assert_eq!(workers.len(), 0);
         assert_eq!(*resources.get(&ResourceType::Corpse).unwrap(), 1.0);
-        assert_eq!(corpse_decay_time, 130.0);
+        assert_eq!(corpse_decay_time, 118.0);
     }
 
     #[test]
