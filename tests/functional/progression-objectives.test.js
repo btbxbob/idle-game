@@ -73,7 +73,7 @@ test.describe('Progression Objectives', () => {
     expect(layout.verticalStack).toBe(true);
   });
 
-  test('maggot buildings stay hidden until dark technology is researched', async ({ page }) => {
+  test('maggot factory appears once dark stage is reached', async ({ page }) => {
     await page.goto('http://localhost:8080');
     await page.waitForFunction(() => window.gameInitialized === true);
     await unlockWorkersStage(page);
@@ -86,7 +86,7 @@ test.describe('Progression Objectives', () => {
 
     await unlockMaggotStage(page);
 
-    const hiddenInMaggot = await page.evaluate(() => {
+    const visibleInMaggot = await page.evaluate(() => {
       const buildings = window.rustGame.get_buildings();
       const progression = JSON.parse(window.rustGame.getProgressionStateJson());
       return {
@@ -95,8 +95,8 @@ test.describe('Progression Objectives', () => {
       };
     });
 
-    expect(hiddenInMaggot.stage).toBe('stage_maggot');
-    expect(hiddenInMaggot.hasFactory).toBe(false);
+    expect(visibleInMaggot.stage).toBe('stage_maggot');
+    expect(visibleInMaggot.hasFactory).toBe(true);
 
     await seedResourcesAndResearch(page, {
       resources: {
