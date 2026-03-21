@@ -3285,6 +3285,16 @@ impl IdleGame {
             0.0
         };
 
+        let now = Date::now();
+        let modifier_totals = {
+            let state = self.state.borrow();
+            event::active_modifier_totals(&state, now)
+        };
+
+        total_cps = (total_cps + modifier_totals.coins_per_second_delta).max(0.0);
+        total_wps = (total_wps + modifier_totals.wood_per_second_delta).max(0.0);
+        total_sps = (total_sps + modifier_totals.stone_per_second_delta).max(0.0);
+
         let mut state = self.state.borrow_mut();
         state.coins_per_second = total_cps;
         state.wood_per_second = total_wps;
@@ -3367,15 +3377,23 @@ impl IdleGame {
         let production =
             production::update_production(&self.buildings, &self.workers, &tech_bonuses);
 
+        let active_modifier_totals = {
+            let state = self.state.borrow();
+            event::active_modifier_totals(&state, now)
+        };
+
         let (new_coins, new_wood, new_stone, new_last_update_time, elapsed) = {
             let state = self.state.borrow();
             let elapsed = (now - state.last_update_time) / 1000.0;
 
             if elapsed > 0.0 && elapsed < 3600.0 {
                 // Use production[0] for coins, production[1] for wood, production[2] for stone
-                let mut new_coins = state.get_coins() + production[0] * elapsed;
-                let new_wood = state.get_wood() + production[1] * elapsed;
-                let new_stone = state.get_stone() + production[2] * elapsed;
+                let mut new_coins = state.get_coins()
+                    + (production[0] + active_modifier_totals.coins_per_second_delta) * elapsed;
+                let new_wood = state.get_wood()
+                    + (production[1] + active_modifier_totals.wood_per_second_delta) * elapsed;
+                let new_stone = state.get_stone()
+                    + (production[2] + active_modifier_totals.stone_per_second_delta) * elapsed;
 
                 new_coins = new_coins.max(0.0);
 
@@ -3467,6 +3485,7 @@ impl IdleGame {
             }
 
             state.last_update_time = new_last_update_time;
+            let _ = event::tick_active_modifiers(&mut state, now, elapsed);
         }
 
         // Update statistics (release borrow before calling other methods)

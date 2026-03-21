@@ -67,6 +67,52 @@ pub struct EventSnapshot {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct EventEffectOutcome {
+    #[serde(default)]
+    pub food_delta: f64,
+    #[serde(default)]
+    pub corpse_delta: f64,
+    #[serde(default)]
+    pub maggot_delta: f64,
+    #[serde(default)]
+    pub workers_killed: usize,
+    #[serde(default)]
+    pub workers_injured: usize,
+    #[serde(default)]
+    pub coins_per_second_delta: f64,
+    #[serde(default)]
+    pub wood_per_second_delta: f64,
+    #[serde(default)]
+    pub stone_per_second_delta: f64,
+    #[serde(default)]
+    pub food_per_second_delta: f64,
+    #[serde(default)]
+    pub maggot_per_second_delta: f64,
+    #[serde(default)]
+    pub duration_ms: f64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct ActiveEventModifier {
+    #[serde(default)]
+    pub source_event_id: u32,
+    #[serde(default)]
+    pub scenario_id: String,
+    #[serde(default)]
+    pub expires_at: f64,
+    #[serde(default)]
+    pub coins_per_second_delta: f64,
+    #[serde(default)]
+    pub wood_per_second_delta: f64,
+    #[serde(default)]
+    pub stone_per_second_delta: f64,
+    #[serde(default)]
+    pub food_per_second_delta: f64,
+    #[serde(default)]
+    pub maggot_per_second_delta: f64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct EventLogEntry {
     #[serde(default)]
     pub event_id: u32,
@@ -88,6 +134,8 @@ pub struct EventLogEntry {
     pub is_breaking: bool,
     #[serde(default)]
     pub snapshot: EventSnapshot,
+    #[serde(default)]
+    pub outcome: EventEffectOutcome,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -98,6 +146,8 @@ pub struct EventJournalState {
     pub last_event_time: f64,
     #[serde(default)]
     pub total_events_generated: u32,
+    #[serde(default)]
+    pub active_modifiers: Vec<ActiveEventModifier>,
 }
 
 impl EventJournalState {

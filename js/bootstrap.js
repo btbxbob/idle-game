@@ -233,6 +233,9 @@ function startGameLoop(game) {
         if (window.updateTechnologyPanel) {
             window.updateTechnologyPanel();
         }
+        if (window.updateWorkersPanel) {
+            window.updateWorkersPanel();
+        }
         if (window.updateLifecyclePanel) {
             window.updateLifecyclePanel();
         }

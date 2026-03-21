@@ -2979,6 +2979,36 @@ footer {
     widows: 2;
 }
 
+.event-news-outcomes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.event-news-outcome-chip {
+    border: 1px solid var(--border-color);
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.02em;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.event-news-outcome-chip.negative {
+    background: rgba(192, 57, 43, 0.12);
+    color: #a93226;
+}
+
+.event-news-outcome-chip.positive {
+    background: rgba(39, 174, 96, 0.14);
+    color: #1e8449;
+}
+
+.event-news-outcome-chip.warning {
+    background: rgba(176, 94, 16, 0.14);
+    color: #9c5b0b;
+}
+
 .event-news-interview {
     display: grid;
     gap: 6px;

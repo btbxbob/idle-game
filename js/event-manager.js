@@ -119,6 +119,107 @@ class EventManager {
         return this.t(`eventImpact_${impact}`, impact);
     }
 
+    getOutcome(event) {
+        return event && typeof event.outcome === 'object' && event.outcome !== null ? event.outcome : {};
+    }
+
+    getOutcomeValue(outcome, snakeKey, camelKey = snakeKey.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())) {
+        return Number(outcome?.[snakeKey] ?? outcome?.[camelKey] ?? 0) || 0;
+    }
+
+    formatOutcomeAmount(amount) {
+        const numeric = Number(amount) || 0;
+        return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(1).replace(/\.0$/, '');
+    }
+
+    getRateLabel(resourceKey) {
+        return this.t(resourceKey, resourceKey);
+    }
+
+    getOutcomeItems(event) {
+        const outcome = this.getOutcome(event);
+        const foodDelta = this.getOutcomeValue(outcome, 'food_delta');
+        const corpseDelta = this.getOutcomeValue(outcome, 'corpse_delta');
+        const maggotDelta = this.getOutcomeValue(outcome, 'maggot_delta');
+        const workersKilled = this.getOutcomeValue(outcome, 'workers_killed');
+        const workersInjured = this.getOutcomeValue(outcome, 'workers_injured');
+        const coinsPerSecondDelta = this.getOutcomeValue(outcome, 'coins_per_second_delta');
+        const woodPerSecondDelta = this.getOutcomeValue(outcome, 'wood_per_second_delta');
+        const stonePerSecondDelta = this.getOutcomeValue(outcome, 'stone_per_second_delta');
+        const foodPerSecondDelta = this.getOutcomeValue(outcome, 'food_per_second_delta');
+        const maggotPerSecondDelta = this.getOutcomeValue(outcome, 'maggot_per_second_delta');
+        const durationMs = this.getOutcomeValue(outcome, 'duration_ms');
+        const durationSeconds = durationMs > 0 ? this.formatOutcomeAmount(durationMs / 1000) : '0';
+        const items = [];
+
+        if (foodDelta < 0) {
+            items.push({
+                text: this.t('eventOutcome_foodLoss', { amount: this.formatOutcomeAmount(Math.abs(foodDelta)) }),
+                tone: 'negative'
+            });
+        }
+        if (corpseDelta > 0) {
+            items.push({
+                text: this.t('eventOutcome_corpseGain', { amount: this.formatOutcomeAmount(corpseDelta) }),
+                tone: 'negative'
+            });
+        }
+        if (maggotDelta > 0) {
+            items.push({
+                text: this.t('eventOutcome_maggotGain', { amount: this.formatOutcomeAmount(maggotDelta) }),
+                tone: 'warning'
+            });
+        }
+        if (workersKilled > 0) {
+            items.push({
+                text: this.t('eventOutcome_workersKilled', { count: this.formatOutcomeAmount(workersKilled) }),
+                tone: 'negative'
+            });
+        }
+        if (workersInjured > 0) {
+            items.push({
+                text: this.t('eventOutcome_workersInjured', { count: this.formatOutcomeAmount(workersInjured) }),
+                tone: 'warning'
+            });
+        }
+
+        [
+            { amount: coinsPerSecondDelta, resourceKey: 'coins' },
+            { amount: woodPerSecondDelta, resourceKey: 'wood' },
+            { amount: stonePerSecondDelta, resourceKey: 'stone' },
+            { amount: foodPerSecondDelta, resourceKey: 'food' },
+            { amount: maggotPerSecondDelta, resourceKey: 'maggot' }
+        ].forEach(({ amount, resourceKey }) => {
+            if (!amount || durationMs <= 0) {
+                return;
+            }
+
+            items.push({
+                text: this.t('eventOutcome_rateChange', {
+                    resource: this.getRateLabel(resourceKey),
+                    amount: `${amount > 0 ? '+' : ''}${this.formatOutcomeAmount(amount)}`,
+                    seconds: durationSeconds
+                }),
+                tone: amount > 0 ? 'positive' : 'negative'
+            });
+        });
+
+        return items;
+    }
+
+    renderOutcomeStrip(event) {
+        const items = this.getOutcomeItems(event);
+        if (!items.length) {
+            return '';
+        }
+
+        const chips = items
+            .map((item) => `<span class="event-news-outcome-chip ${this.escapeHtml(item.tone)}">${this.escapeHtml(item.text)}</span>`)
+            .join('');
+
+        return `<div class="event-news-outcomes">${chips}</div>`;
+    }
+
     escapeHtml(value) {
         return String(value || '')
             .replaceAll('&', '&amp;')
@@ -249,6 +350,7 @@ class EventManager {
                     <div class="skeleton-line"></div>
                     <div class="skeleton-line short"></div>
                 </div>
+                ${this.renderOutcomeStrip(event)}
                 ${workerName ? `
                     <div class="event-news-interview pending">
                         <div class="event-news-interview-label">${this.escapeHtml(this.t('eventInterviewLabel', 'Worker Interview'))}</div>

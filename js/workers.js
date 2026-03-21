@@ -877,3 +877,14 @@ class WorkerManager {
 }
 
 window.WorkerManager = WorkerManager;
+
+window.updateWorkersPanel = function() {
+    if (!window.workerManager || typeof window.workerManager.renderWorkers !== 'function') {
+        return;
+    }
+
+    const workersTab = document.getElementById('tab-workers');
+    if (workersTab && workersTab.classList.contains('active')) {
+        window.workerManager.renderWorkers();
+    }
+};

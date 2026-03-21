@@ -1,6 +1,7 @@
 use crate::entities::{Building, LimbSlot, Trait, Worker};
 use crate::state::{
-    EventCategory, EventImpact, EventLogEntry, EventSnapshot, GameStage, GameState, ResourceType,
+    ActiveEventModifier, EventCategory, EventEffectOutcome, EventImpact, EventLogEntry,
+    EventSnapshot, GameStage, GameState, ResourceType,
 };
 use crate::systems::event_data::{
     catalog_capacity as total_text_capacity, stage_subjects, tech_topics, template_capacity,
@@ -44,6 +45,15 @@ struct EventContext {
     total_clicks: u32,
 }
 
+#[derive(Default, Clone, Copy)]
+pub struct ActiveEventModifierTotals {
+    pub coins_per_second_delta: f64,
+    pub wood_per_second_delta: f64,
+    pub stone_per_second_delta: f64,
+    pub food_per_second_delta: f64,
+    pub maggot_per_second_delta: f64,
+}
+
 #[derive(Serialize, Clone)]
 pub struct EventLogSummaryView {
     pub event_id: u32,
@@ -54,6 +64,7 @@ pub struct EventLogSummaryView {
     pub worker_name: Option<String>,
     pub worker_trait: Option<String>,
     pub is_breaking: bool,
+    pub outcome: EventEffectOutcome,
 }
 
 #[derive(Serialize, Clone)]
@@ -72,6 +83,7 @@ pub struct RenderedEventLogEntry {
     pub opinion_zh: Option<String>,
     pub opinion_en: Option<String>,
     pub is_breaking: bool,
+    pub outcome: EventEffectOutcome,
 }
 
 fn event_cooldown_ms(stage: GameStage) -> f64 {
@@ -2016,6 +2028,7 @@ pub fn summarize_event_entry(entry: &EventLogEntry) -> EventLogSummaryView {
         worker_name: entry.worker_name.clone(),
         worker_trait: entry.worker_trait.clone(),
         is_breaking: entry.is_breaking,
+        outcome: entry.outcome.clone(),
     }
 }
 
@@ -2111,10 +2124,11 @@ pub fn render_event_entry(entry: &EventLogEntry) -> Option<RenderedEventLogEntry
             .as_ref()
             .map(|worker| compose_worker_opinion_en(worker, &entry.scenario_id)),
         is_breaking: entry.is_breaking,
+        outcome: entry.outcome.clone(),
     })
 }
 
-fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) {
+fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) -> usize {
     let limb_slots = [
         LimbSlot::LeftArm,
         LimbSlot::RightArm,
@@ -2122,6 +2136,7 @@ fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) {
         LimbSlot::RightLeg,
     ];
     let mut local_rng = rng();
+    let mut actual_injuries = 0;
 
     for _ in 0..injury_count {
         let candidates: Vec<usize> = workers
@@ -2149,41 +2164,277 @@ fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) {
             (workers[worker_index].happiness - 10.0).clamp(0.0, 100.0);
         workers[worker_index].stress = (workers[worker_index].stress + 18.0).clamp(0.0, 100.0);
         workers[worker_index].fatigue = (workers[worker_index].fatigue + 12.0).clamp(0.0, 100.0);
+        actual_injuries += 1;
     }
+
+    actual_injuries
 }
 
-fn kill_random_workers(workers: &mut Vec<Worker>, death_count: usize) {
+fn kill_random_workers(workers: &mut Vec<Worker>, death_count: usize) -> usize {
     let mut local_rng = rng();
+    let mut actual_deaths = 0;
     for _ in 0..death_count.min(workers.len()) {
         let candidates: Vec<usize> = (0..workers.len()).collect();
         let Some(&worker_index) = candidates.choose(&mut local_rng) else {
             break;
         };
         workers.remove(worker_index);
+        actual_deaths += 1;
     }
+
+    actual_deaths
 }
 
-fn apply_effect(effect: EventEffect, state: &mut GameState, workers: &mut Vec<Worker>) {
+fn push_active_modifier(
+    state: &mut GameState,
+    source_event_id: u32,
+    scenario_id: &str,
+    now: f64,
+    duration_ms: f64,
+    coins_per_second_delta: f64,
+    wood_per_second_delta: f64,
+    stone_per_second_delta: f64,
+    food_per_second_delta: f64,
+    maggot_per_second_delta: f64,
+) {
+    if duration_ms <= 0.0 {
+        return;
+    }
+
+    state
+        .event_journal
+        .active_modifiers
+        .push(ActiveEventModifier {
+            source_event_id,
+            scenario_id: scenario_id.to_string(),
+            expires_at: now + duration_ms,
+            coins_per_second_delta,
+            wood_per_second_delta,
+            stone_per_second_delta,
+            food_per_second_delta,
+            maggot_per_second_delta,
+        });
+}
+
+pub fn active_modifier_totals(state: &GameState, now: f64) -> ActiveEventModifierTotals {
+    state
+        .event_journal
+        .active_modifiers
+        .iter()
+        .filter(|modifier| modifier.expires_at > now)
+        .fold(
+            ActiveEventModifierTotals::default(),
+            |mut totals, modifier| {
+                totals.coins_per_second_delta += modifier.coins_per_second_delta;
+                totals.wood_per_second_delta += modifier.wood_per_second_delta;
+                totals.stone_per_second_delta += modifier.stone_per_second_delta;
+                totals.food_per_second_delta += modifier.food_per_second_delta;
+                totals.maggot_per_second_delta += modifier.maggot_per_second_delta;
+                totals
+            },
+        )
+}
+
+pub fn tick_active_modifiers(
+    state: &mut GameState,
+    now: f64,
+    elapsed: f64,
+) -> ActiveEventModifierTotals {
+    state
+        .event_journal
+        .active_modifiers
+        .retain(|modifier| modifier.expires_at > now);
+
+    let totals = active_modifier_totals(state, now);
+    if elapsed > 0.0 {
+        let food_delta = totals.food_per_second_delta * elapsed;
+        let maggot_delta = totals.maggot_per_second_delta * elapsed;
+
+        if food_delta != 0.0 {
+            state.add_resource(ResourceType::Food, food_delta);
+        }
+        if maggot_delta != 0.0 {
+            state.add_resource(ResourceType::Maggot, maggot_delta);
+        }
+    }
+
+    totals
+}
+
+fn apply_effect(
+    effect: EventEffect,
+    state: &mut GameState,
+    workers: &mut Vec<Worker>,
+    now: f64,
+    event_id: u32,
+    scenario_id: &str,
+) -> EventEffectOutcome {
     match effect {
-        EventEffect::None => {}
+        EventEffect::None => EventEffectOutcome::default(),
         EventEffect::AddCorpse(amount) => {
             state.add_resource(ResourceType::Corpse, amount);
-            kill_random_workers(workers, amount.floor() as usize);
-            injure_random_workers(workers, 1);
+            let workers_killed = kill_random_workers(workers, amount.floor() as usize);
+            let workers_injured = injure_random_workers(workers, 1);
+            EventEffectOutcome {
+                corpse_delta: amount,
+                workers_killed,
+                workers_injured,
+                ..EventEffectOutcome::default()
+            }
         }
-        EventEffect::AddMaggot(amount) => state.add_resource(ResourceType::Maggot, amount),
+        EventEffect::AddMaggot(amount) => {
+            state.add_resource(ResourceType::Maggot, amount);
+            EventEffectOutcome {
+                maggot_delta: amount,
+                ..EventEffectOutcome::default()
+            }
+        }
         EventEffect::AddCorpseAndMaggot { corpse, maggot } => {
             state.add_resource(ResourceType::Corpse, corpse);
             state.add_resource(ResourceType::Maggot, maggot);
-            kill_random_workers(workers, corpse.floor() as usize);
-            injure_random_workers(workers, 1);
+            let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
+            let workers_injured = injure_random_workers(workers, 1);
+            EventEffectOutcome {
+                corpse_delta: corpse,
+                maggot_delta: maggot,
+                workers_killed,
+                workers_injured,
+                ..EventEffectOutcome::default()
+            }
         }
         EventEffect::ReduceFoodAndAddCorpse { food, corpse } => {
             let current_food = state.get_resource(ResourceType::Food);
+            let actual_food_loss = current_food.min(food);
             state.set_resource(ResourceType::Food, (current_food - food).max(0.0));
             state.add_resource(ResourceType::Corpse, corpse);
-            kill_random_workers(workers, corpse.floor() as usize);
-            injure_random_workers(workers, 1);
+            let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
+            let workers_injured = injure_random_workers(workers, 1);
+            EventEffectOutcome {
+                food_delta: -actual_food_loss,
+                corpse_delta: corpse,
+                workers_killed,
+                workers_injured,
+                ..EventEffectOutcome::default()
+            }
+        }
+        EventEffect::TemporaryPrimaryProduction {
+            coins_per_second,
+            wood_per_second,
+            stone_per_second,
+            duration_ms,
+        } => {
+            push_active_modifier(
+                state,
+                event_id,
+                scenario_id,
+                now,
+                duration_ms,
+                coins_per_second,
+                wood_per_second,
+                stone_per_second,
+                0.0,
+                0.0,
+            );
+            EventEffectOutcome {
+                coins_per_second_delta: coins_per_second,
+                wood_per_second_delta: wood_per_second,
+                stone_per_second_delta: stone_per_second,
+                duration_ms,
+                ..EventEffectOutcome::default()
+            }
+        }
+        EventEffect::TemporaryResourceFlow {
+            food_per_second,
+            maggot_per_second,
+            duration_ms,
+        } => {
+            push_active_modifier(
+                state,
+                event_id,
+                scenario_id,
+                now,
+                duration_ms,
+                0.0,
+                0.0,
+                0.0,
+                food_per_second,
+                maggot_per_second,
+            );
+            EventEffectOutcome {
+                food_per_second_delta: food_per_second,
+                maggot_per_second_delta: maggot_per_second,
+                duration_ms,
+                ..EventEffectOutcome::default()
+            }
+        }
+        EventEffect::AddCorpseWithTemporaryPrimaryPenalty {
+            corpse,
+            coins_per_second,
+            wood_per_second,
+            stone_per_second,
+            duration_ms,
+        } => {
+            state.add_resource(ResourceType::Corpse, corpse);
+            let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
+            let workers_injured = injure_random_workers(workers, 1);
+            push_active_modifier(
+                state,
+                event_id,
+                scenario_id,
+                now,
+                duration_ms,
+                coins_per_second,
+                wood_per_second,
+                stone_per_second,
+                0.0,
+                0.0,
+            );
+            EventEffectOutcome {
+                corpse_delta: corpse,
+                workers_killed,
+                workers_injured,
+                coins_per_second_delta: coins_per_second,
+                wood_per_second_delta: wood_per_second,
+                stone_per_second_delta: stone_per_second,
+                duration_ms,
+                ..EventEffectOutcome::default()
+            }
+        }
+        EventEffect::ReduceFoodAndAddCorpseWithAftershock {
+            food,
+            corpse,
+            food_per_second,
+            maggot_per_second,
+            duration_ms,
+        } => {
+            let current_food = state.get_resource(ResourceType::Food);
+            let actual_food_loss = current_food.min(food);
+            state.set_resource(ResourceType::Food, (current_food - food).max(0.0));
+            state.add_resource(ResourceType::Corpse, corpse);
+            let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
+            let workers_injured = injure_random_workers(workers, 1);
+            push_active_modifier(
+                state,
+                event_id,
+                scenario_id,
+                now,
+                duration_ms,
+                0.0,
+                0.0,
+                0.0,
+                food_per_second,
+                maggot_per_second,
+            );
+            EventEffectOutcome {
+                food_delta: -actual_food_loss,
+                corpse_delta: corpse,
+                workers_killed,
+                workers_injured,
+                food_per_second_delta: food_per_second,
+                maggot_per_second_delta: maggot_per_second,
+                duration_ms,
+                ..EventEffectOutcome::default()
+            }
         }
     }
 }
@@ -2250,10 +2501,11 @@ pub fn maybe_generate_event(
 
     let ctx = build_context(state, workers, buildings, tech_tree);
     let seed = select_scenario(state, tech_tree, &ctx)?;
+    let event_id = state.event_journal.total_events_generated + 1;
     let variant = (state.event_journal.total_events_generated as usize + seed.id.len())
         % REPORT_VARIANT_COUNT;
 
-    apply_effect(seed.effect, state, workers);
+    let outcome = apply_effect(seed.effect, state, workers, now, event_id, &seed.id);
 
     let worker = {
         let mut local_rng = rng();
@@ -2261,7 +2513,7 @@ pub fn maybe_generate_event(
     };
 
     let entry = EventLogEntry {
-        event_id: state.event_journal.total_events_generated + 1,
+        event_id,
         timestamp: now,
         scenario_id: seed.id.clone(),
         category: seed.category,
@@ -2272,6 +2524,7 @@ pub fn maybe_generate_event(
         worker_trait: worker.map(|value| format!("{:?}", value.primary_trait)),
         is_breaking: seed.breaking || seed.impact == EventImpact::Effective,
         snapshot: snapshot_from_context(&ctx),
+        outcome,
     };
 
     state.event_journal.last_event_time = now;
@@ -2338,9 +2591,40 @@ mod tests {
         .expect("event should be generated");
 
         assert_eq!(event.impact, EventImpact::Effective);
+        assert!(event.outcome.corpse_delta > 0.0 || event.outcome.maggot_delta > 0.0);
         assert!(
             state.get_resource(ResourceType::Corpse) >= 1.0
                 || state.get_resource(ResourceType::Maggot) >= 1.0
         );
+    }
+
+    #[test]
+    fn temporary_effect_registers_and_ticks() {
+        let mut state = GameState::default();
+        state.set_resource(ResourceType::Food, 10.0);
+        let mut workers = vec![sample_worker()];
+
+        let outcome = apply_effect(
+            EventEffect::TemporaryResourceFlow {
+                food_per_second: 0.5,
+                maggot_per_second: 0.25,
+                duration_ms: 30_000.0,
+            },
+            &mut state,
+            &mut workers,
+            1_000.0,
+            7,
+            "test_flow",
+        );
+
+        assert_eq!(outcome.food_per_second_delta, 0.5);
+        assert_eq!(outcome.maggot_per_second_delta, 0.25);
+        assert_eq!(state.event_journal.active_modifiers.len(), 1);
+
+        let totals = tick_active_modifiers(&mut state, 2_000.0, 2.0);
+        assert_eq!(totals.food_per_second_delta, 0.5);
+        assert_eq!(totals.maggot_per_second_delta, 0.25);
+        assert_eq!(state.get_resource(ResourceType::Food), 11.0);
+        assert_eq!(state.get_resource(ResourceType::Maggot), 0.5);
     }
 }

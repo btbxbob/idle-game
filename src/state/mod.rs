@@ -6,7 +6,8 @@ pub mod stage;
 pub mod statistics;
 
 pub use event::{
-    EventCategory, EventImpact, EventJournalState, EventLogEntry, EventSnapshot, EVENT_LOG_LIMIT,
+    ActiveEventModifier, EventCategory, EventEffectOutcome, EventImpact, EventJournalState,
+    EventLogEntry, EventSnapshot, EVENT_LOG_LIMIT,
 };
 pub use game_state::GameState;
 pub use job_stats::{JobStats, WorkOverview};
