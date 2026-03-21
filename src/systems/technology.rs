@@ -1372,7 +1372,7 @@ mod tests {
             .technologies
             .get(&TechnologyId::QuantumComputing)
             .unwrap();
-        assert!(quantum.dependencies.contains(&TechnologyId::AdvancedAI));
+        assert!(quantum.dependencies.contains(&TechnologyId::AITechnology));
         assert!(quantum
             .dependencies
             .contains(&TechnologyId::AdvancedElectronics));
