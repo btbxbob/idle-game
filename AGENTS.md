@@ -239,6 +239,9 @@ git commit -m "chore: bump runtime version to v0.6.7"
 - CI build/test execution is centralized in Jenkins pipeline (`Jenkinsfile`)
 - GitHub Pages deployment remains in GitHub Actions workflow
 - Agent rule: do not run test commands locally; trigger Jenkins jobs for all test execution
+- Local Jenkins reads both its Pipeline definition and checkout source from the bind-mounted `/workspace/idle-game` tree, not from `origin` or the `bx-server` git remote directly
+- If `Jenkinsfile` changes, restart the local `jenkins` service so `docker/jenkins/init.groovy.d/03-pipeline-job.groovy` can resync the in-memory job definition
+- If local Jenkins seems to run stale pipeline logic, confirm the controller log contains `Synchronized pipeline job from /workspace/idle-game/Jenkinsfile`
 
 ### Jenkins Test Flow
 - Job: `idle-game-ci`
