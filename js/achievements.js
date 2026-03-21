@@ -184,6 +184,11 @@ class AchievementManager {
     }
 
     showNotification(achievement) {
+        if (this.notificationTimeout) {
+            clearTimeout(this.notificationTimeout);
+            this.notificationTimeout = null;
+        }
+
         const existingNotification = document.getElementById('achievement-notification');
         if (existingNotification) {
             existingNotification.remove();
@@ -212,10 +217,16 @@ class AchievementManager {
         });
 
         this.notificationTimeout = setTimeout(() => {
+            if (!notification.isConnected) {
+                return;
+            }
+
             notification.classList.remove('show');
             notification.classList.add('hide');
             setTimeout(() => {
-                notification.remove();
+                if (notification.isConnected) {
+                    notification.remove();
+                }
             }, 300);
         }, 5000);
     }

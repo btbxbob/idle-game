@@ -1,5 +1,21 @@
 const { test, expect } = require('../fixtures/coverage');
 
+async function triggerClicks(page, count) {
+    await page.evaluate((clickCount) => {
+        if (!window.rustGame || typeof window.rustGame.click_action !== 'function') {
+            throw new Error('missing click_action');
+        }
+
+        for (let i = 0; i < clickCount; i++) {
+            window.rustGame.click_action();
+        }
+
+        if (window.updateAchievementsPanel) {
+            window.updateAchievementsPanel();
+        }
+    }, count);
+}
+
 test.describe('Achievement Notification System', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080');
@@ -7,10 +23,7 @@ test.describe('Achievement Notification System', () => {
     });
 
     test('notification appears when achievement unlocks', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
+        await triggerClicks(page, 10);
 
         const notification = page.locator('#achievement-notification');
         await expect(notification).toBeVisible();
@@ -21,10 +34,7 @@ test.describe('Achievement Notification System', () => {
     });
 
     test('notification auto-dismisses after 5 seconds', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
+        await triggerClicks(page, 10);
 
         const notification = page.locator('#achievement-notification');
         const exists = await notification.count();
@@ -43,10 +53,7 @@ test.describe('Achievement Notification System', () => {
 
 
     test('notification has slide-in animation class', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
+        await triggerClicks(page, 10);
 
         const notification = page.locator('#achievement-notification');
         await expect(notification).toBeVisible();
@@ -55,10 +62,7 @@ test.describe('Achievement Notification System', () => {
     });
 
     test('notification CSS styles are applied', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
+        await triggerClicks(page, 10);
 
         const notification = page.locator('#achievement-notification');
         await expect(notification).toBeVisible();
@@ -108,10 +112,7 @@ test.describe('Achievement Notification System', () => {
     });
 
     test('notification content structure is correct', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
+        await triggerClicks(page, 10);
 
         const notification = page.locator('#achievement-notification');
         await expect(notification).toBeVisible();
@@ -128,10 +129,7 @@ test.describe('Achievement Notification System', () => {
     });
 
     test('multiple achievements queue properly', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 100; i++) {
-            await clickArea.click();
-        }
+        await triggerClicks(page, 100);
 
         const notifications = page.locator('#achievement-notification');
         await expect(notifications).toBeVisible();
@@ -141,10 +139,7 @@ test.describe('Achievement Notification System', () => {
     });
 
     test('notification hide class added on dismiss', async ({ page }) => {
-        const clickArea = page.locator('#coin-button');
-        for (let i = 0; i < 10; i++) {
-            await clickArea.click();
-        }
+        await triggerClicks(page, 10);
 
         const notification = page.locator('#achievement-notification');
         await expect(notification).toBeVisible();

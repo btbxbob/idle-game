@@ -115,6 +115,9 @@ async function initWasm() {
             coinButton.addEventListener('click', () => {
                 if (game && typeof game.click_action === 'function') {
                     game.click_action();
+                    if (window.updateAchievementsPanel) {
+                        window.updateAchievementsPanel();
+                    }
                 }
             });
         }
