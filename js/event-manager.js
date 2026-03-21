@@ -7,15 +7,24 @@ class EventManager {
         this.observer = null;
         this.tickerRenderKey = '';
         this.logRenderKey = '';
+        this.activeRenderKey = '';
+        this.highlightTimer = null;
+        this.boundHandleEventPanelClick = this.handleEventPanelClick.bind(this);
+        this.interactionsBound = false;
     }
 
-    t(key, fallback = key) {
+    t(key, paramsOrFallback = {}, fallback = key) {
+        const params = typeof paramsOrFallback === 'object' && paramsOrFallback !== null && !Array.isArray(paramsOrFallback)
+            ? paramsOrFallback
+            : {};
+        const finalFallback = typeof paramsOrFallback === 'string' ? paramsOrFallback : fallback;
+
         if (!window.i18n || typeof window.i18n.t !== 'function') {
-            return fallback;
+            return finalFallback;
         }
 
-        const translated = window.i18n.t(key);
-        return translated === key ? fallback : translated;
+        const translated = window.i18n.t(key, params);
+        return translated === key ? finalFallback : translated;
     }
 
     isEnglish() {
@@ -86,6 +95,20 @@ class EventManager {
         }
     }
 
+    getActiveModifiers() {
+        if (!this.rustGame || typeof this.rustGame.get_active_event_modifiers !== 'function') {
+            return [];
+        }
+
+        try {
+            const result = this.rustGame.get_active_event_modifiers();
+            return Array.isArray(result) ? result : [];
+        } catch (error) {
+            console.error('Failed to get active event modifiers:', error);
+            return [];
+        }
+    }
+
     formatTimestamp(timestamp) {
         const date = new Date(Number(timestamp) || 0);
         return date.toLocaleString(this.isEnglish() ? 'en-US' : 'zh-CN', {
@@ -132,8 +155,23 @@ class EventManager {
         return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(1).replace(/\.0$/, '');
     }
 
+    formatDurationMs(durationMs) {
+        const totalSeconds = Math.max(0, Math.ceil((Number(durationMs) || 0) / 1000));
+        if (totalSeconds >= 60) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return seconds === 0 ? `${minutes}m` : `${minutes}m ${seconds}s`;
+        }
+
+        return `${totalSeconds}s`;
+    }
+
     getRateLabel(resourceKey) {
         return this.t(resourceKey, resourceKey);
+    }
+
+    getStageLabel(stageId) {
+        return this.t(`stage_${stageId}`, stageId || 'stage_genesis');
     }
 
     getOutcomeItems(event) {
@@ -143,6 +181,7 @@ class EventManager {
         const maggotDelta = this.getOutcomeValue(outcome, 'maggot_delta');
         const workersKilled = this.getOutcomeValue(outcome, 'workers_killed');
         const workersInjured = this.getOutcomeValue(outcome, 'workers_injured');
+        const happinessDelta = this.getOutcomeValue(outcome, 'happiness_delta');
         const coinsPerSecondDelta = this.getOutcomeValue(outcome, 'coins_per_second_delta');
         const woodPerSecondDelta = this.getOutcomeValue(outcome, 'wood_per_second_delta');
         const stonePerSecondDelta = this.getOutcomeValue(outcome, 'stone_per_second_delta');
@@ -182,6 +221,12 @@ class EventManager {
                 tone: 'warning'
             });
         }
+        if (happinessDelta < 0) {
+            items.push({
+                text: this.t('eventOutcome_happinessLoss', { amount: this.formatOutcomeAmount(happinessDelta) }),
+                tone: 'negative'
+            });
+        }
 
         [
             { amount: coinsPerSecondDelta, resourceKey: 'coins' },
@@ -218,6 +263,124 @@ class EventManager {
             .join('');
 
         return `<div class="event-news-outcomes">${chips}</div>`;
+    }
+
+    renderActiveModifiers() {
+        const panel = document.getElementById('event-active-list');
+        if (!panel) {
+            return;
+        }
+
+        const modifiers = this.getActiveModifiers();
+        const languageKey = this.isEnglish() ? 'en' : 'zh';
+        const renderKey = `${languageKey}|${modifiers.map((modifier) => `${modifier.event_id || modifier.eventId}:${Math.ceil(Number(modifier.remaining_ms || modifier.remainingMs || 0))}`).join('|')}`;
+        if (this.activeRenderKey === renderKey) {
+            return;
+        }
+
+        if (!modifiers.length) {
+            panel.innerHTML = `<div class="event-active-empty">${this.escapeHtml(this.t('eventActiveEmpty', 'No temporary event effects are currently active'))}</div>`;
+            this.activeRenderKey = renderKey;
+            return;
+        }
+
+        const groups = new Map();
+        modifiers.forEach((modifier) => {
+            const stageId = modifier.stage_id || modifier.stageId || 'stage_genesis';
+            if (!groups.has(stageId)) {
+                groups.set(stageId, []);
+            }
+            groups.get(stageId).push(modifier);
+        });
+
+        panel.innerHTML = Array.from(groups.entries()).map(([stageId, stageModifiers]) => {
+            const cards = stageModifiers.map((modifier) => {
+                const headline = this.isEnglish()
+                    ? (modifier.headline_en || modifier.headlineEn || modifier.headline_zh || modifier.headlineZh || modifier.scenario_id || '')
+                    : (modifier.headline_zh || modifier.headlineZh || modifier.headline_en || modifier.headlineEn || modifier.scenario_id || '');
+                const remainingMs = Number(modifier.remaining_ms || modifier.remainingMs || 0) || 0;
+                const eventId = Number(modifier.event_id || modifier.eventId || 0) || 0;
+                const items = this.getOutcomeItems(modifier)
+                    .map((item) => `<span class="event-news-outcome-chip ${this.escapeHtml(item.tone)}">${this.escapeHtml(item.text)}</span>`)
+                    .join('');
+
+                return `
+                    <article class="event-active-card">
+                        <div class="event-active-card-header">
+                            <div class="event-active-card-title-wrap">
+                                <h4>${this.escapeHtml(headline)}</h4>
+                                <button type="button" class="event-active-source" data-event-source-id="${eventId}">${this.escapeHtml(this.t('eventActiveSource', { id: eventId }))}</button>
+                            </div>
+                            <span class="event-active-remaining">${this.escapeHtml(this.t('eventActiveRemaining', { time: this.formatDurationMs(remainingMs) }))}</span>
+                        </div>
+                        <div class="event-news-outcomes">${items}</div>
+                    </article>
+                `;
+            }).join('');
+
+            return `
+                <section class="event-active-group">
+                    <div class="event-active-group-label">${this.escapeHtml(this.getStageLabel(stageId))}</div>
+                    <div class="event-active-group-cards">${cards}</div>
+                </section>
+            `;
+        }).join('');
+        this.activeRenderKey = renderKey;
+    }
+
+    bindInteractions() {
+        if (this.interactionsBound) {
+            return;
+        }
+
+        const eventsTab = document.getElementById('tab-events');
+        if (!eventsTab) {
+            return;
+        }
+
+        eventsTab.addEventListener('click', this.boundHandleEventPanelClick);
+        this.interactionsBound = true;
+    }
+
+    handleEventPanelClick(event) {
+        const trigger = event.target instanceof Element
+            ? event.target.closest('[data-event-source-id]')
+            : null;
+        if (!trigger) {
+            return;
+        }
+
+        const eventId = Number(trigger.getAttribute('data-event-source-id') || 0);
+        if (!eventId) {
+            return;
+        }
+
+        this.jumpToEventCard(eventId);
+    }
+
+    jumpToEventCard(eventId) {
+        const total = this.getEventLogCount();
+        while (this.loadedCount < total && !document.querySelector(`#event-log-list .event-news-card[data-event-id="${eventId}"]`)) {
+            this.renderLogPanel(false, true);
+        }
+
+        const card = document.querySelector(`#event-log-list .event-news-card[data-event-id="${eventId}"]`);
+        if (!card) {
+            return;
+        }
+
+        this.hydrateEventCard(card);
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('event-news-card-linked');
+
+        if (this.highlightTimer) {
+            window.clearTimeout(this.highlightTimer);
+        }
+
+        this.highlightTimer = window.setTimeout(() => {
+            card.classList.remove('event-news-card-linked');
+            this.highlightTimer = null;
+        }, 1800);
     }
 
     escapeHtml(value) {
@@ -433,7 +596,9 @@ window.updateEventPanel = function(forceReset = false) {
         return;
     }
 
+    window.eventManager.bindInteractions();
     window.eventManager.renderTicker();
+    window.eventManager.renderActiveModifiers();
     const eventsTab = document.getElementById('tab-events');
     if (eventsTab && eventsTab.classList.contains('active')) {
                         window.eventManager.renderLogPanel(forceReset, false);

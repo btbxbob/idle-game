@@ -2881,6 +2881,20 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn get_active_event_modifiers(&self) -> JsValue {
+        let state = self.state.borrow();
+        let now = Date::now();
+        let active: Vec<_> = state
+            .event_journal
+            .active_modifiers
+            .iter()
+            .filter_map(|modifier| event::render_active_modifier_view(modifier, now))
+            .collect();
+
+        serde_wasm_bindgen::to_value(&active).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen]
     pub fn get_breaking_event_titles(&self, limit: usize) -> JsValue {
         let items = js_sys::Array::new();
         if limit == 0 {

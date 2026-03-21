@@ -86,6 +86,27 @@ pub struct RenderedEventLogEntry {
     pub outcome: EventEffectOutcome,
 }
 
+#[derive(Serialize, Clone)]
+pub struct ActiveEventModifierView {
+    pub event_id: u32,
+    pub scenario_id: String,
+    pub stage_id: String,
+    pub headline_zh: String,
+    pub headline_en: String,
+    pub remaining_ms: f64,
+    pub outcome: EventEffectOutcome,
+}
+
+fn stage_from_id(stage_id: &str) -> GameStage {
+    match stage_id {
+        "stage_workers" => GameStage::Workers,
+        "stage_maggot" => GameStage::Maggot,
+        "stage_hybrid" => GameStage::Hybrid,
+        "stage_collective" => GameStage::Collective,
+        _ => GameStage::Genesis,
+    }
+}
+
 fn event_cooldown_ms(stage: GameStage) -> f64 {
     match stage {
         GameStage::Genesis => 48_000.0,
@@ -1945,24 +1966,124 @@ fn compose_body_en(
     parts.join(" ")
 }
 
-fn compose_worker_opinion_zh(worker: &Worker, scenario_id: &str) -> String {
+fn opinion_attribution_zh(seed: &ScenarioSeed, variant: usize) -> &'static str {
+    match detect_news_style(seed) {
+        NewsStyle::Accident => match variant_slot(variant, 300, 4) {
+            0 => "抹了一把脸上的灰，嗓子发紧地说",
+            1 => "盯着还没收拾完的现场，半天才挤出一句",
+            2 => "把声音压得很低，却还是压不住火气",
+            _ => "像是刚从惊魂里回过神，苦笑着说",
+        },
+        NewsStyle::Labor => match variant_slot(variant, 300, 4) {
+            0 => "把工牌往桌上一拍，带着火气说",
+            1 => "先翻了个白眼，再忍不住阴阳了一句",
+            2 => "一边摇头一边冷笑，话里全是刺",
+            _ => "像是已经憋了整整一班的气，张口就来",
+        },
+        NewsStyle::Festival => match variant_slot(variant, 300, 4) {
+            0 => "笑得差点把水喷出来，拍着桌子说",
+            1 => "明显还没从热闹里退场，眉飞色舞地说",
+            2 => "边笑边比划，像在补一段更离谱的现场版",
+            _ => "一副巴不得再来一轮的样子，乐呵呵地说",
+        },
+        NewsStyle::Rumor => match variant_slot(variant, 300, 4) {
+            0 => "先左右看了一圈，压低嗓门说",
+            1 => "嘴上说不信，神情却像刚撞见了什么",
+            2 => "明明想装镇定，结果越说越像怪谈加更",
+            _ => "把声音放得只够近处几个人听见，神秘兮兮地说",
+        },
+        NewsStyle::Default => match seed.category {
+            EventCategory::SocialMutation => match variant_slot(variant, 300, 4) {
+                0 => "压低声音，却还是藏不住看热闹的劲头",
+                1 => "像是在讲刚听来的新消息，越说越上头",
+                2 => "本来想说得克制一点，结果语气先拐了弯",
+                _ => "明明只是评价两句，却说出了围观现场的味道",
+            },
+            EventCategory::SurvivalCrisis => match variant_slot(variant, 300, 4) {
+                0 => "像是把一整天的火气都压进这句话里",
+                1 => "先叹气再开口，语气里全是疲惫和不服",
+                2 => "说到一半就上了情绪",
+                _ => "苦着脸，却还是忍不住抖了个黑色幽默包袱",
+            },
+            _ => match variant_slot(variant, 300, 4) {
+                0 => "耸了耸肩，语气却一点也不平",
+                1 => "像在讲笑话，但谁都听得出不是轻松的笑话",
+                2 => "嘴上装得轻描淡写，情绪却已经写在脸上",
+                _ => "说得像段子，落点却很真",
+            },
+        },
+    }
+}
+
+fn opinion_attribution_en(seed: &ScenarioSeed, variant: usize) -> &'static str {
+    match detect_news_style(seed) {
+        NewsStyle::Accident => match variant_slot(variant, 300, 4) {
+            0 => "wiped grime from their face and said through a tight throat",
+            1 => "kept staring at the half-cleared scene before finally saying",
+            2 => "tried to lower their voice, but not their anger, and said",
+            _ => "looked like they had only just returned from the shock and said with a bleak laugh",
+        },
+        NewsStyle::Labor => match variant_slot(variant, 300, 4) {
+            0 => "slapped their badge against the table and said",
+            1 => "rolled their eyes first and then delivered it with open sarcasm",
+            2 => "shook their head, laughed once without humor, and said",
+            _ => "sounded like a full shift of frustration finally found a microphone and said",
+        },
+        NewsStyle::Festival => match variant_slot(variant, 300, 4) {
+            0 => "nearly choked laughing, smacked the table, and said",
+            1 => "still looked half inside the party and said with theatrical delight",
+            2 => "gestured through the punchline like they were improving the scene live and said",
+            _ => "looked delighted at the idea of a second round and said",
+        },
+        NewsStyle::Rumor => match variant_slot(variant, 300, 4) {
+            0 => "looked both ways first and then whispered",
+            1 => "claimed not to believe it, while looking exactly like someone who had seen something, and said",
+            2 => "tried to sound calm, failed, and ended up sounding like the rumor's newest editor",
+            _ => "dropped their voice until only the nearest few could hear and said",
+        },
+        NewsStyle::Default => match seed.category {
+            EventCategory::SocialMutation => match variant_slot(variant, 300, 4) {
+                0 => "lowered their voice, but not their appetite for the story, and said",
+                1 => "sounded like they were passing along fresh hallway gossip and said",
+                2 => "tried to keep it measured, then let the tone bend anyway and said",
+                _ => "meant to offer a simple opinion, but made it sound like live commentary and said",
+            },
+            EventCategory::SurvivalCrisis => match variant_slot(variant, 300, 4) {
+                0 => "compressed a whole day of anger into one breath and said",
+                1 => "sighed first, then answered with tired defiance",
+                2 => "got halfway through restraint before emotion took over and said",
+                _ => "managed to smuggle one dark joke into an otherwise exhausted answer and said",
+            },
+            _ => match variant_slot(variant, 300, 4) {
+                0 => "shrugged, though the tone was anything but flat, and said",
+                1 => "made it sound like a joke with a real bruise underneath and said",
+                2 => "tried to keep it casual, failed visibly, and said",
+                _ => "delivered it like a line that wanted laughter and truth at the same time",
+            },
+        },
+    }
+}
+
+fn compose_worker_opinion_zh(worker: &Worker, seed: &ScenarioSeed, scenario_id: &str) -> String {
     let (a, b, c) = trait_voice_pack_zh(worker.primary_trait);
     let idx = worker.name.len() + scenario_id.len();
     format!(
-        "{}说：“{}，{}。{}”",
+        "{}{}：“{}，{}。{}”",
         worker.name,
+        opinion_attribution_zh(seed, idx),
         a[idx % a.len()],
         b[(idx / 2) % b.len()],
         c[(idx / 3) % c.len()]
     )
 }
 
-fn compose_worker_opinion_en(worker: &Worker, scenario_id: &str) -> String {
+fn compose_worker_opinion_en(worker: &Worker, seed: &ScenarioSeed, scenario_id: &str) -> String {
     let (a, b, c) = trait_voice_pack_en(worker.primary_trait);
     let idx = worker.name.len() + scenario_id.len();
     format!(
-        "{} said, \"{}, {}. {}\"",
+        "{} {}, \"{}, {}. {}\"",
         worker.name,
+        opinion_attribution_en(seed, idx),
         a[idx % a.len()],
         b[(idx / 2) % b.len()],
         c[(idx / 3) % c.len()]
@@ -1992,13 +2113,7 @@ fn snapshot_from_context(ctx: &EventContext) -> EventSnapshot {
 }
 
 fn context_from_entry(entry: &EventLogEntry) -> EventContext {
-    let stage = match entry.stage_id.as_str() {
-        "stage_workers" => GameStage::Workers,
-        "stage_maggot" => GameStage::Maggot,
-        "stage_hybrid" => GameStage::Hybrid,
-        "stage_collective" => GameStage::Collective,
-        _ => GameStage::Genesis,
-    };
+    let stage = stage_from_id(&entry.stage_id);
 
     EventContext {
         stage,
@@ -2033,13 +2148,7 @@ pub fn summarize_event_entry(entry: &EventLogEntry) -> EventLogSummaryView {
 }
 
 pub fn render_event_entry(entry: &EventLogEntry) -> Option<RenderedEventLogEntry> {
-    let stage = match entry.stage_id.as_str() {
-        "stage_workers" => GameStage::Workers,
-        "stage_maggot" => GameStage::Maggot,
-        "stage_hybrid" => GameStage::Hybrid,
-        "stage_collective" => GameStage::Collective,
-        _ => GameStage::Genesis,
-    };
+    let stage = stage_from_id(&entry.stage_id);
     let seed = find_scenario(stage, &entry.scenario_id)?;
     let ctx = context_from_entry(entry);
     let worker_stub = match (&entry.worker_name, &entry.worker_trait) {
@@ -2119,16 +2228,45 @@ pub fn render_event_entry(entry: &EventLogEntry) -> Option<RenderedEventLogEntry
         worker_trait: entry.worker_trait.clone(),
         opinion_zh: worker_stub
             .as_ref()
-            .map(|worker| compose_worker_opinion_zh(worker, &entry.scenario_id)),
+            .map(|worker| compose_worker_opinion_zh(worker, &seed, &entry.scenario_id)),
         opinion_en: worker_stub
             .as_ref()
-            .map(|worker| compose_worker_opinion_en(worker, &entry.scenario_id)),
+            .map(|worker| compose_worker_opinion_en(worker, &seed, &entry.scenario_id)),
         is_breaking: entry.is_breaking,
         outcome: entry.outcome.clone(),
     })
 }
 
-fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) -> usize {
+pub fn render_active_modifier_view(
+    modifier: &ActiveEventModifier,
+    now: f64,
+) -> Option<ActiveEventModifierView> {
+    if modifier.expires_at <= now {
+        return None;
+    }
+
+    let seed = find_scenario(stage_from_id(&modifier.stage_id), &modifier.scenario_id)?;
+
+    Some(ActiveEventModifierView {
+        event_id: modifier.source_event_id,
+        scenario_id: modifier.scenario_id.clone(),
+        stage_id: modifier.stage_id.clone(),
+        headline_zh: seed.focus_zh.to_string(),
+        headline_en: seed.focus_en.to_string(),
+        remaining_ms: modifier.expires_at - now,
+        outcome: EventEffectOutcome {
+            coins_per_second_delta: modifier.coins_per_second_delta,
+            wood_per_second_delta: modifier.wood_per_second_delta,
+            stone_per_second_delta: modifier.stone_per_second_delta,
+            food_per_second_delta: modifier.food_per_second_delta,
+            maggot_per_second_delta: modifier.maggot_per_second_delta,
+            duration_ms: (modifier.expires_at - now).max(0.0),
+            ..EventEffectOutcome::default()
+        },
+    })
+}
+
+fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) -> (usize, f64) {
     let limb_slots = [
         LimbSlot::LeftArm,
         LimbSlot::RightArm,
@@ -2137,6 +2275,7 @@ fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) -> usiz
     ];
     let mut local_rng = rng();
     let mut actual_injuries = 0;
+    let mut happiness_delta = 0.0;
 
     for _ in 0..injury_count {
         let candidates: Vec<usize> = workers
@@ -2165,9 +2304,10 @@ fn injure_random_workers(workers: &mut Vec<Worker>, injury_count: usize) -> usiz
         workers[worker_index].stress = (workers[worker_index].stress + 18.0).clamp(0.0, 100.0);
         workers[worker_index].fatigue = (workers[worker_index].fatigue + 12.0).clamp(0.0, 100.0);
         actual_injuries += 1;
+        happiness_delta -= 10.0;
     }
 
-    actual_injuries
+    (actual_injuries, happiness_delta)
 }
 
 fn kill_random_workers(workers: &mut Vec<Worker>, death_count: usize) -> usize {
@@ -2189,6 +2329,7 @@ fn push_active_modifier(
     state: &mut GameState,
     source_event_id: u32,
     scenario_id: &str,
+    stage_id: &str,
     now: f64,
     duration_ms: f64,
     coins_per_second_delta: f64,
@@ -2207,6 +2348,7 @@ fn push_active_modifier(
         .push(ActiveEventModifier {
             source_event_id,
             scenario_id: scenario_id.to_string(),
+            stage_id: stage_id.to_string(),
             expires_at: now + duration_ms,
             coins_per_second_delta,
             wood_per_second_delta,
@@ -2269,19 +2411,10 @@ fn apply_effect(
     event_id: u32,
     scenario_id: &str,
 ) -> EventEffectOutcome {
+    let stage_id = state.current_stage.id().to_string();
+
     match effect {
         EventEffect::None => EventEffectOutcome::default(),
-        EventEffect::AddCorpse(amount) => {
-            state.add_resource(ResourceType::Corpse, amount);
-            let workers_killed = kill_random_workers(workers, amount.floor() as usize);
-            let workers_injured = injure_random_workers(workers, 1);
-            EventEffectOutcome {
-                corpse_delta: amount,
-                workers_killed,
-                workers_injured,
-                ..EventEffectOutcome::default()
-            }
-        }
         EventEffect::AddMaggot(amount) => {
             state.add_resource(ResourceType::Maggot, amount);
             EventEffectOutcome {
@@ -2293,27 +2426,13 @@ fn apply_effect(
             state.add_resource(ResourceType::Corpse, corpse);
             state.add_resource(ResourceType::Maggot, maggot);
             let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
-            let workers_injured = injure_random_workers(workers, 1);
+            let (workers_injured, happiness_delta) = injure_random_workers(workers, 1);
             EventEffectOutcome {
                 corpse_delta: corpse,
                 maggot_delta: maggot,
                 workers_killed,
                 workers_injured,
-                ..EventEffectOutcome::default()
-            }
-        }
-        EventEffect::ReduceFoodAndAddCorpse { food, corpse } => {
-            let current_food = state.get_resource(ResourceType::Food);
-            let actual_food_loss = current_food.min(food);
-            state.set_resource(ResourceType::Food, (current_food - food).max(0.0));
-            state.add_resource(ResourceType::Corpse, corpse);
-            let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
-            let workers_injured = injure_random_workers(workers, 1);
-            EventEffectOutcome {
-                food_delta: -actual_food_loss,
-                corpse_delta: corpse,
-                workers_killed,
-                workers_injured,
+                happiness_delta,
                 ..EventEffectOutcome::default()
             }
         }
@@ -2327,6 +2446,7 @@ fn apply_effect(
                 state,
                 event_id,
                 scenario_id,
+                &stage_id,
                 now,
                 duration_ms,
                 coins_per_second,
@@ -2352,6 +2472,7 @@ fn apply_effect(
                 state,
                 event_id,
                 scenario_id,
+                &stage_id,
                 now,
                 duration_ms,
                 0.0,
@@ -2376,11 +2497,12 @@ fn apply_effect(
         } => {
             state.add_resource(ResourceType::Corpse, corpse);
             let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
-            let workers_injured = injure_random_workers(workers, 1);
+            let (workers_injured, happiness_delta) = injure_random_workers(workers, 1);
             push_active_modifier(
                 state,
                 event_id,
                 scenario_id,
+                &stage_id,
                 now,
                 duration_ms,
                 coins_per_second,
@@ -2393,6 +2515,7 @@ fn apply_effect(
                 corpse_delta: corpse,
                 workers_killed,
                 workers_injured,
+                happiness_delta,
                 coins_per_second_delta: coins_per_second,
                 wood_per_second_delta: wood_per_second,
                 stone_per_second_delta: stone_per_second,
@@ -2412,11 +2535,12 @@ fn apply_effect(
             state.set_resource(ResourceType::Food, (current_food - food).max(0.0));
             state.add_resource(ResourceType::Corpse, corpse);
             let workers_killed = kill_random_workers(workers, corpse.floor() as usize);
-            let workers_injured = injure_random_workers(workers, 1);
+            let (workers_injured, happiness_delta) = injure_random_workers(workers, 1);
             push_active_modifier(
                 state,
                 event_id,
                 scenario_id,
+                &stage_id,
                 now,
                 duration_ms,
                 0.0,
@@ -2430,6 +2554,7 @@ fn apply_effect(
                 corpse_delta: corpse,
                 workers_killed,
                 workers_injured,
+                happiness_delta,
                 food_per_second_delta: food_per_second,
                 maggot_per_second_delta: maggot_per_second,
                 duration_ms,

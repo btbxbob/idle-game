@@ -301,6 +301,10 @@ class I18n {
                 'eventLoadMore': 'Load Older Reports',
                 'eventNoMore': 'No older reports',
                 'eventEmpty': 'No event coverage yet',
+                'eventActiveTitle': 'Active Aftereffects',
+                'eventActiveSubtitle': 'Short-lived event buffs and debuffs still shaping the settlement right now.',
+                'eventActiveEmpty': 'No temporary event effects are currently active',
+                'eventActiveSource': 'Source event #{id}',
                 'eventInterviewLabel': 'Worker Interview',
                 'eventImpact_flavor': 'Flavor',
                 'eventImpact_effective': 'Effective',
@@ -309,7 +313,9 @@ class I18n {
                 'eventOutcome_maggotGain': 'Maggots +{amount}',
                 'eventOutcome_workersKilled': '{count} killed',
                 'eventOutcome_workersInjured': '{count} injured',
+                'eventOutcome_happinessLoss': 'Mood {amount}',
                 'eventOutcome_rateChange': '{resource} {amount}/s for {seconds}s',
+                'eventActiveRemaining': '{time} left',
                 'eventCategory_survival_crisis': 'Survival Crisis',
                 'eventCategory_dark_conversion': 'Dark Conversion',
                 'eventCategory_industrial_progress': 'Industrial Progress',
@@ -743,6 +749,10 @@ class I18n {
                 'eventLoadMore': '加载更早报道',
                 'eventNoMore': '没有更早的报道了',
                 'eventEmpty': '暂时还没有事件报道',
+                'eventActiveTitle': '当前生效中的事件影响',
+                'eventActiveSubtitle': '这里会显示仍在持续作用的事件 buff / debuff 与剩余时间。',
+                'eventActiveEmpty': '当前没有正在持续生效的事件影响',
+                'eventActiveSource': '来源事件 #{id}',
                 'eventInterviewLabel': '工人采访',
                 'eventImpact_flavor': '现场报道',
                 'eventImpact_effective': '异常影响',
@@ -751,7 +761,9 @@ class I18n {
                 'eventOutcome_maggotGain': '蛆虫 +{amount}',
                 'eventOutcome_workersKilled': '死亡 {count} 人',
                 'eventOutcome_workersInjured': '受伤 {count} 人',
+                'eventOutcome_happinessLoss': '心情 {amount}',
                 'eventOutcome_rateChange': '{resource} {amount}/秒，持续 {seconds} 秒',
+                'eventActiveRemaining': '剩余 {time}',
                 'eventCategory_survival_crisis': '生存危机',
                 'eventCategory_dark_conversion': '黑暗转化',
                 'eventCategory_industrial_progress': '工业进展',
@@ -1069,6 +1081,8 @@ class I18n {
         this.updateElement('unlocks-placeholder', 'unlocksLoadingPlaceholder');
         this.updateElement('event-log-title', 'eventLogTitle');
         this.updateElement('event-log-subtitle', 'eventLogSubtitle');
+        this.updateElement('event-active-title', 'eventActiveTitle');
+        this.updateElement('event-active-subtitle', 'eventActiveSubtitle');
         this.updateElement('event-log-load-more', 'eventLoadMore');
 
         // Update settings labels

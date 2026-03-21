@@ -15,15 +15,10 @@ pub(super) enum TriggerFamily {
 #[derive(Clone, Copy)]
 pub(super) enum EventEffect {
     None,
-    AddCorpse(f64),
     AddMaggot(f64),
     AddCorpseAndMaggot {
         corpse: f64,
         maggot: f64,
-    },
-    ReduceFoodAndAddCorpse {
-        food: f64,
-        corpse: f64,
     },
     TemporaryPrimaryProduction {
         coins_per_second: f64,

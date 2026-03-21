@@ -2846,6 +2846,105 @@ footer {
     gap: 14px;
 }
 
+#event-active-panel {
+    display: grid;
+    gap: 12px;
+    border: 2px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.06), rgba(0, 0, 0, 0.03));
+    box-shadow: 3px 3px 0 var(--shadow-color);
+    padding: 14px 16px;
+}
+
+.event-active-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.event-active-header p {
+    margin: 6px 0 0;
+    line-height: 1.6;
+    opacity: 0.82;
+}
+
+#event-active-list {
+    display: grid;
+    gap: 10px;
+}
+
+.event-active-group {
+    display: grid;
+    gap: 8px;
+}
+
+.event-active-group-label {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    opacity: 0.72;
+}
+
+.event-active-group-cards {
+    display: grid;
+    gap: 10px;
+}
+
+.event-active-card {
+    display: grid;
+    gap: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    padding: 12px;
+}
+
+.event-active-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.event-active-card-header h4 {
+    margin: 0;
+    font-size: 0.98rem;
+}
+
+.event-active-card-title-wrap {
+    display: grid;
+    gap: 4px;
+}
+
+.event-active-source {
+    width: fit-content;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    font-size: 11px;
+    opacity: 0.72;
+}
+
+.event-active-source:hover,
+.event-active-source:focus-visible {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.event-active-remaining {
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.event-active-empty {
+    border: 1px dashed var(--border-color);
+    padding: 14px;
+    opacity: 0.78;
+}
+
 .event-log-hero {
     display: flex;
     align-items: flex-start;
@@ -2903,6 +3002,11 @@ footer {
 .event-news-card.featured {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 75%), var(--panel-bg);
     border-width: 3px;
+}
+
+.event-news-card.event-news-card-linked {
+    border-color: #1e8449;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.16), 4px 4px 0 var(--shadow-color);
 }
 
 .event-news-meta-row {

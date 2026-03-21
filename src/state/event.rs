@@ -79,6 +79,8 @@ pub struct EventEffectOutcome {
     #[serde(default)]
     pub workers_injured: usize,
     #[serde(default)]
+    pub happiness_delta: f64,
+    #[serde(default)]
     pub coins_per_second_delta: f64,
     #[serde(default)]
     pub wood_per_second_delta: f64,
@@ -98,6 +100,8 @@ pub struct ActiveEventModifier {
     pub source_event_id: u32,
     #[serde(default)]
     pub scenario_id: String,
+    #[serde(default)]
+    pub stage_id: String,
     #[serde(default)]
     pub expires_at: f64,
     #[serde(default)]
