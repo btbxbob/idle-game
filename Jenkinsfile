@@ -328,9 +328,22 @@ EOF
   post {
     always {
       archiveArtifacts artifacts: 'pkg/**', allowEmptyArchive: true
-      archiveArtifacts artifacts: 'playwright-report/**,test-results/**', allowEmptyArchive: true
-      archiveArtifacts artifacts: 'coverage-report/e2e-merged/**', allowEmptyArchive: true
-      junit allowEmptyResults: true, testResults: 'test-results/**/*.xml'
+      script {
+        if (fileExists('playwright-report') || fileExists('test-results')) {
+          archiveArtifacts artifacts: 'playwright-report/**,test-results/**', allowEmptyArchive: true
+        }
+
+        if (fileExists('coverage-report/e2e-merged')) {
+          archiveArtifacts artifacts: 'coverage-report/e2e-merged/**', allowEmptyArchive: true
+        }
+
+        if (fileExists('test-results')) {
+          def junitFiles = findFiles(glob: 'test-results/**/*.xml')
+          if (junitFiles.length > 0) {
+            junit allowEmptyResults: true, testResults: 'test-results/**/*.xml'
+          }
+        }
+      }
       cleanWs()
     }
   }

@@ -80,6 +80,37 @@ The local Jenkins controller now ships with `docker/jenkins/init.groovy.d/03-pip
 
 This prevents the local controller from drifting onto a stale inline Pipeline Script stored in `/var/jenkins_home/jobs/idle-game-ci/config.xml`. If the checked-in `Jenkinsfile` changes, rebuild/restart the `jenkins` service so the controller reloads the updated job definition.
 
+### Local sync model and common pitfall
+
+There are two different source paths involved in local Jenkins runs, and they are easy to confuse:
+
+- your normal development repository, which may also be pushed to remotes such as `origin` or `bx-server`
+- the bind-mounted local path `../../` from `docker/jenkins/docker-compose.yml`, which appears inside the controller and agent containers as `/workspace/idle-game`
+
+For the local Jenkins stack, `/workspace/idle-game` is the effective source of truth. Both the pipeline definition sync (`03-pipeline-job.groovy`) and the job `Checkout` stage read from that mounted path.
+
+That means:
+
+- pushing commits to `origin` does not update the local Jenkins job by itself
+- pushing commits to the `bx-server` git remote does not update the local Jenkins job by itself
+- changing `Jenkinsfile` in the repo requires a `jenkins` container restart before the job definition picks up the new script
+- changing normal source files is enough on disk for the next local Jenkins run, because the containers read the mounted workspace directly
+
+Useful checks when Jenkins seems to run stale code:
+
+```bash
+docker compose -f docker/jenkins/docker-compose.yml restart jenkins agent
+docker compose -f docker/jenkins/docker-compose.yml logs --tail=50 jenkins
+```
+
+After restart, look for this controller log line:
+
+```text
+Synchronized pipeline job from /workspace/idle-game/Jenkinsfile
+```
+
+If that line does not appear, Jenkins is still running an older in-memory job definition.
+
 ### Checkout speed optimization
 
 The Jenkins `Checkout` stage no longer copies the entire mounted repository with `cp -a`. It now prefers `rsync --delete --delete-excluded` and skips large generated directories such as `node_modules/`, `target/`, `pkg/`, `coverage-report/`, `playwright-report/`, and `test-results/`.
@@ -92,6 +123,8 @@ The pipeline now also reuses persistent caches inside the Jenkins agent volume:
 
 - npm cache: `/home/jenkins/agent/.cache/npm`
 - Cargo target cache: `/home/jenkins/agent/.cache/cargo-target/idle-game`
+
+The pipeline also reuses a local Node install under `/home/jenkins/.local/node`. It only re-downloads Node when the binary is missing or the configured `NODE_VERSION` no longer matches.
 
 `npm ci` now runs with `--cache ... --prefer-offline`, and Rust stages reuse a persistent `CARGO_TARGET_DIR` outside the cleaned workspace. This reduces repeat install/compile time while keeping the checked-out workspace disposable.
 
