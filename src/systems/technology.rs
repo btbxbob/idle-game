@@ -745,7 +745,7 @@ impl TechnologyTree {
                 TechnologyId::AdvancedAI,
                 costs(&[
                     (ResourceType::Gold, 24000.0),
-                    (ResourceType::QuantumComputer, 16.0),
+                    (ResourceType::Battery, 80.0),
                     (ResourceType::Microchip, 420.0),
                 ]),
                 vec![TechnologyId::AITechnology],
@@ -1381,6 +1381,21 @@ mod tests {
         assert!(fusion
             .dependencies
             .contains(&TechnologyId::QuantumComputing));
+    }
+
+    #[test]
+    fn test_advanced_ai_does_not_require_quantum_computers() {
+        let tree = TechnologyTree::new();
+
+        let advanced_ai = tree.technologies.get(&TechnologyId::AdvancedAI).unwrap();
+
+        assert!(advanced_ai.costs.contains_key(&ResourceType::Battery));
+        assert!(!advanced_ai
+            .costs
+            .contains_key(&ResourceType::QuantumComputer));
+        assert!(advanced_ai
+            .dependencies
+            .contains(&TechnologyId::AITechnology));
     }
 
     #[test]

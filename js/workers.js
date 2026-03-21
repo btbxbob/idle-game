@@ -6,24 +6,129 @@ class WorkerManager {
             filterBy: 'all',
             query: '',
             workers: [],
+            pageSize: 24,
+            currentPage: 1,
         };
+        this.lastRenderSignature = null;
+        this.lastProcessedSignature = null;
+        this.processedWorkersCache = [];
+        this.searchDebounceTimer = null;
+        this.rawWorkersCache = [];
+        this.lastWorkerFetchAt = 0;
+        this.workerRefreshIntervalMs = 2500;
+    }
+
+    resetPagination() {
+        this.virtualState.currentPage = 1;
+    }
+
+    invalidateRenderCache() {
+        this.lastRenderSignature = null;
+        this.lastProcessedSignature = null;
+        this.lastWorkerFetchAt = 0;
+    }
+
+    scheduleSearchRender(nextQuery) {
+        const normalizedQuery = String(nextQuery || '');
+        if (this.searchDebounceTimer) {
+            window.clearTimeout(this.searchDebounceTimer);
+        }
+
+        this.searchDebounceTimer = window.setTimeout(() => {
+            this.searchDebounceTimer = null;
+            this.virtualState.query = normalizedQuery;
+            this.resetPagination();
+            this.invalidateRenderCache();
+            this.renderWorkers();
+        }, 120);
+    }
+
+    buildProcessingSignature(rawWorkers) {
+        const baseSignature = (Array.isArray(rawWorkers) ? rawWorkers : []).map((worker) => [
+            worker.name || '',
+            worker.skills || '',
+            worker.preferences || '',
+            worker.assignedBuilding || '',
+            worker.level || 0,
+            worker.efficiencyMultiplier || worker.efficiency_multiplier || 0,
+        ].join('|')).join('||');
+
+        return [
+            this.virtualState.query.trim().toLowerCase(),
+            this.virtualState.filterBy,
+            this.virtualState.sortBy,
+            baseSignature,
+        ].join('###');
+    }
+
+    buildRenderSignature(workers, assignedCount, currentPage, totalPages, pageStart, pageEnd) {
+        const visibleWorkers = workers.slice(pageStart, pageEnd);
+        const visibleSignature = visibleWorkers.map((worker) => {
+            const missingLimbs = Array.isArray(worker.missingLimbs)
+                ? worker.missingLimbs.join(',')
+                : (Array.isArray(worker.missing_limbs) ? worker.missing_limbs.join(',') : '');
+            const maggotLimbs = Array.isArray(worker.maggotLimbs)
+                ? worker.maggotLimbs.join(',')
+                : (Array.isArray(worker.maggot_limbs) ? worker.maggot_limbs.join(',') : '');
+
+            return [
+                worker.__index,
+                worker.name || '',
+                worker.level || 0,
+                worker.assignedBuilding || '',
+                worker.efficiencyMultiplier || worker.efficiency_multiplier || 0,
+                worker.xp || worker.experience || 0,
+                worker.xpToNext || worker.experienceToNext || worker.xpToNextLevel || 0,
+                worker.happiness || 0,
+                worker.hunger || 0,
+                worker.focus || 0,
+                worker.fatigue || 0,
+                worker.stress || 0,
+                worker.isHungry || worker.is_hungry || false,
+                worker.autoAssignmentTarget || '',
+                worker.canMaggotSurgery || false,
+                worker.maggotSurgeryCost || 0,
+                missingLimbs,
+                maggotLimbs,
+            ].join('|');
+        }).join('||');
+
+        return [
+            this.virtualState.query,
+            this.virtualState.filterBy,
+            this.virtualState.sortBy,
+            workers.length,
+            assignedCount,
+            currentPage,
+            totalPages,
+            pageStart,
+            pageEnd,
+            visibleSignature,
+        ].join('###');
     }
 
     /**
      * Get workers from Rust game state
      * @returns {Array} Array of worker objects
      */
-    update() {
+    update(force = false) {
+        const now = Date.now();
+        if (!force && now - this.lastWorkerFetchAt < this.workerRefreshIntervalMs) {
+            return this.rawWorkersCache;
+        }
+
         if (this.rustGame && typeof this.rustGame.get_workers === 'function') {
             try {
                 const workers = this.rustGame.get_workers();
-                return workers || [];
+                this.rawWorkersCache = workers || [];
+                this.lastWorkerFetchAt = now;
+                return this.rawWorkersCache;
             } catch (error) {
                 console.error('Failed to get workers:', error);
-                return [];
+                return this.rawWorkersCache;
             }
         }
-        return [];
+        return this.rawWorkersCache;
     }
 
     /**
@@ -183,6 +288,9 @@ class WorkerManager {
         const t = this.getTranslator();
 
         if (workers.length === 0) {
+            this.virtualState.workers = [];
+            this.virtualState.currentPage = 1;
+            this.invalidateRenderCache();
             container.innerHTML = `<p id="workers-placeholder">${t('noWorkers') || '没有工人'}</p>`;
             return;
         }
@@ -190,6 +298,29 @@ class WorkerManager {
         this.virtualState.workers = workers;
 
         const assignedCount = workers.filter(w => w.assignedBuilding !== null && w.assignedBuilding !== undefined).length;
+        const totalPages = Math.max(1, Math.ceil(workers.length / this.virtualState.pageSize));
+        const currentPage = Math.min(this.virtualState.currentPage, totalPages);
+        this.virtualState.currentPage = currentPage;
+        const pageStart = (currentPage - 1) * this.virtualState.pageSize;
+        const pageEnd = Math.min(workers.length, pageStart + this.virtualState.pageSize);
+        const renderSignature = this.buildRenderSignature(
+            workers,
+            assignedCount,
+            currentPage,
+            totalPages,
+            pageStart,
+            pageEnd,
+        );
+
+        if (this.lastRenderSignature === renderSignature) {
+            return;
+        }
+
+        this.lastRenderSignature = renderSignature;
+        const shownStart = pageStart + 1;
+        const shownEnd = pageEnd;
+        const shownLabel = `${t('workersShown') || '已显示'} ${shownStart}-${shownEnd} / ${workers.length}`;
+        const pageStatusLabel = t('workersPageStatus', { current: currentPage, total: totalPages }) || `第 ${currentPage} / ${totalPages} 页`;
         container.innerHTML = `
             <div class="workers-tools">
                 <input id="workers-search" class="workers-search" type="text" value="${this.escapeHtml(this.virtualState.query)}" placeholder="${t('search') || '搜索工人'}" />
@@ -205,36 +336,64 @@ class WorkerManager {
                 </select>
                 <button id="workers-auto-assign" class="workers-auto-assign" type="button">${t('autoAssign') || '自动分配'}</button>
                 <span class="workers-count">${t('totalWorkers') || '总工人'}: ${workers.length} / ${assignedCount}</span>
+                <span class="workers-visible-count">${shownLabel}</span>
             </div>
             <div id="workers-grid" class="workers-grid"></div>
+            ${workers.length > this.virtualState.pageSize ? `
+                <div class="workers-pagination">
+                    <button id="workers-prev-page" class="workers-page-btn" type="button" ${currentPage <= 1 ? 'disabled' : ''}>${t('workersPrevPage') || '上一页'}</button>
+                    <span class="workers-page-status">${pageStatusLabel}</span>
+                    <button id="workers-next-page" class="workers-page-btn" type="button" ${currentPage >= totalPages ? 'disabled' : ''}>${t('workersNextPage') || '下一页'}</button>
+                </div>
+            ` : ''}
         `;
 
         const search = document.getElementById('workers-search');
         const filter = document.getElementById('workers-filter');
         const sort = document.getElementById('workers-sort');
         const autoAssign = document.getElementById('workers-auto-assign');
+        const prevPage = document.getElementById('workers-prev-page');
+        const nextPage = document.getElementById('workers-next-page');
 
         if (search) {
             search.addEventListener('input', (e) => {
-                this.virtualState.query = e.target.value || '';
-                this.renderWorkers();
+                this.scheduleSearchRender(e.target.value || '');
             });
         }
         if (filter) {
             filter.addEventListener('change', (e) => {
                 this.virtualState.filterBy = e.target.value || 'all';
+                this.resetPagination();
+                this.invalidateRenderCache();
                 this.renderWorkers();
             });
         }
         if (sort) {
             sort.addEventListener('change', (e) => {
                 this.virtualState.sortBy = e.target.value || 'name';
+                this.resetPagination();
+                this.invalidateRenderCache();
                 this.renderWorkers();
             });
         }
         if (autoAssign) {
             autoAssign.addEventListener('click', () => {
                 this.handleAutoAssign();
+            });
+        }
+        if (prevPage) {
+            prevPage.addEventListener('click', () => {
+                this.virtualState.currentPage = Math.max(1, this.virtualState.currentPage - 1);
+                this.invalidateRenderCache();
+                this.renderWorkers();
+            });
+        }
+        if (nextPage) {
+            nextPage.addEventListener('click', () => {
+                const maxPage = Math.max(1, Math.ceil(this.virtualState.workers.length / this.virtualState.pageSize));
+                this.virtualState.currentPage = Math.min(maxPage, this.virtualState.currentPage + 1);
+                this.invalidateRenderCache();
+                this.renderWorkers();
             });
         }
 
@@ -254,6 +413,7 @@ class WorkerManager {
 
         try {
             const assignedCount = this.rustGame.assign_worker_auto();
+            this.invalidateRenderCache();
             this.renderWorkers();
             if (window.updateResourceDisplay) {
                 window.updateResourceDisplay();
@@ -266,6 +426,11 @@ class WorkerManager {
     }
 
     getProcessedWorkers(rawWorkers) {
+        const processingSignature = this.buildProcessingSignature(rawWorkers);
+        if (this.lastProcessedSignature === processingSignature) {
+            return this.processedWorkersCache;
+        }
+
         const query = this.virtualState.query.trim().toLowerCase();
         const filterBy = this.virtualState.filterBy;
         const sortBy = this.virtualState.sortBy;
@@ -286,6 +451,8 @@ class WorkerManager {
             return String(a.name || '').localeCompare(String(b.name || ''));
         });
 
+        this.lastProcessedSignature = processingSignature;
+        this.processedWorkersCache = filtered;
         return filtered;
     }
 
@@ -296,9 +463,12 @@ class WorkerManager {
 
         if (!content) return;
 
+        const pageStart = (this.virtualState.currentPage - 1) * this.virtualState.pageSize;
+        const pageEnd = pageStart + this.virtualState.pageSize;
+        const visibleWorkers = workers.slice(pageStart, pageEnd);
         let html = '';
-        for (let i = 0; i < workers.length; i++) {
-            const worker = workers[i];
+        for (let i = 0; i < visibleWorkers.length; i++) {
+            const worker = visibleWorkers[i];
             const isAssigned = worker.assignedBuilding !== null && worker.assignedBuilding !== undefined;
             const xp = Number(worker.experience || worker.xp || 0);
             const xpToNext = Number(worker.experienceToNext || worker.xpToNext || 100);
@@ -385,7 +555,7 @@ class WorkerManager {
      * @returns {string} HTML for building selection
      */
     renderBuildingSelect(workerIndex) {
-        const workers = this.update();
+        const workers = this.update(true);
         const worker = workers[workerIndex];
         const buildings = this.getBuildingAssignmentState(this.getBuildings(), workers, worker);
         
@@ -411,7 +581,7 @@ class WorkerManager {
      * @param {number} workerIndex - Index of the worker to assign
      */
     showAssignmentModal(workerIndex) {
-        const workers = this.update();
+        const workers = this.update(true);
         const worker = workers[workerIndex];
         
         if (!worker) {
@@ -533,7 +703,7 @@ class WorkerManager {
     }
 
     handleMaggotLimbSurgery(workerIndex) {
-        const workers = this.update();
+        const workers = this.update(true);
         const worker = workers[workerIndex];
         if (!worker) {
             return;
@@ -557,6 +727,7 @@ class WorkerManager {
             return;
         }
 
+        this.invalidateRenderCache();
         this.renderWorkers();
         if (window.updateResourceDisplay) {
             window.updateResourceDisplay();
@@ -726,6 +897,7 @@ class WorkerManager {
         if (buildingId) {
             const success = this.assignWorker(workerIndex, buildingId);
             if (success) {
+                this.invalidateRenderCache();
                 this.renderWorkers();
                 this.closeAssignmentModal();
                 
@@ -741,6 +913,14 @@ class WorkerManager {
         }
     }
 
+    refreshWorkers(force = false) {
+        const shouldForce = Boolean(force);
+        if (shouldForce) {
+            this.invalidateRenderCache();
+        }
+        return this.renderWorkers();
+    }
+
     /**
      * Render workers panel with full UI
      * @param {string} panelId - DOM element ID for the workers panel
@@ -752,7 +932,7 @@ class WorkerManager {
             return;
         }
 
-        const workers = this.update();
+        const workers = this.update(true);
         const t = this.getTranslator();
 
         if (workers.length === 0) {
@@ -786,7 +966,7 @@ class WorkerManager {
      * @returns {string} HTML string for workers list
      */
     renderWorkersToList() {
-        const workers = this.update();
+        const workers = this.update(true);
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
 
         if (workers.length === 0) {
@@ -879,12 +1059,16 @@ class WorkerManager {
 window.WorkerManager = WorkerManager;
 
 window.updateWorkersPanel = function() {
-    if (!window.workerManager || typeof window.workerManager.renderWorkers !== 'function') {
+    if (!window.workerManager || typeof window.workerManager.refreshWorkers !== 'function') {
+        return;
+    }
+
+    if (document.getElementById('worker-assignment-modal')) {
         return;
     }
 
     const workersTab = document.getElementById('tab-workers');
     if (workersTab && workersTab.classList.contains('active')) {
-        window.workerManager.renderWorkers();
+        window.workerManager.refreshWorkers(false);
     }
 };

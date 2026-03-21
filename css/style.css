@@ -1853,6 +1853,40 @@ footer {
     font-weight: bold;
 }
 
+.workers-visible-count {
+    justify-self: end;
+    opacity: 0.74;
+    font-size: 12px;
+}
+
+.workers-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.workers-page-btn {
+    border: 2px solid var(--border-color);
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    font-family: 'Courier New', monospace;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.workers-page-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.workers-page-status {
+    min-width: 88px;
+    text-align: center;
+    font-weight: bold;
+}
+
 .workers-virtual-list {
     position: relative;
     height: 640px;
