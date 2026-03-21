@@ -380,7 +380,7 @@ fn compose_headline_zh(seed: &ScenarioSeed, variant: usize) -> String {
             seed.stage.name()
         ),
         10 => format!(
-            "{}追踪：{}让聚落再次回看主线压力",
+            "{}追踪：{}让聚落重新审视当前秩序",
             seed.desk_zh, seed.focus_zh
         ),
         _ => format!(
@@ -803,7 +803,7 @@ fn closing_line_zh(stage: GameStage, variant: usize) -> String {
             stage.name()
         ),
         8 => format!(
-            "新闻流由此推断，{} 的稳定外观正在被连续性事件逐步掏空。",
+            "新闻流由此推断，{} 表面的稳定正在被一连串事件慢慢削弱。",
             stage.name()
         ),
         9 => format!(
