@@ -78,6 +78,67 @@ struct ObjectiveChainView {
     steps: Vec<ObjectiveStepView>,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WorkerSummaryView {
+    index: usize,
+    name: String,
+    skills: String,
+    background: String,
+    preferences: String,
+    assigned_building: Option<String>,
+    level: u32,
+    efficiency_multiplier: f64,
+    xp: f64,
+    xp_to_next_level: f64,
+    gender: String,
+    hobbies: Vec<String>,
+    primary_trait: String,
+    secondary_traits: Vec<String>,
+    happiness: f64,
+    hunger: f64,
+    focus: f64,
+    fatigue: f64,
+    stress: f64,
+    is_hungry: bool,
+    missing_limbs: Vec<String>,
+    maggot_limbs: Vec<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WorkerDetailView {
+    index: usize,
+    name: String,
+    skills: String,
+    background: String,
+    preferences: String,
+    assigned_building: Option<String>,
+    level: u32,
+    efficiency_multiplier: f64,
+    base_efficiency: f64,
+    total_efficiency: f64,
+    efficiency_breakdown: Vec<String>,
+    auto_assignment_target: Option<String>,
+    xp: f64,
+    xp_to_next_level: f64,
+    gender: String,
+    hobbies: Vec<String>,
+    primary_trait: String,
+    secondary_traits: Vec<String>,
+    happiness: f64,
+    hunger: f64,
+    focus: f64,
+    fatigue: f64,
+    stress: f64,
+    is_hungry: bool,
+    missing_limbs: Vec<String>,
+    maggot_limbs: Vec<String>,
+    can_maggot_surgery: bool,
+    maggot_surgery_cost: f64,
+    maggot_surgery_reason: Option<String>,
+}
+
 #[derive(Clone, Copy)]
 struct WorkerJobProfile {
     labor: f64,
@@ -616,6 +677,138 @@ mod normalization_tests {
 }
 
 impl IdleGame {
+    fn worker_summary_view(worker: &Worker, index: usize) -> WorkerSummaryView {
+        WorkerSummaryView {
+            index,
+            name: worker.name.clone(),
+            skills: worker.skills.clone(),
+            background: worker.background.clone(),
+            preferences: worker.preferences.clone(),
+            assigned_building: worker.assigned_building.clone(),
+            level: worker.level,
+            efficiency_multiplier: worker.efficiency_multiplier,
+            xp: worker.xp,
+            xp_to_next_level: worker.xp_to_next_level,
+            gender: format!("{:?}", worker.gender),
+            hobbies: worker
+                .hobbies
+                .iter()
+                .map(|hobby| format!("{:?}", hobby))
+                .collect(),
+            primary_trait: format!("{:?}", worker.primary_trait),
+            secondary_traits: worker
+                .secondary_traits
+                .iter()
+                .map(|trait_value| format!("{:?}", trait_value))
+                .collect(),
+            happiness: worker.happiness,
+            hunger: worker.hunger,
+            focus: worker.focus,
+            fatigue: worker.fatigue,
+            stress: worker.stress,
+            is_hungry: worker.is_hungry,
+            missing_limbs: worker
+                .missing_limbs
+                .iter()
+                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .collect(),
+            maggot_limbs: worker
+                .maggot_limbs
+                .iter()
+                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .collect(),
+        }
+    }
+
+    fn worker_detail_view(&self, index: usize) -> Option<WorkerDetailView> {
+        let worker = self.workers.get(index)?;
+        let assigned_building = worker.assigned_building.as_deref();
+        let base_efficiency = 1.0 + (worker.level as f64) * 0.05;
+        let total_efficiency = assigned_building
+            .map(|building| self.calculate_worker_efficiency_for(worker, building))
+            .unwrap_or(base_efficiency);
+        let breakdown = self.build_worker_efficiency_breakdown(worker, assigned_building);
+        let (can_maggot_surgery, maggot_surgery_cost, maggot_surgery_reason) =
+            self.get_maggot_limb_surgery_status(worker);
+        let current_stage = self.state.borrow().current_stage;
+
+        let auto_assignment_target = if assigned_building.is_none() {
+            self.buildings
+                .iter()
+                .filter(|building| {
+                    building.count > 0
+                        && self.has_assignment_capacity(usize::MAX, &building.name)
+                        && stage::is_building_revealed(
+                            building,
+                            current_stage,
+                            &self.technology_tree,
+                        )
+                })
+                .max_by(|a, b| {
+                    let gain_a = a.production_rate
+                        * a.count as f64
+                        * (self.calculate_worker_efficiency_for(worker, &a.name) - 1.0);
+                    let gain_b = b.production_rate
+                        * b.count as f64
+                        * (self.calculate_worker_efficiency_for(worker, &b.name) - 1.0);
+                    gain_a
+                        .partial_cmp(&gain_b)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                })
+                .map(|building| building.name.clone())
+        } else {
+            None
+        };
+
+        Some(WorkerDetailView {
+            index,
+            name: worker.name.clone(),
+            skills: worker.skills.clone(),
+            background: worker.background.clone(),
+            preferences: worker.preferences.clone(),
+            assigned_building: worker.assigned_building.clone(),
+            level: worker.level,
+            efficiency_multiplier: worker.efficiency_multiplier,
+            base_efficiency,
+            total_efficiency,
+            efficiency_breakdown: breakdown,
+            auto_assignment_target,
+            xp: worker.xp,
+            xp_to_next_level: worker.xp_to_next_level,
+            gender: format!("{:?}", worker.gender),
+            hobbies: worker
+                .hobbies
+                .iter()
+                .map(|hobby| format!("{:?}", hobby))
+                .collect(),
+            primary_trait: format!("{:?}", worker.primary_trait),
+            secondary_traits: worker
+                .secondary_traits
+                .iter()
+                .map(|trait_value| format!("{:?}", trait_value))
+                .collect(),
+            happiness: worker.happiness,
+            hunger: worker.hunger,
+            focus: worker.focus,
+            fatigue: worker.fatigue,
+            stress: worker.stress,
+            is_hungry: worker.is_hungry,
+            missing_limbs: worker
+                .missing_limbs
+                .iter()
+                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .collect(),
+            maggot_limbs: worker
+                .maggot_limbs
+                .iter()
+                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .collect(),
+            can_maggot_surgery,
+            maggot_surgery_cost,
+            maggot_surgery_reason,
+        })
+    }
+
     fn limb_slot_label(slot: LimbSlot) -> &'static str {
         match slot {
             LimbSlot::LeftArm => "左手",
@@ -2960,148 +3153,22 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn get_worker_summaries(&self) -> JsValue {
+        let workers: Vec<WorkerSummaryView> = self
+            .workers
+            .iter()
+            .enumerate()
+            .map(|(index, worker)| Self::worker_summary_view(worker, index))
+            .collect();
+
+        serde_wasm_bindgen::to_value(&workers).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen]
     pub fn get_worker_details(&self, index: usize) -> JsValue {
-        if index >= self.workers.len() {
-            return JsValue::NULL;
-        }
-
-        let worker = &self.workers[index];
-        let worker_obj = js_sys::Object::new();
-        let (can_maggot_surgery, maggot_surgery_cost, maggot_surgery_reason) =
-            self.get_maggot_limb_surgery_status(worker);
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("index"),
-            &JsValue::from_f64(index as f64),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("name"),
-            &JsValue::from_str(&worker.name),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("skills"),
-            &JsValue::from_str(&worker.skills),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("assignedBuilding"),
-            &match &worker.assigned_building {
-                Some(building) => JsValue::from_str(building),
-                None => JsValue::NULL,
-            },
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("level"),
-            &JsValue::from_f64(worker.level as f64),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("xp"),
-            &JsValue::from_f64(worker.xp),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("xpToNextLevel"),
-            &JsValue::from_f64(worker.xp_to_next_level),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("gender"),
-            &JsValue::from_str(&format!("{:?}", worker.gender)),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("primaryTrait"),
-            &JsValue::from_str(&format!("{:?}", worker.primary_trait)),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("happiness"),
-            &JsValue::from_f64(worker.happiness),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("hunger"),
-            &JsValue::from_f64(worker.hunger),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("focus"),
-            &JsValue::from_f64(worker.focus),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("fatigue"),
-            &JsValue::from_f64(worker.fatigue),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("stress"),
-            &JsValue::from_f64(worker.stress),
-        )
-        .unwrap();
-
-        let missing_limbs = js_sys::Array::new();
-        for limb in &worker.missing_limbs {
-            missing_limbs.push(&JsValue::from_str(Self::limb_slot_label(*limb)));
-        }
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("missingLimbs"),
-            &missing_limbs,
-        )
-        .unwrap();
-
-        let maggot_limbs = js_sys::Array::new();
-        for limb in &worker.maggot_limbs {
-            maggot_limbs.push(&JsValue::from_str(Self::limb_slot_label(*limb)));
-        }
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("maggotLimbs"),
-            &maggot_limbs,
-        )
-        .unwrap();
-
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("canMaggotSurgery"),
-            &JsValue::from_bool(can_maggot_surgery),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("maggotSurgeryCost"),
-            &JsValue::from_f64(maggot_surgery_cost),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &worker_obj,
-            &JsValue::from_str("maggotSurgeryReason"),
-            &match maggot_surgery_reason {
-                Some(ref reason) => JsValue::from_str(reason),
-                None => JsValue::NULL,
-            },
-        )
-        .unwrap();
-
-        worker_obj.into()
+        self.worker_detail_view(index)
+            .and_then(|worker| serde_wasm_bindgen::to_value(&worker).ok())
+            .unwrap_or(JsValue::NULL)
     }
 
     #[wasm_bindgen]

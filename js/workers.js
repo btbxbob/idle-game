@@ -14,6 +14,7 @@ class WorkerManager {
         this.processedWorkersCache = [];
         this.searchDebounceTimer = null;
         this.rawWorkersCache = [];
+        this.workerDetailsCache = new Map();
         this.lastWorkerFetchAt = 0;
         this.workerRefreshIntervalMs = 2500;
     }
@@ -26,6 +27,7 @@ class WorkerManager {
         this.lastRenderSignature = null;
         this.lastProcessedSignature = null;
         this.lastWorkerFetchAt = 0;
+        this.workerDetailsCache.clear();
     }
 
     scheduleSearchRender(nextQuery) {
@@ -117,6 +119,18 @@ class WorkerManager {
             return this.rawWorkersCache;
         }
 
+        if (this.rustGame && typeof this.rustGame.get_worker_summaries === 'function') {
+            try {
+                const workers = this.rustGame.get_worker_summaries();
+                this.rawWorkersCache = workers || [];
+                this.lastWorkerFetchAt = now;
+                return this.rawWorkersCache;
+            } catch (error) {
+                console.error('Failed to get worker summaries:', error);
+                return this.rawWorkersCache;
+            }
+        }
+
         if (this.rustGame && typeof this.rustGame.get_workers === 'function') {
             try {
                 const workers = this.rustGame.get_workers();
@@ -128,7 +142,29 @@ class WorkerManager {
                 return this.rawWorkersCache;
             }
         }
+
         return this.rawWorkersCache;
+    }
+
+    getWorkerDetails(workerIndex, force = false) {
+        const cacheKey = Number(workerIndex);
+        if (!force && this.workerDetailsCache.has(cacheKey)) {
+            return this.workerDetailsCache.get(cacheKey);
+        }
+
+        if (this.rustGame && typeof this.rustGame.get_worker_details === 'function') {
+            try {
+                const details = this.rustGame.get_worker_details(cacheKey);
+                if (details) {
+                    this.workerDetailsCache.set(cacheKey, details);
+                    return details;
+                }
+            } catch (error) {
+                console.error('Failed to get worker details:', error);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -556,7 +592,7 @@ class WorkerManager {
      */
     renderBuildingSelect(workerIndex) {
         const workers = this.update(true);
-        const worker = workers[workerIndex];
+        const worker = this.getWorkerDetails(workerIndex, true) || workers[workerIndex];
         const buildings = this.getBuildingAssignmentState(this.getBuildings(), workers, worker);
         
         if (!worker) {
@@ -582,7 +618,7 @@ class WorkerManager {
      */
     showAssignmentModal(workerIndex) {
         const workers = this.update(true);
-        const worker = workers[workerIndex];
+        const worker = this.getWorkerDetails(workerIndex, true) || workers[workerIndex];
         
         if (!worker) {
             console.error('Worker not found:', workerIndex);
@@ -704,7 +740,7 @@ class WorkerManager {
 
     handleMaggotLimbSurgery(workerIndex) {
         const workers = this.update(true);
-        const worker = workers[workerIndex];
+        const worker = this.getWorkerDetails(workerIndex, true) || workers[workerIndex];
         if (!worker) {
             return;
         }
