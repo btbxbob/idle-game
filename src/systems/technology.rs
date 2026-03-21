@@ -731,7 +731,7 @@ impl TechnologyTree {
                 costs(&[
                     (ResourceType::Gold, 14000.0),
                     (ResourceType::Microchip, 260.0),
-                    (ResourceType::QuantumComputer, 4.0),
+                    (ResourceType::CircuitBoard, 180.0),
                 ]),
                 vec![TechnologyId::ComputerTechnology],
                 TechnologyEffect::MechanicChange("ai_assistance".to_string()),
@@ -949,7 +949,10 @@ impl TechnologyTree {
                     (ResourceType::Microchip, 450.0),
                     (ResourceType::Crystal, 900.0),
                 ]),
-                vec![TechnologyId::AdvancedAI, TechnologyId::AdvancedElectronics],
+                vec![
+                    TechnologyId::AITechnology,
+                    TechnologyId::AdvancedElectronics,
+                ],
                 TechnologyEffect::UnlockBuilding(BuildingType::QuantumLab),
                 1.0,
             ),
@@ -978,7 +981,7 @@ impl TechnologyTree {
                 costs(&[
                     (ResourceType::Gold, 300000.0),
                     (ResourceType::QuantumComputer, 200.0),
-                    (ResourceType::Antimatter, 50.0),
+                    (ResourceType::Generator, 260.0),
                 ]),
                 vec![TechnologyId::FusionEnergy, TechnologyId::QuantumComputing],
                 TechnologyEffect::ProductionBonus(ResourceType::Antimatter, 1.0),
@@ -1032,7 +1035,7 @@ impl TechnologyTree {
                 TechnologyId::TimeManipulation,
                 costs(&[
                     (ResourceType::Gold, 1000000.0),
-                    (ResourceType::TimeCrystal, 100.0),
+                    (ResourceType::Antimatter, 120.0),
                     (ResourceType::QuantumComputer, 500.0),
                 ]),
                 vec![
