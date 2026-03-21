@@ -65,13 +65,17 @@ EOF
       steps {
         sh '''
           mkdir -p "$NPM_CONFIG_CACHE" "$CARGO_HOME" "$RUSTUP_HOME" "$CARGO_TARGET_DIR"
-          if ! command -v node >/dev/null 2>&1; then
-            mkdir -p "$HOME/.local"
-            curl -fsSL https://nodejs.org/dist/v20.19.5/node-v20.19.5-linux-x64.tar.gz -o /tmp/node.tar.gz
+          NODE_VERSION='v20.19.5'
+          NODE_DIR="$HOME/.local/node"
+          NODE_BIN="$NODE_DIR/bin/node"
+          mkdir -p "$HOME/.local"
+          if [ ! -x "$NODE_BIN" ] || [ "$("$NODE_BIN" --version 2>/dev/null || true)" != "$NODE_VERSION" ]; then
+            rm -rf "$NODE_DIR" "$HOME/.local/node-${NODE_VERSION}-linux-x64"
+            curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.gz" -o /tmp/node.tar.gz
             tar -xzf /tmp/node.tar.gz -C "$HOME/.local"
-            mv "$HOME/.local/node-v20.19.5-linux-x64" "$HOME/.local/node"
+            mv "$HOME/.local/node-${NODE_VERSION}-linux-x64" "$NODE_DIR"
           fi
-          export PATH="$HOME/.local/node/bin:$PATH"
+          export PATH="$NODE_DIR/bin:$PATH"
           node --version
           npm --version
           npm ci --cache "$NPM_CONFIG_CACHE" --prefer-offline
@@ -91,7 +95,7 @@ EOF
     stage('Setup Rust Toolchain') {
       steps {
         sh '''
-          export PATH="$HOME/.cargo/bin:$PATH"
+          export PATH="$CARGO_HOME/bin:$HOME/.cargo/bin:$PATH"
           mkdir -p "$CARGO_TARGET_DIR"
           if ! command -v rustup >/dev/null 2>&1; then
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
@@ -101,7 +105,20 @@ EOF
           if ! command -v wasm-pack >/dev/null 2>&1; then
             curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
           fi
+          WASM_BINDGEN_VERSION=$(grep -A 1 '^name = "wasm-bindgen"$' Cargo.lock | grep '^version = ' | head -n 1 | cut -d'"' -f2)
+          if [ -z "$WASM_BINDGEN_VERSION" ]; then
+            echo "Could not determine wasm-bindgen version from Cargo.lock"
+            exit 1
+          fi
+          INSTALLED_WASM_BINDGEN_VERSION=""
+          if command -v wasm-bindgen >/dev/null 2>&1; then
+            INSTALLED_WASM_BINDGEN_VERSION=$(wasm-bindgen --version | awk '{print $2}')
+          fi
+          if [ "$INSTALLED_WASM_BINDGEN_VERSION" != "$WASM_BINDGEN_VERSION" ]; then
+            cargo install wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION" --locked
+          fi
           wasm-pack --version
+          wasm-bindgen --version
         '''
       }
     }
