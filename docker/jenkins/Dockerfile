@@ -1,4 +1,4 @@
-FROM 2c6d758624c1b2be1f7e0b7be33b8fb2.d.1ms.run/jenkins/jenkins:lts-jdk17
+FROM jenkins/jenkins:lts-jdk21
 
 USER root
 
