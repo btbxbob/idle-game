@@ -246,20 +246,24 @@ test.describe('WorkerManager coverage', () => {
 
             return {
                 ok: true,
-                noApiUpdateLength: noApiUpdate.length,
+                noApiUpdateTotal: Number(noApiUpdate.total || 0),
+                noApiUpdateWorkersLength: Array.isArray(noApiUpdate.workers) ? noApiUpdate.workers.length : 0,
                 noApiAssign,
                 noApiBuildingsLength: noApiBuildings.length,
-                throwUpdateLength: throwUpdate.length,
+                throwUpdateTotal: Number(throwUpdate.total || 0),
+                throwUpdateWorkersLength: Array.isArray(throwUpdate.workers) ? throwUpdate.workers.length : 0,
                 throwAssign,
                 throwBuildingsLength: throwBuildings.length,
             };
         });
 
         expect(result.ok).toBe(true);
-        expect(result.noApiUpdateLength).toBe(0);
+        expect(result.noApiUpdateTotal).toBe(0);
+        expect(result.noApiUpdateWorkersLength).toBe(0);
         expect(result.noApiAssign).toBe(false);
         expect(result.noApiBuildingsLength).toBe(0);
-        expect(result.throwUpdateLength).toBe(0);
+        expect(result.throwUpdateTotal).toBe(0);
+        expect(result.throwUpdateWorkersLength).toBe(0);
         expect(result.throwAssign).toBe(false);
         expect(result.throwBuildingsLength).toBe(0);
     });
@@ -392,25 +396,31 @@ test.describe('WorkerManager coverage', () => {
                 ],
             });
 
-            manager.virtualState = { sortBy: 'name', filterBy: 'all', query: '', workers: [] };
-            const allNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            manager.virtualState = { sortBy: 'name', filterBy: 'all', query: '', workers: [], pageSize: 24, currentPage: 1 };
+            const getNames = () => {
+                manager.invalidateRenderCache();
+                return manager.update(true).workers.map((worker) => worker.name);
+            };
+
+            const allNames = getNames();
             manager.virtualState.filterBy = 'assigned';
-            const assignedNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            const assignedNames = getNames();
             manager.virtualState.filterBy = 'unassigned';
-            const unassignedNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            const unassignedNames = getNames();
             manager.virtualState.filterBy = 'all';
             manager.virtualState.query = 'cook';
-            const queryNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            const queryNames = getNames();
             manager.virtualState.query = '';
             manager.virtualState.sortBy = 'level';
-            const levelSorted = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            const levelSorted = getNames();
             manager.virtualState.sortBy = 'efficiency';
-            const efficiencySorted = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            const efficiencySorted = getNames();
 
             const grid = document.createElement('div');
             grid.id = 'workers-grid';
             document.body.appendChild(grid);
-            manager.virtualState.workers = manager.update().map((worker, index) => ({ ...worker, __index: index }));
+            manager.invalidateRenderCache();
+            manager.virtualState.workers = manager.update(true).workers;
             manager.renderWorkerCards();
             const html = grid.innerHTML;
             grid.remove();
@@ -498,8 +508,9 @@ test.describe('WorkerManager coverage', () => {
                 ],
             });
 
-            manager.virtualState = { sortBy: 'name', filterBy: 'all', query: '', workers: [] };
-            const allNames = manager.getProcessedWorkers(manager.update()).map((worker) => worker.name);
+            manager.virtualState = { sortBy: 'name', filterBy: 'all', query: '', workers: [], pageSize: 24, currentPage: 1 };
+            manager.invalidateRenderCache();
+            const allNames = manager.update(true).workers.map((worker) => worker.name);
 
             const originalConfirm = window.confirm;
             const originalAlert = window.alert;
@@ -526,7 +537,8 @@ test.describe('WorkerManager coverage', () => {
                 allNames,
                 alerts,
                 updateCalls,
-                noMethodUpdateLength: noMethodUpdate.length,
+                noMethodUpdateTotal: Number(noMethodUpdate.total || 0),
+                noMethodUpdateWorkersLength: Array.isArray(noMethodUpdate.workers) ? noMethodUpdate.workers.length : 0,
                 noMethodAssign,
                 noMethodBuildingsLength: noMethodBuildings.length,
             };
@@ -535,7 +547,8 @@ test.describe('WorkerManager coverage', () => {
         expect(result.allNames).toEqual(['Alpha', 'Zulu']);
         expect(result.alerts.length).toBe(0);
         expect(result.updateCalls).toBe(0);
-        expect(result.noMethodUpdateLength).toBe(0);
+        expect(result.noMethodUpdateTotal).toBe(0);
+        expect(result.noMethodUpdateWorkersLength).toBe(0);
         expect(result.noMethodAssign).toBe(false);
         expect(result.noMethodBuildingsLength).toBe(0);
     });

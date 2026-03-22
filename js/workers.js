@@ -210,6 +210,18 @@ class WorkerManager {
         return null;
     }
 
+    getWorkerSnapshot(workerIndex, force = false) {
+        const details = this.getWorkerDetails(workerIndex, force);
+        if (details) {
+            return details;
+        }
+
+        const pageData = this.update(force);
+        const workers = Array.isArray(pageData.workers) ? pageData.workers : [];
+        const targetIndex = Number(workerIndex);
+        return workers.find((worker) => Number(worker.__index ?? worker.index) === targetIndex) || null;
+    }
+
     /**
      * Assign a worker to a building
      * @param {number} workerIndex - Index of the worker
@@ -617,7 +629,7 @@ class WorkerManager {
      * @returns {string} HTML for building selection
      */
     renderBuildingSelect(workerIndex) {
-        const worker = this.getWorkerDetails(workerIndex, true);
+        const worker = this.getWorkerSnapshot(workerIndex, true);
         const buildings = this.getBuildingAssignmentState(this.getBuildings(), worker);
         
         if (!worker) {
@@ -642,7 +654,7 @@ class WorkerManager {
      * @param {number} workerIndex - Index of the worker to assign
      */
     showAssignmentModal(workerIndex) {
-        const worker = this.getWorkerDetails(workerIndex, true);
+        const worker = this.getWorkerSnapshot(workerIndex, true);
         
         if (!worker) {
             console.error('Worker not found:', workerIndex);
@@ -763,7 +775,7 @@ class WorkerManager {
     }
 
     handleMaggotLimbSurgery(workerIndex) {
-        const worker = this.getWorkerDetails(workerIndex, true);
+        const worker = this.getWorkerSnapshot(workerIndex, true);
         if (!worker) {
             return;
         }

@@ -338,10 +338,7 @@ EOF
         }
 
         if (fileExists('test-results')) {
-          def junitFiles = findFiles(glob: 'test-results/**/*.xml')
-          if (junitFiles.length > 0) {
-            junit allowEmptyResults: true, testResults: 'test-results/**/*.xml'
-          }
+          junit allowEmptyResults: true, testResults: 'test-results/**/*.xml'
         }
       }
       cleanWs()
