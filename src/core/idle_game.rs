@@ -139,6 +139,23 @@ struct WorkerDetailView {
     maggot_surgery_reason: Option<String>,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WorkerPageView {
+    total: usize,
+    assigned_count: usize,
+    page: usize,
+    page_size: usize,
+    workers: Vec<WorkerSummaryView>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BuildingAssignmentCountView {
+    name: String,
+    assigned_count: usize,
+}
+
 #[derive(Clone, Copy)]
 struct WorkerJobProfile {
     labor: f64,
@@ -807,6 +824,63 @@ impl IdleGame {
             maggot_surgery_cost,
             maggot_surgery_reason,
         })
+    }
+
+    fn build_filtered_worker_indices(
+        &self,
+        query: &str,
+        filter_by: &str,
+        sort_by: &str,
+    ) -> Vec<usize> {
+        let query = query.trim().to_lowercase();
+        let mut indices: Vec<usize> = self
+            .workers
+            .iter()
+            .enumerate()
+            .filter(|(_, worker)| {
+                let is_assigned = worker.assigned_building.is_some();
+                if filter_by == "assigned" && !is_assigned {
+                    return false;
+                }
+                if filter_by == "unassigned" && is_assigned {
+                    return false;
+                }
+                if query.is_empty() {
+                    return true;
+                }
+
+                Self::worker_matches_query(worker, &query)
+            })
+            .map(|(index, _)| index)
+            .collect();
+
+        indices.sort_unstable_by(|a, b| {
+            let worker_a = &self.workers[*a];
+            let worker_b = &self.workers[*b];
+            match sort_by {
+                "level" => worker_b.level.cmp(&worker_a.level),
+                "efficiency" => worker_b
+                    .efficiency_multiplier
+                    .total_cmp(&worker_a.efficiency_multiplier),
+                _ => worker_a.name.cmp(&worker_b.name),
+            }
+        });
+
+        indices
+    }
+
+    fn worker_matches_query(worker: &Worker, query: &str) -> bool {
+        Self::field_matches_query(&worker.name, query)
+            || Self::field_matches_query(&worker.skills, query)
+            || Self::field_matches_query(&worker.preferences, query)
+            || worker
+                .assigned_building
+                .as_deref()
+                .is_some_and(|building| Self::field_matches_query(building, query))
+    }
+
+    fn field_matches_query(value: &str, query: &str) -> bool {
+        value.to_lowercase().contains(query)
     }
 
     fn limb_slot_label(slot: LimbSlot) -> &'static str {
@@ -3162,6 +3236,66 @@ impl IdleGame {
             .collect();
 
         serde_wasm_bindgen::to_value(&workers).unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen]
+    pub fn get_worker_page(
+        &self,
+        query: String,
+        filter_by: String,
+        sort_by: String,
+        page: usize,
+        page_size: usize,
+    ) -> JsValue {
+        let filtered_indices = self.build_filtered_worker_indices(&query, &filter_by, &sort_by);
+        let total = filtered_indices.len();
+        let assigned_count = filtered_indices
+            .iter()
+            .filter(|index| self.workers[**index].assigned_building.is_some())
+            .count();
+        let safe_page_size = page_size.max(1);
+        let safe_page = page.max(1);
+        let start = (safe_page - 1) * safe_page_size;
+
+        let workers = if start >= total {
+            Vec::new()
+        } else {
+            filtered_indices[start..(start + safe_page_size).min(total)]
+                .iter()
+                .map(|index| Self::worker_summary_view(&self.workers[*index], *index))
+                .collect()
+        };
+
+        serde_wasm_bindgen::to_value(&WorkerPageView {
+            total,
+            assigned_count,
+            page: safe_page,
+            page_size: safe_page_size,
+            workers,
+        })
+        .unwrap_or(JsValue::NULL)
+    }
+
+    #[wasm_bindgen]
+    pub fn get_building_assignment_counts(&self) -> JsValue {
+        let mut counts: HashMap<String, usize> = HashMap::new();
+        for worker in &self.workers {
+            if let Some(building) = worker.assigned_building.as_ref() {
+                *counts.entry(building.clone()).or_insert(0) += 1;
+            }
+        }
+
+        let mut items: Vec<BuildingAssignmentCountView> = self
+            .buildings
+            .iter()
+            .map(|building| BuildingAssignmentCountView {
+                name: building.name.clone(),
+                assigned_count: counts.get(&building.name).copied().unwrap_or(0),
+            })
+            .collect();
+        items.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+
+        serde_wasm_bindgen::to_value(&items).unwrap_or(JsValue::NULL)
     }
 
     #[wasm_bindgen]

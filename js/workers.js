@@ -10,11 +10,10 @@ class WorkerManager {
             currentPage: 1,
         };
         this.lastRenderSignature = null;
-        this.lastProcessedSignature = null;
-        this.processedWorkersCache = [];
         this.searchDebounceTimer = null;
-        this.rawWorkersCache = [];
+        this.workerPageCache = null;
         this.workerDetailsCache = new Map();
+        this.buildingAssignmentCountsCache = new Map();
         this.lastWorkerFetchAt = 0;
         this.workerRefreshIntervalMs = 2500;
     }
@@ -25,9 +24,10 @@ class WorkerManager {
 
     invalidateRenderCache() {
         this.lastRenderSignature = null;
-        this.lastProcessedSignature = null;
         this.lastWorkerFetchAt = 0;
+        this.workerPageCache = null;
         this.workerDetailsCache.clear();
+        this.buildingAssignmentCountsCache.clear();
     }
 
     scheduleSearchRender(nextQuery) {
@@ -45,27 +45,8 @@ class WorkerManager {
         }, 120);
     }
 
-    buildProcessingSignature(rawWorkers) {
-        const baseSignature = (Array.isArray(rawWorkers) ? rawWorkers : []).map((worker) => [
-            worker.name || '',
-            worker.skills || '',
-            worker.preferences || '',
-            worker.assignedBuilding || '',
-            worker.level || 0,
-            worker.efficiencyMultiplier || worker.efficiency_multiplier || 0,
-        ].join('|')).join('||');
-
-        return [
-            this.virtualState.query.trim().toLowerCase(),
-            this.virtualState.filterBy,
-            this.virtualState.sortBy,
-            baseSignature,
-        ].join('###');
-    }
-
-    buildRenderSignature(workers, assignedCount, currentPage, totalPages, pageStart, pageEnd) {
-        const visibleWorkers = workers.slice(pageStart, pageEnd);
-        const visibleSignature = visibleWorkers.map((worker) => {
+    buildRenderSignature(workers, assignedCount, currentPage, totalPages, totalWorkers) {
+        const visibleSignature = workers.map((worker) => {
             const missingLimbs = Array.isArray(worker.missingLimbs)
                 ? worker.missingLimbs.join(',')
                 : (Array.isArray(worker.missing_limbs) ? worker.missing_limbs.join(',') : '');
@@ -99,12 +80,10 @@ class WorkerManager {
             this.virtualState.query,
             this.virtualState.filterBy,
             this.virtualState.sortBy,
-            workers.length,
+            totalWorkers,
             assignedCount,
             currentPage,
             totalPages,
-            pageStart,
-            pageEnd,
             visibleSignature,
         ].join('###');
     }
@@ -115,35 +94,99 @@ class WorkerManager {
      */
     update(force = false) {
         const now = Date.now();
-        if (!force && now - this.lastWorkerFetchAt < this.workerRefreshIntervalMs) {
-            return this.rawWorkersCache;
+        if (!force && now - this.lastWorkerFetchAt < this.workerRefreshIntervalMs && this.workerPageCache) {
+            return this.workerPageCache;
+        }
+
+        const requestedPage = Math.max(1, this.virtualState.currentPage || 1);
+        const pageSize = Math.max(1, this.virtualState.pageSize || 24);
+
+        if (this.rustGame && typeof this.rustGame.get_worker_page === 'function') {
+            try {
+                const pageData = this.rustGame.get_worker_page(
+                    this.virtualState.query || '',
+                    this.virtualState.filterBy || 'all',
+                    this.virtualState.sortBy || 'name',
+                    requestedPage,
+                    pageSize,
+                );
+                this.workerPageCache = pageData || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
+                this.lastWorkerFetchAt = now;
+                return this.workerPageCache;
+            } catch (error) {
+                console.error('Failed to get worker page:', error);
+                return this.workerPageCache || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
+            }
         }
 
         if (this.rustGame && typeof this.rustGame.get_worker_summaries === 'function') {
             try {
-                const workers = this.rustGame.get_worker_summaries();
-                this.rawWorkersCache = workers || [];
+                const workers = this.rustGame.get_worker_summaries() || [];
+                const filtered = this.getProcessedWorkersFallback(workers);
+                const total = filtered.length;
+                const start = (requestedPage - 1) * pageSize;
+                const pageWorkers = filtered.slice(start, start + pageSize);
+                this.workerPageCache = {
+                    total,
+                    assignedCount: filtered.filter((worker) => worker.assignedBuilding !== null && worker.assignedBuilding !== undefined).length,
+                    page: requestedPage,
+                    pageSize,
+                    workers: pageWorkers,
+                };
                 this.lastWorkerFetchAt = now;
-                return this.rawWorkersCache;
+                return this.workerPageCache;
             } catch (error) {
                 console.error('Failed to get worker summaries:', error);
-                return this.rawWorkersCache;
+                return this.workerPageCache || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
             }
         }
 
         if (this.rustGame && typeof this.rustGame.get_workers === 'function') {
             try {
                 const workers = this.rustGame.get_workers();
-                this.rawWorkersCache = workers || [];
+                const filtered = this.getProcessedWorkersFallback(workers || []);
+                const total = filtered.length;
+                const start = (requestedPage - 1) * pageSize;
+                const pageWorkers = filtered.slice(start, start + pageSize);
+                this.workerPageCache = {
+                    total,
+                    assignedCount: filtered.filter((worker) => worker.assignedBuilding !== null && worker.assignedBuilding !== undefined).length,
+                    page: requestedPage,
+                    pageSize,
+                    workers: pageWorkers,
+                };
                 this.lastWorkerFetchAt = now;
-                return this.rawWorkersCache;
+                return this.workerPageCache;
             } catch (error) {
                 console.error('Failed to get workers:', error);
-                return this.rawWorkersCache;
+                return this.workerPageCache || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
             }
         }
 
-        return this.rawWorkersCache;
+        return this.workerPageCache || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
+    }
+
+    getProcessedWorkersFallback(rawWorkers) {
+        const query = this.virtualState.query.trim().toLowerCase();
+        const filterBy = this.virtualState.filterBy;
+        const sortBy = this.virtualState.sortBy;
+        const mapped = (Array.isArray(rawWorkers) ? rawWorkers : []).map((worker, index) => ({ ...worker, __index: worker.index ?? index }));
+        const filtered = mapped.filter((worker) => {
+            const isAssigned = worker.assignedBuilding !== null && worker.assignedBuilding !== undefined;
+            if (filterBy === 'assigned' && !isAssigned) return false;
+            if (filterBy === 'unassigned' && isAssigned) return false;
+            if (!query) return true;
+            const haystack = `${worker.name} ${worker.skills} ${worker.preferences} ${worker.assignedBuilding || ''}`.toLowerCase();
+            return haystack.includes(query);
+        });
+
+        filtered.sort((a, b) => {
+            if (sortBy === 'level') return (b.level || 0) - (a.level || 0);
+            if (sortBy === 'efficiency') return (b.efficiencyMultiplier || 0) - (a.efficiencyMultiplier || 0);
+            return String(a.name || '').localeCompare(String(b.name || ''));
+        });
+
+        return filtered;
     }
 
     getWorkerDetails(workerIndex, force = false) {
@@ -200,6 +243,27 @@ class WorkerManager {
             }
         }
         return [];
+    }
+
+    getBuildingAssignmentCounts(force = false) {
+        if (!force && this.buildingAssignmentCountsCache.size > 0) {
+            return this.buildingAssignmentCountsCache;
+        }
+
+        const counts = new Map();
+        if (this.rustGame && typeof this.rustGame.get_building_assignment_counts === 'function') {
+            try {
+                const entries = this.rustGame.get_building_assignment_counts() || [];
+                entries.forEach((entry) => {
+                    counts.set(entry.name, Number(entry.assignedCount || 0));
+                });
+            } catch (error) {
+                console.error('Failed to get building assignment counts:', error);
+            }
+        }
+
+        this.buildingAssignmentCountsCache = counts;
+        return counts;
     }
 
     /**
@@ -291,13 +355,8 @@ class WorkerManager {
         return false;
     }
 
-    getBuildingAssignmentState(buildings, workers, currentWorker) {
-        const assignedCounts = new Map();
-        (Array.isArray(workers) ? workers : []).forEach((worker) => {
-            if (!worker || !worker.assignedBuilding) return;
-            assignedCounts.set(worker.assignedBuilding, (assignedCounts.get(worker.assignedBuilding) || 0) + 1);
-        });
-
+    getBuildingAssignmentState(buildings, currentWorker) {
+        const assignedCounts = this.getBuildingAssignmentCounts(true);
         const currentBuilding = currentWorker && currentWorker.assignedBuilding ? currentWorker.assignedBuilding : null;
 
         return (Array.isArray(buildings) ? buildings : []).map((building) => {
@@ -320,10 +379,13 @@ class WorkerManager {
             return;
         }
 
-        const workers = this.getProcessedWorkers(this.update());
+        const pageData = this.update();
+        const workers = Array.isArray(pageData.workers) ? pageData.workers : [];
         const t = this.getTranslator();
+        const totalWorkers = Number(pageData.total || 0);
+        const assignedCount = Number(pageData.assignedCount || 0);
 
-        if (workers.length === 0) {
+        if (totalWorkers === 0) {
             this.virtualState.workers = [];
             this.virtualState.currentPage = 1;
             this.invalidateRenderCache();
@@ -333,19 +395,17 @@ class WorkerManager {
 
         this.virtualState.workers = workers;
 
-        const assignedCount = workers.filter(w => w.assignedBuilding !== null && w.assignedBuilding !== undefined).length;
-        const totalPages = Math.max(1, Math.ceil(workers.length / this.virtualState.pageSize));
-        const currentPage = Math.min(this.virtualState.currentPage, totalPages);
+        const totalPages = Math.max(1, Math.ceil(totalWorkers / this.virtualState.pageSize));
+        const currentPage = Math.min(Number(pageData.page || this.virtualState.currentPage), totalPages);
         this.virtualState.currentPage = currentPage;
         const pageStart = (currentPage - 1) * this.virtualState.pageSize;
-        const pageEnd = Math.min(workers.length, pageStart + this.virtualState.pageSize);
+        const pageEnd = Math.min(totalWorkers, pageStart + workers.length);
         const renderSignature = this.buildRenderSignature(
             workers,
             assignedCount,
             currentPage,
             totalPages,
-            pageStart,
-            pageEnd,
+            totalWorkers,
         );
 
         if (this.lastRenderSignature === renderSignature) {
@@ -355,7 +415,7 @@ class WorkerManager {
         this.lastRenderSignature = renderSignature;
         const shownStart = pageStart + 1;
         const shownEnd = pageEnd;
-        const shownLabel = `${t('workersShown') || '已显示'} ${shownStart}-${shownEnd} / ${workers.length}`;
+        const shownLabel = `${t('workersShown') || '已显示'} ${shownStart}-${shownEnd} / ${totalWorkers}`;
         const pageStatusLabel = t('workersPageStatus', { current: currentPage, total: totalPages }) || `第 ${currentPage} / ${totalPages} 页`;
         container.innerHTML = `
             <div class="workers-tools">
@@ -371,11 +431,11 @@ class WorkerManager {
                     <option value="efficiency" ${this.virtualState.sortBy === 'efficiency' ? 'selected' : ''}>${t('efficiency') || '效率'}</option>
                 </select>
                 <button id="workers-auto-assign" class="workers-auto-assign" type="button">${t('autoAssign') || '自动分配'}</button>
-                <span class="workers-count">${t('totalWorkers') || '总工人'}: ${workers.length} / ${assignedCount}</span>
+                <span class="workers-count">${t('totalWorkers') || '总工人'}: ${totalWorkers} / ${assignedCount}</span>
                 <span class="workers-visible-count">${shownLabel}</span>
             </div>
             <div id="workers-grid" class="workers-grid"></div>
-            ${workers.length > this.virtualState.pageSize ? `
+            ${totalWorkers > this.virtualState.pageSize ? `
                 <div class="workers-pagination">
                     <button id="workers-prev-page" class="workers-page-btn" type="button" ${currentPage <= 1 ? 'disabled' : ''}>${t('workersPrevPage') || '上一页'}</button>
                     <span class="workers-page-status">${pageStatusLabel}</span>
@@ -426,7 +486,7 @@ class WorkerManager {
         }
         if (nextPage) {
             nextPage.addEventListener('click', () => {
-                const maxPage = Math.max(1, Math.ceil(this.virtualState.workers.length / this.virtualState.pageSize));
+                const maxPage = Math.max(1, Math.ceil(totalWorkers / this.virtualState.pageSize));
                 this.virtualState.currentPage = Math.min(maxPage, this.virtualState.currentPage + 1);
                 this.invalidateRenderCache();
                 this.renderWorkers();
@@ -461,37 +521,6 @@ class WorkerManager {
         }
     }
 
-    getProcessedWorkers(rawWorkers) {
-        const processingSignature = this.buildProcessingSignature(rawWorkers);
-        if (this.lastProcessedSignature === processingSignature) {
-            return this.processedWorkersCache;
-        }
-
-        const query = this.virtualState.query.trim().toLowerCase();
-        const filterBy = this.virtualState.filterBy;
-        const sortBy = this.virtualState.sortBy;
-
-        const mapped = rawWorkers.map((worker, index) => ({ ...worker, __index: index }));
-        let filtered = mapped.filter((worker) => {
-            const isAssigned = worker.assignedBuilding !== null && worker.assignedBuilding !== undefined;
-            if (filterBy === 'assigned' && !isAssigned) return false;
-            if (filterBy === 'unassigned' && isAssigned) return false;
-            if (!query) return true;
-            const haystack = `${worker.name} ${worker.skills} ${worker.preferences} ${worker.assignedBuilding || ''}`.toLowerCase();
-            return haystack.includes(query);
-        });
-
-        filtered.sort((a, b) => {
-            if (sortBy === 'level') return (b.level || 0) - (a.level || 0);
-            if (sortBy === 'efficiency') return (b.efficiencyMultiplier || 0) - (a.efficiencyMultiplier || 0);
-            return String(a.name || '').localeCompare(String(b.name || ''));
-        });
-
-        this.lastProcessedSignature = processingSignature;
-        this.processedWorkersCache = filtered;
-        return filtered;
-    }
-
     renderWorkerCards() {
         const content = document.getElementById('workers-grid');
         const workers = this.virtualState.workers;
@@ -499,12 +528,9 @@ class WorkerManager {
 
         if (!content) return;
 
-        const pageStart = (this.virtualState.currentPage - 1) * this.virtualState.pageSize;
-        const pageEnd = pageStart + this.virtualState.pageSize;
-        const visibleWorkers = workers.slice(pageStart, pageEnd);
         let html = '';
-        for (let i = 0; i < visibleWorkers.length; i++) {
-            const worker = visibleWorkers[i];
+        for (let i = 0; i < workers.length; i++) {
+            const worker = workers[i];
             const isAssigned = worker.assignedBuilding !== null && worker.assignedBuilding !== undefined;
             const xp = Number(worker.experience || worker.xp || 0);
             const xpToNext = Number(worker.experienceToNext || worker.xpToNext || 100);
@@ -591,9 +617,8 @@ class WorkerManager {
      * @returns {string} HTML for building selection
      */
     renderBuildingSelect(workerIndex) {
-        const workers = this.update(true);
-        const worker = this.getWorkerDetails(workerIndex, true) || workers[workerIndex];
-        const buildings = this.getBuildingAssignmentState(this.getBuildings(), workers, worker);
+        const worker = this.getWorkerDetails(workerIndex, true);
+        const buildings = this.getBuildingAssignmentState(this.getBuildings(), worker);
         
         if (!worker) {
             return '<option value="">' + (window.i18n ? window.i18n.t('invalidWorker') || '无效工人' : '无效工人') + '</option>';
@@ -617,8 +642,7 @@ class WorkerManager {
      * @param {number} workerIndex - Index of the worker to assign
      */
     showAssignmentModal(workerIndex) {
-        const workers = this.update(true);
-        const worker = this.getWorkerDetails(workerIndex, true) || workers[workerIndex];
+        const worker = this.getWorkerDetails(workerIndex, true);
         
         if (!worker) {
             console.error('Worker not found:', workerIndex);
@@ -739,8 +763,7 @@ class WorkerManager {
     }
 
     handleMaggotLimbSurgery(workerIndex) {
-        const workers = this.update(true);
-        const worker = this.getWorkerDetails(workerIndex, true) || workers[workerIndex];
+        const worker = this.getWorkerDetails(workerIndex, true);
         if (!worker) {
             return;
         }
@@ -968,10 +991,11 @@ class WorkerManager {
             return;
         }
 
-        const workers = this.update(true);
+        const pageData = this.update(true);
+        const workers = Array.isArray(pageData.workers) ? pageData.workers : [];
         const t = this.getTranslator();
 
-        if (workers.length === 0) {
+        if (Number(pageData.total || 0) === 0) {
             panel.innerHTML = `
                 <div class="workers-panel">
                     <h3>${t('workers') || '工人'}</h3>
@@ -986,8 +1010,8 @@ class WorkerManager {
                 <div class="workers-header">
                     <h3>${t('workers') || '工人'}</h3>
                     <div class="workers-summary">
-                        <span class="summary-item">${t('totalWorkers') || '总工人'}: ${workers.length}</span>
-                        <span class="summary-item">${t('assignedWorkers') || '已分配'}: ${workers.filter(w => w.assignedBuilding).length}</span>
+                        <span class="summary-item">${t('totalWorkers') || '总工人'}: ${pageData.total || 0}</span>
+                        <span class="summary-item">${t('assignedWorkers') || '已分配'}: ${pageData.assignedCount || 0}</span>
                     </div>
                 </div>
                 ${this.renderWorkersToList()}
@@ -1002,10 +1026,11 @@ class WorkerManager {
      * @returns {string} HTML string for workers list
      */
     renderWorkersToList() {
-        const workers = this.update(true);
+        const pageData = this.update(true);
+        const workers = Array.isArray(pageData.workers) ? pageData.workers : [];
         const t = window.i18n ? window.i18n.t.bind(window.i18n) : (key) => key;
 
-        if (workers.length === 0) {
+        if (Number(pageData.total || 0) === 0) {
             return `<p class="empty-list">${t('noWorkers') || '没有工人'}</p>`;
         }
 
