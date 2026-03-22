@@ -121,6 +121,69 @@ test.describe('Workers System', () => {
         }
     });
 
+    test('large worker rosters only render the current page on first load', async ({ page }) => {
+        const seeded = await page.evaluate(() => {
+            if (!window.rustGame || !window.rustGame.exportToBase64 || !window.rustGame.importFromBase64) {
+                return { ok: false, reason: 'missing save import/export APIs' };
+            }
+
+            const raw = window.rustGame.exportToBase64();
+            const json = JSON.parse(atob(raw));
+            const baseWorkers = Array.isArray(json.workers) ? json.workers : [];
+            const sourceWorker = baseWorkers[0];
+
+            if (!sourceWorker) {
+                return { ok: false, reason: 'missing seed worker' };
+            }
+
+            const targetCount = 240;
+            json.workers = Array.from({ length: targetCount }, (_, index) => ({
+                ...JSON.parse(JSON.stringify(sourceWorker)),
+                name: `PerfWorker-${index + 1}`,
+                assigned_building: index % 2 === 0 ? sourceWorker.assigned_building : null,
+                xp: Number(sourceWorker.xp || 0) + index,
+                level: Number(sourceWorker.level || 1) + (index % 3),
+            }));
+
+            window.rustGame.importFromBase64(btoa(JSON.stringify(json)));
+            if (typeof window.rustGame.update_ui === 'function') {
+                window.rustGame.update_ui();
+            }
+            if (window.workerManager && typeof window.workerManager.invalidateRenderCache === 'function') {
+                window.workerManager.invalidateRenderCache();
+            }
+            if (window.workerManager && typeof window.workerManager.renderWorkers === 'function') {
+                window.workerManager.renderWorkers();
+            }
+
+            const pageData = window.workerManager && typeof window.workerManager.update === 'function'
+                ? window.workerManager.update(true)
+                : null;
+            const renderedCards = document.querySelectorAll('#workers-grid .worker-card').length;
+            const visibleCountLabel = document.getElementById('workers-list')?.textContent || '';
+
+            return {
+                ok: true,
+                workerCount: window.rustGame.get_worker_count ? window.rustGame.get_worker_count() : json.workers.length,
+                total: Number(pageData?.total || 0),
+                pageSize: Number(pageData?.pageSize || 0),
+                pageWorkersLength: Array.isArray(pageData?.workers) ? pageData.workers.length : 0,
+                renderedCards,
+                hasPagination: !!document.getElementById('workers-next-page'),
+                visibleCountLabel,
+            };
+        });
+
+        expect(seeded.ok).toBe(true);
+        expect(seeded.workerCount).toBe(240);
+        expect(seeded.total).toBe(240);
+        expect(seeded.pageSize).toBe(24);
+        expect(seeded.pageWorkersLength).toBe(24);
+        expect(seeded.renderedCards).toBe(24);
+        expect(seeded.hasPagination).toBe(true);
+        expect(seeded.visibleCountLabel).toContain('1-24 / 240');
+    });
+
     test('maggot limb surgery converts missing limbs into maggot limbs', async ({ page }) => {
         await unlockMaggotStage(page);
         await page.click('[data-tab="workers"]');
