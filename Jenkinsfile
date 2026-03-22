@@ -49,6 +49,16 @@ __pycache__/
 *.log
 EOF
 
+          for cleanup_dir in playwright-report test-results coverage-report .sisyphus; do
+            if [ -e "$cleanup_dir" ]; then
+              rm -rf "$cleanup_dir" 2>/dev/null || true
+            fi
+          done
+
+          if command -v docker >/dev/null 2>&1; then
+            docker run --rm -v "$PWD:/workspace" alpine:3.20 sh -c 'rm -rf /workspace/playwright-report /workspace/test-results /workspace/coverage-report /workspace/.sisyphus' || true
+          fi
+
           if command -v rsync >/dev/null 2>&1; then
             rsync -a --delete --delete-excluded --exclude-from=.jenkins-sync-excludes /workspace/idle-game/ ./
           else
