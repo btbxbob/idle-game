@@ -401,7 +401,28 @@ class WorkerManager {
             this.virtualState.workers = [];
             this.virtualState.currentPage = 1;
             this.invalidateRenderCache();
-            container.innerHTML = `<p id="workers-placeholder">${t('noWorkers') || '没有工人'}</p>`;
+            const noMatchMessage = (this.virtualState.filterBy !== 'all' || this.virtualState.query)
+                ? (t('noWorkersMatchFilter') || '没有符合筛选条件的工人')
+                : (t('noWorkers') || '没有工人');
+            container.innerHTML = `
+                <div class="workers-tools">
+                    <input id="workers-search" class="workers-search" type="text" value="${this.escapeHtml(this.virtualState.query)}" placeholder="${t('search') || '搜索工人'}" />
+                    <select id="workers-filter" class="workers-filter">
+                        <option value="all" ${this.virtualState.filterBy === 'all' ? 'selected' : ''}>${t('all') || '全部'}</option>
+                        <option value="assigned" ${this.virtualState.filterBy === 'assigned' ? 'selected' : ''}>${t('assigned') || '已分配'}</option>
+                        <option value="unassigned" ${this.virtualState.filterBy === 'unassigned' ? 'selected' : ''}>${t('unassigned') || '未分配'}</option>
+                    </select>
+                    <select id="workers-sort" class="workers-sort">
+                        <option value="name" ${this.virtualState.sortBy === 'name' ? 'selected' : ''}>${t('name') || '姓名'}</option>
+                        <option value="level" ${this.virtualState.sortBy === 'level' ? 'selected' : ''}>${t('level') || '等级'}</option>
+                        <option value="efficiency" ${this.virtualState.sortBy === 'efficiency' ? 'selected' : ''}>${t('efficiency') || '效率'}</option>
+                    </select>
+                    <button id="workers-auto-assign" class="workers-auto-assign" type="button">${t('autoAssign') || '自动分配'}</button>
+                    <span class="workers-count">${t('totalWorkers') || '总工人'}: ${assignedCount} / ${assignedCount}</span>
+                </div>
+                <p id="workers-placeholder">${noMatchMessage}</p>
+            `;
+            this.bindToolsEvents(container);
             return;
         }
 
