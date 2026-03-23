@@ -125,6 +125,9 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
         return;
     }
 
+    const buyMode = window.getBuildingBuyMode ? window.getBuildingBuyMode() : 1;
+    const buyModeValue = buyMode === 'max' ? 'max' : parseInt(buyMode, 10) || 1;
+
     const buildingLists = Array.from(document.querySelectorAll('#building-list'));
     buildingLists.forEach((buildingList) => {
         buildingList.innerHTML = '';
@@ -144,6 +147,9 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
             const linkNote = getBuildingLinkNote(building);
             const realIndex = Number.isInteger(building.index) ? building.index : index;
 
+            const displayCost = getDisplayCostForBuilding(building, buyModeValue);
+            const buttonLabel = buyModeValue === 1 ? buyText : (buyModeValue === 10 ? `${buyText} x10` : `${buyText} (Max)`);
+
             let sufficientFunds = true;
             if (typeof currentCoins === 'number' && Number.isFinite(currentCoins)) {
                 sufficientFunds = currentCoins >= building.cost;
@@ -161,11 +167,11 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
                 </div>
                 <div>
                     ${ownedText}: ${building.count}<br>
-                    ${costText}: ${formatIntegerDisplay(building.cost)}
+                    ${costText}: ${formatIntegerDisplay(displayCost)}
                     <button id="buy-building-${realIndex}"
                             onclick="window.buyBuilding(${realIndex})"
                             ${!window.gameInitialized || !sufficientFunds ? 'disabled' : ''}>
-                        ${buyText}
+                        ${buttonLabel}
                     </button>
                 </div>
             `;
@@ -173,6 +179,32 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
         });
     });
 };
+
+function calculateBulkCost(nextCost, purchaseCount) {
+    if (purchaseCount <= 0) return 0;
+    const growthRate = 1.15;
+    return nextCost * (1 - Math.pow(growthRate, purchaseCount)) / (1 - growthRate);
+}
+
+function getDisplayCostForBuilding(building, mode) {
+    const nextCost = building.cost;
+    if (!nextCost) return 0;
+
+    if (mode === 'x1') {
+        return nextCost;
+    } else if (mode === 'x10') {
+        return calculateBulkCost(nextCost, 10);
+    } else if (mode === 'max') {
+        if (window.rustGame && typeof window.rustGame.get_max_affordable_building_count === 'function') {
+            const maxCount = window.rustGame.get_max_affordable_building_count(building.index !== undefined ? building.index : 0);
+            if (maxCount > 0) {
+                return calculateBulkCost(nextCost, maxCount);
+            }
+        }
+        return nextCost;
+    }
+    return nextCost;
+}
 
 // Helper function to get resource name for building
 function getResourceNameForBuilding(building) {
@@ -310,18 +342,53 @@ function getProductionInputRequirements(outputResource) {
 }
 
 // Functions called from UI to communicate with Rust/WASM
+window.getBuildingBuyMode = function() {
+    const select = document.getElementById('building-buy-mode');
+    if (!select) return 1;
+    const value = select.value;
+    if (value === 'max') return 'max';
+    return parseInt(value, 10) || 1;
+};
+
 window.buyBuilding = function(index) {
-    if (window.rustGame && typeof window.rustGame.buy_building === 'function') {
-        const success = window.rustGame.buy_building(index);
-        if (!success) {
-            // Provide visual feedback for failed purchase
-            const button = document.getElementById(`buy-building-${index}`);
-            if (button) {
-                button.classList.add('purchase-failed');
-                setTimeout(() => {
-                    button.classList.remove('purchase-failed');
-                }, 300);
+    if (!window.rustGame) return;
+
+    const mode = window.getBuildingBuyMode();
+    let purchased = 0;
+
+    if (mode === 'max') {
+        if (typeof window.rustGame.buy_buildings === 'function' && typeof window.rustGame.get_max_affordable_building_count === 'function') {
+            const maxCount = window.rustGame.get_max_affordable_building_count(index);
+            if (maxCount > 0) {
+                purchased = window.rustGame.buy_buildings(index, maxCount);
             }
+        } else {
+            // Fallback: buy one at a time
+            while (window.rustGame.buy_building(index)) {
+                purchased++;
+            }
+        }
+    } else {
+        const count = Math.max(1, mode);
+        if (typeof window.rustGame.buy_buildings === 'function') {
+            purchased = window.rustGame.buy_buildings(index, count);
+        } else {
+            // Fallback for single buy
+            for (let i = 0; i < count; i++) {
+                if (!window.rustGame.buy_building(index)) break;
+                purchased++;
+            }
+        }
+    }
+
+    if (purchased === 0) {
+        // Provide visual feedback for failed purchase
+        const button = document.getElementById(`buy-building-${index}`);
+        if (button) {
+            button.classList.add('purchase-failed');
+            setTimeout(() => {
+                button.classList.remove('purchase-failed');
+            }, 300);
         }
     }
 };

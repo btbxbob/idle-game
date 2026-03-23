@@ -2391,6 +2391,91 @@ impl IdleGame {
     }
 
     #[wasm_bindgen]
+    pub fn buy_buildings(&mut self, index: usize, count: usize) -> usize {
+        if index >= self.buildings.len() {
+            return 0;
+        }
+
+        let current_stage = self.state.borrow().current_stage;
+        if !stage::is_building_revealed(
+            &self.buildings[index],
+            current_stage,
+            &self.technology_tree,
+        ) {
+            return 0;
+        }
+
+        let mut purchased = 0;
+        for _ in 0..count {
+            let building_cost = self.buildings[index].cost;
+            let can_afford = {
+                let state = self.state.borrow();
+                state.get_coins() + 1e-10 >= building_cost
+            };
+
+            if !can_afford {
+                break;
+            }
+
+            {
+                let mut state = self.state.borrow_mut();
+                state.spend_coins(building_cost);
+                self.buildings[index].count += 1;
+                self.buildings[index].cost *= 1.15;
+                state.coins_per_click = calculate_click_power_from_buildings(&self.buildings);
+            }
+
+            let mut stats = self.statistics.borrow_mut();
+            stats.buildings_purchased += 1;
+            drop(stats);
+
+            purchased += 1;
+        }
+
+        if purchased > 0 {
+            self.check_achievement("first_building");
+            self.check_achievement("building_enthusiast_10");
+            self.check_achievement("building_tycoon_50");
+            self.refresh_progression_state();
+            self.update_production();
+            self.update_resources_only();
+            self.update_buildings_only();
+        }
+
+        purchased
+    }
+
+    #[wasm_bindgen]
+    pub fn get_max_affordable_building_count(&self, index: usize) -> usize {
+        if index >= self.buildings.len() {
+            return 0;
+        }
+
+        let current_stage = self.state.borrow().current_stage;
+        if !stage::is_building_revealed(
+            &self.buildings[index],
+            current_stage,
+            &self.technology_tree,
+        ) {
+            return 0;
+        }
+
+        let coins = self.state.borrow().get_coins();
+        let base_cost = self.buildings[index].cost;
+        let current_count = self.buildings[index].count;
+
+        let mut cost = base_cost * (1.15_f64).powi(current_count as i32);
+        let mut affordable_count = 0;
+
+        while coins + 1e-10 >= cost {
+            affordable_count += 1;
+            cost *= 1.15;
+        }
+
+        affordable_count
+    }
+
+    #[wasm_bindgen]
     pub fn build_housing(&mut self, cost: JsValue) -> Result<bool, String> {
         // Parse cost from JsValue to HashMap
         let cost_map: HashMap<String, f64> = serde_wasm_bindgen::from_value(cost)

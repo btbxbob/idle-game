@@ -9,9 +9,11 @@ pipeline {
   parameters {
     booleanParam(name: 'RUN_PLAYWRIGHT', defaultValue: false, description: 'Run Playwright e2e suite in Jenkins')
     booleanParam(name: 'RUN_COVERAGE', defaultValue: false, description: 'Run Playwright e2e coverage check in Jenkins')
+    booleanParam(name: 'RUN_LOAD_TIME', defaultValue: false, description: 'Run startup load-time measurement in Jenkins')
     booleanParam(name: 'PW_PARALLEL_CONTAINERS', defaultValue: false, description: 'Run functional tests in 2 parallel containers')
     booleanParam(name: 'RUN_REGRESSION_TESTS', defaultValue: false, description: 'Include regression tests (only when not using parallel containers)')
     string(name: 'PW_TEST_WORKERS', defaultValue: '4', description: 'Playwright worker count for single-container runs (positive integer)')
+    string(name: 'LOAD_TIME_RUNS', defaultValue: '5', description: 'Repeated samples for startup load-time measurement (positive integer)')
   }
 
   environment {
@@ -44,19 +46,20 @@ pkg/
 playwright-report/
 test-results/
 coverage-report/
+load-time-report/
 .sisyphus/
 __pycache__/
 *.log
 EOF
 
-          for cleanup_dir in playwright-report test-results coverage-report .sisyphus; do
+          for cleanup_dir in playwright-report test-results coverage-report load-time-report .sisyphus; do
             if [ -e "$cleanup_dir" ]; then
               rm -rf "$cleanup_dir" 2>/dev/null || true
             fi
           done
 
           if command -v docker >/dev/null 2>&1; then
-            docker run --rm -v "$PWD:/workspace" alpine:3.20 sh -c 'rm -rf /workspace/playwright-report /workspace/test-results /workspace/coverage-report /workspace/.sisyphus' || true
+            docker run --rm -v "$PWD:/workspace" alpine:3.20 sh -c 'rm -rf /workspace/playwright-report /workspace/test-results /workspace/coverage-report /workspace/load-time-report /workspace/.sisyphus' || true
           fi
 
           if command -v rsync >/dev/null 2>&1; then
@@ -163,7 +166,7 @@ EOF
 
     stage('Verify Playwright Image') {
       when {
-        expression { return params.RUN_PLAYWRIGHT || params.RUN_COVERAGE }
+        expression { return params.RUN_PLAYWRIGHT || params.RUN_COVERAGE || params.RUN_LOAD_TIME }
       }
       options {
         timeout(time: 2, unit: 'MINUTES')
@@ -185,6 +188,38 @@ EOF
             exit 1
           fi
         '''
+      }
+    }
+
+    stage('Measure Load Time') {
+      when {
+        expression { return params.RUN_LOAD_TIME }
+      }
+      options {
+        timeout(time: 20, unit: 'MINUTES')
+      }
+      steps {
+        script {
+          def loadTimeRuns = params.LOAD_TIME_RUNS?.trim() ?: '5'
+          if (!(loadTimeRuns ==~ /[1-9]\d*/)) {
+            error("LOAD_TIME_RUNS must be a positive integer, got: ${params.LOAD_TIME_RUNS}")
+          }
+
+          sh """
+            mkdir -p load-time-report
+            docker run --rm \
+              --pull=never \
+              --ipc=host \
+              --shm-size=1g \
+              -e CI=true \
+              -e LOAD_TIME_RUNS=${loadTimeRuns} \
+              -e LOAD_TIME_OUTPUT_FILE=load-time-report/load-time-summary.json \
+              -v "${env.WORKSPACE}:/work" \
+              -w /work \
+              "$PLAYWRIGHT_IMAGE_PRIMARY" \
+              bash -lc 'set -e; node scripts/measure-load-time.js | tee load-time-report/load-time.log'
+          """
+        }
       }
     }
 
@@ -339,6 +374,10 @@ EOF
     always {
       archiveArtifacts artifacts: 'pkg/**', allowEmptyArchive: true
       script {
+        if (fileExists('load-time-report')) {
+          archiveArtifacts artifacts: 'load-time-report/**', allowEmptyArchive: true
+        }
+
         if (fileExists('playwright-report') || fileExists('test-results')) {
           archiveArtifacts artifacts: 'playwright-report/**,test-results/**', allowEmptyArchive: true
         }

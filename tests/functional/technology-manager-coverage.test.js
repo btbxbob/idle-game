@@ -949,4 +949,123 @@ test.describe('TechnologyManager coverage', () => {
         expect(result.modalTitle).toContain('Detail Tech');
         expect(Object.values(result.methods).every(Boolean)).toBe(true);
     });
+
+    test('resource fallback, effect description and explicit canResearch branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originalFormatter = window.NumberFormatter;
+            delete window.NumberFormatter;
+
+            const manager = new window.TechnologyManager(null, {
+                currentLanguage: 'en',
+                t: (key) => ({
+                    techEffectProductionLabel: 'Production',
+                    techEffectUnlocksLabel: 'Unlocks',
+                    techEffectNewFeature: 'New Feature',
+                    unknownEffect: 'Unknown effect',
+                }[key] || key),
+            });
+
+            const canResearchNull = manager.canResearch(null);
+            const canResearchFlagFalse = manager.canResearch({ id: 'flag-false', can_research: false, researched: false, dependencies: [] });
+            const canResearchCamelTrue = manager.canResearch({ id: 'camel-true', canResearch: true, researched: false, dependencies: [] });
+            const canResearchResearched = manager.canResearch({ id: 'done', researched: true, dependencies: [] });
+            manager.technologies = [{ id: 'dep-ok', researched: true }];
+            const canResearchDepsMet = manager.canResearch({ id: 'dep-target', researched: false, dependencies: ['dep-ok'] });
+            const canResearchDepsMissing = manager.canResearch({ id: 'dep-missing', researched: false, dependencies: ['ghost'] });
+
+            const noRustValue = manager.getResourceValue('Gold');
+            manager.rustGame = {
+                get_resources: () => ({ coins: 42, Wood: 7 }),
+            };
+            const directMapValue = manager.getResourceValue('Gold');
+            const directExactValue = manager.getResourceValue('Wood');
+            manager.rustGame = {
+                get_resources: () => {
+                    throw new Error('resource-broken');
+                },
+                get_stone: () => 9,
+            };
+            const getterFallbackValue = manager.getResourceValue('Stone');
+            const getterUnknownValue = manager.getResourceValue('NoSuchThing');
+
+            const effectNoEffect = manager.getEffectDescription({ description: 'Plain desc' });
+            const effectEmptyObject = manager.getEffectDescription({ description: 'Empty desc', effect: {} });
+            const effectUnlockUi = manager.getEffectDescription({ effect: { type: 'UnlockUI' } });
+            const effectMechanicTyped = manager.getEffectDescription({ description: 'Mechanic text', effect: { type: 'MechanicChange', description: 'Shift workflow' } });
+            const effectUnknownTyped = manager.getEffectDescription({ description: 'Fallback typed', effect: { type: 'WildCard' } });
+            const effectArrayProduction = manager.getEffectDescription({ effect: { ProductionBonus: ['Gold', 0.25] }, effect_value: 0.1 });
+            const effectArrayProductionFallback = manager.getEffectDescription({ effect: { ProductionBonus: [] }, effect_value: 0.4 });
+            const effectArrayUnlock = manager.getEffectDescription({ id: 'BasicSmelting', effect: { UnlockBuilding: 'Smelter' } });
+            const effectArrayMechanic = manager.getEffectDescription({ description: 'Mechanic fallback', effect: { MechanicChange: 'auto_assignment' } });
+            const effectArrayUnknown = manager.getEffectDescription({ description: 'Array fallback', effect: { StrangeThing: { enabled: true } } });
+
+            const humanizedResource = manager.getResourceName('QuantumDust');
+            const englishBuilding = manager.getBuildingTypeLabel('SpacePort');
+            const fallbackBuilding = manager.getBuildingTypeLabel('OddFactory');
+            const unlockBuildingCopyKnown = manager.getUnlockBuildingText('BasicAgriculture', 'Farm');
+            const unlockBuildingCopyUnknown = manager.getUnlockBuildingText('OddTech', 'SpacePort');
+            const formattedIntegerFallback = manager.formatInteger(12.9);
+
+            window.NumberFormatter = originalFormatter;
+
+            return {
+                canResearchNull,
+                canResearchFlagFalse,
+                canResearchCamelTrue,
+                canResearchResearched,
+                canResearchDepsMet,
+                canResearchDepsMissing,
+                noRustValue,
+                directMapValue,
+                directExactValue,
+                getterFallbackValue,
+                getterUnknownValue,
+                effectNoEffect,
+                effectEmptyObject,
+                effectUnlockUi,
+                effectMechanicTyped,
+                effectUnknownTyped,
+                effectArrayProduction,
+                effectArrayProductionFallback,
+                effectArrayUnlock,
+                effectArrayMechanic,
+                effectArrayUnknown,
+                humanizedResource,
+                englishBuilding,
+                fallbackBuilding,
+                unlockBuildingCopyKnown,
+                unlockBuildingCopyUnknown,
+                formattedIntegerFallback,
+            };
+        });
+
+        expect(result.canResearchNull).toBe(false);
+        expect(result.canResearchFlagFalse).toBe(false);
+        expect(result.canResearchCamelTrue).toBe(true);
+        expect(result.canResearchResearched).toBe(false);
+        expect(result.canResearchDepsMet).toBe(true);
+        expect(result.canResearchDepsMissing).toBe(false);
+        expect(result.noRustValue).toBe(0);
+        expect(result.directMapValue).toBe(42);
+        expect(result.directExactValue).toBe(7);
+        expect(result.getterFallbackValue).toBe(9);
+        expect(result.getterUnknownValue).toBe(0);
+        expect(result.effectNoEffect).toBe('Plain desc');
+        expect(result.effectEmptyObject).toBe('Empty desc');
+        expect(result.effectUnlockUi).toContain('New Feature');
+        expect(result.effectMechanicTyped).toBe('Shift workflow');
+        expect(result.effectUnknownTyped).toBe('Fallback typed');
+        expect(result.effectArrayProduction).toContain('+25%');
+        expect(result.effectArrayProduction).toContain('Gold');
+        expect(result.effectArrayProductionFallback).toContain('+40%');
+        expect(result.effectArrayUnlock).toContain('smelting lines');
+        expect(result.effectArrayMechanic).toContain('Auto Assignment');
+        expect(result.effectArrayUnknown).toBe('Array fallback');
+        expect(result.humanizedResource).toBe('Quantum Dust');
+        expect(result.englishBuilding).toBe('Spaceport');
+        expect(result.fallbackBuilding).toBe('OddFactory');
+        expect(result.unlockBuildingCopyKnown).toContain('farm line');
+        expect(result.unlockBuildingCopyUnknown).toContain('Spaceport');
+        expect(result.formattedIntegerFallback).toBe('12');
+    });
 });

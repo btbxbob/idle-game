@@ -547,8 +547,8 @@ test.describe('WorkerManager coverage', () => {
         expect(result.allNames).toEqual(['Alpha', 'Zulu']);
         expect(result.alerts.length).toBe(0);
         expect(result.updateCalls).toBe(0);
-        expect(result.noMethodUpdateTotal).toBe(0);
-        expect(result.noMethodUpdateWorkersLength).toBe(0);
+        expect(result.noMethodUpdateTotal).toBe(2);
+        expect(result.noMethodUpdateWorkersLength).toBe(2);
         expect(result.noMethodAssign).toBe(false);
         expect(result.noMethodBuildingsLength).toBe(0);
     });

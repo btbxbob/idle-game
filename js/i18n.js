@@ -244,6 +244,10 @@ class I18n {
                 'perOutputUnit': 'per 1 output',
                 'owned': 'Owned',
                 'buy': 'Buy',
+                'buyMode': 'Purchase Quantity',
+                'buyModeX1': 'x1',
+                'buyModeX10': 'x10',
+                'buyModeMax': 'Max',
                 'craft': 'Craft',
                 'perBuilding': '/sec per building',
                 'perSecond': '/sec',
@@ -696,6 +700,10 @@ class I18n {
                 'perOutputUnit': '每产出 1 单位',
                 'owned': '拥有',
                 'buy': '购买',
+                'buyMode': '购买数量',
+                'buyModeX1': 'x1',
+                'buyModeX10': 'x10',
+                'buyModeMax': '最大',
                 'craft': '合成',
                 'perBuilding': '/秒 每建筑',
                 'perSecond': '/秒',
@@ -1106,6 +1114,7 @@ class I18n {
         this.updateTabButtons();
         this.updateResourceCategoryTabs();
         this.updatePlaceholder('import-export-text', 'importExportPlaceholder');
+        this.updateLabel('building-mode-label', 'buyMode');
 
         // Update resource displays (these will be handled by resource update functions)
         this.updateResourceDisplays();

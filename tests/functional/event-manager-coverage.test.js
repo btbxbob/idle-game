@@ -259,4 +259,83 @@ test.describe('EventManager coverage', () => {
         expect(result.disconnected).toBe(0);
         expect(result.rootMargin).toBe('240px 0px');
     });
+
+    test('fallback getters, outcomes, cached log renders and hydrate no-op branches execute', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            try {
+                if (!window.eventManager) {
+                    return { ok: false, reason: 'missing manager' };
+                }
+
+                const manager = window.eventManager;
+                const originalRustGame = manager.rustGame;
+                const originalI18n = window.i18n;
+
+                window.i18n = null;
+                const fallbackT = manager.t('missingKey', 'fallback text');
+
+                manager.rustGame = null;
+                const noApiBreaking = manager.getBreakingEvents();
+                const noApiSummaries = manager.getEventSummaries(0, 5);
+                const noApiCount = manager.getEventLogCount();
+
+                const outcomeItems = manager.getOutcomeItems({
+                    outcome: {
+                        food_delta: -5,
+                        corpse_delta: 2,
+                        maggot_delta: 3,
+                        duration_ms: 30000,
+                    },
+                });
+                const filledStrip = manager.renderOutcomeStrip({ outcome: { food_delta: -1 } });
+
+                const panel = document.getElementById('event-log-list');
+                panel.innerHTML = '<div class="persisted">persisted</div>';
+                manager.loadedCount = 3;
+                manager.logRenderKey = 'zh|3|3|steady';
+                manager.rustGame = {
+                    get_event_log_count: () => 3,
+                    get_event_log_summaries: () => [],
+                    get_event_log_detail: () => ({ event_id: 88, headline_zh: '仅标题', body_zh: '正文', opinion_zh: '' }),
+                };
+                manager.renderLogPanel(false, false);
+                const cachedHtmlKept = panel.innerHTML.includes('persisted');
+
+                const article = document.createElement('article');
+                article.className = 'event-news-card';
+                article.dataset.eventId = '88';
+                article.innerHTML = '<h3 class="event-news-headline skeleton-line"></h3><div class="event-news-body skeleton-body"></div><div class="event-news-interview pending"><blockquote></blockquote></div>';
+                manager.hydrateEventCard(article);
+                const loadedFlag = article.dataset.loaded;
+
+                manager.rustGame = originalRustGame;
+                window.i18n = originalI18n;
+
+                return {
+                    ok: true,
+                    fallbackT,
+                    noApiBreakingLength: noApiBreaking.length,
+                    noApiSummariesLength: noApiSummaries.length,
+                    noApiCount,
+                    outcomeItems: outcomeItems.map((item) => item.tone),
+                    filledStrip,
+                    cachedHtmlKept,
+                    loadedFlag,
+                };
+            } catch (error) {
+                return { ok: false, reason: String(error) };
+            }
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.fallbackT).toBe('fallback text');
+        expect(result.noApiBreakingLength).toBe(0);
+        expect(result.noApiSummariesLength).toBe(0);
+        expect(result.noApiCount).toBe(0);
+        expect(Array.isArray(result.outcomeItems)).toBe(true);
+        expect(result.outcomeItems.length).toBeGreaterThan(0);
+        expect(result.filledStrip).toContain('event-news-outcomes');
+        expect(result.cachedHtmlKept).toBe(true);
+        expect(result.loadedFlag).toBe('true');
+    });
 });

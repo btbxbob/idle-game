@@ -399,4 +399,67 @@ test.describe('HousingManager coverage', () => {
         expect(result.helperValues.arrayCostText).toContain('3');
         expect(result.helperValues.arrayCostText).toContain('2');
     });
+
+    test('auto purchase loop covers no-op, insufficient and mixed success branches', async ({ page }) => {
+        const result = await page.evaluate(() => {
+            const originalAlert = window.alert;
+            const originalUpdate = window.updateResourceDisplay;
+            const originalError = console.error;
+            const alerts = [];
+            const errors = [];
+            let updateCalls = 0;
+            window.alert = (msg) => alerts.push(String(msg));
+            window.updateResourceDisplay = () => { updateCalls += 1; };
+            console.error = (...args) => errors.push(args.map(String).join(' '));
+
+            const noApiManager = new window.HousingManager(null);
+            noApiManager.handleAutoPurchase();
+
+            let renderCalls = 0;
+            const dryManager = new window.HousingManager({
+                get_housing: () => [
+                    { name: '棚屋', level: 1, capacity: 5, baseCapacity: 5, upgradeCost: { coins: 10 } },
+                ],
+                upgrade_housing: () => { throw new Error('Insufficient coins'); },
+            });
+            dryManager.renderToPanel = () => { renderCalls += 1; };
+            dryManager.handleAutoPurchase();
+
+            const responses = [true, true, new Error('boom-auto'), new Error('Insufficient wood'), false];
+            let callIndex = 0;
+            const mixedManager = new window.HousingManager({
+                get_housing: () => [
+                    { name: '棚屋', level: 1, capacity: 5, baseCapacity: 5, upgradeCost: { coins: 10 } },
+                    { name: '木梁小屋', level: 2, capacity: 8, baseCapacity: 4, upgradeCost: { coins: 20 } },
+                ],
+                upgrade_housing: () => {
+                    const next = responses[Math.min(callIndex, responses.length - 1)];
+                    callIndex += 1;
+                    if (next instanceof Error) {
+                        throw next;
+                    }
+                    return next;
+                },
+            });
+            mixedManager.renderToPanel = () => { renderCalls += 1; };
+            mixedManager.handleAutoPurchase();
+
+            window.alert = originalAlert;
+            window.updateResourceDisplay = originalUpdate;
+            console.error = originalError;
+
+            return {
+                alerts,
+                updateCalls,
+                renderCalls,
+                errors,
+            };
+        });
+
+        expect(result.renderCalls).toBeGreaterThanOrEqual(2);
+        expect(result.updateCalls).toBeGreaterThanOrEqual(2);
+        expect(result.alerts.some((entry) => entry.includes('无法自动购买住房'))).toBe(true);
+        expect(result.alerts.some((entry) => entry.includes('自动购买完成') || entry.includes('共升级'))).toBe(true);
+        expect(result.errors.some((entry) => entry.includes('Failed to auto purchase housing'))).toBe(true);
+    });
 });

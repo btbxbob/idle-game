@@ -16,9 +16,7 @@ const shouldKeepCoverageEntry = (entry) => {
     return false;
   }
 
-  return url.includes('/js/')
-    || /\/pkg\/idle_game(\.v[^/]+)?\.js$/i.test(url)
-    || /\/pkg\/idle_game\.js$/i.test(url);
+  return url.includes('/js/');
 };
 
 const test = base.test.extend({

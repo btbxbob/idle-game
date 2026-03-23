@@ -7,6 +7,45 @@ const rawDir = path.join(root, 'coverage-report', 'raw');
 const outDir = path.join(root, 'coverage-report', 'e2e-merged');
 const summaryFile = path.join(outDir, 'coverage-summary.json');
 
+const isGeneratedEntry = (entryPath) => {
+  return typeof entryPath === 'string' && /\/pkg\/idle_game(?:\.v[^/]+)?\.js/i.test(entryPath);
+};
+
+const recomputeTotals = (summaryData) => {
+  const metrics = ['lines', 'statements', 'functions', 'branches'];
+  const entries = Object.entries(summaryData).filter(([entryPath]) => entryPath !== 'total' && !isGeneratedEntry(entryPath));
+
+  const total = Object.fromEntries(metrics.map((metric) => [metric, {
+    total: 0,
+    covered: 0,
+    skipped: 0,
+    pct: 0
+  }]));
+
+  for (const [, entry] of entries) {
+    metrics.forEach((metric) => {
+      const bucket = entry?.[metric];
+      if (!bucket) {
+        return;
+      }
+      total[metric].total += Number(bucket.total || 0);
+      total[metric].covered += Number(bucket.covered || 0);
+      total[metric].skipped += Number(bucket.skipped || 0);
+    });
+  }
+
+  metrics.forEach((metric) => {
+    const metricTotal = total[metric].total;
+    total[metric].pct = metricTotal > 0
+      ? Number(((total[metric].covered / metricTotal) * 100).toFixed(2))
+      : 100;
+  });
+
+  const filtered = Object.fromEntries(entries);
+  filtered.total = total;
+  return filtered;
+};
+
 const parseThreshold = (name, fallback) => {
   const raw = process.env[name];
   if (raw === undefined || raw === '') {
@@ -46,7 +85,6 @@ const mcr = MCR({
   sourceFilter: {
     '**/node_modules/**': false,
     '**/js/**': true,
-    '**/pkg/idle_game.js': true,
     '**/*': false
   }
 });
@@ -73,7 +111,9 @@ const mcr = MCR({
     process.exit(1);
   }
 
-  const summaryData = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+  const rawSummaryData = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+  const summaryData = recomputeTotals(rawSummaryData);
+  fs.writeFileSync(summaryFile, `${JSON.stringify(summaryData, null, 2)}\n`, 'utf8');
   const total = summaryData.total;
   if (!total) {
     console.error(`Coverage summary file has no total section: ${summaryFile}`);

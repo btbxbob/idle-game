@@ -8,6 +8,7 @@
 |------|----------|-------|
 | Re-run Jenkins locally | `jenkins-debug-rerun.sh` | Triggers `idle-game-ci`, waits, prints failures and coverage |
 | Merge E2E coverage | `merge-e2e-coverage.js` | Consumes `coverage-report/raw/*.json` and enforces thresholds |
+| Measure startup load time | `measure-load-time.js` | Runs repeated Playwright startup samples, prints JSON summary |
 | Syntax-check JS files | `lint-syntax.js` | Repo-specific lint entry behind `npm run lint` |
 | Version WASM assets | `version-wasm-assets.py` | Creates versioned `pkg` wrapper/wasm files so deploys bypass stale browser caches |
 | Inspect upgrade DOM manually | `debug-upgrade-dom.js` | Console-paste debug aid, not part of CI |

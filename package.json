@@ -1,6 +1,6 @@
 {
   "name": "idle-game-tests",
-  "version": "0.8.12",
+  "version": "0.8.13",
   "description": "Playwright tests for idle game",
   "scripts": {
     "test": "playwright test",
@@ -8,6 +8,7 @@
     "test:all-browsers": "PW_ALL_BROWSERS=1 playwright test",
     "test:e2e:coverage": "playwright test --project=chromium && node scripts/merge-e2e-coverage.js",
     "test:ui": "playwright test --ui",
+    "measure:load-time": "node scripts/measure-load-time.js",
     "lint:syntax": "node scripts/lint-syntax.js",
     "lint": "npm run lint:syntax",
     "precommit": "npm run lint:syntax"

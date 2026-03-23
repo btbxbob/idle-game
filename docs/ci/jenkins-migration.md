@@ -71,7 +71,8 @@ This repository now includes `Jenkinsfile` with these CI stages:
 3. `cargo check`
 4. `cargo test`
 5. `wasm-pack build --target web --out-dir pkg --release --mode no-install`
-6. optional Playwright stage (`RUN_PLAYWRIGHT=true` or `RUN_COVERAGE=true`)
+6. optional startup load-time stage (`RUN_LOAD_TIME=true`)
+7. optional Playwright stage (`RUN_PLAYWRIGHT=true` or `RUN_COVERAGE=true`)
 Create a Jenkins Pipeline job pointing to this repository and script path `Jenkinsfile`.
 
 ### Pipeline source of truth
@@ -149,6 +150,21 @@ The biggest change was the WASM stage:
 
 At this point the main remaining cost is Jenkins pipeline overhead plus checkout/lint/npm work, not Rust/WASM compilation.
 
+### Load-time measurement in Jenkins
+
+When `RUN_LOAD_TIME=true`, Jenkins executes:
+
+- `node scripts/measure-load-time.js`
+
+The pipeline runs the measurement inside the cached Playwright container image, writes a JSON summary to `load-time-report/load-time-summary.json`, and captures the console sample log in `load-time-report/load-time.log`.
+
+By default, the stage takes `5` samples. You can override that with the `LOAD_TIME_RUNS` pipeline parameter.
+
+Archived load-time artifacts:
+
+- `load-time-report/load-time-summary.json`
+- `load-time-report/load-time.log`
+
 ### Playwright in Jenkins
 
 When `RUN_PLAYWRIGHT=true`, Jenkins executes:
@@ -179,6 +195,7 @@ The Jenkins pipeline does not pull the Playwright runtime image during CI anymor
 
 The pipeline exports:
 
+- Load-time reports under `load-time-report/**` (archived artifacts)
 - JUnit XML: `test-results/playwright-junit.xml` (for Jenkins Test Result trend)
 - HTML report: `playwright-report/**` (archived artifacts)
 - Additional test artifacts under `test-results/**` (archived artifacts)

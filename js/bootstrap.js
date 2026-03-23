@@ -31,6 +31,46 @@ async function loadWasmBindings() {
     return await import(fallbackUrl.href);
 }
 
+function getLoadMetrics() {
+    if (!window.gameLoadMetrics) {
+        const navigationEntry = performance.getEntriesByType('navigation')[0];
+        window.gameLoadMetrics = {
+            navigationStartTime: navigationEntry ? 0 : performance.now(),
+            domContentLoadedTime: null,
+            wasmModuleLoadedTime: null,
+            coreInitializedTime: null,
+            saveLoadedTime: null,
+            managersConnectedTime: null,
+            uiReadyTime: null,
+            loadingHiddenTime: null,
+            totalInitDuration: null,
+            totalVisibleLoadDuration: null
+        };
+    }
+
+    return window.gameLoadMetrics;
+}
+
+function markLoadMetric(metricName) {
+    const metrics = getLoadMetrics();
+    metrics[metricName] = performance.now();
+    return metrics[metricName];
+}
+
+function finalizeLoadMetrics() {
+    const metrics = getLoadMetrics();
+    const initEndTime = metrics.uiReadyTime ?? performance.now();
+    const visibleEndTime = metrics.loadingHiddenTime ?? initEndTime;
+
+    metrics.totalInitDuration = Number((initEndTime - metrics.navigationStartTime).toFixed(2));
+    metrics.totalVisibleLoadDuration = Number((visibleEndTime - metrics.navigationStartTime).toFixed(2));
+
+    console.info(
+        '[load-time] init=' + metrics.totalInitDuration + 'ms visible=' + metrics.totalVisibleLoadDuration + 'ms',
+        metrics
+    );
+}
+
 function setLoadingStatus(message, options = {}) {
     const loadingScreen = document.getElementById('loading-screen');
     const loadingStatus = document.getElementById('loading-status');
@@ -50,6 +90,8 @@ function hideLoadingScreen() {
 
     loadingScreen.classList.add('is-hidden');
     loadingScreen.setAttribute('aria-busy', 'false');
+    markLoadMetric('loadingHiddenTime');
+    finalizeLoadMetrics();
 }
 
 async function initWasm() {
@@ -57,11 +99,13 @@ async function initWasm() {
         setLoadingStatus('正在载入 WASM 模块...');
         // 动态导入生成的WASM绑定
         const init = await loadWasmBindings();
+        markLoadMetric('wasmModuleLoadedTime');
         setLoadingStatus('正在初始化游戏核心...');
         const wasm = await init.default();
         
         // 初始化游戏
         const game = init.init_game();
+        markLoadMetric('coreInitializedTime');
         
         // 尝试从 localStorage 加载存档
         let gameLoaded = false;
@@ -103,6 +147,7 @@ async function initWasm() {
         } catch (loadError) {
             console.error('❌ Error loading saved game:', loadError);
         }
+        markLoadMetric('saveLoadedTime');
         
         // 将游戏实例暴露到全局作用域供 UI 使用
         setLoadingStatus('正在连接界面管理器...');
@@ -168,6 +213,7 @@ async function initWasm() {
             window.resourceManager = new window.ResourceManager(game, window.i18n);
             window.resourceManager.initialize();
         }
+        markLoadMetric('managersConnectedTime');
         
         if (game && typeof game.update_ui === 'function') {
             game.update_ui();
@@ -193,6 +239,7 @@ async function initWasm() {
         // 启动游戏主循环
         startGameLoop(game);
         setLoadingStatus('准备完成，正在进入游戏...');
+        markLoadMetric('uiReadyTime');
         window.setTimeout(() => {
             hideLoadingScreen();
         }, 180);
@@ -259,6 +306,7 @@ function startGameLoop(game) {
 
 // 页面加载完成后初始化游戏
 document.addEventListener('DOMContentLoaded', () => {
+    markLoadMetric('domContentLoadedTime');
     setLoadingStatus('正在准备界面资源...');
     initWasm();
 });
