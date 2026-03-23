@@ -195,12 +195,6 @@ function getDisplayCostForBuilding(building, mode) {
     } else if (mode === 'x10') {
         return calculateBulkCost(nextCost, 10);
     } else if (mode === 'max') {
-        if (window.rustGame && typeof window.rustGame.get_max_affordable_building_count === 'function') {
-            const maxCount = window.rustGame.get_max_affordable_building_count(building.index !== undefined ? building.index : 0);
-            if (maxCount > 0) {
-                return calculateBulkCost(nextCost, maxCount);
-            }
-        }
         return nextCost;
     }
     return nextCost;

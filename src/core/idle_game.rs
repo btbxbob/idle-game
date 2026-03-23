@@ -3635,6 +3635,8 @@ impl IdleGame {
         } else {
             self.population_queue.push_back(worker);
         }
+
+        self.assign_worker_auto();
     }
 
     fn grant_worker_xp(&mut self, elapsed: f64) {
