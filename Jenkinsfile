@@ -52,24 +52,29 @@ __pycache__/
 *.log
 EOF
 
-          for cleanup_dir in playwright-report test-results coverage-report load-time-report .sisyphus; do
-            if [ -e "$cleanup_dir" ]; then
-              rm -rf "$cleanup_dir" 2>/dev/null || true
-            fi
-          done
+           for cleanup_dir in playwright-report test-results coverage-report load-time-report .sisyphus; do
+             if [ -e "$cleanup_dir" ]; then
+               rm -rf "$cleanup_dir" 2>/dev/null || true
+             fi
+           done
 
-          if command -v docker >/dev/null 2>&1; then
-            docker run --rm -v "$PWD:/workspace" alpine:3.20 sh -c 'rm -rf /workspace/playwright-report /workspace/test-results /workspace/coverage-report /workspace/load-time-report /workspace/.sisyphus' || true
-          fi
+           if command -v docker >/dev/null 2>&1; then
+             docker run --rm -v "$PWD:/workspace" alpine:3.20 sh -c 'rm -rf /workspace/playwright-report /workspace/test-results /workspace/coverage-report /workspace/load-time-report /workspace/.sisyphus' || true
+           fi
 
-          if command -v rsync >/dev/null 2>&1; then
-            rsync -a --delete --delete-excluded --exclude-from=.jenkins-sync-excludes /workspace/idle-game/ ./
-          else
-            find . -mindepth 1 -maxdepth 1 ! -name '.jenkins-sync-excludes' -exec rm -rf {} +
-            tar -C /workspace/idle-game --exclude-from=.jenkins-sync-excludes -cf - . | tar -xf -
-          fi
+           if [ -d "/workspace/idle-game/.git" ]; then
+             rm -rf ./*
+             git clone --depth=1 "file:///workspace/idle-game" .
+             git fetch --depth=1 origin master
+             git reset --hard "origin/master"
+           elif command -v rsync >/dev/null 2>&1; then
+             rsync -a --delete --delete-excluded --exclude-from=.jenkins-sync-excludes /workspace/idle-game/ ./
+           else
+             find . -mindepth 1 -maxdepth 1 ! -name '.jenkins-sync-excludes' -exec rm -rf {} +
+             tar -C /workspace/idle-game --exclude-from=.jenkins-sync-excludes -cf - . | tar -xf -
+           fi
 
-          rm -f .jenkins-sync-excludes
+           rm -f .jenkins-sync-excludes
         '''
       }
     }
