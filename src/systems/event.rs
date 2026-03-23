@@ -2561,6 +2561,68 @@ fn apply_effect(
                 ..EventEffectOutcome::default()
             }
         }
+        EventEffect::TemporaryFoodProduction {
+            food_per_second,
+            duration_ms,
+        } => {
+            push_active_modifier(
+                state,
+                event_id,
+                scenario_id,
+                &stage_id,
+                now,
+                duration_ms,
+                0.0,
+                0.0,
+                0.0,
+                food_per_second,
+                0.0,
+            );
+            EventEffectOutcome {
+                food_per_second_delta: food_per_second,
+                duration_ms,
+                ..EventEffectOutcome::default()
+            }
+        }
+        EventEffect::WorkersKilled { count } => {
+            let workers_killed = kill_random_workers(workers, count);
+            let (workers_injured, happiness_delta) = injure_random_workers(workers, count / 2);
+            EventEffectOutcome {
+                workers_killed,
+                workers_injured,
+                happiness_delta,
+                ..EventEffectOutcome::default()
+            }
+        }
+        EventEffect::TemporaryMultiPenalty {
+            coins_per_second,
+            wood_per_second,
+            stone_per_second,
+            food_per_second,
+            duration_ms,
+        } => {
+            push_active_modifier(
+                state,
+                event_id,
+                scenario_id,
+                &stage_id,
+                now,
+                duration_ms,
+                coins_per_second,
+                wood_per_second,
+                stone_per_second,
+                food_per_second,
+                0.0,
+            );
+            EventEffectOutcome {
+                coins_per_second_delta: coins_per_second,
+                wood_per_second_delta: wood_per_second,
+                stone_per_second_delta: stone_per_second,
+                food_per_second_delta: food_per_second,
+                duration_ms,
+                ..EventEffectOutcome::default()
+            }
+        }
     }
 }
 
