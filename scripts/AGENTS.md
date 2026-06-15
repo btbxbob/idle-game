@@ -10,6 +10,8 @@
 | Merge E2E coverage | `merge-e2e-coverage.js` | Consumes `coverage-report/raw/*.json` and enforces thresholds |
 | Measure startup load time | `measure-load-time.js` | Runs repeated Playwright startup samples, prints JSON summary |
 | Syntax-check JS files | `lint-syntax.js` | Repo-specific lint entry behind `npm run lint` |
+| Check version consistency | `check-version.js` | Validates all version sources match; runs via `npm run lint:version` |
+| Sync version across files | `sync-version.py` | One-command version bump for Cargo.toml, package.json, README.md, index.html |
 | Run E2E with coverage | `run-e2e-coverage.js` | Wrapper script for E2E coverage collection |
 | Version WASM assets | `version-wasm-assets.py` | Creates versioned `pkg` wrapper/wasm files so deploys bypass stale browser caches |
 | Inspect upgrade DOM manually | `debug-upgrade-dom.js` | Console-paste debug aid, not part of CI |
