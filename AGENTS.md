@@ -232,7 +232,7 @@ git commit -m "chore: bump runtime version to v0.8.15"
 | `package.json` | Line 3 | `"version": "0.8.15"` — npm package version |
 | `README.md` | Version badge | `当前版本：**v0.8.15**` |
 | `index.html` | Line 7 | `<meta name="app-version" content="0.8.15">` |
-| `index.html` | Lines 10-11 | CSS `?v=0.8.15` cache-busting |
+| `index.html` | Line 10 | CSS `?v=0.8.15` cache-busting |
 | `index.html` | Lines 285-297 | All JS `?v=0.8.15` cache-busting |
 | `index.html` | Line 251 | Footer `游戏版本：v0.8.15` |
 
