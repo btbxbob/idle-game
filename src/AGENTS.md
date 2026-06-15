@@ -7,13 +7,13 @@
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add game mechanic | `core/idle_game.rs` | Core logic, ~1700 lines |
+| Add game mechanic | `core/idle_game/` | Split into wasm_api/, helpers.rs, wasm_persistence.rs |
 | Add state field | `state/game_state.rs` | Add `#[serde(default)]` |
 | Add entity | `entities/` | Building/Worker/Technology/Population |
-| Add system logic | `systems/` | 10 system modules |
+| Add system logic | `systems/` | 10 system modules (event/ and event_data/ are directories) |
 | Add Rust UI callback | `ui/callbacks.rs` | Keep callback layer thin and JS-friendly |
 | Add test | `test_utils/` | TestGameState + balance tests |
-| Fix borrow error | `core/idle_game.rs` | Check `RefCell` scopes |
+| Fix borrow error | `core/idle_game/` | Check `RefCell` scopes |
 
 ## Module Structure
 
@@ -21,7 +21,16 @@
 src/
 ├── lib.rs                    # Entry point (21 lines)
 ├── core/
-│   ├── idle_game.rs          # IdleGame struct + main operations
+│   ├── idle_game/            # Split into submodules
+│   │   ├── mod.rs            # View structs, types, free functions
+│   │   ├── helpers.rs        # Internal helper methods
+│   │   ├── wasm_api/         # WASM API split by function
+│   │   │   ├── constructor.rs
+│   │   │   ├── actions.rs
+│   │   │   ├── queries.rs
+│   │   │   ├── simulation.rs
+│   │   │   └── progression.rs
+│   │   └── wasm_persistence.rs
 │   └── mod.rs
 ├── state/
 │   ├── game_state.rs         # GameState (save/load)
@@ -46,6 +55,19 @@ src/
 │   ├── technology.rs         # Tech tree processing
 │   ├── prestige.rs           # Reset-for-bonus
 │   ├── population.rs         # Housing/population logic
+│   ├── event/                # Event system (split)
+│   │   ├── mod.rs
+│   │   ├── effects.rs
+│   │   └── compose/          # Event composition (split)
+│   │       ├── mod.rs
+│   │       ├── styles.rs
+│   │       ├── templates.rs
+│   │       └── render.rs
+│   ├── event_data/           # Event data (split)
+│   │   ├── mod.rs
+│   │   ├── stages.rs
+│   │   ├── voice_zh.rs
+│   │   └── voice_en.rs
 │   └── mod.rs
 ├── utils/
 │   ├── name_generator.rs     # Worker names

@@ -1,6 +1,21 @@
 # src/core/ - IdleGame Core Logic
 
-**Location**: `src/core/idle_game.rs` (~1700 lines)
+**Location**: `src/core/idle_game/` (split from idle_game.rs)
+
+## Structure
+```
+src/core/idle_game/
+├── mod.rs              # View structs, types, free functions, tests
+├── helpers.rs          # Internal helper methods
+├── wasm_api/           # WASM API (split by function)
+│   ├── mod.rs
+│   ├── constructor.rs  # new() constructor
+│   ├── actions.rs      # click, buy, build, housing, resources
+│   ├── queries.rs      # get_workers, get_buildings, event logs
+│   ├── simulation.rs   # game_loop, production, population
+│   └── progression.rs  # unlocks, achievements, prestige
+└── wasm_persistence.rs # save/load, tech tree APIs
+```
 
 ## Overview
 IdleGame struct + core game operations (10 systems: resources, workers, tech, housing, decay, prestige).
@@ -8,19 +23,22 @@ IdleGame struct + core game operations (10 systems: resources, workers, tech, ho
 ## WHERE TO LOOK
 | Task | Location |
 |------|----------|
-| Click action logic | `idle_game.rs` `click_action()` |
-| Purchase upgrade | `idle_game.rs` `buy_upgrade()` |
-| Purchase building | `idle_game.rs` `buy_building()` |
-| Resource crafting | `idle_game.rs` `craft_resource()` |
-| Game loop tick | `idle_game.rs` `game_loop()` |
-| Achievement check | `idle_game.rs` `check_achievement()` |
-| Spawn worker | `idle_game.rs` `spawn_worker()` |
-| Kill worker | `idle_game.rs` `kill_worker()` |
-| Corpse decay | `idle_game.rs` `process_decay()` |
-| Research tech | `idle_game.rs` `research_technology()` |
-| Housing capacity | `idle_game.rs` `manage_housing()` |
-| Population growth | `idle_game.rs` `process_population()` |
-| Prestige reset | `idle_game.rs` `prestige_reset()` |
+| Click action logic | `wasm_api/actions.rs` `click_action()` |
+| Purchase upgrade | `wasm_api/actions.rs` `buy_building()` |
+| Purchase building | `wasm_api/actions.rs` `buy_building()` |
+| Resource crafting | `wasm_persistence.rs` `craft_resource()` |
+| Game loop tick | `wasm_api/simulation.rs` `game_loop()` |
+| Achievement check | `wasm_api/progression.rs` `check_achievement()` |
+| Spawn worker | `wasm_api/simulation.rs` `try_spawn_worker()` |
+| Kill worker | `wasm_api/simulation.rs` (in game_loop) |
+| Corpse decay | `wasm_api/simulation.rs` (in game_loop) |
+| Research tech | `wasm_persistence.rs` `research_technology()` |
+| Housing capacity | `wasm_api/actions.rs` `build_housing()` |
+| Population growth | `wasm_api/simulation.rs` `process_housing_queue()` |
+| Prestige reset | `wasm_api/progression.rs` `do_prestige()` |
+| Save/Load game | `wasm_persistence.rs` |
+| Worker details | `wasm_api/queries.rs` `get_workers()` |
+| Building info | `wasm_api/queries.rs` `get_buildings()` |
 
 ## ANTI-PATTERNS (CRITICAL)
 ### Borrow Scopes - MUST FOLLOW

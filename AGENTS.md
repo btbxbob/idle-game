@@ -27,10 +27,10 @@ idle-game/
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
-| Change game mechanics | `src/core/idle_game.rs` | Central orchestration and wasm API |
+| Change game mechanics | `src/core/idle_game/` | Split into wasm_api/, helpers.rs, wasm_persistence.rs |
 | Add/alter entities | `src/entities/` | Worker/building/technology definitions |
 | Add state fields | `src/state/` | Persisted state; use serde defaults |
-| Adjust systems | `src/systems/` | Crafting, production, unlock, tech, prestige |
+| Adjust systems | `src/systems/` | Crafting, production, unlock, tech, prestige; event/ and event_data/ are directories |
 | UI rendering/events | `js/` | Manager pattern; avoid direct state mutation |
 | E2E behavior validation | `tests/functional/` | Feature flows and multi-browser checks |
 | Bug regression coverage | `tests/regression/` | Past issue repro + fixed assertions |
@@ -43,7 +43,7 @@ idle-game/
 |--------|------|----------|------|
 | `initWasm` | JS function | `js/bootstrap.js` | Initializes WASM, restores save, wires managers |
 | `startGameLoop` | JS function | `js/bootstrap.js` | Drives 1000ms update/save loop |
-| `IdleGame` | Rust struct | `src/core/idle_game.rs` | Core orchestrator for systems and wasm exports |
+| `IdleGame` | Rust struct | `src/core/idle_game/` | Core orchestrator for systems and wasm exports |
 | `window.rustGame.*` | API boundary | `src/lib.rs` + `js/*.js` | JS->Rust interaction contract |
 
 Notes:

@@ -1,18 +1,31 @@
 # src/systems/ - Game Systems
-**Location**: src/systems/ (9 files including mod.rs)
+**Location**: src/systems/ (includes event/ and event_data/ directories)
 
 ## Structure
 ```
 src/systems/
-├── mod.rs              # Module exports (12 lines)
+├── mod.rs              # Module exports
 ├── achievement.rs      # 13 achievements, 5 categories
 ├── crafting.rs         # 6+ bidirectional recipes, multi-resource
 ├── production.rs       # Per-resource production, worker bonuses
 ├── unlock.rs           # 5 progressive features
-├── decay.rs            # Corpse decay system (134 lines)
-├── technology.rs       # Technology tree (151 lines)
-├── prestige.rs         # Reset-for-bonus system (91 lines)
-└── population.rs       # Population growth/death cycle (290 lines)
+├── decay.rs            # Corpse decay system
+├── technology.rs       # Technology tree
+├── prestige.rs         # Reset-for-bonus system
+├── population.rs       # Population growth/death cycle
+├── event/              # Event system (split from event.rs)
+│   ├── mod.rs          # Core event logic
+│   ├── effects.rs      # Event effects application
+│   └── compose/        # Event composition (split from compose.rs)
+│       ├── mod.rs
+│       ├── styles.rs   # News style detection and formatting
+│       ├── templates.rs # Full template rendering
+│       └── render.rs   # Event entry rendering
+└── event_data/         # Event data (split from event_data.rs)
+    ├── mod.rs          # Types, constants, accessors
+    ├── stages.rs       # Stage subjects and tech topics
+    ├── voice_zh.rs     # Chinese voice pack
+    └── voice_en.rs     # English voice pack
 ```
 
 ## Systems Reference
