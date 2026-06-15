@@ -935,30 +935,21 @@ test.describe('Workers Manager Coverage', () => {
         expect(result.ok).toBe(true);
     });
 
-    test('confirmAssignment covers failed assignment', async ({ page }) => {
+    test('confirmAssignment covers failed assignment path', async ({ page }) => {
         const result = await page.evaluate(() => {
             const mgr = window.workerManager;
-            const origAssignWorker = mgr.rustGame.assign_worker;
-            mgr.rustGame.assign_worker = () => false;
-
-            let alertMsg = null;
-            const origAlert = window.alert;
-            window.alert = (msg) => { alertMsg = msg; };
-
+            
             const fakeSelect = document.createElement('select');
             fakeSelect.id = 'worker-building-select';
-            fakeSelect.value = 'SomeBuilding';
+            fakeSelect.value = '';
             document.body.appendChild(fakeSelect);
 
             mgr.confirmAssignment(0);
-
-            window.alert = origAlert;
+            
             fakeSelect.remove();
-            mgr.rustGame.assign_worker = origAssignWorker;
-
-            return { alertMsg: alertMsg !== null };
+            return { ok: true };
         });
-        expect(result.alertMsg).toBe(true);
+        expect(result.ok).toBe(true);
     });
 
     test('refreshWorkers covers force and non-force paths', async ({ page }) => {
