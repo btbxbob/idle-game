@@ -7,11 +7,11 @@
 ```
 src/entities/
 ├── mod.rs               # Exports: Building, Housing, Worker, Gender, Hobby, Trait, TraitEffect, Technology, TechnologyId, TechnologyEffect, BuildingType
-├── building.rs          # Building + Housing structs
-├── worker.rs            # Worker (682 lines) — gender, hobbies, traits, happiness, hunger
-├── technology.rs        # Technology tree entities (593 lines)
-├── automation.rs        # Automation building definitions
-└── population_queue.rs  # Population queue system
+├── building.rs          # Building + Housing structs (245 lines)
+├── worker.rs            # Worker (668 lines) — gender, hobbies, traits, happiness, hunger
+├── technology.rs        # Technology tree entities (566 lines)
+├── automation.rs        # Automation building definitions (27 lines)
+└── population_queue.rs  # Population queue system (109 lines)
 ```
 
 ## Worker (worker.rs) — EXPANDED

@@ -5,16 +5,16 @@
 ## Structure
 ```
 src/core/idle_game/
-├── mod.rs              # View structs, types, free functions, tests
-├── helpers.rs          # Internal helper methods
+├── mod.rs              # View structs, types, free functions, tests (661 lines)
+├── helpers.rs          # Internal helper methods (1304 lines)
 ├── wasm_api/           # WASM API (split by function)
 │   ├── mod.rs
-│   ├── constructor.rs  # new() constructor
-│   ├── actions.rs      # click, buy, build, housing, resources
-│   ├── queries.rs      # get_workers, get_buildings, event logs
-│   ├── simulation.rs   # game_loop, production, population
-│   └── progression.rs  # unlocks, achievements, prestige
-└── wasm_persistence.rs # save/load, tech tree APIs
+│   ├── constructor.rs  # new() constructor (365 lines)
+│   ├── actions.rs      # click, buy, build, housing, resources (385 lines)
+│   ├── queries.rs      # get_workers, get_buildings, event logs (675 lines)
+│   ├── simulation.rs   # game_loop, production, population (583 lines)
+│   └── progression.rs  # unlocks, achievements, prestige (299 lines)
+└── wasm_persistence.rs # save/load, tech tree APIs (333 lines)
 ```
 
 ## Overview

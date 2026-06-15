@@ -1,13 +1,15 @@
 # src/test_utils/ - Rust Test Harness
 
 ## OVERVIEW
-Shared test scaffolding for Rust game-state behavior and balance validation.
+Shared test scaffolding for Rust game-state behavior, balance validation, config validation, and snapshot testing.
 
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
 | Add state transition test | `test_game_state.rs` | Prefer focused, deterministic tests |
 | Add economy/balance simulation | `balance_test.rs` | Keep assertions on bounded ranges |
+| Add config validation test | `config_test.rs` | Validate BalanceConfig/ContentManager loading |
+| Add snapshot test | `snapshot_test.rs` | Snapshot-based regression testing |
 | Register helpers/modules | `mod.rs` | Export only reusable test helpers |
 
 ## CONVENTIONS
@@ -26,4 +28,6 @@ Shared test scaffolding for Rust game-state behavior and balance validation.
 cargo test
 cargo test test_worker_auto_assignment -- --exact
 cargo test balance_test
+cargo test config_test
+cargo test snapshot_test
 ```

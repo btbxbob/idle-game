@@ -10,6 +10,7 @@
 | Merge E2E coverage | `merge-e2e-coverage.js` | Consumes `coverage-report/raw/*.json` and enforces thresholds |
 | Measure startup load time | `measure-load-time.js` | Runs repeated Playwright startup samples, prints JSON summary |
 | Syntax-check JS files | `lint-syntax.js` | Repo-specific lint entry behind `npm run lint` |
+| Run E2E with coverage | `run-e2e-coverage.js` | Wrapper script for E2E coverage collection |
 | Version WASM assets | `version-wasm-assets.py` | Creates versioned `pkg` wrapper/wasm files so deploys bypass stale browser caches |
 | Inspect upgrade DOM manually | `debug-upgrade-dom.js` | Console-paste debug aid, not part of CI |
 | Patch Rust tech files ad hoc | `add_derive.py`, `add_tech.py`, `fix_tech.py` | One-off source patch helpers; review before rerunning |

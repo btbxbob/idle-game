@@ -3,6 +3,43 @@
 **Location**: `js/` directory
 **Role**: Browser-side orchestration, DOM rendering, and WASM boundary glue.
 
+## STRUCTURE
+```
+js/
+├── bootstrap.js              # Primary WASM init + game loop (297 lines)
+├── bootstrap-new.js          # EXPERIMENTAL: ES module bootstrap with panel architecture
+├── game.js                   # Window-scoped update hooks (529 lines)
+├── game-state.js             # EXPERIMENTAL: ES module GameState with dirty-field tracking
+├── renderer.js               # EXPERIMENTAL: ES module Renderer with panel registration
+├── resource-classification.js # EXPERIMENTAL: ES module resource tier/category mapping
+├── i18n.js                   # Localization (1260 lines, largest JS file)
+├── number-formatter.js       # Number formatting
+├── statistics.js             # Statistics display
+├── achievements.js           # Achievements UI
+├── unlocks.js                # Unlocks UI
+├── workers.js                # Worker cards/assignment (1053 lines)
+├── resource-manager.js       # Header resource cards
+├── resource-panel.js         # Categorized resource panel
+├── technology-manager.js     # Tech tree UI (1285 lines)
+├── housing-manager.js        # Housing system UI
+├── population-manager.js     # Population UI
+├── work-overview-manager.js  # Work overview UI
+├── lifecycle-manager.js      # Lifecycle management
+├── event-manager.js          # Event system UI
+├── prestige-manager.js       # Prestige UI
+├── objective-manager.js      # Objective tracking UI
+└── panels/                   # EXPERIMENTAL: ES module panel components
+    ├── resources.js
+    ├── buildings.js
+    ├── workers.js
+    ├── technology.js
+    ├── crafting.js
+    ├── prestige.js
+    ├── achievements.js
+    ├── statistics.js
+    └── events.js
+```
+
 ## WHERE TO LOOK
 | Task | Location | Notes |
 |------|----------|-------|
@@ -12,6 +49,7 @@
 | Worker cards / assignment UX | `workers.js` | Dense card grid and modal assignment flow |
 | Technology tree UI | `technology-manager.js` | Largest JS module; canvas/text hybrid rendering |
 | Localization | `i18n.js` | zh-CN primary; keep en in sync |
+| New panel architecture | `panels/`, `bootstrap-new.js`, `game-state.js`, `renderer.js` | EXPERIMENTAL ES module refactor (not yet wired in index.html) |
 
 ## CONVENTIONS
 - JS stays manager-driven: fetch state through `window.rustGame.*`, then render DOM.
@@ -36,4 +74,5 @@
 ## NOTES
 - `window.update*` hooks in `game.js` are part of the main-loop contract; preserve their names when refactoring.
 - `bootstrap.js` prefers versioned `pkg/idle_game.v{appVersion}.js` bundles and falls back to plain `pkg/idle_game.js` for local/dev runs.
+- The `panels/` directory and `bootstrap-new.js`/`game-state.js`/`renderer.js`/`resource-classification.js` are an experimental ES module refactor not yet wired into `index.html`.
 - Local browser checks are fine here, but repository-wide test execution policy still routes formal test runs through Jenkins.

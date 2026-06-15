@@ -1,6 +1,6 @@
 # src/state/ - Game State Data
 
-**Location**: src/state/ (6 files)
+**Location**: src/state/ (8 files)
 
 ## Structure
 
@@ -9,7 +9,9 @@ src/state/
 ├── mod.rs           # Module exports
 ├── game_state.rs    # GameState struct, SAVE_VERSION
 ├── resource.rs      # ResourceType enum (60+ types), ResourceTier, ResourceCategory
-├── statistics.rs    # Statistics struct (9 metrics)
+├── statistics.rs    # Statistics struct (metrics)
+├── event.rs         # Event state
+├── stage.rs         # Stage progression state
 ├── job_stats.rs     # JobStats + WorkOverview structs
 └── work_stats.rs    # Alternative JobStats/WorkOverview (unused)
 ```

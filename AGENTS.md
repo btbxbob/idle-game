@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-14
-**Commit:** 6699168
+**Generated:** 2026-06-16
+**Commit:** 5f54691
 **Branch:** master
 
 ## OVERVIEW
@@ -11,8 +11,9 @@ Core logic is Rust (`src/`), browser orchestration is JS (`js/`), served by `pyt
 ## STRUCTURE
 ```text
 idle-game/
-├── src/                 # Rust game state, entities, systems, wasm exports
-├── js/                  # UI managers + bootstrap lifecycle
+├── src/                 # Rust game logic, config, world, entities, systems, wasm exports
+├── js/                  # UI managers + bootstrap lifecycle (+ experimental ES module panels)
+├── css/                 # Theme and layout styles (+ experimental panel styles)
 ├── tests/               # Playwright functional/regression tests
 ├── docs/                # Design and development docs
 ├── scripts/             # Jenkins rerun, coverage merge, debug helpers
@@ -21,6 +22,7 @@ idle-game/
 ├── index.html           # Main UI shell + script loading order
 ├── Cargo.toml           # Rust + wasm-pack config
 ├── package.json         # npm scripts + Playwright dependency
+├── Jenkinsfile          # CI pipeline definition (build/test/E2E/coverage)
 └── playwright.config.js # Browser matrix + webServer settings
 ```
 
@@ -43,7 +45,10 @@ idle-game/
 |--------|------|----------|------|
 | `initWasm` | JS function | `js/bootstrap.js` | Initializes WASM, restores save, wires managers |
 | `startGameLoop` | JS function | `js/bootstrap.js` | Drives 1000ms update/save loop |
+| `World` | Rust struct | `src/world.rs` | Top-level WASM export wrapping IdleGame + BalanceConfig + ContentManager |
 | `IdleGame` | Rust struct | `src/core/idle_game/` | Core orchestrator for systems and wasm exports |
+| `init_game()` | Rust fn | `src/lib.rs` | WASM entry point returning World |
+| `init_game_legacy()` | Rust fn | `src/lib.rs` | WASM entry point returning IdleGame (legacy) |
 | `window.rustGame.*` | API boundary | `src/lib.rs` + `js/*.js` | JS->Rust interaction contract |
 
 Notes:
@@ -202,24 +207,24 @@ assignWorker(workerIndex, buildingId) {
 - Treat `.sisyphus/`, `__pycache__/`, and `*.log` as workspace noise unless the task is explicitly about tooling output.
 
 ## VERSION BUMP CHECKLIST
-When updating version (e.g., 0.6.6 → 0.6.7):
+When updating version (e.g., 0.8.14 → 0.8.15):
 
 ### 1. Update Version Sources
 | File | Location | What to Update |
 |------|----------|---------------|
-| `Cargo.toml` | Line 3 | `version = "0.6.7"` — **WASM embeds this at compile time** |
-| `package.json` | Line 3 | `"version": "0.6.7"` — npm package version |
-| `README.md` | Version badge | `当前版本：**v0.6.7**` |
-| `index.html` | Line 7 | `<meta name="app-version" content="0.6.7">` |
-| `index.html` | Lines 10-11 | CSS `?v=0.6.7` cache-busting |
-| `index.html` | Lines 285-297 | All JS `?v=0.6.7` cache-busting |
-| `index.html` | Line 251 | Footer `游戏版本：v0.6.7` |
+| `Cargo.toml` | Line 3 | `version = "0.8.15"` — **WASM embeds this at compile time** |
+| `package.json` | Line 3 | `"version": "0.8.15"` — npm package version |
+| `README.md` | Version badge | `当前版本：**v0.8.15**` |
+| `index.html` | Line 7 | `<meta name="app-version" content="0.8.15">` |
+| `index.html` | Lines 10-11 | CSS `?v=0.8.15` cache-busting |
+| `index.html` | Lines 285-297 | All JS `?v=0.8.15` cache-busting |
+| `index.html` | Line 251 | Footer `游戏版本：v0.8.15` |
 
 ### 2. Rebuild WASM (CRITICAL)
 ```bash
-rm -f pkg/idle_game.v0.6.*.js pkg/idle_game_bg.v0.6.*.wasm
+rm -f pkg/idle_game.v0.8.*.js pkg/idle_game_bg.v0.8.*.wasm
 wasm-pack build --target web --out-dir pkg --dev
-strings pkg/idle_game_bg.wasm | grep "0\.6\."  # Should output: 0.6.7
+strings pkg/idle_game_bg.wasm | grep "0\.8\."  # Should output: 0.8.15
 ```
 
 Important:
@@ -231,7 +236,7 @@ Important:
 python3 server.py
 # Hard-refresh browser: Ctrl+Shift+R
 git add Cargo.toml package.json README.md index.html
-git commit -m "chore: bump runtime version to v0.6.7"
+git commit -m "chore: bump runtime version to v0.8.15"
 # Note: pkg/ is gitignored; do NOT commit WASM artifacts
 ```
 
@@ -247,10 +252,11 @@ git commit -m "chore: bump runtime version to v0.6.7"
 - Job: `idle-game-ci`
 - Local Jenkins URL: `http://localhost:8081`
 - Local Jenkins credentials: `admin` / `admin123`
-- Stages: Checkout → Install JS → Lint → Rust Check → Rust Tests → Build WASM → Playwright E2E
+- Stages: Checkout → Install JS → Lint → Setup Rust Toolchain → Rust Check → Rust Tests → Build WASM → Verify Playwright Image → Playwright E2E
 - Trigger E2E: `RUN_PLAYWRIGHT=true`
 - Trigger coverage: `RUN_COVERAGE=true`
-- Coverage thresholds: `E2E_COVERAGE_MIN_LINES=20`, `E2E_COVERAGE_MIN_STATEMENTS=20`
+- Trigger load time: `RUN_LOAD_TIME=true`
+- Coverage thresholds: Lines ≥20%, Statements ≥20%, Functions ≥15%, Branches ≥10%
 
 ### Jenkins Background Monitoring
 - Trigger builds first, then start background `task(...)` to poll status
