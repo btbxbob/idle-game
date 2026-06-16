@@ -112,8 +112,8 @@ test.describe('Prestige System', () => {
             pp: window.rustGame.get_prestige_points(),
             multiplier: window.rustGame.get_prestige_multiplier(),
         }));
-        expect(afterSecond.pp).toBe(5); // 3 + 2 = 5
-        expect(afterSecond.multiplier).toBeCloseTo(1.0 + 5 * 0.01, 4);
+        expect(afterSecond.pp).toBe(2); // reset_game clears PP, do_prestige(2) sets it directly
+        expect(afterSecond.multiplier).toBeCloseTo(1.0 + 2 * 0.01, 4);
     });
 
     test('reset_game clears all progress but not PP', async ({ page }) => {

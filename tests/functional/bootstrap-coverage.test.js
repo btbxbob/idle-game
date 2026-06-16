@@ -254,7 +254,8 @@ test.describe('bootstrap.js coverage', () => {
             };
 
             window.startGameLoop(game);
-            scheduled[0].fn();
+            // Run 8 ticks to cover all throttled hooks
+            for (let i = 0; i < 8; i++) scheduled[0].fn();
             scheduled[1].fn();
 
             window.setInterval = originalSetInterval;
@@ -270,16 +271,13 @@ test.describe('bootstrap.js coverage', () => {
 
         expect(result.intervalCount).toBe(2);
         expect(result.delays).toEqual([250, 15000]);
-        // After 8 ticks: gameLoop/coin/resource every tick, building every 2nd,
-        // tech/workers/lifecycle/events/achievements/unlocks every 4th,
-        // stats/objectives every 8th
-        for (let i = 0; i < 7; i++) scheduled[0].fn();
         expect(result.counters.gameLoop).toBe(8);
         expect(result.counters.coin).toBe(8);
         expect(result.counters.resource).toBe(8);
-        // Building: ticks 2,4,6,8 = 4
-        // Tech etc: ticks 4,8 = 2
-        // Stats etc: tick 8 = 1
+        // Building every 2nd tick: 2,4,6,8 = 4 calls
+        // Tech/workers/lifecycle/events/achievements/unlocks every 4th: 4,8 = 2
+        // Stats/objectives every 8th: 8 = 1
+        expect(result.errors.some((entry) => entry.includes('Auto-save failed:'))).toBe(true);
     });
 
     test('initWasm covers no-save, no-i18n, load error and fatal init branches', async ({ page }) => {
