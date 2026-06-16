@@ -136,10 +136,10 @@ async function initWasm() {
                         alert('游戏已更新至 v0.3.0，由于结构性变更，存档已重置。请开始新的游戏旅程！');
                     }
                 } else {
-                    console.log('✅ Game loaded from localStorage at', new Date().toLocaleString());
-                    console.log('   Coins:', coins);
-                    console.log('   Wood:', wood);
-                    console.log('   Stone:', stone);
+                    if (window.DEBUG) {
+                        console.log('Game loaded from localStorage at', new Date().toLocaleString());
+                        console.log('   Coins:', coins, 'Wood:', wood, 'Stone:', stone);
+                    }
                 }
             } else {
                 console.log('ℹ️ No saved game found, starting new game');

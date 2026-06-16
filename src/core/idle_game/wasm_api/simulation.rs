@@ -145,10 +145,9 @@ impl IdleGame {
                     self.workers[i].xp_to_next_level =
                         (self.workers[i].xp_to_next_level * 1.5).ceil();
 
-                    let assigned = self.workers[i]
-                        .assigned_building
-                        .clone()
-                        .expect("worker should be assigned during grant_xp");
+                    let Some(assigned) = self.workers[i].assigned_building.clone() else {
+                        continue;
+                    };
                     self.workers[i].efficiency_multiplier =
                         self.calculate_worker_efficiency_for(&self.workers[i], &assigned);
                 }

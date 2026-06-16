@@ -158,7 +158,7 @@ impl IdleGame {
             for hobby in &worker.hobbies {
                 hobbies.push(&JsValue::from_str(&format!("{:?}", hobby)));
             }
-            js_sys::Reflect::set(&worker_obj, &JsValue::from_str("hobbies"), &hobbies).unwrap();
+            let _ = js_sys::Reflect::set(&worker_obj, &JsValue::from_str("hobbies"), &hobbies);
 
             js_sys::Reflect::set(
                 &worker_obj,
