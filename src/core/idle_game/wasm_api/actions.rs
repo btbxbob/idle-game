@@ -148,13 +148,12 @@ impl IdleGame {
         }
 
         let coins = self.state.borrow().get_coins();
-        let base_cost = self.buildings[index].cost;
-        let current_count = self.buildings[index].count;
-
-        let mut cost = base_cost * (1.15_f64).powi(current_count as i32);
+        let mut cost = self.buildings[index].cost;
         let mut affordable_count = 0;
+        let mut remaining = coins;
 
-        while coins + 1e-10 >= cost {
+        while remaining + 1e-10 >= cost {
+            remaining -= cost;
             affordable_count += 1;
             cost *= 1.15;
         }
