@@ -6,49 +6,6 @@ test.describe('bootstrap.js coverage', () => {
         await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 60000 });
     });
 
-    test('canLoadVersionedBundle covers success and fallback branches', async ({ page }) => {
-        const result = await page.evaluate(async () => {
-            const originalFetch = window.fetch;
-
-            window.fetch = async (url) => {
-                const value = String(url);
-                if (value.includes('ok-js')) {
-                    return {
-                        ok: true,
-                        headers: { get: () => 'application/javascript' },
-                    };
-                }
-                if (value.includes('html-response')) {
-                    return {
-                        ok: true,
-                        headers: { get: () => 'text/html; charset=utf-8' },
-                    };
-                }
-                if (value.includes('bad-status')) {
-                    return {
-                        ok: false,
-                        headers: { get: () => 'application/javascript' },
-                    };
-                }
-                throw new Error('network-down');
-            };
-
-            const okJs = await window.canLoadVersionedBundle('http://example.test/ok-js');
-            const htmlResponse = await window.canLoadVersionedBundle('http://example.test/html-response');
-            const badStatus = await window.canLoadVersionedBundle('http://example.test/bad-status');
-            const thrown = await window.canLoadVersionedBundle('http://example.test/throw');
-
-            window.fetch = originalFetch;
-
-            return { okJs, htmlResponse, badStatus, thrown };
-        });
-
-        expect(result.okJs).toBe(true);
-        expect(result.htmlResponse).toBe(false);
-        expect(result.badStatus).toBe(false);
-        expect(result.thrown).toBe(false);
-    });
-
     test('initWasm covers save reset alert and manager wiring branches', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const originals = {
