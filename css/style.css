@@ -780,16 +780,6 @@ footer {
     box-shadow: 0px 0px 0px #000000;
 }
 
-#coin-display {
-    font-size: 2em;
-    font-weight: bold;
-    color: #FFD700; /* Gold color for coins */
-    text-align: center;
-    /* ASCII large number style with glow */
-    font-family: 'Courier New', monospace;
-    letter-spacing: 3px;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
-}
 
 #click-area p {
     color: var(--click-area-text);
@@ -1041,10 +1031,6 @@ footer {
     #click-area {
         width: 150px;
         height: 150px;
-    }
-
-    #coin-display {
-        font-size: 1.5em;
     }
 
     #upgrades, #buildings, #workers, #settings {

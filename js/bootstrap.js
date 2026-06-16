@@ -157,9 +157,12 @@ async function initWasm() {
         // Add click handler for coin-button
         const coinButton = document.getElementById('coin-button');
         if (coinButton) {
-            coinButton.addEventListener('click', () => {
+            coinButton.addEventListener('click', (e) => {
                 if (game && typeof game.click_action === 'function') {
                     game.click_action();
+                    if (window.createCoinParticles) window.createCoinParticles(e.clientX, e.clientY);
+                    if (window.updateCoinButton) window.updateCoinButton();
+                    if (window.updateBuildingDisplay) window.updateBuildingDisplay();
                     if (window.updateAchievementsPanel) {
                         window.updateAchievementsPanel();
                     }
@@ -273,6 +276,9 @@ function startGameLoop(game) {
         }
         if (window.updateCoinButton) {
             window.updateCoinButton();
+        }
+        if (window.updateBuildingDisplay) {
+            window.updateBuildingDisplay();
         }
         if (window.updateResourcePanel) {
             window.updateResourcePanel();

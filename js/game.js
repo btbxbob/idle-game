@@ -49,8 +49,6 @@ window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, wood
         const wpsElement = document.getElementById('wps');
         const spsElement = document.getElementById('sps');
         const cpcElement = document.getElementById('cpc');
-        const coinDisplay = document.getElementById('coin-display');
-        const headerCoinDisplay = document.getElementById('header-coin-display');
         
          if (coinsElement) {
               // Ensure the value is a valid finite number
@@ -93,16 +91,7 @@ window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, wood
              const safeCoinsPerClick = (typeof coinsPerClick === 'number' && isFinite(coinsPerClick)) ? coinsPerClick : 1;
               cpcElement.textContent = `金币/点击：${formatRateDisplay(safeCoinsPerClick)}`;
           }
-        
-          if (coinDisplay) {
-              const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
-              coinDisplay.textContent = `${formatIntegerDisplay(safeCoins)}`;
-          }
-         
-          if (headerCoinDisplay) {
-              const safeCoins = (typeof coins === 'number' && isFinite(coins)) ? coins : 0;
-              headerCoinDisplay.textContent = `${formatIntegerDisplay(safeCoins)}`;
-          }
+
     }
 };
 
@@ -157,6 +146,9 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
                 sufficientFunds = window.rustGame.get_coins() >= building.cost;
             }
 
+            const costClass = sufficientFunds ? 'cost-affordable' : 'cost-insufficient';
+            const btnClass = sufficientFunds && window.gameInitialized ? 'affordable' : '';
+
             buildingDiv.innerHTML = `
                 <div>
                     <strong>${building.name}</strong><br>
@@ -167,8 +159,9 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
                 </div>
                 <div>
                     ${ownedText}: ${building.count}<br>
-                    ${costText}: ${formatIntegerDisplay(displayCost)}
+                    <span class="${costClass}">${costText}: ${formatIntegerDisplay(displayCost)}</span>
                     <button id="buy-building-${realIndex}"
+                            class="${btnClass}"
                             onclick="window.buyBuilding(${realIndex})"
                             ${!window.gameInitialized || !sufficientFunds ? 'disabled' : ''}>
                         ${buttonLabel}
@@ -395,27 +388,20 @@ document.addEventListener('DOMContentLoaded', function() {
         clickArea.addEventListener('click', function() {
             if (window.rustGame && typeof window.rustGame.click_action === 'function') {
                 window.rustGame.click_action();
+                if (window.updateCoinButton) window.updateCoinButton();
+                if (window.updateBuildingDisplay) window.updateBuildingDisplay();
             }
         });
     }
     
-    // New header coin click area
     const headerCoinClickArea = document.getElementById('coin-click-area');
     if (headerCoinClickArea) {
         headerCoinClickArea.addEventListener('click', function(e) {
             if (window.rustGame && typeof window.rustGame.click_action === 'function') {
                 window.rustGame.click_action();
-                createCoinParticles(e.clientX, e.clientY);
-            }
-        });
-    }
-    
-    const coinButton = document.getElementById('coin-button');
-    if (coinButton) {
-        coinButton.addEventListener('click', function(e) {
-            if (window.rustGame && typeof window.rustGame.click_action === 'function') {
-                window.rustGame.click_action();
-                createCoinParticles(e.clientX, e.clientY);
+                window.createCoinParticles(e.clientX, e.clientY);
+                if (window.updateCoinButton) window.updateCoinButton();
+                if (window.updateBuildingDisplay) window.updateBuildingDisplay();
             }
         });
     }
@@ -507,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Particle effect when clicking coin button
-function createCoinParticles(x, y) {
+window.createCoinParticles = function(x, y) {
     const coinButton = document.getElementById('coin-button');
     if (!coinButton) return;
     

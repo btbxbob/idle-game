@@ -6,8 +6,7 @@
 ## STRUCTURE
 ```
 css/
-├── style.css         # Main stylesheet — layout, tabs, banners, workers, tech tree, breakpoints, ASCII decorations
-└── styles-new.css    # EXPERIMENTAL: alternative stylesheet for new panel-based UI (not wired in index.html)
+└── style.css         # Main stylesheet — layout, tabs, banners, workers, tech tree, breakpoints, ASCII decorations
 ```
 
 ## WHERE TO LOOK
@@ -15,7 +14,6 @@ css/
 |------|----------|-------|
 | Change main layout or responsive behavior | `style.css` | Owns tabs, banners, workers, technology tree, breakpoints |
 | Change ASCII/terminal decorations | `style.css` | ASCII / TUI DECORATIVE section at end of file |
-| New panel UI styles | `styles-new.css` | EXPERIMENTAL — pairs with `js/panels/` and `js/bootstrap-new.js` |
 
 ## CONVENTIONS
 - All styles belong in `style.css` — no separate skin/theme override files.
@@ -32,5 +30,4 @@ css/
 ## NOTES
 - `style.css` is a major hotspot in this repo; search for an existing section before adding a new block.
 - Worker cards, technology tree layout, and mobile banner/tab fixes all live here, so unrelated tweaks can have wide blast radius.
-- `styles-new.css` is part of the experimental ES module panel refactor and is not loaded by `index.html`.
-- The `ascii-style.css` file has been deleted; its unique decorative pseudo-elements were merged into `style.css`.
+- The `ascii-style.css` and `styles-new.css` files have been deleted; decorative pseudo-elements are now in `style.css`.
