@@ -9,7 +9,7 @@ try {
   execSync('npx playwright test --project=chromium', {
     cwd: root,
     stdio: 'inherit',
-    env: { ...process.env, RUN_COVERAGE: 'true' },
+    env: { ...process.env, RUN_COVERAGE: 'true', NODE_NO_WARNINGS: '1' },
   });
 } catch (error) {
   process.exit(error.status || 1);

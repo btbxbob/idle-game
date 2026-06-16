@@ -125,7 +125,7 @@ test.describe('I18n coverage', () => {
         expect(result.wpsText).toBe('木头/秒：2.3');
         expect(result.spsText).toBe('石头/秒：0.0');
         expect(result.cpcText).toBe('金币/点击：0.0');
-        expect(result.coinDisplay).toBe('0');
+        expect(result.coinDisplay).toBe('');
         expect(result.themeLabelText).toBe('主题 / Theme');
         expect(result.languageLabelText).toBe('语言 / Language');
         expect(result.resetText).toBe('重置游戏');

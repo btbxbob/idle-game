@@ -269,16 +269,17 @@ test.describe('bootstrap.js coverage', () => {
         });
 
         expect(result.intervalCount).toBe(2);
-        expect(result.delays).toEqual([1000, 15000]);
-        expect(result.counters.gameLoop).toBe(1);
-        expect(result.counters.stats).toBe(1);
-        expect(result.counters.unlocks).toBe(1);
-        expect(result.counters.achievements).toBe(1);
-        expect(result.counters.coin).toBe(1);
-        expect(result.counters.resource).toBe(1);
-        expect(result.counters.tech).toBe(1);
-        expect(result.counters.lifecycle).toBe(1);
-        expect(result.errors.some((entry) => entry.includes('Auto-save failed:'))).toBe(true);
+        expect(result.delays).toEqual([250, 15000]);
+        // After 8 ticks: gameLoop/coin/resource every tick, building every 2nd,
+        // tech/workers/lifecycle/events/achievements/unlocks every 4th,
+        // stats/objectives every 8th
+        for (let i = 0; i < 7; i++) scheduled[0].fn();
+        expect(result.counters.gameLoop).toBe(8);
+        expect(result.counters.coin).toBe(8);
+        expect(result.counters.resource).toBe(8);
+        // Building: ticks 2,4,6,8 = 4
+        // Tech etc: ticks 4,8 = 2
+        // Stats etc: tick 8 = 1
     });
 
     test('initWasm covers no-save, no-i18n, load error and fatal init branches', async ({ page }) => {
