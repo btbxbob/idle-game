@@ -239,6 +239,9 @@ async function initWasm() {
         
         console.log('Idle game initialized successfully!');
         
+        // 异步加载内容 JSON（不阻塞游戏启动）
+        loadGameContent(game);
+        
         // 启动游戏主循环
         startGameLoop(game);
         setLoadingStatus('准备完成，正在进入游戏...');
@@ -256,6 +259,25 @@ async function initWasm() {
 }
 
 // 启动游戏主循环
+async function loadGameContent(game) {
+    const languages = ['zh-CN', 'en'];
+    const types = ['buildings', 'resources', 'technologies'];
+    for (const lang of languages) {
+        try {
+            const [buildingsJson, resourcesJson, technologiesJson] = await Promise.all(
+                types.map(t => fetch(`content/${lang}/${t}.json`).then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.text();
+                }))
+            );
+            game.load_content(lang, buildingsJson, resourcesJson, technologiesJson);
+            console.log('Content loaded for', lang);
+        } catch (e) {
+            console.warn('Failed to load content for', lang, ':', e.message);
+        }
+    }
+}
+
 function startGameLoop(game) {
     // 主游戏循环 - 每秒更新资源和成就
     setInterval(() => {
@@ -295,7 +317,7 @@ function startGameLoop(game) {
         if (window.updateEventPanel) {
             window.updateEventPanel(false);
         }
-    }, 1000);
+    }, 250);
     
     // 自动保存 - 每 15 秒保存一次
     setInterval(() => {
