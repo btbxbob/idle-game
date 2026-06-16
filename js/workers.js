@@ -121,49 +121,42 @@ class WorkerManager {
 
         if (this.rustGame && typeof this.rustGame.get_worker_summaries === 'function') {
             try {
-                const workers = this.rustGame.get_worker_summaries() || [];
-                const filtered = this.getProcessedWorkersFallback(workers);
-                const total = filtered.length;
-                const start = (requestedPage - 1) * pageSize;
-                const pageWorkers = filtered.slice(start, start + pageSize);
-                this.workerPageCache = {
-                    total,
-                    assignedCount: filtered.filter((worker) => worker.assignedBuilding !== null && worker.assignedBuilding !== undefined).length,
-                    page: requestedPage,
-                    pageSize,
-                    workers: pageWorkers,
-                };
-                this.lastWorkerFetchAt = now;
-                return this.workerPageCache;
+                return this._buildFallbackPage(this.rustGame.get_worker_summaries() || [], requestedPage, pageSize, now);
             } catch (error) {
                 console.error('Failed to get worker summaries:', error);
-                return this.workerPageCache || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
+                return this._emptyPage(requestedPage, pageSize);
             }
         }
 
         if (this.rustGame && typeof this.rustGame.get_workers === 'function') {
             try {
-                const workers = this.rustGame.get_workers();
-                const filtered = this.getProcessedWorkersFallback(workers || []);
-                const total = filtered.length;
-                const start = (requestedPage - 1) * pageSize;
-                const pageWorkers = filtered.slice(start, start + pageSize);
-                this.workerPageCache = {
-                    total,
-                    assignedCount: filtered.filter((worker) => worker.assignedBuilding !== null && worker.assignedBuilding !== undefined).length,
-                    page: requestedPage,
-                    pageSize,
-                    workers: pageWorkers,
-                };
-                this.lastWorkerFetchAt = now;
-                return this.workerPageCache;
+                return this._buildFallbackPage(this.rustGame.get_workers() || [], requestedPage, pageSize, now);
             } catch (error) {
                 console.error('Failed to get workers:', error);
-                return this.workerPageCache || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
+                return this._emptyPage(requestedPage, pageSize);
             }
         }
 
-        return this.workerPageCache || { total: 0, assignedCount: 0, page: requestedPage, pageSize, workers: [] };
+        return this._emptyPage(requestedPage, pageSize);
+    }
+
+    _buildFallbackPage(workers, requestedPage, pageSize, now) {
+        const filtered = this.getProcessedWorkersFallback(workers);
+        const start = (requestedPage - 1) * pageSize;
+        const pageWorkers = filtered.slice(start, start + pageSize);
+        this.workerPageCache = {
+            total: filtered.length,
+            assignedCount: filtered.filter(w => w.assignedBuilding !== null && w.assignedBuilding !== undefined).length,
+            page: requestedPage,
+            pageSize,
+            workers: pageWorkers,
+        };
+        this.lastWorkerFetchAt = now;
+        return this.workerPageCache;
+    }
+
+    _emptyPage(page, pageSize) {
+        return this.workerPageCache || { total: 0, assignedCount: 0, page, pageSize, workers: [] };
     }
 
     getProcessedWorkersFallback(rawWorkers) {
