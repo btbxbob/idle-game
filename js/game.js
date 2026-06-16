@@ -97,6 +97,10 @@ window.updateResourceDisplay = function(coins, wood, stone, coinsPerSecond, wood
 
 // Function that will be called from Rust/WASM to update buildings
 window.updateBuildingDisplay = function(buildings, currentCoins) {
+    if (currentCoins === undefined && window.rustGame && typeof window.rustGame.get_coins === 'function') {
+        currentCoins = window.rustGame.get_coins();
+    }
+
     let buildingEntries = Array.isArray(buildings) ? buildings : null;
     if (!buildingEntries && window.rustGame && typeof window.rustGame.get_buildings === 'function') {
         try {
@@ -135,16 +139,16 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
             const consumptionNote = getBuildingConsumptionNote(building);
             const linkNote = getBuildingLinkNote(building);
             const realIndex = Number.isInteger(building.index) ? building.index : index;
+            const currentCount = building.count || 0;
+            const actualNextCost = building.cost * Math.pow(1.15, currentCount);
 
-            const displayCost = getDisplayCostForBuilding(building, buyModeValue, currentCoins);
+            const displayCost = getDisplayCostForBuilding(building, buyModeValue, currentCoins, currentCount);
             const buttonLabel = buyModeValue === 1 ? buyText : (buyModeValue === 10 ? `${buyText} x10` : `${buyText} (Max)`);
 
             let sufficientFunds = true;
-            if (typeof currentCoins === 'number' && Number.isFinite(currentCoins)) {
-                sufficientFunds = currentCoins >= building.cost;
-            } else if (window.rustGame && typeof window.rustGame.get_coins === 'function') {
-                sufficientFunds = window.rustGame.get_coins() >= building.cost;
-            }
+            const checkCoins = typeof currentCoins === 'number' && Number.isFinite(currentCoins) ? currentCoins
+                : (window.rustGame && typeof window.rustGame.get_coins === 'function' ? window.rustGame.get_coins() : 0);
+            sufficientFunds = checkCoins >= actualNextCost;
 
             const costClass = sufficientFunds ? 'cost-affordable' : 'cost-insufficient';
             const btnClass = sufficientFunds && window.gameInitialized ? 'affordable' : '';
@@ -179,9 +183,10 @@ function calculateBulkCost(nextCost, purchaseCount) {
     return nextCost * (1 - Math.pow(growthRate, purchaseCount)) / (1 - growthRate);
 }
 
-function getDisplayCostForBuilding(building, mode, currentCoins) {
-    const nextCost = building.cost;
-    if (!nextCost) return 0;
+function getDisplayCostForBuilding(building, mode, currentCoins, currentCount) {
+    const baseCost = building.cost;
+    if (!baseCost) return 0;
+    const nextCost = baseCost * Math.pow(1.15, currentCount || 0);
 
     if (mode === 'x1') {
         return nextCost;
@@ -189,13 +194,11 @@ function getDisplayCostForBuilding(building, mode, currentCoins) {
         return calculateBulkCost(nextCost, 10);
     } else if (mode === 'max') {
         const coins = currentCoins || 0;
-        let maxCount = 0;
         let totalCost = 0;
         let runningCost = nextCost;
         while (totalCost + runningCost <= coins) {
             totalCost += runningCost;
-            maxCount++;
-            runningCost = Math.ceil(runningCost * 1.15);
+            runningCost *= 1.15;
         }
         return totalCost > 0 ? totalCost : nextCost;
     }
