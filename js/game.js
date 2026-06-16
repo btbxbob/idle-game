@@ -136,7 +136,7 @@ window.updateBuildingDisplay = function(buildings, currentCoins) {
             const linkNote = getBuildingLinkNote(building);
             const realIndex = Number.isInteger(building.index) ? building.index : index;
 
-            const displayCost = getDisplayCostForBuilding(building, buyModeValue);
+            const displayCost = getDisplayCostForBuilding(building, buyModeValue, currentCoins);
             const buttonLabel = buyModeValue === 1 ? buyText : (buyModeValue === 10 ? `${buyText} x10` : `${buyText} (Max)`);
 
             let sufficientFunds = true;
@@ -179,7 +179,7 @@ function calculateBulkCost(nextCost, purchaseCount) {
     return nextCost * (1 - Math.pow(growthRate, purchaseCount)) / (1 - growthRate);
 }
 
-function getDisplayCostForBuilding(building, mode) {
+function getDisplayCostForBuilding(building, mode, currentCoins) {
     const nextCost = building.cost;
     if (!nextCost) return 0;
 
@@ -188,7 +188,16 @@ function getDisplayCostForBuilding(building, mode) {
     } else if (mode === 'x10') {
         return calculateBulkCost(nextCost, 10);
     } else if (mode === 'max') {
-        return nextCost;
+        const coins = currentCoins || 0;
+        let maxCount = 0;
+        let totalCost = 0;
+        let runningCost = nextCost;
+        while (totalCost + runningCost <= coins) {
+            totalCost += runningCost;
+            maxCount++;
+            runningCost = Math.ceil(runningCost * 1.15);
+        }
+        return totalCost > 0 ? totalCost : nextCost;
     }
     return nextCost;
 }
