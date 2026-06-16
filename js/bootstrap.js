@@ -279,43 +279,32 @@ async function loadGameContent(game) {
 }
 
 function startGameLoop(game) {
-    // 主游戏循环 - 每秒更新资源和成就
+    let tick = 0;
     setInterval(() => {
+        tick++;
         if (game && typeof game.game_loop === 'function') {
             game.game_loop();
-        }
-        if (window.updateStatisticsPanel) {
-            window.updateStatisticsPanel();
-        }
-        if (window.updateUnlocksPanel) {
-            window.updateUnlocksPanel();
-        }
-        if (window.updateObjectivePanel) {
-            window.updateObjectivePanel();
-        }
-        if (window.updateAchievementsPanel) {
-            window.updateAchievementsPanel();
         }
         if (window.updateCoinButton) {
             window.updateCoinButton();
         }
-        if (window.updateBuildingDisplay) {
-            window.updateBuildingDisplay();
-        }
         if (window.updateResourcePanel) {
             window.updateResourcePanel();
         }
-        if (window.updateTechnologyPanel) {
-            window.updateTechnologyPanel();
+        if (tick % 2 === 0) {
+            if (window.updateBuildingDisplay) window.updateBuildingDisplay();
         }
-        if (window.updateWorkersPanel) {
-            window.updateWorkersPanel();
+        if (tick % 4 === 0) {
+            if (window.updateTechnologyPanel) window.updateTechnologyPanel();
+            if (window.updateWorkersPanel) window.updateWorkersPanel();
+            if (window.updateLifecyclePanel) window.updateLifecyclePanel();
+            if (window.updateEventPanel) window.updateEventPanel(false);
+            if (window.updateAchievementsPanel) window.updateAchievementsPanel();
+            if (window.updateUnlocksPanel) window.updateUnlocksPanel();
         }
-        if (window.updateLifecyclePanel) {
-            window.updateLifecyclePanel();
-        }
-        if (window.updateEventPanel) {
-            window.updateEventPanel(false);
+        if (tick % 8 === 0) {
+            if (window.updateStatisticsPanel) window.updateStatisticsPanel();
+            if (window.updateObjectivePanel) window.updateObjectivePanel();
         }
     }, 250);
     

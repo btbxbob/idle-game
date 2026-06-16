@@ -20,9 +20,12 @@
         var tabButtons = document.querySelectorAll('.tab-button');
         var tabContents = document.querySelectorAll('.tab-content');
 
+        var _activeTab = null;
+
         tabButtons.forEach(function (button) {
             button.addEventListener('click', function () {
                 var tabName = this.getAttribute('data-tab');
+                var wasActive = (tabName === _activeTab);
 
                 tabButtons.forEach(function (btn) { btn.classList.remove('active'); });
                 tabContents.forEach(function (content) { content.classList.remove('active'); });
@@ -30,6 +33,9 @@
                 this.classList.add('active');
                 var target = document.getElementById('tab-' + tabName);
                 if (target) target.classList.add('active');
+                _activeTab = tabName;
+
+                if (wasActive) return;
 
                 if (tabName === 'achievements' && window.achievementsManager) {
                     window.achievementsManager.renderAchievements();
