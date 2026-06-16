@@ -33,7 +33,7 @@ class TechnologyManager {
             const techData = this.rustGame.get_technologies();
             this.technologies = Array.isArray(techData) ? techData : [];
             this.cacheTechStates();
-            this.renderTree();
+            this.render();
             this.bindEvents();
         } catch (error) {
             console.error('TechnologyManager: Error loading technologies:', error);
@@ -1261,9 +1261,9 @@ class TechnologyManager {
             const success = this.rustGame.research_technology(techId);
             if (success) {
                 this.cacheTechStates();
-                this.renderTree();
-                this.selectTechnology(techId);
-                console.log('Technology researched:', techId);
+                this.render();
+                this.showTechDetail(techId);
+                if (window.DEBUG) console.log('Technology researched:', techId);
             } else {
                 const t = this.i18n ? this.i18n.t.bind(this.i18n) : (key) => key;
                 this.showNotification(t('researchFailed') || '研究失败');
@@ -1393,7 +1393,3 @@ window.updateTechnologyPanel = function() {
         }
     }
 };
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('TechnologyManager class loaded (card-based UI)');
-});
