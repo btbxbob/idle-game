@@ -324,7 +324,7 @@ function startGameLoop(game) {
         if (game && typeof game.saveToLocalStorage === 'function') {
             try {
                 game.saveToLocalStorage();
-                console.log('Game auto-saved at', new Date().toLocaleTimeString());
+                if (window.DEBUG) console.log('Game auto-saved at', new Date().toLocaleTimeString());
             } catch (saveError) {
                 console.error('Auto-save failed:', saveError);
             }

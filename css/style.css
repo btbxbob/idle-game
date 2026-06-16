@@ -242,7 +242,6 @@ body::after {
     overflow: hidden;
     box-shadow: 0 0 30px var(--glow-color), 8px 8px 0px var(--shadow-color);
     /* ASCII terminal style */
-    font-family: 'Courier New', monospace;
     position: relative;
     z-index: 1;
 }
@@ -254,7 +253,6 @@ header {
     border-bottom: 2px solid var(--border-color);
     position: relative;
     /* ASCII header style */
-    font-family: 'Courier New', monospace;
 }
 
 #language-selector {
@@ -271,7 +269,6 @@ header {
     padding: 5px 10px;
     font-size: 14px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
 }
 
 #language-select:hover {
@@ -293,7 +290,6 @@ header {
     padding: 5px 10px;
     font-size: 14px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
 }
 
 #theme-select:hover {
@@ -341,7 +337,6 @@ header {
 
 #coin-count {
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     font-size: 0.68rem;
     line-height: 0.98;
     text-align: center;
@@ -376,7 +371,6 @@ header {
     padding: 3px 6px;
     border: 1px solid var(--border-color);
     border-radius: 0;
-    font-family: 'Courier New', monospace;
     font-size: 10px;
     text-align: left;
     margin: 0;
@@ -472,7 +466,6 @@ header {
     border-radius: 0;
     padding: 4px 12px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
     font-weight: bold;
     transition: all 0.1s ease;
     margin-right: -2px; /* Remove border overlap */
@@ -686,7 +679,6 @@ header {
     border: none;
     border-right: 2px solid var(--border-color);
     padding: 6px 10px;
-    font-family: 'Courier New', monospace;
     font-weight: bold;
     cursor: pointer;
 }
@@ -725,7 +717,6 @@ header {
     border: 1px solid var(--border-color);
     border-radius: 0;
     /* ASCII terminal style */
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     min-width: 0;
 }
@@ -736,7 +727,6 @@ footer {
     background-color: var(--panel-bg);
     
     color: var(--text-color);
-    font-family: 'Courier New', monospace;
     font-size: 11px;
     display: flex;
     justify-content: center;
@@ -766,7 +756,6 @@ footer {
     cursor: pointer;
     transition: all 0.1s ease;
     /* ASCII art inspired - blocky and pixel-like */
-    font-family: 'Courier New', monospace;
     box-shadow: 4px 4px 0px var(--shadow-color), 0 0 15px var(--glow-color);
 }
 
@@ -786,7 +775,6 @@ footer {
     font-size: 1em;
     margin-top: 5px;
     text-align: center;
-    font-family: 'Courier New', monospace;
 }
 
 #upgrades, #buildings, #workers, #settings {
@@ -813,7 +801,6 @@ footer {
      padding: 8px;
      background-color: var(--panel-bg);
      border: 1px solid var(--border-color);
-     font-family: 'Courier New', monospace;
      font-size: 12px;
  }
 
@@ -826,7 +813,6 @@ footer {
      background-color: var(--input-bg);
      color: var(--text-color);
      border: 1px solid var(--border-color);
-     font-family: 'Courier New', monospace;
      font-size: 12px;
      cursor: pointer;
  }
@@ -844,7 +830,6 @@ footer {
     justify-content: space-between;
     align-items: center;
     /* ASCII terminal item style */
-    font-family: 'Courier New', monospace;
     font-size: 12px;
 }
 
@@ -874,7 +859,6 @@ footer {
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     transition: all 0.1s ease;
 }
 
@@ -952,7 +936,6 @@ footer {
 
 #version-number {
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     background-color: var(--button-bg);
     color: var(--button-text);
     padding: 2px 6px;
@@ -1300,7 +1283,6 @@ footer {
 #game-container::after {
     content: "╚════════════════════════════════════════════════════════════════════════╝";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     text-align: center;
     font-size: 10px;
@@ -1311,7 +1293,6 @@ footer {
 header::before {
     content: "┌─ Game Header ───────────────────────────────────────────────────────┐";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     font-size: 10px;
     line-height: 1;
@@ -1320,7 +1301,6 @@ header::before {
 header::after {
     content: "└──────────────────────────────────────────────────────────────────────┘";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     font-size: 10px;
     line-height: 1;
@@ -1330,7 +1310,6 @@ header::after {
 #resource-panel::before {
     content: "┌─ Resources ─────────────────────────────────────────────────────────┐";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     margin-bottom: 4px;
     font-size: 10px;
@@ -1339,7 +1318,6 @@ header::after {
 #resource-panel::after {
     content: "└──────────────────────────────────────────────────────────────────────┘";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     margin-top: 4px;
     font-size: 10px;
@@ -1349,7 +1327,6 @@ header::after {
 #upgrades::before, #buildings::before {
     content: "┌─ Items ──────────────────────────────────────────────────────────────┐";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     margin-bottom: 4px;
     font-size: 10px;
@@ -1358,7 +1335,6 @@ header::after {
 #upgrades::after, #buildings::after {
     content: "└──────────────────────────────────────────────────────────────────────┘";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     margin-top: 4px;
     font-size: 10px;
@@ -1367,7 +1343,6 @@ header::after {
 /* Item checkboxes [ ] / [*] */
 .upgrade-item::before, .building-item::before {
     content: "  [ ] ";
-    font-family: 'Courier New', monospace;
     color: var(--text-color);
 }
 
@@ -1379,13 +1354,11 @@ header::after {
 .tab-button.active::before {
     content: "> ";
     color: var(--tab-active-text);
-    font-family: 'Courier New', monospace;
 }
 
 /* Settings [S] prefix */
 .setting-item::before {
     content: "  [S] ";
-    font-family: 'Courier New', monospace;
     color: var(--text-color);
 }
 
@@ -1393,7 +1366,6 @@ header::after {
 #click-area::before {
     content: "┌──────┐";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     text-align: center;
     font-size: 10px;
@@ -1403,7 +1375,6 @@ header::after {
 #click-area::after {
     content: "└──────┘";
     display: block;
-    font-family: 'Courier New', monospace;
     color: var(--border-color);
     text-align: center;
     font-size: 10px;
@@ -1433,7 +1404,6 @@ header::after {
     padding: 6px 10px;
     border: 1px solid var(--border-color);
     border-radius: 0;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     display: flex;
     justify-content: space-between;
@@ -1454,7 +1424,6 @@ header::after {
 .statistic-item .stat-value {
     color: var(--text-color);
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     letter-spacing: 1px;
     text-shadow: 0 0 8px var(--glow-color);
 }
@@ -1465,7 +1434,6 @@ header::after {
     padding: 6px 10px;
     border: 1px solid var(--border-color);
     border-radius: 0;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     display: flex;
     justify-content: space-between;
@@ -1534,7 +1502,6 @@ header::after {
     padding: 6px 10px;
     border: 1px solid var(--border-color);
     border-radius: 0;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     display: flex;
     justify-content: space-between;
@@ -1580,7 +1547,6 @@ header::after {
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     font-size: 12px;
     transition: all 0.1s ease;
 }
@@ -1603,7 +1569,6 @@ header::after {
     padding: 8px 12px;
     border: 2px solid var(--border-color);
     border-radius: 0;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     text-align: center;
     transition: all 0.1s ease;
@@ -1677,7 +1642,6 @@ header::after {
     font-size: 11px;
     color: var(--text-color);
     margin-top: 4px;
-    font-family: 'Courier New', monospace;
 }
 
 /* Unlock Action Button */
@@ -1689,7 +1653,6 @@ header::after {
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     transition: all 0.1s ease;
     margin-top: 10px;
@@ -1736,7 +1699,6 @@ header::after {
     padding: 15px 20px;
     border-radius: 0;
     box-shadow: 4px 4px 0px var(--shadow-color);
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     z-index: 1000;
     min-width: 280px;
@@ -1863,7 +1825,6 @@ header::after {
     border: 2px solid var(--border-color);
     border-radius: 0;
     padding: 0;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     transition: all 0.1s ease;
     display: flex;
@@ -1970,7 +1931,6 @@ header::after {
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     transition: all 0.1s ease;
     box-shadow: 2px 2px 0px var(--shadow-color);
@@ -1996,7 +1956,6 @@ header::after {
     border: 2px solid var(--border-color);
     background-color: var(--panel-bg);
     color: var(--text-color);
-    font-family: 'Courier New', monospace;
     padding: 8px;
 }
 
@@ -2004,7 +1963,6 @@ header::after {
     border: 2px solid var(--border-color);
     background-color: var(--button-bg);
     color: var(--button-text);
-    font-family: 'Courier New', monospace;
     padding: 8px;
     cursor: pointer;
 }
@@ -2036,7 +1994,6 @@ header::after {
     border: 2px solid var(--border-color);
     background-color: var(--button-bg);
     color: var(--button-text);
-    font-family: 'Courier New', monospace;
     padding: 6px 10px;
     cursor: pointer;
 }
@@ -2117,7 +2074,6 @@ header::after {
     border: 2px solid var(--border-color);
     background-color: var(--button-bg);
     color: var(--button-text);
-    font-family: 'Courier New', monospace;
     padding: 3px 8px;
     cursor: pointer;
 }
@@ -2210,7 +2166,6 @@ header::after {
 .modal-header h3 {
     margin: 0;
     font-size: 16px;
-    font-family: 'Courier New', monospace;
     letter-spacing: 1px;
 }
 
@@ -2226,7 +2181,6 @@ header::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Courier New', monospace;
 }
 
 .modal-close:hover {
@@ -2272,7 +2226,6 @@ header::after {
     color: var(--text-color);
     border: 2px solid var(--border-color);
     padding: 10px 12px;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     border-radius: 0;
 }
@@ -2318,7 +2271,6 @@ header::after {
     border-radius: 0;
     cursor: pointer;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     transition: all 0.1s ease;
 }
@@ -2539,7 +2491,6 @@ header::after {
     padding: 6px 10px;
     border: 2px solid var(--border-color);
     background-color: var(--main-bg);
-    font-family: 'Courier New', monospace;
     font-size: 12px;
 }
 
@@ -2547,7 +2498,6 @@ header::after {
     padding: 6px 10px;
     border: 2px solid var(--border-color);
     background-color: var(--main-bg);
-    font-family: 'Courier New', monospace;
     font-size: 12px;
     cursor: pointer;
 }
@@ -2590,7 +2540,6 @@ header::after {
     border: 2px solid var(--border-color);
     border-radius: 0;
     padding: 0;
-    font-family: 'Courier New', monospace;
     font-size: 12px;
     transition: all 0.1s ease;
     display: flex;
@@ -2716,7 +2665,6 @@ header::after {
     border: 2px solid var(--border-color);
     background-color: #27ae60;
     color: white;
-    font-family: 'Courier New', monospace;
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
@@ -2874,7 +2822,6 @@ header::after {
     background: linear-gradient(135deg, #1f7a46, #58d68d);
     color: #fff;
     box-shadow: 2px 2px 0 var(--shadow-color);
-    font-family: 'Courier New', monospace;
     font-size: 12px;
     font-weight: bold;
     padding: 8px 12px;
@@ -3013,7 +2960,6 @@ header::after {
     border: 2px solid var(--border-color);
     background-color: var(--button-bg);
     color: var(--button-text);
-    font-family: 'Courier New', monospace;
     padding: 6px 10px;
     cursor: pointer;
 }
@@ -3538,7 +3484,6 @@ header::after {
     border: 2px solid var(--border-color);
     background: var(--button-bg);
     color: var(--button-text);
-    font-family: 'Courier New', monospace;
     padding: 6px 10px;
     cursor: pointer;
 }
@@ -4058,7 +4003,6 @@ header::after {
     background-color: var(--button-bg);
     color: var(--button-text);
     padding: 6px 10px;
-    font-family: 'Courier New', monospace;
     cursor: pointer;
 }
 
@@ -4209,7 +4153,6 @@ header::after {
     background-color: var(--panel-bg);
     border: 2px solid var(--border-color);
     border-radius: 0;
-    font-family: 'Courier New', monospace;
 }
 
 .resource-panel.active {
@@ -4236,7 +4179,6 @@ header::after {
     background-color: var(--panel-bg);
     border: 1px solid var(--border-color);
     border-radius: 0;
-    font-family: 'Courier New', monospace;
     font-size: 13px;
     transition: all 0.1s ease;
     box-shadow: 2px 2px 0px var(--shadow-color);
@@ -4249,7 +4191,6 @@ header::after {
     top: 6px;
     left: 8px;
     line-height: 1.15;
-    font-family: 'Courier New', monospace;
     color: var(--text-color);
 }
 
@@ -4286,7 +4227,6 @@ header::after {
     grid-area: amount;
     color: var(--text-color);
     font-weight: bold;
-    font-family: 'Courier New', monospace;
     font-size: clamp(0.72rem, 1.25vw, 0.92rem);
     letter-spacing: 0.02em;
     text-shadow: 0 0 8px var(--glow-color);
@@ -4307,7 +4247,6 @@ header::after {
     border-radius: 0;
     padding: 10px 16px;
     cursor: pointer;
-    font-family: 'Courier New', monospace;
     font-weight: bold;
     font-size: 12px;
     transition: all 0.1s ease;
