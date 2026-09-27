@@ -394,30 +394,6 @@ window.buyBuilding = function(index) {
 
 // Handle click interaction
 document.addEventListener('DOMContentLoaded', function() {
-    // Old click area (for backward compatibility)
-    const clickArea = document.getElementById('click-area');
-    if (clickArea) {
-        clickArea.addEventListener('click', function() {
-            if (window.rustGame && typeof window.rustGame.click_action === 'function') {
-                window.rustGame.click_action();
-                if (window.updateCoinButton) window.updateCoinButton();
-                if (window.updateBuildingDisplay) window.updateBuildingDisplay();
-            }
-        });
-    }
-    
-    const headerCoinClickArea = document.getElementById('coin-click-area');
-    if (headerCoinClickArea) {
-        headerCoinClickArea.addEventListener('click', function(e) {
-            if (window.rustGame && typeof window.rustGame.click_action === 'function') {
-                window.rustGame.click_action();
-                window.createCoinParticles(e.clientX, e.clientY);
-                if (window.updateCoinButton) window.updateCoinButton();
-                if (window.updateBuildingDisplay) window.updateBuildingDisplay();
-            }
-        });
-    }
-    
     // Manual save button
     const manualSaveBtn = document.getElementById('manual-save');
     if (manualSaveBtn) {

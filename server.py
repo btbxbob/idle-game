@@ -34,6 +34,10 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         # WASM requires these headers for proper functionality
         self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
         self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
+        # Cache static assets to speed up repeated test runs
+        path = (self.path or '').split('?', 1)[0]
+        if any(path.endswith(ext) for ext in ('.wasm', '.js', '.css', '.png', '.ico')):
+            self.send_header('Cache-Control', 'public, max-age=3600')
         super().end_headers()
 
 
@@ -49,9 +53,12 @@ def main():
     parser = argparse.ArgumentParser(description='Idle game HTTP server')
     parser.add_argument('--quiet', action='store_true', help='Suppress access logs')
     parser.add_argument('--port', type=int, default=DEFAULT_PORT, help='Server port')
+    parser.add_argument('--host', default='127.0.0.1',
+                        help='Host/interface to bind (default: 127.0.0.1; use 0.0.0.0 to expose on LAN)')
     args = parser.parse_args()
     quiet_mode = args.quiet
     port = args.port
+    host = args.host
     
     # Change to script directory
     os.chdir(os.path.dirname(__file__))
@@ -62,7 +69,7 @@ def main():
         print(f"Starting server at http://localhost:{port}")
         print(f"Navigate to http://localhost:{port} to play the game")
 
-    with ReusableTCPServer(("", port), QuietHandler) as httpd:
+    with ReusableTCPServer((host, port), QuietHandler) as httpd:
         print(f"Serving files from {os.getcwd()} with threaded HTTP handling")
         try:
             httpd.serve_forever()

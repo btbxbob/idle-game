@@ -1,7 +1,8 @@
 // Internationalization system for the idle game
 class I18n {
     constructor() {
-        this.currentLanguage = localStorage.getItem('gameLanguage') || 'zh-CN'; // Default to Simplified Chinese
+        const storedLanguage = localStorage.getItem('gameLanguage');
+        this.currentLanguage = ['en', 'zh-CN'].includes(storedLanguage) ? storedLanguage : 'zh-CN'; // Default to Simplified Chinese
         this.translations = {
             'en': {
                 // Game title and headers
@@ -230,6 +231,11 @@ class I18n {
                 'version': 'Version',
                 'resetGame': 'Reset Game',
                 'resetGameConfirm': 'Are you sure you want to reset the game? All progress will be lost!',
+                'saveResetAlert': 'The game was updated and your save had to be reset due to structural changes. Starting a new journey!',
+                'unlock': 'Unlock',
+                'unlocked': 'Unlocked',
+                'linkedSystems': 'Linked Systems',
+                'noWorkersMatchFilter': 'No workers match the current filter',
                 'saveLoadTitle': 'Save/Load Game',
                 'manualSave': 'Manual Save',
                 'saveSuccess': 'Saved ✓',
@@ -650,6 +656,11 @@ class I18n {
                 'version': '版本',
                 'resetGame': '重置游戏',
                 'resetGameConfirm': '确定要重置游戏吗？所有进度将丢失！',
+                'saveResetAlert': '游戏已更新，由于结构性变更存档已重置。请开始新的游戏旅程！',
+                'unlock': '解锁',
+                'unlocked': '已解锁',
+                'linkedSystems': '关联系统',
+                'noWorkersMatchFilter': '没有符合筛选条件的工人',
                 'saveLoadTitle': '保存/加载游戏',
                 'manualSave': '手动保存',
                 'saveSuccess': '已保存 ✓',
@@ -867,7 +878,8 @@ class I18n {
     
     // Get translation for a key
     t(key, params = {}) {
-        const translation = this.translations[this.currentLanguage][key] || 
+        const dictionary = this.translations[this.currentLanguage] || this.translations['en'];
+        const translation = dictionary[key] || 
                            this.translations['en'][key] || 
                            key;
         
@@ -1042,7 +1054,7 @@ class I18n {
         this.updateTabButtons();
         this.updateResourceCategoryTabs();
         this.updatePlaceholder('import-export-text', 'importExportPlaceholder');
-        this.updateLabel('building-mode-label', 'buyMode');
+        this.updateElement('building-mode-label', 'buyMode');
 
         // Update resource displays (these will be handled by resource update functions)
         this.updateResourceDisplays();

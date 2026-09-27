@@ -1061,6 +1061,7 @@ class WorkerManager {
         let html = '<div class="workers-list">';
         
         workers.forEach((worker, index) => {
+            const globalIndex = worker.__index ?? worker.index ?? index;
             const isAssigned = worker.assignedBuilding !== null && worker.assignedBuilding !== undefined;
             const assignedBuildingName = isAssigned ? worker.assignedBuilding : (t('unassigned') || '未分配');
             const efficiencyBonus = this.formatEfficiency(worker.efficiencyMultiplier);
@@ -1075,7 +1076,7 @@ class WorkerManager {
             const hungryText = this.formatStatusLabel(worker);
 
             html += `
-                <div class="worker-list-item" id="worker-item-${index}">
+                <div class="worker-list-item" id="worker-item-${globalIndex}">
                     <div class="worker-item-header">
                         <div class="worker-item-name">
                             <span class="worker-avatar">👷</span>
@@ -1127,7 +1128,7 @@ class WorkerManager {
                     <div class="worker-item-actions">
                         <button 
                             class="btn-assign" 
-                            onclick="window.workerManager.showAssignmentModal(${index})"
+                            onclick="window.workerManager.showAssignmentModal(${globalIndex})"
                         >
                             ${isAssigned ? (t('reassign') || '重新分配') : (t('assign') || '分配')}
                         </button>

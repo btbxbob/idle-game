@@ -629,7 +629,3 @@ class UnlockManager {
 }
 
 window.UnlockManager = UnlockManager;
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('UnlockManager class loaded');
-});

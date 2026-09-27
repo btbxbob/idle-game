@@ -37,8 +37,8 @@
 
                 if (wasActive) return;
 
-                if (tabName === 'achievements' && window.achievementsManager) {
-                    window.achievementsManager.renderAchievements();
+                if (tabName === 'achievements' && window.achievementManager) {
+                    window.achievementManager.renderAchievements();
                 } else if (tabName === 'statistics' && window.statisticsManager) {
                     window.statisticsManager.renderToPanel('tab-statistics');
                 } else if (tabName === 'unlocks' && window.unlockManager) {
