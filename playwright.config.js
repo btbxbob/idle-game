@@ -36,7 +36,7 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: configuredRetries ?? (isCI ? 1 : 0),
-  workers: configuredWorkers ?? (isCI ? 2 : undefined),
+  workers: configuredWorkers ?? (isCI ? 2 : 1),
   reporter: 'line',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

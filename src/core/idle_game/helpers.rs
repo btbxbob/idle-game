@@ -34,12 +34,12 @@ impl IdleGame {
             missing_limbs: worker
                 .missing_limbs
                 .iter()
-                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .map(|limb| IdleGame::limb_slot_label(*limb).to_string())
                 .collect(),
             maggot_limbs: worker
                 .maggot_limbs
                 .iter()
-                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .map(|limb| IdleGame::limb_slot_label(*limb).to_string())
                 .collect(),
         }
     }
@@ -120,12 +120,12 @@ impl IdleGame {
             missing_limbs: worker
                 .missing_limbs
                 .iter()
-                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .map(|limb| IdleGame::limb_slot_label(*limb).to_string())
                 .collect(),
             maggot_limbs: worker
                 .maggot_limbs
                 .iter()
-                .map(|limb| Self::limb_slot_label(*limb).to_string())
+                .map(|limb| IdleGame::limb_slot_label(*limb).to_string())
                 .collect(),
             can_maggot_surgery,
             maggot_surgery_cost,
@@ -156,7 +156,7 @@ impl IdleGame {
                     return true;
                 }
 
-                Self::worker_matches_query(worker, &query)
+                IdleGame::worker_matches_query(worker, &query)
             })
             .map(|(index, _)| index)
             .collect();
@@ -177,13 +177,13 @@ impl IdleGame {
     }
 
     pub(super) fn worker_matches_query(worker: &Worker, query: &str) -> bool {
-        Self::field_matches_query(&worker.name, query)
-            || Self::field_matches_query(&worker.skills, query)
-            || Self::field_matches_query(&worker.preferences, query)
+        IdleGame::field_matches_query(&worker.name, query)
+            || IdleGame::field_matches_query(&worker.skills, query)
+            || IdleGame::field_matches_query(&worker.preferences, query)
             || worker
                 .assigned_building
                 .as_deref()
-                .is_some_and(|building| Self::field_matches_query(building, query))
+                .is_some_and(|building| IdleGame::field_matches_query(building, query))
     }
 
     pub(super) fn field_matches_query(value: &str, query: &str) -> bool {
@@ -208,7 +208,7 @@ impl IdleGame {
     }
 
     pub(super) fn get_maggot_limb_surgery_status(&self, worker: &Worker) -> (bool, f64, Option<String>) {
-        let cost = Self::maggot_limb_surgery_cost(worker);
+        let cost = IdleGame::maggot_limb_surgery_cost(worker);
         if worker.missing_limbs.is_empty() {
             return (false, cost, Some("当前没有残缺肢体".to_string()));
         }
@@ -446,7 +446,7 @@ impl IdleGame {
         for worker in &mut self.workers {
             let assigned = worker.assigned_building.clone();
             if let Some(building_id) = assigned.as_deref() {
-                let profile = Self::worker_job_profile(building_id);
+                let profile = IdleGame::worker_job_profile(building_id);
                 let preference_drive = if worker.preferences == building_id {
                     -0.25
                 } else {
@@ -1050,7 +1050,7 @@ impl IdleGame {
     }
 
     pub(super) fn calculate_worker_efficiency_for(&self, worker: &Worker, building_id: &str) -> f64 {
-        let profile = Self::worker_job_profile(building_id);
+        let profile = IdleGame::worker_job_profile(building_id);
         let mut efficiency = 1.0;
         efficiency += self.worker_job_fit_bonus(worker, building_id, profile);
         efficiency += (worker.level as f64) * 0.04;
@@ -1073,7 +1073,7 @@ impl IdleGame {
         let mut parts = vec!["基础 100%".to_string()];
 
         if let Some(target_building) = building_id {
-            let profile = Self::worker_job_profile(target_building);
+            let profile = IdleGame::worker_job_profile(target_building);
             if worker.preferences == target_building {
                 parts.push("偏好岗位 +35%".to_string());
             }
@@ -1254,5 +1254,171 @@ impl IdleGame {
         }
 
         self.refresh_progression_state();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_worker(name: &str, skills: &str, preferences: &str) -> Worker {
+        Worker::new(name, skills, "背景", preferences)
+    }
+
+    #[test]
+    fn limb_slot_label_all_variants() {
+        assert_eq!(IdleGame::limb_slot_label(LimbSlot::LeftArm), "左手");
+        assert_eq!(IdleGame::limb_slot_label(LimbSlot::RightArm), "右手");
+        assert_eq!(IdleGame::limb_slot_label(LimbSlot::LeftLeg), "左腿");
+        assert_eq!(IdleGame::limb_slot_label(LimbSlot::RightLeg), "右腿");
+    }
+
+    #[test]
+    fn field_matches_query_case_insensitive() {
+        assert!(IdleGame::field_matches_query("Hello World", "hello"));
+        assert!(IdleGame::field_matches_query("Hello World", "world"));
+        assert!(IdleGame::field_matches_query("Hello World", "lo wo"));
+    }
+
+    #[test]
+    fn field_matches_query_empty_query() {
+        assert!(IdleGame::field_matches_query("anything", ""));
+    }
+
+    #[test]
+    fn field_matches_query_no_match() {
+        assert!(!IdleGame::field_matches_query("Hello", "xyz"));
+    }
+
+    #[test]
+    fn worker_matches_query_by_name() {
+        let worker = make_worker("矿工", "mining", "金币矿山");
+        assert!(IdleGame::worker_matches_query(&worker, "矿工"));
+    }
+
+    #[test]
+    fn worker_matches_query_by_skills() {
+        let worker = make_worker("张三", "mining", "金币矿山");
+        assert!(IdleGame::worker_matches_query(&worker, "mining"));
+    }
+
+    #[test]
+    fn worker_matches_query_by_preferences() {
+        let worker = make_worker("张三", "mining", "金币矿山");
+        assert!(IdleGame::worker_matches_query(&worker, "金币矿山"));
+    }
+
+    #[test]
+    fn worker_matches_query_by_assigned_building() {
+        let mut worker = make_worker("张三", "mining", "金币矿山");
+        worker.assigned_building = Some("伐木场".to_string());
+        assert!(IdleGame::worker_matches_query(&worker, "伐木场"));
+    }
+
+    #[test]
+    fn worker_matches_query_no_match() {
+        let worker = make_worker("张三", "mining", "金币矿山");
+        assert!(!IdleGame::worker_matches_query(&worker, "xyz"));
+    }
+
+    #[test]
+    fn worker_job_profile_mining_buildings() {
+        let profile = IdleGame::worker_job_profile("金币矿山");
+        assert_eq!(profile.labor, 1.0);
+        assert_eq!(profile.precision, 0.2);
+        assert_eq!(profile.organic, 0.0);
+    }
+
+    #[test]
+    fn worker_job_profile_farm_buildings() {
+        let profile = IdleGame::worker_job_profile("农场");
+        assert_eq!(profile.organic, 1.0);
+        assert_eq!(profile.social, 0.5);
+        assert_eq!(profile.labor, 0.4);
+    }
+
+    #[test]
+    fn worker_job_profile_factory_buildings() {
+        let profile = IdleGame::worker_job_profile("铁锭冶炼厂");
+        assert_eq!(profile.labor, 0.8);
+        assert_eq!(profile.precision, 0.55);
+        assert_eq!(profile.cognitive, 0.35);
+        assert_eq!(profile.organic, 0.0);
+    }
+
+    #[test]
+    fn worker_job_profile_tech_buildings() {
+        let profile = IdleGame::worker_job_profile("芯片制造厂");
+        assert_eq!(profile.cognitive, 1.0);
+        assert_eq!(profile.precision, 0.95);
+        assert_eq!(profile.labor, 0.25);
+    }
+
+    #[test]
+    fn worker_job_profile_unknown_building() {
+        let profile = IdleGame::worker_job_profile("未知建筑");
+        assert_eq!(profile.labor, 0.35);
+        assert_eq!(profile.precision, 0.35);
+        assert_eq!(profile.cognitive, 0.35);
+    }
+
+    #[test]
+    fn maggot_limb_surgery_cost_no_missing_limbs() {
+        let worker = make_worker("测试", "mining", "金币矿山");
+        assert_eq!(IdleGame::maggot_limb_surgery_cost(&worker), 0.0);
+    }
+
+    #[test]
+    fn maggot_limb_surgery_cost_one_missing_limb() {
+        let mut worker = make_worker("测试", "mining", "金币矿山");
+        worker.missing_limbs = vec![LimbSlot::LeftArm];
+        assert_eq!(IdleGame::maggot_limb_surgery_cost(&worker), 15.0);
+    }
+
+    #[test]
+    fn maggot_limb_surgery_cost_two_missing_limbs() {
+        let mut worker = make_worker("测试", "mining", "金币矿山");
+        worker.missing_limbs = vec![LimbSlot::LeftArm, LimbSlot::RightLeg];
+        assert_eq!(IdleGame::maggot_limb_surgery_cost(&worker), 30.0);
+    }
+
+    #[test]
+    fn maggot_limb_surgery_cost_four_missing_limbs() {
+        let mut worker = make_worker("测试", "mining", "金币矿山");
+        worker.missing_limbs = vec![LimbSlot::LeftArm, LimbSlot::RightArm, LimbSlot::LeftLeg, LimbSlot::RightLeg];
+        assert_eq!(IdleGame::maggot_limb_surgery_cost(&worker), 60.0);
+    }
+
+    #[test]
+    fn worker_summary_view_basic() {
+        let worker = make_worker("矿工", "mining", "金币矿山");
+        let view = IdleGame::worker_summary_view(&worker, 0);
+        assert_eq!(view.index, 0);
+        assert_eq!(view.name, "矿工");
+        assert_eq!(view.skills, "mining");
+        assert_eq!(view.preferences, "金币矿山");
+        assert_eq!(view.level, 1);
+        assert!(view.assigned_building.is_none());
+        assert!(view.missing_limbs.is_empty());
+        assert!(view.maggot_limbs.is_empty());
+    }
+
+    #[test]
+    fn worker_summary_view_with_limbs() {
+        let mut worker = make_worker("矿工", "mining", "金币矿山");
+        worker.missing_limbs = vec![LimbSlot::LeftArm];
+        worker.maggot_limbs = vec![LimbSlot::RightLeg];
+        let view = IdleGame::worker_summary_view(&worker, 5);
+        assert_eq!(view.index, 5);
+        assert_eq!(view.missing_limbs, vec!["左手"]);
+        assert_eq!(view.maggot_limbs, vec!["右腿"]);
+    }
+
+    #[test]
+    fn worker_summary_view_with_assignment() {
+        let mut worker = make_worker("矿工", "mining", "金币矿山");
+        worker.assigned_building = Some("伐木场".to_string());
+        let view = IdleGame::worker_summary_view(&worker, 0);
+        assert_eq!(view.assigned_building, Some("伐木场".to_string()));
     }
 }

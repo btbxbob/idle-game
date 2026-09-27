@@ -701,3 +701,217 @@ pub(super) fn compose_worker_opinion_en(worker: &Worker, seed: &ScenarioSeed, sc
     )
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::state::{EventImpact};
+    use crate::systems::event_data::{TriggerFamily, EventEffect};
+
+    fn make_seed(focus_zh: &'static str, focus_en: &'static str, category: EventCategory) -> ScenarioSeed {
+        ScenarioSeed {
+            id: "test_scenario".to_string(),
+            category,
+            impact: EventImpact::Flavor,
+            stage: GameStage::Workers,
+            required_technology: None,
+            trigger: TriggerFamily::Baseline,
+            focus_zh,
+            focus_en,
+            desk_zh: "测试台",
+            desk_en: "Test Desk",
+            angle_zh: "测试角度",
+            angle_en: "Test Angle",
+            result_zh: "测试结果",
+            result_en: "Test Result",
+            effect: EventEffect::None,
+            breaking: false,
+        }
+    }
+
+    fn make_context() -> EventContext {
+        EventContext {
+            stage: GameStage::Workers,
+            food: 100.0,
+            corpses: 0.0,
+            maggots: 0.0,
+            total_workers: 10,
+            hungry_workers: 2,
+            building_count: 5,
+            tech_count: 3,
+            human_pressure: 0.0,
+            maggot_influence: 0.0,
+            symbiosis_stability: 0.0,
+            hybrid_population: 0.0,
+            collective_consciousness: 0.0,
+            total_clicks: 100,
+        }
+    }
+
+    fn make_worker(name: &str, trait_value: Trait) -> Worker {
+        Worker {
+            name: name.to_string(),
+            skills: String::new(),
+            background: String::new(),
+            preferences: String::new(),
+            assigned_building: None,
+            level: 1,
+            efficiency_multiplier: 1.0,
+            xp: 0.0,
+            xp_to_next_level: 100.0,
+            gender: crate::entities::Gender::Other,
+            hobbies: vec![],
+            primary_trait: trait_value,
+            secondary_traits: vec![],
+            happiness: 50.0,
+            health: 100.0,
+            hunger: 0.0,
+            focus: 50.0,
+            fatigue: 0.0,
+            stress: 0.0,
+            is_hungry: false,
+            missing_limbs: vec![],
+            maggot_limbs: vec![],
+            starvation_start_time: 0.0,
+        }
+    }
+
+    #[test]
+    fn render_full_template_zh_produces_output() {
+        let styles = [
+            ("坍塌事故", "accident", EventCategory::SurvivalCrisis),
+            ("停工抗议", "labor", EventCategory::SurvivalCrisis),
+            ("节日巡游", "festival", EventCategory::IndustrialProgress),
+            ("传闻怪声", "rumor", EventCategory::DarkConversion),
+        ];
+        for (focus_zh, _focus_en, cat) in &styles {
+            let seed = make_seed(focus_zh, "test", *cat);
+            for variant in [0, 1, 2, 3, 10, 50] {
+                let result = render_full_template_zh(&seed, variant);
+                assert!(result.is_some(), "None for focus={}, variant={}", focus_zh, variant);
+                assert!(!result.unwrap().is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn render_full_template_en_produces_output() {
+        let styles = [
+            ("坍塌事故", "accident", EventCategory::SurvivalCrisis),
+            ("停工抗议", "labor", EventCategory::SurvivalCrisis),
+            ("节日巡游", "festival", EventCategory::IndustrialProgress),
+            ("传闻怪声", "rumor", EventCategory::DarkConversion),
+        ];
+        for (focus_zh, focus_en, cat) in &styles {
+            let seed = make_seed(focus_zh, focus_en, *cat);
+            for variant in [0, 1, 2, 3, 10, 50] {
+                let result = render_full_template_en(&seed, variant);
+                assert!(result.is_some(), "None for focus={}, variant={}", focus_en, variant);
+                assert!(!result.unwrap().is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn render_full_template_special_scenario_upload_queue() {
+        let mut seed = make_seed("名单风波", "list scandal", EventCategory::SocialMutation);
+        seed.id = "upload_queue_scandal_01".to_string();
+        for variant in [0, 1, 2, 3, 10, 50] {
+            let zh = render_full_template_zh(&seed, variant);
+            let en = render_full_template_en(&seed, variant);
+            assert!(zh.is_some());
+            assert!(en.is_some());
+        }
+    }
+
+    #[test]
+    fn compose_body_zh_with_and_without_worker() {
+        let seed = make_seed("生产波动", "production fluctuation", EventCategory::IndustrialProgress);
+        let ctx = make_context();
+        let body_with = compose_body_zh(&seed, &ctx, Some("张三"), 42);
+        let body_without = compose_body_zh(&seed, &ctx, None, 42);
+        assert!(!body_with.is_empty());
+        assert!(!body_without.is_empty());
+    }
+
+    #[test]
+    fn compose_body_en_with_and_without_worker() {
+        let seed = make_seed("生产波动", "production fluctuation", EventCategory::IndustrialProgress);
+        let ctx = make_context();
+        let body_with = compose_body_en(&seed, &ctx, Some("Zhang San"), 42);
+        let body_without = compose_body_en(&seed, &ctx, None, 42);
+        assert!(!body_with.is_empty());
+        assert!(!body_without.is_empty());
+    }
+
+    #[test]
+    fn compose_body_all_categories() {
+        let categories = [
+            EventCategory::SurvivalCrisis,
+            EventCategory::DarkConversion,
+            EventCategory::IndustrialProgress,
+            EventCategory::SocialMutation,
+            EventCategory::EndgameSign,
+        ];
+        let ctx = make_context();
+        for cat in &categories {
+            let seed = make_seed("测试", "test", *cat);
+            let zh = compose_body_zh(&seed, &ctx, Some("测试员"), 0);
+            let en = compose_body_en(&seed, &ctx, Some("Tester"), 0);
+            assert!(!zh.is_empty(), "empty body_zh for {:?}", cat);
+            assert!(!en.is_empty(), "empty body_en for {:?}", cat);
+        }
+    }
+
+    #[test]
+    fn compose_worker_opinion_zh_produces_output() {
+        let seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        let worker = make_worker("张三", Trait::Diligent);
+        let opinion = compose_worker_opinion_zh(&worker, &seed, "test_scenario");
+        assert!(!opinion.is_empty());
+        assert!(opinion.contains("张三"));
+    }
+
+    #[test]
+    fn compose_worker_opinion_en_produces_output() {
+        let seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        let worker = make_worker("Zhang San", Trait::Lazy);
+        let opinion = compose_worker_opinion_en(&worker, &seed, "test_scenario");
+        assert!(!opinion.is_empty());
+        assert!(opinion.contains("Zhang San"));
+    }
+
+    #[test]
+    fn compose_worker_opinion_various_traits() {
+        let seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        let traits = [
+            Trait::Diligent, Trait::Lazy, Trait::Intelligent, Trait::Social,
+            Trait::Loner, Trait::NightOwl,
+        ];
+        for t in &traits {
+            let worker = make_worker("TestWorker", *t);
+            let zh = compose_worker_opinion_zh(&worker, &seed, "scenario_1");
+            let en = compose_worker_opinion_en(&worker, &seed, "scenario_1");
+            assert!(!zh.is_empty(), "empty opinion_zh for trait {:?}", t);
+            assert!(!en.is_empty(), "empty opinion_en for trait {:?}", t);
+        }
+    }
+
+    #[test]
+    fn should_include_closer_varies_by_variant() {
+        let mut has_true = false;
+        let mut has_false = false;
+        for variant in 0..200 {
+            if should_include_closer(variant) {
+                has_true = true;
+            } else {
+                has_false = true;
+            }
+            if has_true && has_false {
+                break;
+            }
+        }
+        assert!(has_true, "should_include_closer never returns true");
+        assert!(has_false, "should_include_closer never returns false");
+    }
+}
+

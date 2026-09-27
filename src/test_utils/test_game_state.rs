@@ -11,6 +11,7 @@ struct Upgrade {
     cost: f64,
     production_increase: f64,
     owned: u32,
+    #[allow(dead_code)]
     unlocked: bool,
 }
 

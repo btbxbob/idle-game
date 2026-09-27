@@ -1,0 +1,42 @@
+{
+  "tier1": {
+    "Gold": { "name": "Gold", "icon": "🪙", "description": "The settlement's lifeblood. Every coin is soaked in sweat—workers claw it from the earth, then hand it back for permission to build tomorrow." },
+    "Wood": { "name": "Wood", "icon": "🪵", "description": "The forest's quiet gift. From hasty lean-tos to towering vaults, every great structure begins among these silent rings." },
+    "Stone": { "name": "Stone", "icon": "🪨", "description": "The slumbering bones of the world. After eons of stillness, they are chiseled, hauled, and stacked—becoming the settlement's unyielding skeleton." },
+    "IronOre": { "name": "Iron Ore", "icon": "⛏️", "description": "Dark-red veins threading the mountainside. Crude, heavy, devoid of shine—yet these are the first heartbeats of an iron civilization." },
+    "CopperOre": { "name": "Copper Ore", "icon": "🟤", "description": "The oldest industrial metal. Once it belonged only to bronze statues and ancient bells—now it carries electric current into every fiber of the settlement." },
+    "AluminumOre": { "name": "Aluminum Ore", "icon": "⬜", "description": "A silvery feather of an ore, painstakingly separated from blood-red bauxite. It was born to fly—and it will lift the settlement toward the world above the clouds." },
+    "Coal": { "name": "Coal", "icon": "⬛", "description": "The black remains of prehistoric forests, buried deep for a hundred million years. Every furnace, every flame in the settlement burns a forgotten geological age." },
+    "Oil": { "name": "Oil", "icon": "🛢️", "description": "The earth's dark blood, thick and restless. It fuels engines, weaves into plastic, lights the sky—blessing and curse in equal measure." },
+    "Crystal": { "name": "Crystal", "icon": "💎", "description": "A perfect geometric accident of the crust. Rarer than steel, purer than gold—the settlement's future hides within its glittering facets." },
+    "Food": { "name": "Food", "icon": "🌾", "description": "The settlement's simplest and cruelest currency. A single grain can feed a worker—or become the leash that controls his every breath." }
+  },
+  "tier2": {
+    "IronIngot": { "name": "Iron Ingot", "icon": "🔩", "description": "Ore dies in the flame—and is reborn in the flame. The silver-gray ingot cools heavily, waiting to be forged into bone and wing." },
+    "CopperIngot": { "name": "Copper Ingot", "icon": "🟫", "description": "A dark-red metallic flower blooming in the crucible. Soft, malleable, conductive—the most sensitive nerve ending of industry's body." },
+    "SteelPlate": { "name": "Steel Plate", "icon": "🔲", "description": "A covenant of iron and carbon, tempered in infernal heat. Cold, rigid, unyielding—the spine of towers, the shell of weapons, the will of the settlement." },
+    "Glass": { "name": "Glass", "icon": "🪟", "description": "Sand melts into transparent tears at a thousand degrees. It pours light into gloomy workshops and lets the overseers watch every frame of labor." },
+    "Plastic": { "name": "Plastic", "icon": "🧴", "description": "A white miracle born from black oil. Light enough to float, tough enough to wrap the world—a civilization woven from carbon chains." },
+    "Chemicals": { "name": "Chemicals", "icon": "🧪", "description": "Alchemy at the molecular level. Corrode, catalyze, synthesize—every drop of reagent might sprout, blossom, or detonate." },
+    "CircuitBoard": { "name": "Circuit Board", "icon": "🔌", "description": "A silver maze etched onto a green substrate. No flesh, yet it thinks—the settlement's first step toward intelligence." },
+    "Motor": { "name": "Motor", "icon": "⚙️", "description": "An iron core wrapped in copper wire, awakened by current. Its low hum is the heartbeat of industrial civilization." },
+    "Sensor": { "name": "Sensor", "icon": "📡", "description": "The settlement's outstretched nerve endings. It tastes heat, pressure, light, and sound—teaching cold machines how to see." },
+    "Gear": { "name": "Gear", "icon": "⚙️", "description": "Interlocking steel discs passing rotation from one place to another. They are the silent relay runners in the settlement's mechanical body." },
+    "Battery": { "name": "Battery", "icon": "🔋", "description": "Energy imprisoned in a chemical cage, awaiting its moment of release. Every battery is a small piece of daylight stored in the dark." },
+    "Generator": { "name": "Generator", "icon": "🏭", "description": "A colossal engine that translates physical motion into the pulse of civilization. It roars, it trembles—it pumps life into the settlement." }
+  },
+  "tier3": {
+    "Microchip": { "name": "Microchip", "icon": "💾", "description": "Sand tamed into silicon, silicon carved into a city's nerve center. In a space the size of a fingernail, a trillion thoughts occur every second." },
+    "QuantumComputer": { "name": "Quantum Computer", "icon": "🖥️", "description": "In a void near absolute zero, the tides of probability are harnessed as computation. It ponders questions no human mind can frame." },
+    "Robot": { "name": "Robot", "icon": "🤖", "description": "For the first time, a steel frame contains movement. They need no food, no rest—only orders." },
+    "Nanobot": { "name": "Nanobot", "icon": "🔬", "description": "Invisible to the eye, yet swimming through the bloodstream. A machine the size of a dust speck can weave miracles stronger than spider silk." },
+    "Antimatter": { "name": "Antimatter", "icon": "⚡", "description": "The mirror side of matter—the most violent energy in the cosmos. A single gram can light a city... or erase it from every map." },
+    "DarkMatter": { "name": "Dark Matter", "icon": "🌑", "description": "Unseen, untouched, yet it holds galaxies together. When the settlement learns to touch it back, humanity ceases to be a cosmic spectator." },
+    "TimeCrystal": { "name": "Time Crystal", "icon": "⏳", "description": "An exotic structure that never decays in the river of time. It obeys neither cause nor entropy—a hairline crack in the edifice of physics." },
+    "Spaceship": { "name": "Spaceship", "icon": "🚀", "description": "The settlement's ark. When this planet's resources are bled dry, it will carry the last hope into an endless sea of stars." }
+  },
+  "special": {
+    "Corpse": { "name": "Corpse", "icon": "💀", "description": "Once a living worker, now a pile of organic material awaiting conversion. On the settlement's ledger, the dead are merely another resource class." },
+    "Maggot": { "name": "Maggot", "icon": "🪱", "description": "Tiny creatures writhing in rotting flesh, feeding on death. In the settlement's underground labs, they gnaw a path toward the future in the dark." }
+  }
+}

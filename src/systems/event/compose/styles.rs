@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NewsStyle {
     Default,
     Accident,
@@ -1133,6 +1133,443 @@ pub(super) fn observer_line_en(category: EventCategory, variant: usize) -> &'sta
             6 => "From a civilizational perspective, these events look less like breakthroughs and more like measuring tools becoming obsolete.",
             _ => "Analysts broadly agree on one point: when news must describe consciousness, energy, and expedition together, the page has already turned.",
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::state::{EventImpact};
+    use crate::systems::event_data::{TriggerFamily, EventEffect};
+
+    fn make_seed(focus_zh: &'static str, focus_en: &'static str, category: EventCategory) -> ScenarioSeed {
+        ScenarioSeed {
+            id: "test_scenario".to_string(),
+            category,
+            impact: EventImpact::Flavor,
+            stage: GameStage::Workers,
+            required_technology: None,
+            trigger: TriggerFamily::Baseline,
+            focus_zh,
+            focus_en,
+            desk_zh: "测试台",
+            desk_en: "Test Desk",
+            angle_zh: "测试角度",
+            angle_en: "Test Angle",
+            result_zh: "测试结果",
+            result_en: "Test Result",
+            effect: EventEffect::None,
+            breaking: false,
+        }
+    }
+
+    #[test]
+    fn detect_news_style_accident() {
+        let seed = make_seed("坍塌事故", "accident", EventCategory::SurvivalCrisis);
+        assert_eq!(detect_news_style(&seed), NewsStyle::Accident);
+    }
+
+    #[test]
+    fn detect_news_style_labor() {
+        let seed = make_seed("停工抗议", "strike", EventCategory::SurvivalCrisis);
+        assert_eq!(detect_news_style(&seed), NewsStyle::Labor);
+    }
+
+    #[test]
+    fn detect_news_style_festival() {
+        let seed = make_seed("春节市集", "festival", EventCategory::IndustrialProgress);
+        assert_eq!(detect_news_style(&seed), NewsStyle::Festival);
+    }
+
+    #[test]
+    fn detect_news_style_rumor() {
+        let seed = make_seed("传闻怪声", "rumor", EventCategory::DarkConversion);
+        assert_eq!(detect_news_style(&seed), NewsStyle::Rumor);
+    }
+
+    #[test]
+    fn detect_news_style_default() {
+        let seed = make_seed("生产波动", "production fluctuation", EventCategory::IndustrialProgress);
+        assert_eq!(detect_news_style(&seed), NewsStyle::Default);
+    }
+
+    #[test]
+    fn desks_for_style_returns_correct_set() {
+        assert_eq!(desks_for_style(NewsStyle::Festival).len(), CULTURE_DESKS.len());
+        assert_eq!(desks_for_style(NewsStyle::Rumor).len(), RUMOR_DESKS.len());
+        assert_eq!(desks_for_style(NewsStyle::Default).len(), BASE_DESKS.len());
+        assert_eq!(desks_for_style(NewsStyle::Accident).len(), BASE_DESKS.len());
+        assert_eq!(desks_for_style(NewsStyle::Labor).len(), BASE_DESKS.len());
+    }
+
+    #[test]
+    fn compose_headline_zh_all_styles_produce_output() {
+        let styles = [
+            ("事故现场", "accident"),
+            ("停工抗议", "labor"),
+            ("节日巡游", "festival"),
+            ("传闻怪声", "rumor"),
+            ("生产波动", "default"),
+        ];
+        for (focus_zh, focus_en) in &styles {
+            let cat = EventCategory::IndustrialProgress;
+            let seed = make_seed(focus_zh, focus_en, cat);
+            for variant in [0, 1, 2, 3, 4, 5, 6, 7, 11, 50, 100, 500] {
+                let headline = compose_headline_zh(&seed, variant);
+                assert!(!headline.is_empty(), "empty headline for focus={}, variant={}", focus_zh, variant);
+            }
+        }
+    }
+
+    #[test]
+    fn compose_headline_en_all_styles_produce_output() {
+        let styles = [
+            ("事故现场", "accident"),
+            ("停工抗议", "labor"),
+            ("节日巡游", "festival"),
+            ("传闻怪声", "rumor"),
+            ("生产波动", "default"),
+        ];
+        for (focus_zh, focus_en) in &styles {
+            let cat = EventCategory::IndustrialProgress;
+            let seed = make_seed(focus_zh, focus_en, cat);
+            for variant in [0, 1, 2, 3, 4, 5, 6, 7, 11, 50, 100, 500] {
+                let headline = compose_headline_en(&seed, variant);
+                assert!(!headline.is_empty(), "empty headline for focus={}, variant={}", focus_en, variant);
+            }
+        }
+    }
+
+    #[test]
+    fn stylize_field_returns_non_empty() {
+        let seed = make_seed("事故", "accident", EventCategory::IndustrialProgress);
+        for variant in [0, 10, 50, 100] {
+            let zh = stylize_field_zh(&seed, "某字段内容", variant);
+            let en = stylize_field_en(&seed, "some field content", variant);
+            assert!(!zh.is_empty());
+            assert!(!en.is_empty());
+        }
+    }
+
+    #[test]
+    fn stylize_management_returns_non_empty() {
+        let seed = make_seed("事故", "accident", EventCategory::IndustrialProgress);
+        for variant in [0, 10, 50, 100] {
+            let zh = stylize_management_zh(&seed, "管理层回应", variant);
+            let en = stylize_management_en(&seed, "management response", variant);
+            assert!(!zh.is_empty());
+            assert!(!en.is_empty());
+        }
+    }
+
+    #[test]
+    fn stylize_observer_returns_non_empty() {
+        let seed = make_seed("事故", "accident", EventCategory::IndustrialProgress);
+        for variant in [0, 10, 50, 100] {
+            let zh = stylize_observer_zh(&seed, "观察者评论", variant);
+            let en = stylize_observer_en(&seed, "observer comment", variant);
+            assert!(!zh.is_empty());
+            assert!(!en.is_empty());
+        }
+    }
+
+    #[test]
+    fn closing_line_variants_cover_all_stages() {
+        let stages = [GameStage::Genesis, GameStage::Workers, GameStage::Maggot, GameStage::Hybrid, GameStage::Collective];
+        for stage in &stages {
+            for variant in [0, 10, 50, 100] {
+                let zh = closing_line_zh(*stage, variant);
+                let en = closing_line_en(*stage, variant);
+                assert!(!zh.is_empty(), "empty closing_zh for stage={:?}, variant={}", stage, variant);
+                assert!(!en.is_empty(), "empty closing_en for stage={:?}, variant={}", stage, variant);
+            }
+        }
+    }
+
+    #[test]
+    fn source_note_returns_option() {
+        let seed = make_seed("事故", "accident", EventCategory::IndustrialProgress);
+        for variant in [0, 1, 2, 3, 10, 50] {
+            let _zh = source_note_zh(&seed, variant);
+            let _en = source_note_en(&seed, variant);
+        }
+    }
+
+    #[test]
+    fn field_line_all_categories() {
+        let categories = [
+            EventCategory::SurvivalCrisis,
+            EventCategory::DarkConversion,
+            EventCategory::IndustrialProgress,
+            EventCategory::SocialMutation,
+            EventCategory::EndgameSign,
+        ];
+        for cat in &categories {
+            let zh = field_line_zh(*cat, 0);
+            let en = field_line_en(*cat, 0);
+            assert!(!zh.is_empty());
+            assert!(!en.is_empty());
+        }
+    }
+
+    #[test]
+    fn management_line_all_categories() {
+        let categories = [
+            EventCategory::SurvivalCrisis,
+            EventCategory::DarkConversion,
+            EventCategory::IndustrialProgress,
+            EventCategory::SocialMutation,
+            EventCategory::EndgameSign,
+        ];
+        for cat in &categories {
+            let zh = management_line_zh(*cat, 0);
+            let en = management_line_en(*cat, 0);
+            assert!(!zh.is_empty());
+            assert!(!en.is_empty());
+        }
+    }
+
+    #[test]
+    fn observer_line_all_categories() {
+        let categories = [
+            EventCategory::SurvivalCrisis,
+            EventCategory::DarkConversion,
+            EventCategory::IndustrialProgress,
+            EventCategory::SocialMutation,
+            EventCategory::EndgameSign,
+        ];
+        for cat in &categories {
+            let zh = observer_line_zh(*cat, 0);
+            let en = observer_line_en(*cat, 0);
+            assert!(!zh.is_empty());
+            assert!(!en.is_empty());
+        }
+    }
+
+    #[test]
+    fn stylize_closer_zh_all_styles() {
+        let styles = [
+            ("事故现场", "accident"),
+            ("停工抗议", "labor"),
+            ("节日巡游", "festival"),
+            ("传闻怪声", "rumor"),
+            ("生产波动", "default"),
+        ];
+        for (focus_zh, focus_en) in &styles {
+            let seed = make_seed(focus_zh, focus_en, EventCategory::IndustrialProgress);
+            for variant in [0, 1, 2, 3, 10, 50] {
+                let zh = stylize_closer_zh(&seed, "结尾内容".to_string(), variant);
+                assert!(!zh.is_empty(), "empty closer_zh for style={}, variant={}", focus_zh, variant);
+            }
+        }
+    }
+
+    #[test]
+    fn stylize_closer_en_all_styles() {
+        let styles = [
+            ("事故现场", "accident"),
+            ("停工抗议", "labor"),
+            ("节日巡游", "festival"),
+            ("传闻怪声", "rumor"),
+            ("生产波动", "default"),
+        ];
+        for (focus_zh, focus_en) in &styles {
+            let seed = make_seed(focus_zh, focus_en, EventCategory::IndustrialProgress);
+            for variant in [0, 1, 2, 3, 10, 50] {
+                let en = stylize_closer_en(&seed, "closing content".to_string(), variant);
+                assert!(!en.is_empty(), "empty closer_en for style={}, variant={}", focus_en, variant);
+            }
+        }
+    }
+
+    #[test]
+    fn stylize_closer_default_returns_closer_unchanged() {
+        let seed = make_seed("生产波动", "production", EventCategory::IndustrialProgress);
+        let closer = "原样输出".to_string();
+        let zh = stylize_closer_zh(&seed, closer.clone(), 0);
+        let en = stylize_closer_en(&seed, closer.clone(), 0);
+        assert_eq!(zh, "原样输出");
+        assert_eq!(en, "原样输出");
+    }
+
+    #[test]
+    fn source_note_zh_depth_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_zh = "深度报道";
+        for variant in [0, 1, 2, 3, 10] {
+            let note = source_note_zh(&seed, variant);
+            assert!(note.is_some(), "深度 desk should return Some for variant={}", variant);
+            assert!(!note.unwrap().is_empty());
+        }
+    }
+
+    #[test]
+    fn source_note_zh_night_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_zh = "夜报";
+        let note = source_note_zh(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_zh_daily_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_zh = "聚落日报";
+        let note = source_note_zh(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_zh_operations_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_zh = "工务快线";
+        let note = source_note_zh(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_zh_culture_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_zh = "文娱版";
+        let note = source_note_zh(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_zh_rumor_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_zh = "怪谈版";
+        let note = source_note_zh(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_zh_unknown_desk_returns_none() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_zh = "未知版面";
+        let note = source_note_zh(&seed, 0);
+        assert!(note.is_none());
+    }
+
+    #[test]
+    fn source_note_en_long_read_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "Long Read";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_en_after_hours_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "After Hours";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_en_settlement_daily_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "Settlement Daily";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_en_operations_wire_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "Operations Wire";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_en_industry_brief_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "Industry Brief";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_en_culture_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "Culture";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_en_rumor_desk() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "Rumor";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_some());
+    }
+
+    #[test]
+    fn source_note_en_unknown_desk_returns_none() {
+        let mut seed = make_seed("事故", "accident", EventCategory::SurvivalCrisis);
+        seed.desk_en = "Unknown Desk";
+        let note = source_note_en(&seed, 0);
+        assert!(note.is_none());
+    }
+
+    #[test]
+    fn field_line_variants_cover_multiple_slots() {
+        let categories = [
+            EventCategory::SurvivalCrisis,
+            EventCategory::DarkConversion,
+            EventCategory::IndustrialProgress,
+            EventCategory::SocialMutation,
+            EventCategory::EndgameSign,
+        ];
+        for cat in &categories {
+            for variant in [0, 1, 5, 11, 50, 100, 500] {
+                let zh = field_line_zh(*cat, variant);
+                let en = field_line_en(*cat, variant);
+                assert!(!zh.is_empty(), "empty field_zh for cat={:?}, variant={}", cat, variant);
+                assert!(!en.is_empty(), "empty field_en for cat={:?}, variant={}", cat, variant);
+            }
+        }
+    }
+
+    #[test]
+    fn management_line_variants_cover_multiple_slots() {
+        let categories = [
+            EventCategory::SurvivalCrisis,
+            EventCategory::DarkConversion,
+            EventCategory::IndustrialProgress,
+            EventCategory::SocialMutation,
+            EventCategory::EndgameSign,
+        ];
+        for cat in &categories {
+            for variant in [0, 1, 5, 11, 50, 100, 500] {
+                let zh = management_line_zh(*cat, variant);
+                let en = management_line_en(*cat, variant);
+                assert!(!zh.is_empty());
+                assert!(!en.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn observer_line_variants_cover_multiple_slots() {
+        let categories = [
+            EventCategory::SurvivalCrisis,
+            EventCategory::DarkConversion,
+            EventCategory::IndustrialProgress,
+            EventCategory::SocialMutation,
+            EventCategory::EndgameSign,
+        ];
+        for cat in &categories {
+            for variant in [0, 1, 5, 11, 50, 100, 500] {
+                let zh = observer_line_zh(*cat, variant);
+                let en = observer_line_en(*cat, variant);
+                assert!(!zh.is_empty());
+                assert!(!en.is_empty());
+            }
+        }
     }
 }
 

@@ -1,0 +1,165 @@
+{
+  "version": "1.0.0",
+  "game_loop": {
+    "tick_interval_ms": 250,
+    "auto_save_interval_ms": 15000,
+    "worker_spawn_interval_s": 30,
+    "food_consumption_interval_s": 4
+  },
+  "click": {
+    "base_coins_per_click": 1,
+    "critical_click_chance": 0.0,
+    "critical_click_multiplier": 2.0
+  },
+  "buildings": {
+    "cost_growth": 1.15,
+    "primary": {
+      "gold_mine": { "base_cost": 15, "production_rate": 1.0, "output": "Gold" },
+      "lumber_mill": { "base_cost": 20, "production_rate": 1.0, "output": "Wood" },
+      "quarry": { "base_cost": 25, "production_rate": 0.5, "output": "Stone" },
+      "iron_mine": { "base_cost": 50, "production_rate": 0.5, "output": "IronOre" },
+      "copper_mine": { "base_cost": 40, "production_rate": 0.6, "output": "CopperOre" },
+      "aluminum_mine": { "base_cost": 60, "production_rate": 0.4, "output": "AluminumOre" },
+      "coal_mine": { "base_cost": 70, "production_rate": 0.5, "output": "Coal" },
+      "oil_well": { "base_cost": 100, "production_rate": 0.3, "output": "Oil" },
+      "crystal_mine": { "base_cost": 150, "production_rate": 0.2, "output": "Crystal" },
+      "farm": { "base_cost": 30, "production_rate": 2.0, "output": "Food" }
+    },
+    "processing": {
+      "iron_smelter": { "base_cost": 220, "production_rate": 0.1, "output": "IronIngot" },
+      "copper_smelter": { "base_cost": 240, "production_rate": 0.1, "output": "CopperIngot" },
+      "chemical_plant": { "base_cost": 420, "production_rate": 0.08, "output": "Chemicals" },
+      "steel_mill": { "base_cost": 520, "production_rate": 0.06, "output": "SteelPlate" },
+      "glass_factory": { "base_cost": 460, "production_rate": 0.08, "output": "Glass" },
+      "plastic_factory": { "base_cost": 540, "production_rate": 0.08, "output": "Plastic" },
+      "circuit_board_factory": { "base_cost": 760, "production_rate": 0.065, "output": "CircuitBoard" },
+      "motor_factory": { "base_cost": 1200, "production_rate": 0.04, "output": "Motor" },
+      "sensor_factory": { "base_cost": 1250, "production_rate": 0.04, "output": "Sensor" },
+      "gear_factory": { "base_cost": 750, "production_rate": 0.06, "output": "Gear" },
+      "battery_factory": { "base_cost": 1200, "production_rate": 0.05, "output": "Battery" },
+      "generator_factory": { "base_cost": 1800, "production_rate": 0.04, "output": "Generator" },
+      "chip_fab": { "base_cost": 2600, "production_rate": 0.04, "output": "Microchip" },
+      "quantum_lab": { "base_cost": 7000, "production_rate": 0.012, "output": "QuantumComputer" },
+      "robot_factory": { "base_cost": 5200, "production_rate": 0.02, "output": "Robot" },
+      "nanobot_factory": { "base_cost": 9000, "production_rate": 0.015, "output": "Nanobot" },
+      "antimatter_reactor": { "base_cost": 25000, "production_rate": 0.005, "output": "Antimatter" },
+      "time_crystal_synth": { "base_cost": 28000, "production_rate": 0.005, "output": "TimeCrystal" }
+    },
+    "dark": {
+      "maggot_trough": { "base_cost": 160, "production_rate": 0.5, "output": "Maggot" },
+      "maggot_factory": { "base_cost": 200, "production_rate": 1.0, "output": "Maggot" },
+      "necrotic_pool": { "base_cost": 420, "production_rate": 3.0, "output": "Maggot" },
+      "symbiotic_chamber": { "base_cost": 1800, "production_rate": 8.0, "output": "Food" },
+      "neural_spire": { "base_cost": 9000, "production_rate": 0.3, "output": "DarkMatter" },
+      "deep_space_hatchery": { "base_cost": 22000, "production_rate": 0.08, "output": "Spaceship" }
+    }
+  },
+  "crafting": {
+    "IronIngot": { "inputs": { "IronOre": 10 }, "output": 1 },
+    "CopperIngot": { "inputs": { "CopperOre": 10 }, "output": 1 },
+    "Chemicals": { "inputs": { "Oil": 4, "Coal": 2 }, "output": 1 },
+    "SteelPlate": { "inputs": { "IronOre": 12, "Coal": 3 }, "output": 1 },
+    "Glass": { "inputs": { "Stone": 8, "Coal": 1 }, "output": 1 },
+    "Plastic": { "inputs": { "Oil": 5, "Coal": 1 }, "output": 1 },
+    "CircuitBoard": { "inputs": { "CopperOre": 12, "Oil": 2, "Crystal": 1 }, "output": 1 },
+    "Motor": { "inputs": { "IronOre": 8, "CopperOre": 4, "Coal": 2 }, "output": 1 },
+    "Sensor": { "inputs": { "Crystal": 3, "CopperOre": 6, "Oil": 2 }, "output": 1 },
+    "Gear": { "inputs": { "IronOre": 6, "Coal": 2 }, "output": 1 },
+    "Battery": { "inputs": { "Coal": 5, "Oil": 3, "Crystal": 1 }, "output": 1 },
+    "Generator": { "inputs": { "IronOre": 16, "CopperOre": 10, "Coal": 6 }, "output": 1 },
+    "Microchip": { "inputs": { "Crystal": 2, "CircuitBoard": 2 }, "output": 1 },
+    "QuantumComputer": { "inputs": { "Crystal": 5, "Microchip": 4, "CircuitBoard": 3 }, "output": 1 },
+    "Robot": { "inputs": { "Crystal": 2, "SteelPlate": 4, "Motor": 2, "Sensor": 2 }, "output": 1 },
+    "Nanobot": { "inputs": { "Oil": 5, "Microchip": 2, "Chemicals": 4 }, "output": 1 },
+    "Antimatter": { "inputs": { "Crystal": 20, "QuantumComputer": 3, "Chemicals": 10 }, "output": 1 },
+    "TimeCrystal": { "inputs": { "Crystal": 40, "Microchip": 10, "QuantumComputer": 2 }, "output": 1 },
+    "DarkMatter": { "inputs": { "Crystal": 50, "Microchip": 6, "QuantumComputer": 2 }, "output": 1 },
+    "Spaceship": { "inputs": { "Crystal": 80, "SteelPlate": 20, "Microchip": 10, "Generator": 4 }, "output": 1 }
+  },
+  "workers": {
+    "food_per_consumption": 1.25,
+    "starvation_threshold_s": 18,
+    "xp_per_second": 10.0,
+    "xp_growth_per_level": 1.5,
+    "base_xp_to_next": 100.0,
+    "efficiency": {
+      "preference_match_bonus": 0.20,
+      "skill_match_bonus": 0.12,
+      "background_bonus": 0.08,
+      "hobby_bonus": 0.06,
+      "level_bonus_per_level": 0.04,
+      "min_efficiency": 0.25
+    },
+    "states": {
+      "initial": { "happiness": 50, "health": 100, "hunger": 0, "focus": 55, "fatigue": 10, "stress": 15 },
+      "working": { "focus_gain": [0.2, 1.0], "fatigue_gain": [0.5, 2.3], "stress_gain": [0.35, 1.35] },
+      "idle": { "focus_recovery": 0.8, "fatigue_recovery": -1.4, "stress_recovery": -1.1 }
+    }
+  },
+  "traits": {
+    "Diligent": { "efficiency": 0.15, "xp": 0, "team": 0, "time": 1.0, "happiness": 0 },
+    "Hardworking": { "efficiency": 0.10, "xp": 0, "team": 0, "time": 1.0, "happiness": 0 },
+    "Lazy": { "efficiency": -0.10, "xp": 0, "team": 0, "time": 1.0, "happiness": -5 },
+    "Efficient": { "efficiency": 0.20, "xp": 0, "team": 0, "time": 1.0, "happiness": 0 },
+    "Slow": { "efficiency": -0.15, "xp": 0, "team": 0, "time": 1.0, "happiness": -3 },
+    "Intelligent": { "efficiency": 0, "xp": 0.20, "team": 0, "time": 1.0, "happiness": 0 },
+    "FastLearner": { "efficiency": 0, "xp": 0.15, "team": 0, "time": 1.0, "happiness": 0 },
+    "Genius": { "efficiency": 0, "xp": 0.30, "team": 0, "time": 1.0, "happiness": 0 },
+    "SlowLearner": { "efficiency": 0, "xp": -0.10, "team": 0, "time": 1.0, "happiness": -2 },
+    "Social": { "efficiency": 0, "xp": 0, "team": 0.05, "time": 1.0, "happiness": 3 },
+    "Loner": { "efficiency": 0, "xp": 0, "team": -0.05, "time": 1.0, "happiness": -2 },
+    "Charismatic": { "efficiency": 0, "xp": 0, "team": 0.10, "time": 1.0, "happiness": 5 },
+    "Shy": { "efficiency": 0, "xp": 0, "team": -0.05, "time": 1.0, "happiness": -3 },
+    "NightOwl": { "efficiency": 0, "xp": 0, "team": 0, "time": 1.20, "happiness": 0 },
+    "EarlyBird": { "efficiency": 0, "xp": 0, "team": 0, "time": 1.20, "happiness": 0 },
+    "Clumsy": { "efficiency": -0.10, "xp": 0, "team": 0, "time": 1.0, "happiness": -3 },
+    "Forgetful": { "efficiency": -0.05, "xp": 0, "team": 0, "time": 1.0, "happiness": -2 },
+    "Careless": { "efficiency": -0.08, "xp": 0, "team": 0, "time": 1.0, "happiness": -4 },
+    "Careful": { "efficiency": 0.05, "xp": 0, "team": 0, "time": 1.0, "happiness": 2 },
+    "Creative": { "efficiency": 0.10, "xp": 0.05, "team": 0, "time": 1.0, "happiness": 5 },
+    "Persevering": { "efficiency": 0.15, "xp": 0.10, "team": 0, "time": 1.0, "happiness": 3 },
+    "Optimistic": { "efficiency": 0, "xp": 0, "team": 0, "time": 1.0, "happiness": 8 }
+  },
+  "housing": {
+    "cost_growth_gold": 1.0025,
+    "cost_growth_other": 1.5,
+    "catalog": [
+      { "id": "shack", "capacity": 4, "costs": { "Gold": 100, "Wood": 35 }, "required_tech": null },
+      { "id": "wooden_cabin", "capacity": 6, "costs": { "Gold": 180, "Wood": 90, "Stone": 30 }, "required_tech": "BasicLogging" },
+      { "id": "stone_dorm", "capacity": 8, "costs": { "Gold": 320, "Stone": 120, "IronOre": 50 }, "required_tech": "BasicQuarrying" },
+      { "id": "iron_apartment", "capacity": 12, "costs": { "Gold": 520, "IronIngot": 90, "Glass": 40 }, "required_tech": "BasicSmelting" },
+      { "id": "steel_tower", "capacity": 16, "costs": { "Gold": 900, "SteelPlate": 120, "Gear": 60, "IronIngot": 80 }, "required_tech": "BasicEngineering" },
+      { "id": "polymer_pod", "capacity": 20, "costs": { "Gold": 1450, "Plastic": 140, "Chemicals": 90, "Glass": 90 }, "required_tech": "AdvancedChemistry" },
+      { "id": "auto_dome", "capacity": 26, "costs": { "Gold": 2400, "CircuitBoard": 120, "Motor": 90, "Battery": 70 }, "required_tech": "Automation" },
+      { "id": "bio_nest", "capacity": 32, "costs": { "Gold": 4200, "Plastic": 160, "Chemicals": 140, "Robot": 24 }, "required_tech": "Biotechnology" },
+      { "id": "quantum_haven", "capacity": 40, "costs": { "Gold": 7600, "Microchip": 120, "Sensor": 90, "QuantumComputer": 18 }, "required_tech": "QuantumComputing" },
+      { "id": "star_ark", "capacity": 52, "costs": { "Gold": 14000, "Nanobot": 90, "TimeCrystal": 24, "Antimatter": 12 }, "required_tech": "SpaceExploration" }
+    ]
+  },
+  "decay": {
+    "maggots_per_corpse": 20,
+    "corpse_decay_per_tick": 1.0
+  },
+  "prestige": {
+    "base_threshold": 1000000,
+    "pp_formula": "sqrt(total_resources / 1000000) * (1 + tech_count * 0.1 + achievement_count * 0.05)",
+    "multiplier_per_pp": 0.01
+  },
+  "stages": {
+    "genesis": { "unlock": "initial", "resources": ["Gold", "Wood", "Stone"] },
+    "workers": { "unlock": "total_clicks >= 50", "resources": ["IronOre", "CopperOre", "AluminumOre", "Coal", "Oil", "Crystal", "Food"] },
+    "maggot": { "unlock": "corpses >= 1", "resources": ["Corpse", "Maggot"] },
+    "hybrid": { "unlock": "maggot_count >= 100 AND symbiotic_tech", "resources": [] },
+    "collective": { "unlock": "collective_awakening_tech", "resources": ["DarkMatter", "Spaceship"] }
+  },
+  "technology_effects": {
+    "production_bonus_compound": true,
+    "ai_assistance_multiplier": 0.1,
+    "nuclear_power_multiplier": 0.1,
+    "symbiotic_hosts_multiplier": 0.08,
+    "hive_mind_multiplier": 0.12,
+    "collective_awakening_multiplier": 0.12,
+    "cost_reduction_per_tier4": 0.1,
+    "min_cost_multiplier": 0.1
+  }
+}

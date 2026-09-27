@@ -278,3 +278,63 @@ pub fn trait_voice_pack_zh(
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn all_traits() -> Vec<Trait> {
+        vec![
+            Trait::Diligent, Trait::Hardworking, Trait::Efficient, Trait::Persevering, Trait::Careful,
+            Trait::Lazy, Trait::Slow, Trait::SlowLearner, Trait::Clumsy, Trait::Careless, Trait::Forgetful,
+            Trait::Intelligent, Trait::FastLearner, Trait::Genius, Trait::Creative,
+            Trait::Social, Trait::Charismatic, Trait::Optimistic,
+            Trait::Loner, Trait::Shy,
+            Trait::NightOwl, Trait::EarlyBird,
+        ]
+    }
+
+    #[test]
+    fn every_trait_returns_three_non_empty_slices() {
+        for t in all_traits() {
+            let (a, b, c) = trait_voice_pack_zh(t);
+            assert!(!a.is_empty(), "a slice empty for {:?}", t);
+            assert!(!b.is_empty(), "b slice empty for {:?}", t);
+            assert!(!c.is_empty(), "c slice empty for {:?}", t);
+        }
+    }
+
+    #[test]
+    fn efficiency_group_traits_share_pack() {
+        let traits = [Trait::Diligent, Trait::Hardworking, Trait::Efficient, Trait::Persevering, Trait::Careful];
+        let reference = trait_voice_pack_zh(traits[0]);
+        for t in &traits[1..] {
+            let pack = trait_voice_pack_zh(*t);
+            assert_eq!(reference.0.len(), pack.0.len());
+            assert_eq!(reference.1.len(), pack.1.len());
+            assert_eq!(reference.2.len(), pack.2.len());
+        }
+    }
+
+    #[test]
+    fn negative_group_traits_share_pack() {
+        let traits = [Trait::Lazy, Trait::Slow, Trait::SlowLearner, Trait::Clumsy, Trait::Careless, Trait::Forgetful];
+        let reference = trait_voice_pack_zh(traits[0]);
+        for t in &traits[1..] {
+            let pack = trait_voice_pack_zh(*t);
+            assert_eq!(reference.0.len(), pack.0.len());
+            assert_eq!(reference.1.len(), pack.1.len());
+            assert_eq!(reference.2.len(), pack.2.len());
+        }
+    }
+
+    #[test]
+    fn all_slices_contain_non_empty_strings() {
+        for t in all_traits() {
+            let (a, b, c) = trait_voice_pack_zh(t);
+            for s in a.iter().chain(b.iter()).chain(c.iter()) {
+                assert!(!s.is_empty(), "empty string in pack for {:?}", t);
+            }
+        }
+    }
+}
+

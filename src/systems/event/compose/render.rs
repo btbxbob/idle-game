@@ -178,3 +178,221 @@ pub fn render_active_modifier_view(
     })
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::state::{EventImpact};
+
+    fn make_context() -> EventContext {
+        EventContext {
+            stage: GameStage::Workers,
+            food: 100.0,
+            corpses: 5.0,
+            maggots: 10.0,
+            total_workers: 20,
+            hungry_workers: 3,
+            building_count: 8,
+            tech_count: 4,
+            human_pressure: 0.5,
+            maggot_influence: 0.3,
+            symbiosis_stability: 0.7,
+            hybrid_population: 2.0,
+            collective_consciousness: 0.1,
+            total_clicks: 500,
+        }
+    }
+
+    fn make_entry(scenario_id: &str, stage_id: &str) -> EventLogEntry {
+        EventLogEntry {
+            event_id: 1,
+            timestamp: 1000.0,
+            scenario_id: scenario_id.to_string(),
+            category: EventCategory::IndustrialProgress,
+            impact: EventImpact::Flavor,
+            stage_id: stage_id.to_string(),
+            variant_index: 0,
+            worker_name: Some("测试员".to_string()),
+            worker_trait: Some("Diligent".to_string()),
+            is_breaking: false,
+            snapshot: EventSnapshot {
+                food: 100.0,
+                hungry_workers: 2,
+                corpses: 0.0,
+                maggots: 0.0,
+                building_count: 5,
+                tech_count: 3,
+                hybrid_population: 0.0,
+                symbiosis_stability: 0.0,
+                collective_consciousness: 0.0,
+                total_clicks: 100,
+                maggot_influence: 0.0,
+            },
+            outcome: EventEffectOutcome::default(),
+        }
+    }
+
+    #[test]
+    fn snapshot_from_context_copies_fields() {
+        let ctx = make_context();
+        let snap = snapshot_from_context(&ctx);
+        assert_eq!(snap.food, 100.0);
+        assert_eq!(snap.hungry_workers, 3);
+        assert_eq!(snap.corpses, 5.0);
+        assert_eq!(snap.maggots, 10.0);
+        assert_eq!(snap.building_count, 8);
+        assert_eq!(snap.tech_count, 4);
+        assert_eq!(snap.total_clicks, 500);
+    }
+
+    #[test]
+    fn summarize_event_entry_copies_fields() {
+        let entry = make_entry("test_scenario", "Workers");
+        let summary = summarize_event_entry(&entry);
+        assert_eq!(summary.event_id, 1);
+        assert_eq!(summary.scenario_id, "test_scenario");
+        assert_eq!(summary.category, "industrial_progress");
+        assert_eq!(summary.impact, "flavor");
+        assert_eq!(summary.worker_name, Some("测试员".to_string()));
+        assert_eq!(summary.worker_trait, Some("Diligent".to_string()));
+        assert!(!summary.is_breaking);
+    }
+
+    #[test]
+    fn summarize_event_entry_without_worker() {
+        let mut entry = make_entry("test_scenario", "Workers");
+        entry.worker_name = None;
+        entry.worker_trait = None;
+        let summary = summarize_event_entry(&entry);
+        assert!(summary.worker_name.is_none());
+        assert!(summary.worker_trait.is_none());
+    }
+
+    #[test]
+    fn render_active_modifier_view_expired_returns_none() {
+        let modifier = ActiveEventModifier {
+            source_event_id: 1,
+            scenario_id: "test".to_string(),
+            stage_id: "Workers".to_string(),
+            expires_at: 100.0,
+            ..Default::default()
+        };
+        let result = render_active_modifier_view(&modifier, 200.0);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn render_active_modifier_view_unknown_scenario_returns_none() {
+        let modifier = ActiveEventModifier {
+            source_event_id: 1,
+            scenario_id: "nonexistent_scenario".to_string(),
+            stage_id: "Workers".to_string(),
+            expires_at: 1000.0,
+            coins_per_second_delta: 5.0,
+            ..Default::default()
+        };
+        let result = render_active_modifier_view(&modifier, 100.0);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn render_active_modifier_view_success() {
+        let modifier = ActiveEventModifier {
+            source_event_id: 42,
+            scenario_id: "stage_genesis_click_heat_0_r0".to_string(),
+            stage_id: "stage_genesis".to_string(),
+            expires_at: 1000.0,
+            coins_per_second_delta: 2.5,
+            wood_per_second_delta: 1.0,
+            ..Default::default()
+        };
+        let result = render_active_modifier_view(&modifier, 500.0);
+        assert!(result.is_some());
+        let view = result.unwrap();
+        assert_eq!(view.event_id, 42);
+        assert_eq!(view.scenario_id, "stage_genesis_click_heat_0_r0");
+        assert_eq!(view.remaining_ms, 500.0);
+        assert_eq!(view.outcome.coins_per_second_delta, 2.5);
+        assert_eq!(view.outcome.wood_per_second_delta, 1.0);
+        assert!(!view.headline_zh.is_empty());
+        assert!(!view.headline_en.is_empty());
+    }
+
+    #[test]
+    fn render_event_entry_with_valid_scenario() {
+        let entry = make_entry("stage_genesis_click_heat_0_r0", "stage_genesis");
+        let result = render_event_entry(&entry);
+        assert!(result.is_some());
+        let rendered = result.unwrap();
+        assert_eq!(rendered.event_id, 1);
+        assert_eq!(rendered.scenario_id, "stage_genesis_click_heat_0_r0");
+        assert!(!rendered.headline_zh.is_empty());
+        assert!(!rendered.headline_en.is_empty());
+        assert!(!rendered.body_zh.is_empty());
+        assert!(!rendered.body_en.is_empty());
+        assert_eq!(rendered.worker_name, Some("测试员".to_string()));
+        assert_eq!(rendered.worker_trait, Some("Diligent".to_string()));
+        assert!(rendered.opinion_zh.is_some());
+        assert!(rendered.opinion_en.is_some());
+    }
+
+    #[test]
+    fn render_event_entry_without_worker() {
+        let mut entry = make_entry("stage_genesis_click_heat_0_r0", "stage_genesis");
+        entry.worker_name = None;
+        entry.worker_trait = None;
+        let result = render_event_entry(&entry);
+        assert!(result.is_some());
+        let rendered = result.unwrap();
+        assert!(rendered.worker_name.is_none());
+        assert!(rendered.opinion_zh.is_none());
+        assert!(rendered.opinion_en.is_none());
+    }
+
+    #[test]
+    fn render_event_entry_unknown_scenario_returns_none() {
+        let entry = make_entry("nonexistent_scenario_id", "stage_genesis");
+        let result = render_event_entry(&entry);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn render_event_entry_all_trait_mappings() {
+        let traits = [
+            "Diligent", "Hardworking", "Lazy", "Efficient", "Slow",
+            "Intelligent", "FastLearner", "Genius", "SlowLearner",
+            "Social", "Loner", "Charismatic", "Shy", "NightOwl",
+            "EarlyBird", "Clumsy", "Forgetful", "Careless", "Careful",
+            "Creative", "Persevering", "Optimistic",
+        ];
+        for trait_name in &traits {
+            let mut entry = make_entry("stage_genesis_click_heat_0_r0", "stage_genesis");
+            entry.worker_trait = Some(trait_name.to_string());
+            let result = render_event_entry(&entry);
+            assert!(result.is_some(), "trait {} should produce a result", trait_name);
+            let rendered = result.unwrap();
+            assert!(rendered.opinion_zh.is_some(), "trait {} should have opinion_zh", trait_name);
+        }
+    }
+
+    #[test]
+    fn render_event_entry_unknown_trait_defaults_to_careful() {
+        let mut entry = make_entry("stage_genesis_click_heat_0_r0", "stage_genesis");
+        entry.worker_trait = Some("UnknownTrait".to_string());
+        let result = render_event_entry(&entry);
+        assert!(result.is_some());
+        let rendered = result.unwrap();
+        assert!(rendered.opinion_zh.is_some());
+    }
+
+    #[test]
+    fn context_from_entry_sets_defaults() {
+        let entry = make_entry("stage_genesis_click_heat_0_r0", "stage_genesis");
+        let ctx = context_from_entry(&entry);
+        assert_eq!(ctx.stage, GameStage::Genesis);
+        assert_eq!(ctx.food, 100.0);
+        assert_eq!(ctx.hungry_workers, 2);
+        assert_eq!(ctx.total_workers, 0);
+        assert_eq!(ctx.human_pressure, 0.0);
+    }
+}
+
