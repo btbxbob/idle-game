@@ -40,6 +40,7 @@ pkg/
 test-results/
 playwright-report/
 coverage-report/
+perf-report/
 # Test reports
 playwright-report/
 test-results/

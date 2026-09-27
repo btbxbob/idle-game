@@ -9,6 +9,7 @@
 | Re-run Jenkins locally | `jenkins-debug-rerun.sh` | Triggers `idle-game-ci`, waits, prints failures and coverage |
 | Merge E2E coverage | `merge-e2e-coverage.js` | Consumes `coverage-report/raw/*.json` and enforces thresholds |
 | Measure startup load time | `measure-load-time.js` | Runs repeated Playwright startup samples, prints JSON summary |
+| Measure runtime game performance | `measure-game-perf.js` | Emits perf-report/ HTML report + SVG flamegraph + speedscope + cpuprofile |
 | Syntax-check JS files | `lint-syntax.js` | Repo-specific lint entry behind `npm run lint` |
 | Check version consistency | `check-version.js` | Validates all version sources match; runs via `npm run lint:version` |
 | Sync version across files | `sync-version.py` | One-command version bump for Cargo.toml, package.json, README.md, index.html |
