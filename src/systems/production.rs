@@ -562,35 +562,3 @@ pub fn update_production(
     production
 }
 
-/// Legacy function - returns (coins, wood, stone) for backward compatibility
-pub fn update_production_legacy(buildings: &[Building], workers: &[Worker]) -> (f64, f64, f64) {
-    let tech_bonuses = default_tech_bonuses();
-    let production = update_production(buildings, workers, &tech_bonuses);
-    (production[0], production[1], production[2])
-}
-
-/// Grant XP to workers assigned to buildings
-pub fn grant_worker_xp(workers: &mut [Worker], elapsed: f64) {
-    for i in 0..workers.len() {
-        if workers[i].assigned_building.is_some() {
-            let xp_gain = 10.0 * elapsed;
-            workers[i].xp += xp_gain;
-
-            while workers[i].xp >= workers[i].xp_to_next_level {
-                workers[i].xp -= workers[i].xp_to_next_level;
-                workers[i].level += 1;
-                workers[i].xp_to_next_level = (workers[i].xp_to_next_level * 1.5).ceil();
-
-                let preference = &workers[i].preferences;
-                let assigned = workers[i].assigned_building.as_ref().unwrap();
-                let mut efficiency = 1.0;
-
-                if preference == assigned {
-                    efficiency += 0.2;
-                }
-                efficiency += (workers[i].level as f64) * 0.05;
-                workers[i].efficiency_multiplier = efficiency;
-            }
-        }
-    }
-}

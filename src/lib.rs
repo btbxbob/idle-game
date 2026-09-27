@@ -20,8 +20,8 @@ pub use utils::{Gender, NameGenerator};
 pub use world::World;
 
 #[wasm_bindgen]
-pub fn init_game() -> World {
-    World::new().expect("Failed to initialize game world")
+pub fn init_game() -> Result<World, JsValue> {
+    World::new()
 }
 
 #[wasm_bindgen]

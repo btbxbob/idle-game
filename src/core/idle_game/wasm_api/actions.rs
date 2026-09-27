@@ -327,44 +327,39 @@ impl IdleGame {
     #[wasm_bindgen]
     pub fn get_resources(&self) -> JsValue {
         let state = self.state.borrow();
-        let mut resources = serde_wasm_bindgen::to_value(&HashMap::<String, f64>::new()).unwrap();
+        let resources = js_sys::Object::new();
 
         for (resource_type, amount) in state.resources.iter() {
             let key = format!("{:?}", resource_type);
-            js_sys::Reflect::set(
-                &mut resources,
+            let _ = js_sys::Reflect::set(
+                &resources,
                 &JsValue::from_str(&key),
                 &JsValue::from_f64(*amount),
-            )
-            .unwrap();
+            );
         }
 
-        js_sys::Reflect::set(
-            &mut resources,
+        let _ = js_sys::Reflect::set(
+            &resources,
             &JsValue::from_str("coinsPerSecond"),
             &JsValue::from_f64(state.coins_per_second),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &mut resources,
+        );
+        let _ = js_sys::Reflect::set(
+            &resources,
             &JsValue::from_str("woodPerSecond"),
             &JsValue::from_f64(state.wood_per_second),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &mut resources,
+        );
+        let _ = js_sys::Reflect::set(
+            &resources,
             &JsValue::from_str("stonePerSecond"),
             &JsValue::from_f64(state.stone_per_second),
-        )
-        .unwrap();
-        js_sys::Reflect::set(
-            &mut resources,
+        );
+        let _ = js_sys::Reflect::set(
+            &resources,
             &JsValue::from_str("coinsPerClick"),
             &JsValue::from_f64(state.coins_per_click),
-        )
-        .unwrap();
+        );
 
-        resources
+        resources.into()
     }
 
     #[wasm_bindgen]

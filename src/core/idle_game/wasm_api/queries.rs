@@ -51,28 +51,28 @@ impl IdleGame {
                 &JsValue::from_str("name"),
                 &JsValue::from_str(&worker.name),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("skills"),
                 &JsValue::from_str(&worker.skills),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("background"),
                 &JsValue::from_str(&worker.background),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("preferences"),
                 &JsValue::from_str(&worker.preferences),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
@@ -82,35 +82,35 @@ impl IdleGame {
                     None => JsValue::NULL,
                 },
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("level"),
                 &JsValue::from_f64(worker.level as f64),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("efficiencyMultiplier"),
                 &JsValue::from_f64(worker.efficiency_multiplier),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("baseEfficiency"),
                 &JsValue::from_f64(base_efficiency),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("totalEfficiency"),
                 &JsValue::from_f64(total_efficiency),
             )
-            .unwrap();
+            .ok();
 
             let breakdown_array = js_sys::Array::new();
             for part in breakdown {
@@ -121,7 +121,7 @@ impl IdleGame {
                 &JsValue::from_str("efficiencyBreakdown"),
                 &breakdown_array,
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
@@ -131,28 +131,28 @@ impl IdleGame {
                     None => JsValue::NULL,
                 },
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("xp"),
                 &JsValue::from_f64(worker.xp),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("xpToNextLevel"),
                 &JsValue::from_f64(worker.xp_to_next_level),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("gender"),
                 &JsValue::from_str(&format!("{:?}", worker.gender)),
             )
-            .unwrap();
+            .ok();
 
             let hobbies = js_sys::Array::new();
             for hobby in &worker.hobbies {
@@ -165,7 +165,7 @@ impl IdleGame {
                 &JsValue::from_str("primaryTrait"),
                 &JsValue::from_str(&format!("{:?}", worker.primary_trait)),
             )
-            .unwrap();
+            .ok();
 
             let secondary_traits = js_sys::Array::new();
             for t in &worker.secondary_traits {
@@ -176,42 +176,42 @@ impl IdleGame {
                 &JsValue::from_str("secondaryTraits"),
                 &secondary_traits,
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("happiness"),
                 &JsValue::from_f64(worker.happiness),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("hunger"),
                 &JsValue::from_f64(worker.hunger),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("focus"),
                 &JsValue::from_f64(worker.focus),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("fatigue"),
                 &JsValue::from_f64(worker.fatigue),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("stress"),
                 &JsValue::from_f64(worker.stress),
             )
-            .unwrap();
+            .ok();
 
             let missing_limbs = js_sys::Array::new();
             for limb in &worker.missing_limbs {
@@ -222,7 +222,7 @@ impl IdleGame {
                 &JsValue::from_str("missingLimbs"),
                 &missing_limbs,
             )
-            .unwrap();
+            .ok();
 
             let maggot_limbs = js_sys::Array::new();
             for limb in &worker.maggot_limbs {
@@ -233,21 +233,21 @@ impl IdleGame {
                 &JsValue::from_str("maggotLimbs"),
                 &maggot_limbs,
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("canMaggotSurgery"),
                 &JsValue::from_bool(can_maggot_surgery),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
                 &JsValue::from_str("maggotSurgeryCost"),
                 &JsValue::from_f64(maggot_surgery_cost),
             )
-            .unwrap();
+            .ok();
 
             js_sys::Reflect::set(
                 &worker_obj,
@@ -257,7 +257,7 @@ impl IdleGame {
                     None => JsValue::NULL,
                 },
             )
-            .unwrap();
+            .ok();
 
             workers_array.push(&worker_obj);
         }

@@ -181,7 +181,6 @@ pub struct IdleGame {
     #[wasm_bindgen(skip)]
     achievements: Vec<Achievement>,
     #[wasm_bindgen(skip)]
-    #[wasm_bindgen(skip)]
     unlocked_features: Vec<UnlockedFeature>,
     #[wasm_bindgen(skip)]
     technology_tree: TechnologyTree,
@@ -192,16 +191,22 @@ pub struct IdleGame {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SavedGame {
     pub state: GameState,
+    #[serde(default)]
     pub statistics: Statistics,
+    #[serde(default)]
     pub buildings: Vec<Building>,
+    #[serde(default)]
     pub housing_buildings: Vec<Housing>,
+    #[serde(default)]
     pub workers: Vec<Worker>,
     #[serde(default)]
     pub population_queue: PopulationQueue,
+    #[serde(default)]
     pub achievements: Vec<Achievement>,
     #[serde(default, alias = "crafting_recipes")]
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub legacy_crafting_recipes: Vec<serde_json::Value>,
+    #[serde(default)]
     pub unlocked_features: Vec<UnlockedFeature>,
     #[serde(default)]
     pub technology_tree: TechnologyTree,
@@ -209,7 +214,9 @@ pub struct SavedGame {
     pub last_food_consumption_time: f64,
     #[serde(default)]
     pub last_worker_spawn_time: f64,
+    #[serde(default)]
     pub save_timestamp: f64,
+    #[serde(default)]
     pub version: String,
 }
 

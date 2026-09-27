@@ -77,11 +77,15 @@ impl NameGenerator {
         let mut rng = rng();
 
         match gender {
-            Gender::Male => male_names.choose(&mut rng).unwrap(),
-            Gender::Female => female_names.choose(&mut rng).unwrap(),
+            Gender::Male => male_names.choose(&mut rng).copied().unwrap_or("James"),
+            Gender::Female => female_names.choose(&mut rng).copied().unwrap_or("Mary"),
             Gender::Other => {
-                let all_names: Vec<_> = male_names.iter().chain(female_names.iter()).collect();
-                *all_names.choose(&mut rng).unwrap()
+                let all_names: Vec<&'static str> = male_names
+                    .iter()
+                    .chain(female_names.iter())
+                    .copied()
+                    .collect();
+                all_names.choose(&mut rng).copied().unwrap_or("Alex")
             }
         }
     }
@@ -117,7 +121,7 @@ impl NameGenerator {
         ];
 
         let mut rng = rng();
-        last_names.choose(&mut rng).unwrap()
+        last_names.choose(&mut rng).copied().unwrap_or("Smith")
     }
 }
 
