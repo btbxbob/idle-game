@@ -41,9 +41,6 @@ test-results/
 playwright-report/
 coverage-report/
 perf-report/
-# Test reports
-playwright-report/
-test-results/
 
 # Agent working directories
 .sisyphus/
@@ -51,6 +48,10 @@ test-results/
 .evoskill/
 .serena/
 .playwright-mcp/
+
+# Root-level screenshots and accidental home-directory tree
+/*.png
+~/.config/opencode/
 
 # Stale coverage artifacts
 coverage-report-build*.json
