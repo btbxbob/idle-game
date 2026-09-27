@@ -78,17 +78,23 @@ idle-game/
 ├── docs/                 # 项目文档
 │   ├── DESIGN.md         # 详细设计文档
 │   └── DEVELOPMENT_GUIDELINES.md  # 开发准则
+├── config/               # 平衡性配置 (balance.json)
+├── content/              # 多语言游戏内容 (buildings/resources/technologies)
 ├── src/                  # Rust 源代码
-│   └── lib.rs           # 主要游戏逻辑
-├── js/                   # JavaScript 前端
-│   ├── i18n.js          # 国际化系统
-│   ├── game.js          # UI 更新函数
-│   └── bootstrap.js     # WASM 加载
+│   ├── core/idle_game/   # 核心编排逻辑与 WASM API
+│   ├── config/           # BalanceConfig / ContentManager 加载
+│   ├── entities/         # 建筑、工人、科技、人口实体
+│   ├── state/            # 持久化状态
+│   ├── systems/          # 生产、科技、解锁、威望等系统
+│   └── ui/               # 面向 UI 的快照与回调
+├── js/                   # JavaScript 前端管理器
+│   ├── i18n.js           # 国际化系统
+│   ├── bootstrap.js      # WASM 加载与主循环
+│   └── *-manager.js      # 各 UI 面板管理器
 ├── css/                  # 样式表
-│   └── style.css        # 主要样式
+│   └── style.css         # 主要样式
 ├── tests/                # Playwright 测试
-├── index.html            # 主 HTML 文件
-└── docs/TEST_CASES.md    # 测试用例文档
+└── index.html            # 主 HTML 文件
 ```
 
 ## 文档
@@ -103,11 +109,12 @@ idle-game/
 
 要扩展游戏功能，您可以修改以下部分：
 
-1. 在 `src/lib.rs` 中添加新的游戏对象或机制
-2. 在 `index.html` 中添加 UI 元素
-3. 在 `css/style.css` 中更新样式
-4. 在 `js/` 文件中处理新的交互逻辑
-5. 参考 `docs/DESIGN.md` 了解架构约束
+1. 在 `src/core/idle_game/` 与 `src/systems/` 中调整核心机制（如数值请优先改 `config/balance.json`）
+2. 在 `content/<lang>/` 中增改建筑/资源/科技内容
+3. 在 `index.html` 中添加 UI 元素
+4. 在 `css/style.css` 中更新样式
+5. 在 `js/` 管理器中处理新的交互逻辑
+6. 参考 `docs/DESIGN.md` 了解架构约束
 
 ## 游戏组件
 

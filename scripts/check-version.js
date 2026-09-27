@@ -19,6 +19,10 @@ const sources = {
     const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8'));
     return data.version || null;
   },
+  'package-lock.json': () => {
+    const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'package-lock.json'), 'utf-8'));
+    return data.version || null;
+  },
   'README.md': () => {
     const content = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf-8');
     const match = content.match(/当前版本:\s*\*\*v([^*]+)\*\*/);
@@ -33,6 +37,13 @@ const sources = {
     const content = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf-8');
     const match = content.match(/游戏版本：v([^<]+)</);
     return match ? match[1] : null;
+  },
+  'index.html (cache-bust)': () => {
+    const content = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf-8');
+    const matches = [...content.matchAll(/\?v=([0-9]+\.[0-9]+\.[0-9]+)/g)].map((m) => m[1]);
+    const unique = [...new Set(matches)];
+    if (unique.length === 0) return null;
+    return unique.length === 1 ? unique[0] : unique.sort().join(',');
   }
 };
 

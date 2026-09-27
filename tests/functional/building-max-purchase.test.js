@@ -3,7 +3,7 @@ const { test, expect } = require('../fixtures/coverage');
 test.describe('Building Max Purchase', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080', { timeout: 60000 });
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 60000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 60000 });
     });
 
     test('max affordable count is consistent with manual buys when count=0', async ({ page }) => {

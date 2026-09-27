@@ -13,7 +13,7 @@ test.describe('Performance Stress Test - 性能压力测试', () => {
         
         console.log('\n[1/6] 初始化游戏...');
         await page.goto('http://localhost:8080');
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 10000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 10000 });
         console.log('✓ 游戏初始化完成');
 
         

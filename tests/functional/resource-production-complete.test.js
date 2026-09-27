@@ -4,7 +4,7 @@ const { performGameClicks, unlockAdvancedIndustry, unlockIndustrialBase, unlockW
 test.describe('Resource Production Complete', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080', { timeout: 60000 });
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 60000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 60000 });
         await unlockWorkersStage(page);
     });
 

@@ -24,7 +24,7 @@ services:
       - "50000:50000"
     environment:
       JENKINS_ADMIN_ID: ${JENKINS_ADMIN_ID:-admin}
-      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:-admin123}
+      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:?Set JENKINS_ADMIN_PASSWORD (see docker/jenkins/.env.jenkins.example)}
       JENKINS_AGENT_NAME: ${JENKINS_AGENT_NAME:-idle-game-build-agent}
       JENKINS_AGENT_LABEL: ${JENKINS_AGENT_LABEL:-idle-game-build-agent linux docker}
       JENKINS_AGENT_REMOTE_FS: ${JENKINS_AGENT_REMOTE_FS:-/home/jenkins/agent}
@@ -49,7 +49,7 @@ services:
     environment:
       JENKINS_URL: http://jenkins:8081
       JENKINS_ADMIN_ID: ${JENKINS_ADMIN_ID:-admin}
-      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:-admin123}
+      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:?Set JENKINS_ADMIN_PASSWORD (see docker/jenkins/.env.jenkins.example)}
       JENKINS_AGENT_NAME: ${JENKINS_AGENT_NAME:-idle-game-build-agent}
       JENKINS_AGENT_WORKDIR: ${JENKINS_AGENT_REMOTE_FS:-/home/jenkins/agent}
       DOCKER_HOST: tcp://dind:2375

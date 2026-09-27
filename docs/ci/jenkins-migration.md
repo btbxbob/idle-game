@@ -12,8 +12,8 @@ docker compose --env-file docker/jenkins/.env.jenkins -f docker/jenkins/docker-c
 Jenkins UI: `http://localhost:8081`
 
 Default local credentials (change in env):
-- User: `admin`
-- Password: `admin123`
+- User: `admin` (override with `JENKINS_ADMIN_ID`)
+- Password: no default — set `JENKINS_ADMIN_PASSWORD` (see `docker/jenkins/.env.jenkins.example`)
 
 You can override credentials before startup:
 
@@ -171,7 +171,7 @@ When `RUN_PLAYWRIGHT=true`, Jenkins executes:
 
 - `npx playwright test --project=chromium --reporter=line,junit,html`
 
-The Jenkins pipeline passes `PW_TEST_WORKERS=2` into the Playwright container by default, matching the CI fallback in `playwright.config.js` and reducing browser memory pressure in a single container.
+The Jenkins pipeline passes `PW_TEST_WORKERS` into the Playwright container (Jenkinsfile default `4`), reducing browser memory pressure in a single container.
 
 The pipeline also enables `buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '3'))` so the Jenkins controller keeps only the latest 10 build records and the latest 3 sets of archived artifacts, reducing local disk growth.
 
@@ -238,7 +238,7 @@ Optional environment overrides:
 ```bash
 JENKINS_URL=http://localhost:8081 \
 JENKINS_USER=admin \
-JENKINS_TOKEN=admin123 \
+JENKINS_TOKEN=<your-api-token> \
 JOB_NAME=idle-game-ci \
 RUN_PLAYWRIGHT=true \
 RUN_COVERAGE=true \

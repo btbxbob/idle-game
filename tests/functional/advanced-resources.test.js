@@ -4,7 +4,7 @@ const { importStageSnapshot, unlockAdvancedIndustry, unlockWorkersStage } = requ
 test.describe('Advanced Resources (Tier 3)', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('http://localhost:8080', { timeout: 60000 });
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 60000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 60000 });
         await unlockAdvancedIndustry(page);
     });
 
@@ -61,7 +61,7 @@ test.describe('Advanced Resources (Tier 3)', () => {
 
     test('advanced factories stay hidden until their supporting technology is researched', async ({ page }) => {
         await page.goto('http://localhost:8080', { timeout: 60000 });
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 60000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 60000 });
         await unlockWorkersStage(page);
 
         const before = await page.evaluate(() => {

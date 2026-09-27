@@ -233,8 +233,8 @@ git commit -m "chore: bump runtime version to v0.8.15"
 | `README.md` | Version badge | `当前版本：**v0.8.15**` |
 | `index.html` | Line 7 | `<meta name="app-version" content="0.8.15">` |
 | `index.html` | Line 10 | CSS `?v=0.8.15` cache-busting |
-| `index.html` | Lines 285-297 | All JS `?v=0.8.15` cache-busting |
-| `index.html` | Line 251 | Footer `游戏版本：v0.8.15` |
+| `index.html` | Lines 345-363 | All JS `?v=0.8.15` cache-busting |
+| `index.html` | Line 306 | Footer `游戏版本：v0.8.15` |
 
 ### Version Consistency Check
 - `npm run lint:version` validates all version sources match
@@ -299,5 +299,5 @@ Important:
 
 ## NOTES
 - LSP Rust analysis may be unavailable if `rust-analyzer` is not installed
-- `wasm-pack` release profile has `wasm-opt = false` (WASM not optimized in release builds)
+- `wasm-pack` release profile enables `wasm-opt = true` (WASM optimized in release builds)
 - No Cursor/Copilot rules configured; this file is the primary agentic coding guide

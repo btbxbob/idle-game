@@ -32,7 +32,6 @@ __pycache__/
 
 # Rust build files that we don't need to track
 **/target/
-Cargo.lock
 
 # Ignore the WASM build artifacts if they're regenerated often
 pkg/
@@ -48,3 +47,9 @@ test-results/
 # Agent working directories
 .sisyphus/
 .opencode/
+.evoskill/
+.serena/
+.playwright-mcp/
+
+# Stale coverage artifacts
+coverage-report-build*.json

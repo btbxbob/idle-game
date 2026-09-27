@@ -20,6 +20,7 @@ from typing import cast
 ROOT = Path(__file__).resolve().parent.parent
 CARGO_TOML = ROOT / "Cargo.toml"
 PACKAGE_JSON = ROOT / "package.json"
+PACKAGE_LOCK = ROOT / "package-lock.json"
 README_MD = ROOT / "README.md"
 INDEX_HTML = ROOT / "index.html"
 
@@ -48,6 +49,18 @@ def write_package_json_version(version: str) -> None:
     data = cast(dict, json.loads(PACKAGE_JSON.read_text(encoding="utf-8")))
     data["version"] = version
     PACKAGE_JSON.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def write_package_lock_version(version: str) -> None:
+    data = cast(dict, json.loads(PACKAGE_LOCK.read_text(encoding="utf-8")))
+    data["version"] = version
+    packages = data.get("packages")
+    if isinstance(packages, dict) and "" in packages:
+        packages[""]["version"] = version
+    PACKAGE_LOCK.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
@@ -100,6 +113,7 @@ def main() -> None:
 
     write_cargo_version(version)
     write_package_json_version(version)
+    write_package_lock_version(version)
     write_readme_version(version)
     write_index_html_version(version)
 

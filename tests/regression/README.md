@@ -16,18 +16,8 @@
   - Bug: 建筑/升级面板渲染出现 `undefined` 文本。
 - `click-after-failure.test.js`
   - Bug: 购买失败后点击流程受影响（状态/交互异常）。
-- `upgrade-cost-recursive-borrow.test.js`
-  - Bug: 升级购买后花费更新异常，涉及 Rust 借用冲突修复后的回归验证。
-- `upgrade-cost-update.test.js`
-  - Bug: 升级花费未按倍率更新或显示不一致。
-- `upgrade-cost-debug.test.js`
-  - Bug: 升级花费链路异常，需要诊断路径校验。
-- `debug-upgrade-cost.test.js`
-  - Bug: 同升级花费问题的调试与防回归补充。
-- `diagnose-upgrade-init.test.js`
-  - Bug: 升级列表初始化异常（条目/成本/索引不一致）。
 - `debug-tab.test.js`
-  - Bug: 标签页切换显示状态异常，需要状态诊断。
+  - Bug: 标签页切换后出现多个面板同时激活或激活态未转移。
 - `fix-all-issues.test.js`
   - Bug: 历史复合问题集合（显示异常、升级链路异常）回归用例。
 - `autoclicker-removed.test.js`

@@ -23,7 +23,7 @@ test.describe('Performance Benchmark - 性能基准测试', () => {
         console.log('开始基础性能测试...');
         
         await page.goto('http://localhost:8080');
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 10000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 10000 });
         console.log('游戏初始化完成');
         
         // 测量 UI 响应时间
@@ -68,7 +68,7 @@ test.describe('Performance Benchmark - 性能基准测试', () => {
         console.log('开始压力测试...');
         
         await page.goto('http://localhost:8080');
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 10000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 10000 });
         
         // 并发点击
         console.log('执行并发点击...');

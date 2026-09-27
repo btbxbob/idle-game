@@ -2,7 +2,7 @@ const { test, expect } = require('../fixtures/coverage');
 
 async function waitForGameInitialization(page) {
   await page.goto('http://localhost:8080');
-  await page.waitForFunction(() => window.gameInitialized === true, { timeout: 10000 });
+  await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 10000 });
 }
 
 async function assertCoreStateValid(page) {

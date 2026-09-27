@@ -13,7 +13,7 @@ async function getCoins(page) {
 test.describe('Settings save flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:8080');
-    await page.waitForFunction(() => window.gameInitialized === true, { timeout: 30000 });
+    await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 30000 });
   });
 
   test('theme, language, and manual save state survive the expected user flow', async ({ page }) => {
@@ -58,7 +58,7 @@ test.describe('Settings save flow', () => {
     expect(hasLocalSave).toBe(true);
 
     await page.reload();
-    await page.waitForFunction(() => window.gameInitialized === true, { timeout: 30000 });
+    await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 30000 });
 
     await expect(page.locator('body')).toHaveClass(/dark-theme/);
     await expect(page.locator('#theme-select-setting')).toHaveValue('dark');
@@ -172,7 +172,7 @@ test.describe('Settings save flow', () => {
 
     await page.click('#reset-game');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForFunction(() => window.gameInitialized === true, { timeout: 30000 });
+    await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 30000 });
 
     const confirmState = await page.evaluate(() => ({
       save: localStorage.getItem('idle_game_save'),

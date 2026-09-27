@@ -3,7 +3,7 @@ set -euo pipefail
 
 JENKINS_URL="${JENKINS_URL:-http://localhost:8081}"
 JENKINS_USER="${JENKINS_USER:-admin}"
-JENKINS_TOKEN="${JENKINS_TOKEN:-admin123}"
+: "${JENKINS_TOKEN:?Set JENKINS_TOKEN (Jenkins API token or password) before running this script}"
 JOB_NAME="${JOB_NAME:-idle-game-ci}"
 RUN_PLAYWRIGHT="${RUN_PLAYWRIGHT:-true}"
 RUN_COVERAGE="${RUN_COVERAGE:-true}"

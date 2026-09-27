@@ -8,7 +8,7 @@ test.describe('Performance Quick Test - 性能快速测试', () => {
         console.log('=== 开始性能快速测试 ===');
         
         await page.goto('http://localhost:8080');
-        await page.waitForFunction(() => window.gameInitialized === true, { timeout: 10000 });
+        await page.waitForFunction(() => window.gameInitialized === true, null, { timeout: 10000 });
         await unlockWorkersStage(page);
         console.log('✓ 游戏初始化完成');
         

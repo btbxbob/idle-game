@@ -35,7 +35,7 @@ test('stale imported saves resume passive production on the next live tick', asy
   expect(seeded.ok).toBe(true);
   expect(seeded.coins).toBe(0);
 
-  await page.waitForFunction(() => window.rustGame.get_coins_per_second() > 0, { timeout: 5000 });
+  await page.waitForFunction(() => window.rustGame.get_coins_per_second() > 0, null, { timeout: 5000 });
 
   await page.waitForTimeout(1200);
   await page.evaluate(() => {
@@ -43,7 +43,7 @@ test('stale imported saves resume passive production on the next live tick', asy
     window.rustGame.game_loop();
   });
 
-  await page.waitForFunction(() => window.rustGame.get_coins() > 0, { timeout: 5000 });
+  await page.waitForFunction(() => window.rustGame.get_coins() > 0, null, { timeout: 5000 });
 
   const afterTick = await page.evaluate(() => ({
     coins: window.rustGame.get_coins(),

@@ -40,7 +40,7 @@ js/
 - `bootstrap.js` owns manager construction order; do not instantiate managers ad hoc elsewhere.
 - Keep the bootstrap construction order stable: statistics -> achievements -> unlocks -> workers -> technology -> housing -> work overview -> lifecycle -> resources.
 - Guard all WASM access with `window.gameInitialized` / `window.rustGame` checks.
-- Keep the 1000ms game loop cadence in `bootstrap.js`; balance and tests assume it.
+- Keep the 250ms game loop cadence in `bootstrap.js`; balance and tests assume it.
 - Use `window.i18n.t(...)` for labels instead of hardcoded UI text.
 - Coin button click logic lives solely in `bootstrap.js` — no duplicate handlers.
 
