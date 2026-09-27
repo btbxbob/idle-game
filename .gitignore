@@ -44,9 +44,10 @@ perf-report/
 
 # Agent working directories
 .sisyphus/
-# opencode: share skills, keep local tooling (node_modules, locks) ignored
+# opencode: share skills and agent definitions, keep local tooling (node_modules, locks) ignored
 .opencode/*
 !.opencode/skills/
+!.opencode/agent/
 .evoskill/
 .serena/
 .playwright-mcp/
